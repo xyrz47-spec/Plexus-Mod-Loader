@@ -21,8 +21,8 @@
 
 ---
 
-This repository hosts PolyLoader's installers. The source code is not public for now.
-이 저장소는 PolyLoader 설치 파일을 배포하는 곳입니다. 소스 코드는 지금 공개하지 않습니다.
+<p>This repository hosts PolyLoader's installers. The source code is not public for now.<p/>
+<p>이 저장소는 PolyLoader 설치 파일을 배포하는 곳입니다. 소스 코드는 현재 비공개입니다.<p/>
 
 ## English
 
