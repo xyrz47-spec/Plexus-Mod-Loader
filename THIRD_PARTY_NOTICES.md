@@ -12,6 +12,7 @@ These are inside PolyLoader's jars, the installer, or the libraries the installe
 | [Fabric Loader](https://github.com/FabricMC/fabric-loader) public API classes (`net.fabricmc.api`, `net.fabricmc.loader.api`, and the classes they need) | 0.19.5 | Apache License 2.0 | `poly-bridge-fabric` jar, with its `LICENSE_fabric-loader` |
 | [ASM](https://asm.ow2.io/) (`asm`, `asm-tree`, `asm-analysis`, `asm-util`) | 9.11.1 | BSD 3-Clause | runtime library |
 | [tomlj](https://github.com/tomlj/tomlj) | 1.1.1 | Apache License 2.0 | runtime library |
+| [XZ for Java](https://tukaani.org/xz/java.html) (`org.tukaani:xz`) | 1.9 | Public domain | runtime library (reads Forge's binary patches, ADR-0021) |
 | [ANTLR 4 runtime](https://www.antlr.org/) | 4.11.1 | BSD 3-Clause | runtime library (needed by tomlj) |
 | [Checker Framework qualifiers](https://checkerframework.org/) | 3.21.2 | MIT | runtime library (needed by tomlj) |
 | [Gson](https://github.com/google/gson) | 2.14.0 | Apache License 2.0 | inside the installer jar. At run time PolyLoader uses the copy Minecraft ships |
@@ -19,6 +20,7 @@ These are inside PolyLoader's jars, the installer, or the libraries the installe
 | [MixinExtras](https://github.com/LlamaLad7/MixinExtras) (`mixinextras-common`) | 0.5.5 | MIT | runtime library (Fabric bridge, ADR-0020) |
 | [ASM](https://asm.ow2.io/) `asm-commons` | 9.11.1 | BSD 3-Clause | runtime library (needed by Mixin) |
 | Code adapted from [Fabric Loader](https://github.com/FabricMC/fabric-loader): its Mixin service (`MixinServiceKnot`), Mixin compatibility table (`FabricMixinVersions`), environment stripping (`EnvironmentStrippingData`, `ClassStripper`, `FabricTransformer`) | 0.19.5 | Apache License 2.0 | `poly-bridge-fabric` jar (`dev.polyloader.compat.fabric.mixin.PolyMixinService`, `MixinCompatibility`, `dev.polyloader.compat.fabric.EnvironmentStripper`); each file names its source and changes, and the jar carries `LICENSE_fabric-loader` |
+| Code adapted from [class-tweaker](https://github.com/FabricMC/class-tweaker), the class tweaker library Fabric Loader ships: enum extension (`EnumExtensionClassVisitor`) | 0.3.0 | Apache License 2.0 | `poly-bridge-fabric` jar (`dev.polyloader.compat.fabric.EnumExtender`) |
 
 ## Used but not distributed by PolyLoader
 
