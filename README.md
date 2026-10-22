@@ -28,7 +28,7 @@
 
 PolyLoader is a Minecraft: Java Edition mod loader built to run Fabric, Forge, NeoForge and Quilt mods together.
 
-It also has its own **Native API**; mods made with it are called **Poly Mods**. Before the game starts, PolyLoader checks each mod in the mods folder. A mod that cannot run yet is left out of the launch, and the log says why.
+It also has its own **Native API**; mods made with it are called **Poly Mods**. Before the game starts, PolyLoader checks your mods. Mods that cannot run are left out of the launch, with the reason in the log.
 
 > **This is an alpha.** It supports Minecraft 26.1, 26.1.1, 26.1.2 and 26.2, and the API may change. Back up worlds you care about.
 
@@ -63,7 +63,7 @@ PolyLoader is licensed under the **PolyLoader Non-Commercial License 1.0** ([`LI
 
 PolyLoader는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 함께 실행하기 위한 Minecraft: Java Edition 모드 로더입니다.
 
-자체 API인 **Native API**도 있으며, 이것으로 만든 모드를 **Poly 모드**라고 부릅니다. 게임을 시작하기 전에 mods 폴더의 모드를 하나씩 확인하고, 아직 실행할 수 없는 모드는 이유를 로그에 남기고 실행에서 제외합니다.
+자체 API인 **Native API**도 있으며, 이것으로 만든 모드를 **Poly 모드**라고 부릅니다. 게임을 시작하기 전 모드를 확인하고, 실행이 불가한 모드는 로그와 함께 실행에서 제외합니다.
 
 > **알파 버전입니다.** Minecraft 26.1, 26.1.1, 26.1.2, 26.2를 지원하며, API는 바뀔 수 있습니다. 중요한 월드는 백업하세요.
 
