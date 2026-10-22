@@ -54,7 +54,7 @@ PolyLoader is free. If it is useful to you, you can support it on [Buy Me a Coff
 | Mods | Status |
 |---|---|
 | Poly Mods | Supported |
-| Fabric mods | Experimental. Fabric mods run as under Fabric Loader, Mixin included; 137 popular Fabric mods (Sodium, Iris, Lithium and more) load together on the client and join a world, and 99 pass a real dedicated server start |
+| Fabric mods | Supported. Fabric mods run as under Fabric Loader, Mixin included. On 26.1 and 26.2, popular Fabric mods (138 on 26.2: Sodium, Iris, Lithium and more) play a world together on the client, save it and quit, and 100 start a real dedicated server; the only mods left out are ones Fabric Loader refuses too |
 | Quilt mods | Not supported yet (a goal). Quilt mods that also ship `fabric.mod.json` are handled as Fabric mods |
 | NeoForge mods | Not run. PolyLoader diagnoses what they need and logs it |
 | Forge mods | Not run. PolyLoader diagnoses what they need and logs it |
@@ -95,7 +95,7 @@ PolyLoader는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](https://
 | 모드 | 상태 |
 |---|---|
 | Poly 모드 | 지원 |
-| Fabric 모드 | 실험적. Mixin을 포함해 Fabric Loader에서처럼 실행되며, Sodium, Iris, Lithium 등 인기 Fabric 모드 137개를 함께 넣고 클라이언트에서 월드에 들어가며, 99개가 실제 전용 서버 시작을 통과합니다 |
+| Fabric 모드 | 지원. Mixin을 포함해 Fabric Loader에서처럼 실행됩니다. 26.1과 26.2에서 인기 Fabric 모드(26.2는 Sodium, Iris, Lithium 등 138개)를 함께 넣고 클라이언트에서 월드를 플레이하고 저장한 뒤 나오며, 100개가 실제 전용 서버 시작을 통과합니다. 빠지는 모드는 Fabric Loader도 실행하지 않는 경우뿐입니다 |
 | Quilt 모드 | 아직 지원하지 않음(목표). `fabric.mod.json`도 든 Quilt 모드는 Fabric 모드로 처리합니다 |
 | NeoForge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
 | Forge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
