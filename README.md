@@ -26,7 +26,9 @@
 
 ## English
 
-PolyLoader is a mod loader that keeps Minecraft's launch foundation as it is and extends or replaces the game systems on top of it. It provides its own **Native API** and also runs some Fabric mods. Mods made with the Native API are called **Poly Mods**.
+PolyLoader is a Minecraft: Java Edition mod loader built to run Fabric, Forge, NeoForge and Quilt mods together.
+
+It also has its own **Native API**; mods made with it are called **Poly Mods**. Before the game starts, PolyLoader checks your mods. Mods that cannot run are left out of the launch, with the reason in the log.
 
 > **This is an alpha.** It supports Minecraft 26.1, 26.1.1, 26.1.2 and 26.2, and the API may change. Back up worlds you care about.
 
@@ -36,7 +38,7 @@ PolyLoader is a mod loader that keeps Minecraft's launch foundation as it is and
 2. Download from the [releases page](https://github.com/xyrz47-spec/PolyLoader/releases/latest).
    - Windows: `PolyLoader-<version>.exe`. No separate Java install is needed; it uses the Java the launcher downloaded.
    - macOS and Linux: `PolyLoader-<version>.jar`. Run it with Java 17 or newer (`java -jar PolyLoader-<version>.jar`).
-3. Click **Install**.
+3. Choose the game's memory if you like (**Maximum memory (-Xmx)**; the installer suggests a size for your PC), then click **Install**. A notification tells you when it is done, and the installer closes by itself.
 4. Pick the **PolyLoader <Minecraft version>** profile (for example **PolyLoader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
 
 The [install guide](https://polyloader.dothome.co.kr/docs/getting-started/install/) covers details and uninstalling. The installer is not code-signed, so Windows SmartScreen may warn about it. You can check downloads against the release's `SHA256SUMS.txt`.
@@ -65,7 +67,9 @@ PolyLoader is licensed under the **PolyLoader Non-Commercial License 1.0** ([`LI
 
 ## 한국어
 
-PolyLoader는 Minecraft의 실행 기반은 그대로 두고, 그 위의 게임 시스템을 확장하고 교체하는 모드 로더입니다. 자체 API인 **Native API**를 제공하고, 일부 Fabric 모드도 함께 실행합니다. Native API로 만든 모드를 **Poly 모드**라고 부릅니다.
+PolyLoader는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 함께 실행하기 위한 Minecraft: Java Edition 모드 로더입니다.
+
+자체 API인 **Native API**도 있으며, 이것으로 만든 모드를 **Poly 모드**라고 부릅니다. 게임을 시작하기 전 모드를 확인하고, 실행이 불가한 모드는 로그와 함께 실행에서 제외합니다.
 
 > **알파 버전입니다.** Minecraft 26.1, 26.1.1, 26.1.2, 26.2를 지원하며, API는 바뀔 수 있습니다. 중요한 월드는 백업하세요.
 
@@ -75,7 +79,7 @@ PolyLoader는 Minecraft의 실행 기반은 그대로 두고, 그 위의 게임 
 2. [릴리스 페이지](https://github.com/xyrz47-spec/PolyLoader/releases/latest)에서 설치 파일을 다운로드합니다.
    - Windows: `PolyLoader-<버전>.exe`. Java를 따로 설치하지 않아도 됩니다. 런처에 들어 있는 Java를 사용합니다.
    - macOS·Linux: `PolyLoader-<버전>.jar`. Java 17 이상에서 실행합니다(`java -jar PolyLoader-<버전>.jar`).
-3. **설치**를 누릅니다.
+3. 필요하면 게임 메모리(**최대 메모리 (-Xmx)**, PC에 맞는 값을 미리 골라 둠)를 정하고 **설치**를 누릅니다. 끝나면 알림이 뜨고 설치 프로그램은 저절로 닫힙니다.
 4. 런처에서 **PolyLoader <Minecraft 버전>** 프로필(예: **PolyLoader 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
 
 자세한 내용과 제거 방법은 [설치 안내](https://polyloader.dothome.co.kr/ko/docs/getting-started/install/)를 참고하세요. 설치 프로그램에 아직 코드 서명이 없어 Windows에서 SmartScreen 경고가 표시될 수 있습니다. 다운로드한 파일은 릴리스의 `SHA256SUMS.txt`로 확인할 수 있습니다.
