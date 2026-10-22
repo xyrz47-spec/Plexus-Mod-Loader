@@ -15,6 +15,10 @@ These are inside PolyLoader's jars, the installer, or the libraries the installe
 | [ANTLR 4 runtime](https://www.antlr.org/) | 4.11.1 | BSD 3-Clause | runtime library (needed by tomlj) |
 | [Checker Framework qualifiers](https://checkerframework.org/) | 3.21.2 | MIT | runtime library (needed by tomlj) |
 | [Gson](https://github.com/google/gson) | 2.14.0 | Apache License 2.0 | inside the installer jar. At run time PolyLoader uses the copy Minecraft ships |
+| [Mixin](https://github.com/FabricMC/Mixin) (FabricMC fork, `net.fabricmc:sponge-mixin`) | 0.17.4+mixin.0.8.7 | MIT | runtime library (Fabric bridge, ADR-0020) |
+| [MixinExtras](https://github.com/LlamaLad7/MixinExtras) (`mixinextras-common`) | 0.5.5 | MIT | runtime library (Fabric bridge, ADR-0020) |
+| [ASM](https://asm.ow2.io/) `asm-commons` | 9.11.1 | BSD 3-Clause | runtime library (needed by Mixin) |
+| Code adapted from [Fabric Loader](https://github.com/FabricMC/fabric-loader): its Mixin service (`MixinServiceKnot`), Mixin compatibility table (`FabricMixinVersions`), environment stripping (`EnvironmentStrippingData`, `ClassStripper`, `FabricTransformer`) | 0.19.5 | Apache License 2.0 | `poly-bridge-fabric` jar (`dev.polyloader.compat.fabric.mixin.PolyMixinService`, `MixinCompatibility`, `dev.polyloader.compat.fabric.EnvironmentStripper`); each file names its source and changes, and the jar carries `LICENSE_fabric-loader` |
 
 ## Used but not distributed by PolyLoader
 

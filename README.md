@@ -46,7 +46,7 @@ The [install guide](https://polyloader.dothome.co.kr/docs/getting-started/instal
 | Mods | Status |
 |---|---|
 | Poly Mods | Supported |
-| Fabric mods | Experimental. Mods that use only entrypoints and the Fabric Loader API run. Mods that use Mixin do not run yet |
+| Fabric mods | Experimental. Fabric mods run as under Fabric Loader, Mixin included; 99 popular Fabric mods pass a real dedicated server start. Running them on the client is not verified yet |
 | Quilt mods | Not supported yet (a goal). Quilt mods that also ship `fabric.mod.json` are handled as Fabric mods |
 | NeoForge mods | Not run. PolyLoader diagnoses what they need and logs it |
 | Forge mods | Not run. PolyLoader diagnoses what they need and logs it |
@@ -79,7 +79,7 @@ PolyLoader는 Minecraft의 실행 기반은 그대로 두고, 그 위의 게임 
 | 모드 | 상태 |
 |---|---|
 | Poly 모드 | 지원 |
-| Fabric 모드 | 실험적. 엔트리포인트와 Fabric Loader API만 쓰는 모드는 실행됩니다. Mixin을 쓰는 모드는 아직 실행되지 않습니다 |
+| Fabric 모드 | 실험적. Mixin을 포함해 Fabric Loader에서처럼 실행되며, 인기 Fabric 모드 99개가 실제 전용 서버 시작을 통과합니다. 클라이언트에서의 실행은 아직 검증하지 않았습니다 |
 | Quilt 모드 | 아직 지원하지 않음(목표). `fabric.mod.json`도 든 Quilt 모드는 Fabric 모드로 처리합니다 |
 | NeoForge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
 | Forge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
