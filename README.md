@@ -47,7 +47,7 @@ The [install guide](https://polyloader.dothome.co.kr/docs/getting-started/instal
 
 ### Support
 
-PolyLoader is free. If it is useful to you, you can support it on [GitHub Sponsors](https://github.com/sponsors/xyrz47-spec).
+PolyLoader is free. If it is useful to you, you can support it on [Buy Me a Coffee](https://buymeacoffee.com/_xyrz).
 
 ### Compatibility
 
@@ -88,7 +88,7 @@ PolyLoader는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 함께 �
 
 ### 후원
 
-PolyLoader는 무료입니다. 쓸모가 있었다면 [GitHub Sponsors](https://github.com/sponsors/xyrz47-spec)로 후원할 수 있습니다.
+PolyLoader는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](https://buymeacoffee.com/_xyrz)로 후원할 수 있습니다.
 
 ### 호환성
 
