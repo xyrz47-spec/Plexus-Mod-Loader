@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="logo.svg" alt="PolyLoader" width="96" height="96">
+  <img src="logo.svg" alt="Poly Mod Loader" width="96" height="96">
 </p>
 
-<h1 align="center">PolyLoader</h1>
+<h1 align="center">Poly Mod Loader</h1>
 
 <p align="center">
   A mod loader and Native API for Minecraft: Java Edition 26.1 – 26.2<br>
@@ -21,33 +21,33 @@
 
 ---
 
-<p>This repository hosts PolyLoader's installers. The source code is not public for now.<p/>
-<p>이 저장소는 PolyLoader 설치 파일을 배포하는 곳입니다. 소스 코드는 현재 비공개입니다.<p/>
+<p>This repository hosts Poly Mod Loader's installers. The source code is not public for now.<p/>
+<p>이 저장소는 Poly 모드 로더 설치 파일을 배포하는 곳입니다. 소스 코드는 현재 비공개입니다.<p/>
 
 ## English
 
-PolyLoader is a Minecraft: Java Edition mod loader built to run Fabric, Forge, NeoForge and Quilt mods together.
+Poly Mod Loader is a Minecraft: Java Edition mod loader built to run Fabric, Forge, NeoForge and Quilt mods together.
 
-It also has its own **Native API**; mods made with it are called **Poly Mods**. Before the game starts, PolyLoader checks your mods. Mods that cannot run are left out of the launch, with the reason in the log.
+It also has its own **Native API**; mods made with it are called **Poly Mods**. Before the game starts, Poly Mod Loader checks your mods. Mods that cannot run are left out of the launch, with the reason in the log.
 
 > **This is an alpha.** It supports Minecraft 26.1, 26.1.1, 26.1.2 and 26.2, and the API may change. Back up worlds you care about.
 
 ### Install
 
 1. Run the vanilla version you want (26.1, 26.1.1, 26.1.2 or 26.2) once in the Minecraft Launcher, quit the game, and close the launcher.
-2. Download from the [releases page](https://github.com/xyrz47-spec/PolyLoader/releases/latest).
-   - Windows: `PolyLoader-<version>.exe`. No separate Java install is needed; it uses the Java the launcher downloaded.
-   - macOS and Linux: `PolyLoader-<version>.jar`. Run it with Java 17 or newer (`java -jar PolyLoader-<version>.jar`).
+2. Download from the [releases page](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest).
+   - Windows: `PolyModLoader-<version>.exe`. No separate Java install is needed; it uses the Java the launcher downloaded.
+   - macOS and Linux: `PolyModLoader-<version>.jar`. Run it with Java 17 or newer (`java -jar PolyModLoader-<version>.jar`).
 3. Choose the game's memory if you like (**Maximum memory (-Xmx)**; the installer suggests a size for your PC), then click **Install**. A notification tells you when it is done, and the installer closes by itself.
-4. Pick the **PolyLoader <Minecraft version>** profile (for example **PolyLoader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
+4. Pick the **Poly Mod Loader <Minecraft version>** profile (for example **Poly Mod Loader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
 
 The [install guide](https://polyloader.dothome.co.kr/docs/getting-started/install/) covers details and uninstalling. The installer is not code-signed, so Windows SmartScreen may warn about it. You can check downloads against the release's `SHA256SUMS.txt`.
 
-**Server:** choose **Server** in the installer, or run `java -jar PolyLoader-<version>.jar install-server` in the server folder. It downloads Mojang's server and writes `run.bat`, `run.sh` and `polyloader-server.jar` (Java 25 or newer). The first start stops at Minecraft's EULA; accept it in `eula.txt`.
+**Server:** choose **Server** in the installer, or run `java -jar PolyModLoader-<version>.jar install-server` in the server folder. It downloads Mojang's server and writes `run.bat`, `run.sh` and `polymodloader-server.jar` (Java 25 or newer). The first start stops at Minecraft's EULA; accept it in `eula.txt`.
 
 ### Support
 
-PolyLoader is free. If it is useful to you, you can support it on [Buy Me a Coffee](https://buymeacoffee.com/_xyrz).
+Poly Mod Loader is free. If it is useful to you, you can support it on [Buy Me a Coffee](https://buymeacoffee.com/_xyrz).
 
 ### Compatibility
 
@@ -56,18 +56,18 @@ PolyLoader is free. If it is useful to you, you can support it on [Buy Me a Coff
 | Poly Mods | Supported |
 | Fabric mods | Supported. Fabric mods run as under Fabric Loader, Mixin included. On 26.1 and 26.2, popular Fabric mods (138 on 26.2: Sodium, Iris, Lithium and more) play a world together on the client, save it and quit, and 100 start a real dedicated server; the only mods left out are ones Fabric Loader refuses too |
 | Quilt mods | Not supported yet (a goal). Quilt mods that also ship `fabric.mod.json` are handled as Fabric mods |
-| NeoForge mods | Not run. PolyLoader diagnoses what they need and logs it |
-| Forge mods | Not run. PolyLoader diagnoses what they need and logs it |
+| NeoForge mods | Not run. Poly Mod Loader diagnoses what they need and logs it |
+| Forge mods | Not run. Poly Mod Loader diagnoses what they need and logs it |
 
 Mods that cannot run are excluded, with the reason, before the game starts. See the [compatibility page](https://polyloader.dothome.co.kr/docs/reference/compatibility/).
 
 ### License
 
-PolyLoader is licensed under the **PolyLoader Non-Commercial License 1.0** ([`LICENSE`](LICENSE)). Non-commercial use and distribution are allowed; commercial use, such as selling it or bundling it into paid products, needs a separate license. Third-party components and their licenses are listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+Poly Mod Loader is licensed under the **PolyLoader Non-Commercial License 1.0** ([`LICENSE`](LICENSE)). Non-commercial use and distribution are allowed; commercial use, such as selling it or bundling it into paid products, needs a separate license. Third-party components and their licenses are listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## 한국어
 
-PolyLoader는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 함께 실행하기 위한 Minecraft: Java Edition 모드 로더입니다.
+Poly 모드 로더는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 함께 실행하기 위한 Minecraft: Java Edition 모드 로더입니다.
 
 자체 API인 **Native API**도 있으며, 이것으로 만든 모드를 **Poly 모드**라고 부릅니다. 게임을 시작하기 전 모드를 확인하고, 실행이 불가한 모드는 로그와 함께 실행에서 제외합니다.
 
@@ -76,19 +76,19 @@ PolyLoader는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 함께 �
 ### 설치
 
 1. Minecraft Launcher에서 쓰려는 바닐라 버전(26.1, 26.1.1, 26.1.2, 26.2)을 한 번 실행한 뒤 런처를 닫습니다.
-2. [릴리스 페이지](https://github.com/xyrz47-spec/PolyLoader/releases/latest)에서 설치 파일을 다운로드합니다.
-   - Windows: `PolyLoader-<버전>.exe`. Java를 따로 설치하지 않아도 됩니다. 런처에 들어 있는 Java를 사용합니다.
-   - macOS·Linux: `PolyLoader-<버전>.jar`. Java 17 이상에서 실행합니다(`java -jar PolyLoader-<버전>.jar`).
+2. [릴리스 페이지](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)에서 설치 파일을 다운로드합니다.
+   - Windows: `PolyModLoader-<버전>.exe`. Java를 따로 설치하지 않아도 됩니다. 런처에 들어 있는 Java를 사용합니다.
+   - macOS·Linux: `PolyModLoader-<버전>.jar`. Java 17 이상에서 실행합니다(`java -jar PolyModLoader-<버전>.jar`).
 3. 필요하면 게임 메모리(**최대 메모리 (-Xmx)**, PC에 맞는 값을 미리 골라 둠)를 정하고 **설치**를 누릅니다. 끝나면 알림이 뜨고 설치 프로그램은 저절로 닫힙니다.
-4. 런처에서 **PolyLoader <Minecraft 버전>** 프로필(예: **PolyLoader 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
+4. 런처에서 **Poly 모드 로더 <Minecraft 버전>** 프로필(예: **Poly 모드 로더 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
 
 자세한 내용과 제거 방법은 [설치 안내](https://polyloader.dothome.co.kr/ko/docs/getting-started/install/)를 참고하세요. 설치 프로그램에 아직 코드 서명이 없어 Windows에서 SmartScreen 경고가 표시될 수 있습니다. 다운로드한 파일은 릴리스의 `SHA256SUMS.txt`로 확인할 수 있습니다.
 
-**서버:** 설치 프로그램에서 **서버**를 고르거나, 서버 폴더에서 `java -jar PolyLoader-<version>.jar install-server`를 실행합니다. Mojang 서버를 받고 `run.bat`, `run.sh`, `polyloader-server.jar`를 만듭니다(Java 25 이상). 처음 시작하면 Minecraft EULA 확인에서 멈추니 `eula.txt`에서 동의하세요.
+**서버:** 설치 프로그램에서 **서버**를 고르거나, 서버 폴더에서 `java -jar PolyModLoader-<version>.jar install-server`를 실행합니다. Mojang 서버를 받고 `run.bat`, `run.sh`, `polymodloader-server.jar`를 만듭니다(Java 25 이상). 처음 시작하면 Minecraft EULA 확인에서 멈추니 `eula.txt`에서 동의하세요.
 
 ### 후원
 
-PolyLoader는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](https://buymeacoffee.com/_xyrz)로 후원할 수 있습니다.
+Poly 모드 로더는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](https://buymeacoffee.com/_xyrz)로 후원할 수 있습니다.
 
 ### 호환성
 
@@ -104,7 +104,7 @@ PolyLoader는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](https://
 
 ### 라이선스
 
-PolyLoader는 **PolyLoader Non-Commercial License 1.0**([`LICENSE`](LICENSE))을 따릅니다. 비상업적 목적의 사용·배포는 허용되고, 판매·유료 상품 포함 등 상업적 이용은 별도 라이선스가 필요합니다. 효력이 있는 것은 영어 원문입니다. 포함된 제3자 구성요소의 라이선스는 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)에 있습니다.
+Poly 모드 로더는 **PolyLoader Non-Commercial License 1.0**([`LICENSE`](LICENSE))을 따릅니다. 비상업적 목적의 사용·배포는 허용되고, 판매·유료 상품 포함 등 상업적 이용은 별도 라이선스가 필요합니다. 효력이 있는 것은 영어 원문입니다. 포함된 제3자 구성요소의 라이선스는 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)에 있습니다.
 
 ---
 
