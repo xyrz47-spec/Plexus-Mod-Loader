@@ -57,7 +57,7 @@ Poly Mod Loader is free. If it is useful to you, you can support it on [Buy Me a
 | Fabric mods | Supported. Fabric mods run as under Fabric Loader, Mixin included. On 26.1 and 26.2, popular Fabric mods (138 on 26.2: Sodium, Iris, Lithium and more) play a world together on the client, save it and quit, and 100 start a real dedicated server; the only mods left out are ones Fabric Loader refuses too |
 | Quilt mods | Not supported yet (a goal). Quilt mods that also ship `fabric.mod.json` are handled as Fabric mods |
 | NeoForge mods | Not run. Poly Mod Loader diagnoses what they need and logs it |
-| Forge mods | Not run. Poly Mod Loader diagnoses what they need and logs it |
+| Forge mods | Experimental. Poly Mod Loader runs Forge and FML themselves. On 26.2, 30 of 38 popular Forge mods create, play and save a world, also next to Fabric mods and on the client; mods FML would refuse are left out with the reason. On 26.1 Forge runs, but the popular mods do not yet. The first start with Forge mods downloads Forge's files |
 
 Mods that cannot run are excluded, with the reason, before the game starts. See the [compatibility page](https://polyloader.dothome.co.kr/docs/reference/compatibility/).
 
@@ -98,7 +98,7 @@ Poly 모드 로더는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](
 | Fabric 모드 | 지원. Mixin을 포함해 Fabric Loader에서처럼 실행됩니다. 26.1과 26.2에서 인기 Fabric 모드(26.2는 Sodium, Iris, Lithium 등 138개)를 함께 넣고 클라이언트에서 월드를 플레이하고 저장한 뒤 나오며, 100개가 실제 전용 서버 시작을 통과합니다. 빠지는 모드는 Fabric Loader도 실행하지 않는 경우뿐입니다 |
 | Quilt 모드 | 아직 지원하지 않음(목표). `fabric.mod.json`도 든 Quilt 모드는 Fabric 모드로 처리합니다 |
 | NeoForge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
-| Forge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
+| Forge 모드 | 실험적 지원. Poly 모드 로더가 Forge와 FML을 그대로 실행합니다. 26.2에서 인기 Forge 모드 38개 중 30개가 월드를 만들고 플레이하고 저장하며, Fabric 모드와 함께, 클라이언트에서도 실행됩니다. FML이 거부할 모드는 이유와 함께 뺍니다. 26.1에서는 Forge는 실행되지만 인기 모드는 아직입니다. Forge 모드를 넣고 처음 시작하면 Forge 파일을 받습니다 |
 
 실행할 수 없는 모드는 게임이 시작되기 전에 이유와 함께 제외합니다. 자세한 내용은 [호환성 문서](https://polyloader.dothome.co.kr/ko/docs/reference/compatibility/)에 있습니다.
 
