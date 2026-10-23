@@ -6,9 +6,9 @@
 
 <p align="center">
   A mod loader and Native API for Minecraft: Java Edition 26.1 – 26.2<br>
-  <a href="https://polyloader.dothome.co.kr/download/">Download</a> ·
-  <a href="https://polyloader.dothome.co.kr/docs/">Docs</a> ·
-  <a href="https://polyloader.dothome.co.kr/ko/docs/">한국어 문서</a> ·
+  <a href="https://www.polymc.net/download/">Download</a> ·
+  <a href="https://www.polymc.net/docs/">Docs</a> ·
+  <a href="https://www.polymc.net/ko/docs/">한국어 문서</a> ·
   <a href="#한국어">한국어 안내</a>
 </p>
 
@@ -41,7 +41,7 @@ It also has its own **Native API**; mods made with it are called **Poly Mods**. 
 3. Choose the game's memory if you like (**Maximum memory (-Xmx)**; the installer suggests a size for your PC), then click **Install**. A notification tells you when it is done, and the installer closes by itself.
 4. Pick the **Poly Mod Loader <Minecraft version>** profile (for example **Poly Mod Loader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
 
-The [install guide](https://polyloader.dothome.co.kr/docs/getting-started/install/) covers details and uninstalling. The installer is not code-signed, so Windows SmartScreen may warn about it. You can check downloads against the release's `SHA256SUMS.txt`.
+The [install guide](https://www.polymc.net/docs/getting-started/install/) covers details and uninstalling. The installer is not code-signed, so Windows SmartScreen may warn about it. You can check downloads against the release's `SHA256SUMS.txt`.
 
 **Server:** choose **Server** in the installer, or run `java -jar PolyModLoader-<version>.jar install-server` in the server folder. It downloads Mojang's server and writes `run.bat`, `run.sh` and `polymodloader-server.jar` (Java 25 or newer). The first start stops at Minecraft's EULA; accept it in `eula.txt`.
 
@@ -57,9 +57,9 @@ Poly Mod Loader is free. If it is useful to you, you can support it on [Buy Me a
 | Fabric mods | Supported. Fabric mods run as under Fabric Loader, Mixin included. On 26.1 and 26.2, popular Fabric mods (138 on 26.2: Sodium, Iris, Lithium and more) play a world together on the client, save it and quit, and 100 start a real dedicated server; the only mods left out are ones Fabric Loader refuses too |
 | Quilt mods | Not supported yet (a goal). Quilt mods that also ship `fabric.mod.json` are handled as Fabric mods |
 | NeoForge mods | Not run. Poly Mod Loader diagnoses what they need and logs it |
-| Forge mods | Experimental. Poly Mod Loader runs Forge and FML themselves. On 26.2, 30 of 38 popular Forge mods create, play and save a world, also next to Fabric mods and on the client; mods FML would refuse are left out with the reason. On 26.1 Forge runs, but the popular mods do not yet. The first start with Forge mods downloads Forge's files |
+| Forge mods | Supported. Poly Mod Loader runs Forge and FML themselves (Forge 62.0.9 on 26.1, 64.1.5 on 26.1.2, 65.1.5 on 26.2). On 26.1 and 26.2, popular Forge mods play a saved world on the client, save it and quit (40 on 26.2), create and save a world on the server and start a real dedicated server, also next to Fabric mods; the installed launcher profile and server run them too. The only mods left out are ones Forge refuses too. The first start with Forge mods downloads Forge's files |
 
-Mods that cannot run are excluded, with the reason, before the game starts. See the [compatibility page](https://polyloader.dothome.co.kr/docs/reference/compatibility/).
+Mods that cannot run are excluded, with the reason, before the game starts. See the [compatibility page](https://www.polymc.net/docs/reference/compatibility/).
 
 ### License
 
@@ -82,7 +82,7 @@ Poly 모드 로더는 Fabric, Forge, NeoForge, Quilt 모드를 한 게임에서 
 3. 필요하면 게임 메모리(**최대 메모리 (-Xmx)**, PC에 맞는 값을 미리 골라 둠)를 정하고 **설치**를 누릅니다. 끝나면 알림이 뜨고 설치 프로그램은 저절로 닫힙니다.
 4. 런처에서 **Poly 모드 로더 <Minecraft 버전>** 프로필(예: **Poly 모드 로더 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
 
-자세한 내용과 제거 방법은 [설치 안내](https://polyloader.dothome.co.kr/ko/docs/getting-started/install/)를 참고하세요. 설치 프로그램에 아직 코드 서명이 없어 Windows에서 SmartScreen 경고가 표시될 수 있습니다. 다운로드한 파일은 릴리스의 `SHA256SUMS.txt`로 확인할 수 있습니다.
+자세한 내용과 제거 방법은 [설치 안내](https://www.polymc.net/ko/docs/getting-started/install/)를 참고하세요. 설치 프로그램에 아직 코드 서명이 없어 Windows에서 SmartScreen 경고가 표시될 수 있습니다. 다운로드한 파일은 릴리스의 `SHA256SUMS.txt`로 확인할 수 있습니다.
 
 **서버:** 설치 프로그램에서 **서버**를 고르거나, 서버 폴더에서 `java -jar PolyModLoader-<version>.jar install-server`를 실행합니다. Mojang 서버를 받고 `run.bat`, `run.sh`, `polymodloader-server.jar`를 만듭니다(Java 25 이상). 처음 시작하면 Minecraft EULA 확인에서 멈추니 `eula.txt`에서 동의하세요.
 
@@ -98,9 +98,9 @@ Poly 모드 로더는 무료입니다. 쓸모가 있었다면 [Buy Me a Coffee](
 | Fabric 모드 | 지원. Mixin을 포함해 Fabric Loader에서처럼 실행됩니다. 26.1과 26.2에서 인기 Fabric 모드(26.2는 Sodium, Iris, Lithium 등 138개)를 함께 넣고 클라이언트에서 월드를 플레이하고 저장한 뒤 나오며, 100개가 실제 전용 서버 시작을 통과합니다. 빠지는 모드는 Fabric Loader도 실행하지 않는 경우뿐입니다 |
 | Quilt 모드 | 아직 지원하지 않음(목표). `fabric.mod.json`도 든 Quilt 모드는 Fabric 모드로 처리합니다 |
 | NeoForge 모드 | 실행하지 않음. 필요한 기능을 진단해 로그에 남깁니다 |
-| Forge 모드 | 실험적 지원. Poly 모드 로더가 Forge와 FML을 그대로 실행합니다. 26.2에서 인기 Forge 모드 38개 중 30개가 월드를 만들고 플레이하고 저장하며, Fabric 모드와 함께, 클라이언트에서도 실행됩니다. FML이 거부할 모드는 이유와 함께 뺍니다. 26.1에서는 Forge는 실행되지만 인기 모드는 아직입니다. Forge 모드를 넣고 처음 시작하면 Forge 파일을 받습니다 |
+| Forge 모드 | 지원. Poly 모드 로더가 Forge와 FML을 그대로 실행합니다(26.1은 Forge 62.0.9, 26.1.2는 64.1.5, 26.2는 65.1.5). 26.1과 26.2에서 인기 Forge 모드를 넣고 클라이언트에서 저장된 월드를 플레이하고 저장한 뒤 나오며(26.2는 40개), 서버에서 월드를 만들고 저장하고 실제 전용 서버를 시작합니다. Fabric 모드와 함께도 되고, 설치한 런처 프로필과 서버에서도 실행됩니다. 빠지는 모드는 Forge도 실행하지 않는 경우뿐입니다. Forge 모드를 넣고 처음 시작하면 Forge 파일을 받습니다 |
 
-실행할 수 없는 모드는 게임이 시작되기 전에 이유와 함께 제외합니다. 자세한 내용은 [호환성 문서](https://polyloader.dothome.co.kr/ko/docs/reference/compatibility/)에 있습니다.
+실행할 수 없는 모드는 게임이 시작되기 전에 이유와 함께 제외합니다. 자세한 내용은 [호환성 문서](https://www.polymc.net/ko/docs/reference/compatibility/)에 있습니다.
 
 ### 라이선스
 
