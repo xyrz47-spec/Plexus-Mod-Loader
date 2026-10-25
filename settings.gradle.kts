@@ -46,9 +46,9 @@ for (version in versionsWithModules) {
     }
 }
 
-// The public source repository leaves out examples/ and test-mods/ (.github/scripts/export-public-repo.py). Without a
-// folder its projects are not included: the loader, the installer and the unit tests still build, and the game test
-// tasks that need those mods say so when run.
+// The public source repository leaves out examples/, test-mods/ and tools/ (.github/scripts/export-public-repo.py).
+// Without a folder its projects are not included: the loader, the installer and the unit tests still build, and the
+// game test and benchmark tasks that need them do not run.
 fun includeIfPresent(vararg paths: String) {
     include(*paths.filter { file(it.substringBefore(':')).isDirectory }.toTypedArray())
 }

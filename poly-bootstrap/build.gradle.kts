@@ -67,8 +67,11 @@ val tickProbe = configurations.create("tickProbe") {
     isCanBeConsumed = false
     isTransitive = false
 }
-dependencies {
-    tickProbe(project(":tools:tick-probe"))
+// The public source has no tools/ (settings.gradle.kts); the benchmarks then have no probe agent to attach.
+if (findProject(":tools:tick-probe") != null) {
+    dependencies {
+        tickProbe(project(":tools:tick-probe"))
+    }
 }
 tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark") {
     probeAgent.from(tickProbe)

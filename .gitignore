@@ -50,4 +50,7 @@ Thumbs.db
 /examples/
 /test-mods/
 /MinecraftFiles/
+/tools/
+/poly-bootstrap/compat/
+/.run/
 /.github/
