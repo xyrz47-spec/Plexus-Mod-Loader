@@ -40,11 +40,18 @@ dependencies {
     runtimeOnly(project(":poly-bridge-forge"))
     implementation(libs.slf4j.api)
 
-    polyDevMod(project(":examples:minimal-native-mod"))
-    polyDevMod(project(":examples:custom-system-mod"))
-    polyDevMod(project(":examples:transform-demo-mod"))
-    polyDevMod(project(":examples:native-showcase-mod"))
-    polyDevMod(project(":test-mods:fabric-entrypoint-only"))
+    // runClient's mods; the public source has no examples/ or test-mods/ (settings.gradle.kts).
+    for (path in listOf(
+        ":examples:minimal-native-mod",
+        ":examples:custom-system-mod",
+        ":examples:transform-demo-mod",
+        ":examples:native-showcase-mod",
+        ":test-mods:fabric-entrypoint-only",
+    )) {
+        if (findProject(path) != null) {
+            polyDevMod(project(path))
+        }
+    }
 }
 
 // Poly Mod Loader's own Java agent (ADR-0024): the launcher profile starts it with -javaagent:<this jar>. It only keeps
@@ -260,8 +267,17 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunch
 }
 
 // Mixed-loader matrix (design doc §15.4) and regression scenarios, each on a fresh game test server.
-fun modJars(vararg projects: String): FileCollection =
-    configurations.detachedConfiguration(*projects.map { dependencies.project(mapOf("path" to it)) }.toTypedArray())
+fun modJars(vararg projects: String): FileCollection {
+    // The public source has no examples/ or test-mods/ (settings.gradle.kts): a task that needs them fails when it runs,
+    // not while the build is configured.
+    val missing = projects.filter { findProject(it) == null }
+    if (missing.isNotEmpty()) {
+        return files(provider<List<File>> {
+            throw GradleException("This task needs the test mods ${missing.joinToString()}, which are not in this source" +
+                " (examples/ and test-mods/ are left out of the public repository)")
+        })
+    }
+    return configurations.detachedConfiguration(*projects.map { dependencies.project(mapOf("path" to it)) }.toTypedArray())
         .apply {
             isTransitive = false
             attributes {
@@ -270,6 +286,7 @@ fun modJars(vararg projects: String): FileCollection =
                 attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
         }
+}
 
 val scenarios = extensions.getByType<dev.polymodloader.devtools.gradle.minecraft.GameTestScenarios>()
 val native = ":examples:minimal-native-mod"

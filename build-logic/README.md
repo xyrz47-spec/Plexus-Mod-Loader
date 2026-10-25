@@ -27,7 +27,7 @@ Spotless Gradle 플러그인, Gson
 included build로 컴파일되며, 실제 동작은 `serverBootSmokeTest`와 `runClient`로 검증합니다. 루트 `check`는 이 모듈의 테스트를 돌리지 않으므로 `.\gradlew.bat -p build-logic check`를 따로 실행합니다. `PolyResourcesBuildTest`는 Gradle TestKit으로 `build/testkit/` 아래에 실제 모드 프로젝트를 만들어 빌드합니다.
 
 ## 대표 흐름
-Mojang version manifest를 기준으로 클라이언트·라이브러리·에셋을 SHA-1로 검증하며 받고, 서버 번들러는 SHA-256으로 검증하며 추출합니다. 결과는 `build/poly/minecraft/<version>-<side>.json` launch spec에 기록합니다. `MinecraftFiles/<version>/`(또는 `-PpolyMinecraftFiles=<경로>`)에 직접 넣은 버전 JSON·jar·라이브러리가 있으면 같은 해시로 확인한 뒤 캐시로 복사하고 다운로드를 건너뜁니다(`LocalMinecraftFiles`, [`MinecraftFiles/README.md`](../MinecraftFiles/README.md)).
+Mojang version manifest를 기준으로 클라이언트·라이브러리·에셋을 SHA-1로 검증하며 받고, 서버 번들러는 SHA-256으로 검증하며 추출합니다. 결과는 `build/poly/minecraft/<version>-<side>.json` launch spec에 기록합니다. `MinecraftFiles/<version>/`(또는 `-PpolyMinecraftFiles=<경로>`)에 직접 넣은 버전 JSON·jar·라이브러리가 있으면 같은 해시로 확인한 뒤 캐시로 복사하고 다운로드를 건너뜁니다(`LocalMinecraftFiles`, `MinecraftFiles/README.md`).
 
 ## 알려진 제한
 Configuration cache는 검증하지 않았습니다. Mojang manifest 형식이 바뀌면 영향을 받습니다(ADR-0002).

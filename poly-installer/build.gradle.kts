@@ -190,13 +190,17 @@ val neoForgeTestMods = configurations.create("serverInstallTestNeoForgeMods") {
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
     }
 }
-dependencies {
-    // Built for the Minecraft version this build runs, the one this test installs unless told otherwise.
-    forgeTestMod(project(":test-mods:forge-hello"))
-    neoForgeTestMods(project(":test-mods:neoforge-hello"))
-    neoForgeTestMods(project(":test-mods:neoforge-gametest-harness"))
-    // Laid out as Sodium's NeoForge build: an early service jar with the mod nested in it, from the mods folder.
-    neoForgeTestMods(project(":test-mods:neoforge-early-service"))
+// The public source has no test-mods/ (settings.gradle.kts); serverInstallTest then has no mods to run.
+val testModsPresent = findProject(":test-mods:forge-hello") != null
+if (testModsPresent) {
+    dependencies {
+        // Built for the Minecraft version this build runs, the one this test installs unless told otherwise.
+        forgeTestMod(project(":test-mods:forge-hello"))
+        neoForgeTestMods(project(":test-mods:neoforge-hello"))
+        neoForgeTestMods(project(":test-mods:neoforge-gametest-harness"))
+        // Laid out as Sodium's NeoForge build: an early service jar with the mod nested in it, from the mods folder.
+        neoForgeTestMods(project(":test-mods:neoforge-early-service"))
+    }
 }
 // The NeoForge release Poly Mod Loader runs for each Minecraft version: <minecraft>=<neoforge version> <installer SHA-1>.
 val neoForgeReleases = rootProject.layout.projectDirectory.file(
@@ -214,8 +218,10 @@ val quiltTestMod = configurations.create("serverInstallTestQuiltMod") {
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
     }
 }
-dependencies {
-    quiltTestMod(project(":test-mods:quilt-hello"))
+if (testModsPresent) {
+    dependencies {
+        quiltTestMod(project(":test-mods:quilt-hello"))
+    }
 }
 // The Forge release Poly Mod Loader runs for each Minecraft version: <minecraft>=<forge version> <installer SHA-1>.
 val forgeReleases = rootProject.layout.projectDirectory.file(

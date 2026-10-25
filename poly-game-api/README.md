@@ -36,4 +36,4 @@ API 계약, 값 검증(정의 레코드 생성자), JavaDoc의 시점·스레드
 3. 동작 콜백과 이벤트는 게임 스레드에서 뷰 객체와 함께 호출됩니다.
 
 ## 알려진 제한
-[docs/NATIVE_API.md](../docs/NATIVE_API.md)의 "아직 없는 것"과 [ADR-0010](../docs/adr/0010-native-api-game-layer.md)의 제약을 보세요.
+docs/NATIVE_API.md의 "아직 없는 것"과 ADR-0010의 제약을 보세요.

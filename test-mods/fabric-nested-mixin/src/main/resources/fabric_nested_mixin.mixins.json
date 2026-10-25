@@ -1,6 +1,0 @@
-{
-  "required": true,
-  "minVersion": "9.0",
-  "package": "com.example.compat.nestedmixin",
-  "mixins": []
-}

@@ -46,9 +46,8 @@ Thumbs.db
 /.claude/
 /CLAUDE.md
 /AGENTS.md
-/docs/CLAUDE_SKILLS.md
-/docs/RELEASE_AND_DEPLOY.md
-/.github/public-repo/
-/.github/workflows/docs.yml
-/.github/scripts/export-public-repo.py
-/.github/scripts/publish-release.py
+/docs/
+/examples/
+/test-mods/
+/MinecraftFiles/
+/.github/

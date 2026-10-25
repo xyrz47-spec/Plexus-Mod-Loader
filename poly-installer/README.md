@@ -54,7 +54,8 @@
    3. Poly 모드 로더 jar를 `libraries/`에 복사합니다.
    4. `polymodloader-server.jar`를 씁니다. 매니페스트만 든 jar이고, `Main-Class`는 `PolyServerMain`, `Class-Path`는 위 jar 전부입니다. `Launcher-Agent-Class`는 Poly 모드 로더의 Java agent입니다(ADR-0024). 그래서 `java -jar polymodloader-server.jar nogui`로 시작합니다. 게임 jar는 `ClassPathGameJarLocator`가 매니페스트 `Class-Path`에서 찾습니다.
    5. 메모리를 넣은 `run.bat`·`run.sh`와 `mods/`를 만듭니다.
-6. 끝나면(`DesktopNotification`) 알림 영역 아이콘으로 시스템 알림을 띄우고(누르면 `mods/`가 열림) 10초 뒤 종료합니다. "완료되면 닫기"를 껐거나 경고가 있으면 창을 남깁니다. 알림 영역이 없는 데스크톱에서는 전과 같이 대화상자를 띄웁니다.
+6. 언어: 창은 시스템 언어(한국어면 한국어, 그 밖에는 영어)로 열립니다. 오른쪽 위 메뉴에서 English·한국어를 고르면 같은 자리에 그 언어로 창을 다시 만들고, 고른 값(클라이언트·서버, 버전, 폴더, 메모리, 체크 상자, 고급 설정, 기록)을 옮깁니다. 설치 중에는 메뉴를 막습니다. 명령줄과 설치 과정의 기록은 영어입니다.
+7. 끝나면(`DesktopNotification`) 알림 영역 아이콘으로 시스템 알림을 띄우고(누르면 `mods/`가 열림) 10초 뒤 종료합니다. "완료되면 닫기"를 껐거나 경고가 있으면 창을 남깁니다. 알림 영역이 없는 데스크톱에서는 전과 같이 대화상자를 띄웁니다.
 
 ## 알려진 제한
 - 실행 검증(`launcherProfileTest`)은 런처의 동작을 재현한 것입니다. 실제 Minecraft Launcher로 실행한 기록은 아직 없습니다.

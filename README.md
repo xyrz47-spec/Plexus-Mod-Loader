@@ -43,7 +43,7 @@ The [install guide](https://www.polymc.net/docs/getting-started/install/) covers
 
 Poly Mods are built with Java 25 and Gradle. One command creates a project, and game tests check it without opening the game.
 
-- [Make your first Poly Mod](https://www.polymc.net/docs/getting-started/first-mod/): build **Crystal Garden**, a mod with growing crystals, from scratch. The finished mod is in [`examples/crystal-garden`](examples/crystal-garden).
+- [Make your first Poly Mod](https://www.polymc.net/docs/getting-started/first-mod/): build **Crystal Garden**, a mod with growing crystals, from scratch. The finished mod is in `examples/crystal-garden`.
 - [Native API guide](https://www.polymc.net/docs/native-api/) and [API reference](https://www.polymc.net/docs/api-reference/)
 
 What the Native API covers:
@@ -58,7 +58,7 @@ What the Native API covers:
 - game system replacement
 - declarative bytecode transforms
 
-The public API exposes no Minecraft classes, so a mod that uses only the Native API can declare a version range such as `"minecraft": ["26.*"]`. How the API is growing toward what Fabric, Quilt, NeoForge and Forge mods can do is tracked in [`docs/API_PARITY_ROADMAP.md`](docs/API_PARITY_ROADMAP.md).
+The public API exposes no Minecraft classes, so a mod that uses only the Native API can declare a version range such as `"minecraft": ["26.*"]`. How the API is growing toward what Fabric, Quilt, NeoForge and Forge mods can do is tracked in `docs/API_PARITY_ROADMAP.md`.
 
 ## Compatibility
 
@@ -74,14 +74,14 @@ Poly Mod Loader excludes mods it cannot run before the game starts, with the rea
 
 ## Performance
 
-Performance is stated only from measurements ([`docs/PERFORMANCE.md`](docs/PERFORMANCE.md)).
+Performance is stated only from measurements (`docs/PERFORMANCE.md`).
 
 - Startup time, server tick time and memory: the difference from vanilla is within measurement noise.
 - Client frame time: with the development mods installed, Poly Mod Loader is slightly slower.
 
 ## Build from source
 
-You need JDK 25 and Git. The first build downloads Minecraft from Mojang's servers and checks it by hash (or copies it from [`MinecraftFiles/`](MinecraftFiles/README.md)). Minecraft files are not in the repository and are never redistributed.
+You need JDK 25 and Git. The first build downloads Minecraft from Mojang's servers and checks it by hash (or copies it from `MinecraftFiles/`). Minecraft files are not in the repository and are never redistributed.
 
 ```powershell
 git clone https://github.com/xyrz47-spec/Poly-Mod-Loader.git polymodloader
@@ -91,7 +91,7 @@ cd polymodloader
 .\gradlew.bat :poly-bootstrap:runClient               # development client
 ```
 
-On macOS and Linux use `./gradlew`. Module layout, verification tasks and development status are in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md). How to contribute is in [`docs/contributing/`](docs/contributing/index.md).
+On macOS and Linux use `./gradlew`. Module layout, verification tasks and development status are in `docs/DEVELOPMENT.md`. How to contribute is in `docs/contributing/`.
 
 ## License
 
@@ -99,7 +99,7 @@ Poly Mod Loader is open source under the **Mozilla Public License 2.0** ([`LICEN
 
 - **You may** use, study, modify and redistribute Poly Mod Loader for any purpose, including commercial ones.
 - **If you distribute a modified version**, the files of Poly Mod Loader that you changed stay under the MPL 2.0, and you make their source available. Your own new files can use any license.
-- **Mods, modpacks and launchers** that use Poly Mod Loader choose their own license. Code in [`templates/`](templates/) and [`examples/`](examples/) is under MIT No Attribution, so you can copy it into your mod freely.
+- **Mods, modpacks and launchers** that use Poly Mod Loader choose their own license. Code in [`templates/`](templates/) and `examples/` is under MIT No Attribution, so you can copy it into your mod freely.
 - **Names and logo:** the license does not cover the names "Poly" and "Poly Mod Loader" or the logo. A modified version needs its own name; see [`TRADEMARKS.md`](TRADEMARKS.md).
 
 Releases up to 1.1.0 were distributed under the PolyLoader Non-Commercial License 1.0. Third-party components and their licenses are listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
@@ -127,7 +127,7 @@ Poly 모드 로더는 Minecraft의 실행 기반은 그대로 두고, 그 위의
 
 Poly 모드는 Java 25와 Gradle로 만듭니다. 명령 한 줄로 프로젝트를 만들고, 게임을 켜지 않고도 게임 테스트로 확인할 수 있습니다.
 
-- [첫 Poly 모드 만들기](https://www.polymc.net/ko/docs/getting-started/first-mod/): 자라는 크리스털 모드 **Crystal Garden**을 처음부터 만듭니다. 완성본은 [`examples/crystal-garden`](examples/crystal-garden)에 있습니다.
+- [첫 Poly 모드 만들기](https://www.polymc.net/ko/docs/getting-started/first-mod/): 자라는 크리스털 모드 **Crystal Garden**을 처음부터 만듭니다. 완성본은 `examples/crystal-garden`에 있습니다.
 - [Native API 안내](https://www.polymc.net/ko/docs/native-api/)와 [API 레퍼런스](https://www.polymc.net/ko/docs/api-reference/)
 
 Native API로 할 수 있는 일:
@@ -158,7 +158,7 @@ Poly 모드 로더는 실행할 수 없는 모드를 게임이 시작되기 전�
 
 ### 성능
 
-성능은 측정 결과만 근거로 말합니다([`docs/PERFORMANCE.md`](docs/PERFORMANCE.md)).
+성능은 측정 결과만 근거로 말합니다(`docs/PERFORMANCE.md`).
 
 - 시작 시간, 서버 틱 시간, 메모리: 바닐라와의 차이가 측정 편차 안에 있습니다.
 - 클라이언트 프레임 시간: 개발용 모드를 함께 넣은 측정에서 Poly 모드 로더 쪽이 약간 깁니다.
@@ -175,7 +175,7 @@ cd polymodloader
 .\gradlew.bat :poly-bootstrap:runClient               # 개발용 클라이언트 실행
 ```
 
-macOS·Linux에서는 `./gradlew`를 씁니다. 모듈 구조, 검증 작업, 개발 현황은 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)에 있습니다. 기여 방법은 [`docs/contributing/`](docs/contributing/index.md)에 있습니다.
+macOS·Linux에서는 `./gradlew`를 씁니다. 모듈 구조, 검증 작업, 개발 현황은 `docs/DEVELOPMENT.md`에 있습니다. 기여 방법은 `docs/contributing/`에 있습니다.
 
 ### 라이선스
 
@@ -183,7 +183,7 @@ Poly 모드 로더는 **Mozilla Public License 2.0**([`LICENSE`](LICENSE))을 �
 
 - **할 수 있는 것:** 상업적 목적을 포함해 어떤 목적으로든 사용, 소스 열람, 수정, 재배포
 - **수정본을 배포할 때:** 고친 Poly 모드 로더 파일은 MPL 2.0으로 남고, 그 소스를 공개해야 합니다. 새로 만든 파일은 원하는 라이선스를 써도 됩니다.
-- **모드, 모드팩, 런처:** Poly 모드 로더를 쓰는 쪽이 자기 라이선스를 정합니다. [`templates/`](templates/)와 [`examples/`](examples/)의 코드는 MIT No Attribution이라 모드에 자유롭게 가져다 쓸 수 있습니다.
+- **모드, 모드팩, 런처:** Poly 모드 로더를 쓰는 쪽이 자기 라이선스를 정합니다. [`templates/`](templates/)와 `examples/`의 코드는 MIT No Attribution이라 모드에 자유롭게 가져다 쓸 수 있습니다.
 - **이름과 로고:** 라이선스는 "Poly", "Poly 모드 로더"라는 이름과 로고를 포함하지 않습니다. 수정본은 다른 이름을 써야 합니다. [`TRADEMARKS.md`](TRADEMARKS.md)를 보세요.
 
 1.1.0까지의 릴리스는 PolyLoader Non-Commercial License 1.0으로 배포했습니다. 포함된 제3자 구성요소의 라이선스는 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)에 있습니다.

@@ -1,7 +1,7 @@
 # poly-game-v26_3
 
 ## 이 모듈이 하는 일
-Minecraft 26.3의 게임 계층입니다([ADR-0010](../docs/adr/0010-native-api-game-layer.md)). Native API 선언을 실제 게임 객체로 만들고, 변환 규칙이 호출하는 훅을 제공합니다.
+Minecraft 26.3의 게임 계층입니다(ADR-0010). Native API 선언을 실제 게임 객체로 만들고, 변환 규칙이 호출하는 훅을 제공합니다.
 
 ## 무엇을 소유하는가
 - `GameLayer26_3`(진입점), `LayerState`
@@ -34,9 +34,9 @@ Minecraft 26.3의 게임 계층입니다([ADR-0010](../docs/adr/0010-native-api-
 
 ## 26.2와 다른 점
 
-1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). `poly-game-v26_2`를 복사한 뒤 26.3에 맞게 고쳤습니다. 고친 곳과 이유는 [`docs/plans/MINECRAFT_26_3.md`](../docs/plans/MINECRAFT_26_3.md)의 "진행 상황"에 있습니다. 요약하면 다음과 같습니다.
+1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). `poly-game-v26_2`를 복사한 뒤 26.3에 맞게 고쳤습니다. 고친 곳과 이유는 `docs/plans/MINECRAFT_26_3.md`의 "진행 상황"에 있습니다. 요약하면 다음과 같습니다.
 
-- 키 바인딩: `client.GameKeyCodes`가 Poly 모드 로더 키 코드(GLFW 값)를 26.3의 SDL 스캔코드로 바꿉니다([ADR-0029](../docs/adr/0029-poly-key-codes.md)).
+- 키 바인딩: `client.GameKeyCodes`가 Poly 모드 로더 키 코드(GLFW 값)를 26.3의 SDL 스캔코드로 바꿉니다(ADR-0029).
 - 몹 스폰: 바이옴의 환경 속성 `NATURAL_MOB_SPAWNS`(`WorldgenModifier.applySpawns`, `Views`, `GeneratedDataPack`).
 - 월드 생성: `ChunkGenerator.buildTerrain`, 설정을 품은 `Feature`(`FEATURE_TYPE`, `worldgen/feature`), 컴파일되는 밀도 함수(`worldgen.CodeWorldgen`).
 - 렌더링: `com.mojang.renderpearl.api`(`client.ModShaderPipelines`), 유니폼 버퍼는 파이프라인 위치로 찾음, 후처리 효과는 `spectatedEntityPostEffect`.

@@ -2,6 +2,7 @@ package dev.polymodloader.game.layer.v26_3.client;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.renderpearl.api.device.DeviceInfo;
@@ -33,7 +34,8 @@ import org.junit.jupiter.params.provider.CsvSource;
  * The example native-showcase-mod's shaders against the GLSL compiler of Minecraft 26.3 (shaderc to SPIR-V), with
  * the game's own include files from the client jar. 26.3 needs {@code #include} and a location on every input and
  * output, so the mod keeps a 26.3 form in the overlay {@code poly_26_3_assets} that its {@code pack.mcmeta} picks
- * on 26.3; its 26.2 form in {@code assets/} does not compile here.
+ * on 26.3; its 26.2 form in {@code assets/} does not compile here. The public source has no examples/, so the tests are
+ * skipped there.
  */
 class ModShaderSourcesTest {
 
@@ -49,6 +51,7 @@ class ModShaderSourcesTest {
      */
     @BeforeAll
     static void startCompiler() throws ReflectiveOperationException {
+        assumeTrue(Files.isDirectory(RESOURCES), "examples/ is not in this source");
         DeviceInfo info = new DeviceInfo(
                 "test",
                 "test",
@@ -76,6 +79,9 @@ class ModShaderSourcesTest {
 
     @AfterAll
     static void closeCompiler() throws IllegalAccessException {
+        if (compiler == null) {
+            return;
+        }
         compiler.close();
         device.set(null, null);
     }

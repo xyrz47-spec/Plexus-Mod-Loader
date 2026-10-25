@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "poly_gametest_harness",
-  "version": "1.0.0",
-  "environment": "*",
-  "mixins": [
-    "poly_gametest_harness.mixins.json"
-  ]
-}

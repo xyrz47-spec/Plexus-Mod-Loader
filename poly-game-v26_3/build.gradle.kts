@@ -43,6 +43,9 @@ tasks.test {
 // cannot compile shows here instead of only in a game window.
 tasks.test {
     val exampleResources = rootProject.layout.projectDirectory.dir("examples/native-showcase-mod/src/main/resources")
-    inputs.dir(exampleResources).withPropertyName("exampleResources").withPathSensitivity(PathSensitivity.RELATIVE)
+    // The public source has no examples/; the test is skipped there.
+    if (exampleResources.asFile.isDirectory) {
+        inputs.dir(exampleResources).withPropertyName("exampleResources").withPathSensitivity(PathSensitivity.RELATIVE)
+    }
     systemProperty("poly.exampleResources", exampleResources.asFile.absolutePath)
 }

@@ -42,16 +42,44 @@ import javax.swing.WindowConstants;
 /**
  * The installer window: client (the Minecraft Launcher) or dedicated server, Minecraft version, folder, memory,
  * install and uninstall. When done it shows a system notification and, unless the player unticked it or there are
- * warnings to read, closes.
+ * warnings to read, closes. The window starts in the system's language; the menu in its corner switches it.
  */
 final class InstallerWindow {
 
+    /** The languages of the window, in the order of the menu. */
+    enum Language {
+        ENGLISH("English"),
+        KOREAN("한국어");
+
+        private final String name;
+
+        Language(String name) {
+            this.name = name;
+        }
+
+        /** The system's language if the window has it, otherwise English. */
+        static Language system() {
+            return Locale.getDefault().getLanguage().equals("ko") ? KOREAN : ENGLISH;
+        }
+
+        /** The name the menu shows, in the language itself. */
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
     private final InstallerPayload payload;
+    private final Language language;
     private final Map<String, String> text;
     private final JFrame frame;
     private static final int FIELD_COLUMNS = 26;
 
     private final JToggleButton client;
+    private final JToggleButton server;
+    private final JComboBox<Language> languages;
+    private final boolean[] advancedOpen = {false};
+    private final Runnable refresh;
     private final JComboBox<String> version;
     private final JTextField directory;
     private final JTextField serverDirectory;
@@ -63,9 +91,10 @@ final class InstallerWindow {
     private final JButton uninstall;
     private final JTextArea log;
 
-    private InstallerWindow(InstallerPayload payload) {
+    private InstallerWindow(InstallerPayload payload, Language language) {
         this.payload = payload;
-        this.text = Locale.getDefault().getLanguage().equals("ko") ? KOREAN : ENGLISH;
+        this.language = language;
+        this.text = language == Language.KOREAN ? KOREAN : ENGLISH;
         frame = new JFrame(text("title").formatted(payload.polyVersion()));
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setIconImage(ProfileIcon.image(64));
@@ -74,10 +103,25 @@ final class InstallerWindow {
                 "Poly Mod Loader " + payload.polyVersion(), new ImageIcon(ProfileIcon.image(40)), JLabel.LEADING);
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18f));
         header.setIconTextGap(10);
+        languages = new JComboBox<>(Language.values());
+        languages.setSelectedItem(language);
+        languages.setToolTipText("Language / 언어");
+        languages.getAccessibleContext().setAccessibleName("Language / 언어");
+        languages.addActionListener(event -> {
+            if (languages.getSelectedItem() instanceof Language chosen && chosen != this.language) {
+                switchTo(chosen);
+            }
+        });
+        // The menu sits at the right of the title, at its own height.
+        JPanel languageCorner = new JPanel(new GridBagLayout());
+        languageCorner.add(languages);
+        JPanel top = new JPanel(new BorderLayout(12, 0));
+        top.add(header, BorderLayout.WEST);
+        top.add(languageCorner, BorderLayout.EAST);
 
         // Client or server: two halves of one control, the same width as the fields below.
         client = new JToggleButton(text("client"), true);
-        JToggleButton server = new JToggleButton(text("server"));
+        server = new JToggleButton(text("server"));
         ButtonGroup target = new ButtonGroup();
         target.add(client);
         target.add(server);
@@ -150,7 +194,7 @@ final class InstallerWindow {
 
         JPanel form = new JPanel(new GridBagLayout());
         Rows rows = new Rows(form);
-        rows.wide(header, new Insets(0, 0, 14, 0));
+        rows.wide(top, new Insets(0, 0, 14, 0));
         rows.add(targetLabel, targets);
         rows.add(serverLabel, serverFolder);
         rows.add(versionLabel, version);
@@ -171,27 +215,25 @@ final class InstallerWindow {
         List<JComponent> clientOnly = List.of(directoryLabel, launcherFolder, profile, uninstall);
         List<JComponent> advancedOnly = new ArrayList<>(advancedRows);
         advancedOnly.addAll(List.of(directoryLabel, minimumLabel, logPane));
-        boolean[] advancedOpen = {false};
-        Runnable refresh = () -> {
+        JButton toggle = new JButton(text("advancedShow"));
+        toggle.setBorderPainted(false);
+        toggle.setContentAreaFilled(false);
+        toggle.setFocusPainted(false);
+        toggle.setMargin(new Insets(0, 0, 0, 0));
+        refresh = () -> {
             boolean isServer = server.isSelected();
             advancedOnly.forEach(component -> component.setVisible(advancedOpen[0]));
             serverOnly.forEach(component -> component.setVisible(isServer));
             clientOnly.forEach(component -> component.setVisible(!isServer && advancedOpen[0]));
             maximumMemory.setEnabled(isServer || profile.isSelected());
             minimumMemory.setEnabled(isServer || profile.isSelected());
+            toggle.setText(text(advancedOpen[0] ? "advancedHide" : "advancedShow"));
             frame.pack();
         };
         client.addActionListener(event -> refresh.run());
         server.addActionListener(event -> refresh.run());
-
-        JButton toggle = new JButton(text("advancedShow"));
-        toggle.setBorderPainted(false);
-        toggle.setContentAreaFilled(false);
-        toggle.setFocusPainted(false);
-        toggle.setMargin(new Insets(0, 0, 0, 0));
         toggle.addActionListener(event -> {
             advancedOpen[0] = !advancedOpen[0];
-            toggle.setText(text(advancedOpen[0] ? "advancedHide" : "advancedShow"));
             refresh.run();
         });
         install.setPreferredSize(
@@ -279,7 +321,35 @@ final class InstallerWindow {
         } catch (ReflectiveOperationException | UnsupportedLookAndFeelException e) {
             // The default look and feel works as well.
         }
-        new InstallerWindow(payload).frame.setVisible(true);
+        new InstallerWindow(payload, Language.system()).frame.setVisible(true);
+    }
+
+    /**
+     * Replaces this window with one in {@code chosen}, at the same place and with what the player already chose. The
+     * memory boxes keep a typed size; their default entry is a word of the old language and becomes the new one's.
+     */
+    private void switchTo(Language chosen) {
+        InstallerWindow next = new InstallerWindow(payload, chosen);
+        next.client.setSelected(client.isSelected());
+        next.server.setSelected(server.isSelected());
+        next.version.setSelectedItem(version.getSelectedItem());
+        next.directory.setText(directory.getText());
+        next.serverDirectory.setText(serverDirectory.getText());
+        next.profile.setSelected(profile.isSelected());
+        next.closeWhenDone.setSelected(closeWhenDone.isSelected());
+        next.keepSize(next.maximumMemory, size(maximumMemory, "launcherDefault"), "launcherDefault");
+        next.keepSize(next.minimumMemory, size(minimumMemory, "notSet"), "notSet");
+        next.log.setText(log.getText());
+        next.advancedOpen[0] = advancedOpen[0];
+        next.refresh.run();
+        next.frame.setLocationRelativeTo(frame);
+        next.frame.setVisible(true);
+        frame.dispose();
+    }
+
+    /** Selects a typed size in a memory box, or its default entry when the size is "". */
+    private void keepSize(JComboBox<String> box, String size, String defaultKey) {
+        box.setSelectedItem(size.isEmpty() ? text(defaultKey) : size);
     }
 
     private String text(String key) {
@@ -475,6 +545,8 @@ final class InstallerWindow {
     private void setBusy(boolean busy) {
         install.setEnabled(!busy);
         uninstall.setEnabled(!busy);
+        // The running install writes to this window, so it stays until the install ends.
+        languages.setEnabled(!busy);
     }
 
     private static final Map<String, String> ENGLISH = Map.ofEntries(

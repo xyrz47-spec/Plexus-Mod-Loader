@@ -1,7 +1,7 @@
 # poly-bridge-fabric
 
 ## 이 모듈이 하는 일
-Fabric 모드를 Fabric Loader에서와 같은 방식으로 실행합니다([ADR-0020](../docs/adr/0020-fabric-mixin-and-runtime-fidelity.md)). Quilt 모드(`quilt.mod.json`)도 같은 실행 장치로 Quilt Loader에서와 같은 뜻으로 실행합니다([ADR-0027](../docs/adr/0027-quilt-mods-on-poly-mod-loader.md)).
+Fabric 모드를 Fabric Loader에서와 같은 방식으로 실행합니다(ADR-0020). Quilt 모드(`quilt.mod.json`)도 같은 실행 장치로 Quilt Loader에서와 같은 뜻으로 실행합니다(ADR-0027).
 
 - `fabric.mod.json`을 분석합니다. `depends`·`recommends`·`suggests`·`breaks`·`conflicts`·`provides`는 Fabric Loader의 버전 해석기(`VersionPredicate`)로 해석해 보고하고, 형식이 틀린 값은 예외 대신 `POLY-COMPAT-100`으로 보고합니다.
 - `quilt.mod.json`은 형제 브리지 `QuiltBridge`가 Quilt Loader 0.31.0-beta.4의 검사 순서와 뜻(버전 지정, 의존 객체의 `optional`·`unless`·ANY/ALL, `provides` 버전, `load_type`)으로 분석합니다. 판정 번호는 `POLY-COMPAT-300..310`입니다.
@@ -51,7 +51,7 @@ Fabric 모드를 Fabric Loader에서와 같은 방식으로 실행합니다([ADR
 6. 게임이 초기화 지점에 이르면 런타임이 `invokeEntrypoint`로 `main`과 `client`/`server`를 호출합니다. 두 브리지 모두 `FabricLoaderRuntime.invokeModEntrypoint`를 씁니다.
 
 ## 알려진 제한
-[ADR-0020](../docs/adr/0020-fabric-mixin-and-runtime-fidelity.md)과 [ADR-0027](../docs/adr/0027-quilt-mods-on-poly-mod-loader.md)의 "결과와 위험", [호환성 문서](../docs/COMPATIBILITY.md)를 보세요. Quilt에서는 특히:
+ADR-0020과 ADR-0027의 "결과와 위험", 호환성 문서를 보세요. Quilt에서는 특히:
 
 - `fabric.mod.json`과 `quilt.mod.json`을 다 든 jar는 Fabric 모드로 실행합니다(`310`). Quilt Loader는 `quilt.mod.json`을 씁니다.
 - Mixin 설정 이름은 Fabric처럼 이름 하나당 모드 하나입니다(`134`). Quilt Loader는 모드 ID를 접두사로 붙입니다.

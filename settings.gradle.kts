@@ -46,7 +46,14 @@ for (version in versionsWithModules) {
     }
 }
 
-include(
+// The public source repository leaves out examples/ and test-mods/ (.github/scripts/export-public-repo.py). Without a
+// folder its projects are not included: the loader, the installer and the unit tests still build, and the game test
+// tasks that need those mods say so when run.
+fun includeIfPresent(vararg paths: String) {
+    include(*paths.filter { file(it.substringBefore(':')).isDirectory }.toTypedArray())
+}
+
+includeIfPresent(
     "poly-runtime-api",
     "poly-lifecycle-api",
     "poly-event-api",

@@ -33,7 +33,7 @@ Minecraft 26.3 전용 지식을 담습니다. 클라이언트/서버 진입점�
 
 ## 26.2와 다른 점
 
-1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). 현황은 [`docs/plans/MINECRAFT_26_3.md`](../docs/plans/MINECRAFT_26_3.md)에 있습니다. `poly-version-adapter-v26_2`를 `newMinecraftVersion -Pexperimental=true`로 복사했습니다. 26.3 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음 하나입니다.
+1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). 현황은 `docs/plans/MINECRAFT_26_3.md`에 있습니다. `poly-version-adapter-v26_2`를 `newMinecraftVersion -Pexperimental=true`로 복사했습니다. 26.3 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음 하나입니다.
 
 - `poly:client_shader_uniforms`: `com.mojang.renderpearl.frontend.FrontendRenderPass.setPipeline(CompiledRenderPipeline)`(26.3의 `RenderPass`는 인터페이스이고 이 클래스가 유일한 구현)
 

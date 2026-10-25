@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -21,6 +22,9 @@ import java.util.HexFormat;
  * reused, so repeated runs work offline.
  */
 final class VerifiedDownloader {
+
+    private static final int ATTEMPTS = 3;
+    private static final Duration RETRY_DELAY = Duration.ofSeconds(1);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
@@ -67,35 +71,74 @@ final class VerifiedDownloader {
         }
     }
 
+    /**
+     * Downloads with a few attempts: a fresh machine (CI) fetches thousands of asset objects at once, and an I/O error
+     * or a 429/5xx answer from the server is retried. A wrong hash or another HTTP status is not.
+     */
     private void download(URI url, Path target, String expectedSha1) {
-        HttpRequest request =
-                HttpRequest.newBuilder(url).timeout(Duration.ofMinutes(10)).build();
         try {
-            Files.createDirectories(target.getParent());
-            Path temporary = Files.createTempFile(target.getParent(), target.getFileName().toString(), ".part");
-            try {
-                HttpResponse<InputStream> response =
-                        httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-                if (response.statusCode() != 200) {
-                    throw new IllegalStateException("HTTP " + response.statusCode() + " while downloading " + url);
+            for (int attempt = 1; ; attempt++) {
+                try {
+                    downloadOnce(url, target, expectedSha1);
+                    return;
+                } catch (IOException e) {
+                    if (attempt == ATTEMPTS) {
+                        throw e;
+                    }
+                    Thread.sleep(RETRY_DELAY.multipliedBy(attempt));
                 }
-                try (InputStream body = response.body()) {
-                    Files.copy(body, temporary, StandardCopyOption.REPLACE_EXISTING);
-                }
-                String actualSha1 = hash(temporary, "SHA-1");
-                if (!expectedSha1.equalsIgnoreCase(actualSha1)) {
-                    throw new IllegalStateException("SHA-1 mismatch for " + url + ": expected " + expectedSha1
-                            + " but downloaded " + actualSha1);
-                }
-                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            } finally {
-                Files.deleteIfExists(temporary);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to download " + url, e);
+            throw new UncheckedIOException("Failed to download " + url + ": " + e, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted while downloading " + url, e);
+        }
+    }
+
+    private void downloadOnce(URI url, Path target, String expectedSha1) throws IOException, InterruptedException {
+        HttpRequest request =
+                HttpRequest.newBuilder(url).timeout(Duration.ofMinutes(10)).build();
+        Files.createDirectories(target.getParent());
+        Path temporary = Files.createTempFile(target.getParent(), target.getFileName().toString(), ".part");
+        try {
+            HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            int status = response.statusCode();
+            if (status != 200) {
+                response.body().close();
+                String message = "HTTP " + status + " while downloading " + url;
+                if (status == 429 || status >= 500) {
+                    throw new IOException(message);
+                }
+                throw new IllegalStateException(message);
+            }
+            try (InputStream body = response.body()) {
+                Files.copy(body, temporary, StandardCopyOption.REPLACE_EXISTING);
+            }
+            String actualSha1 = hash(temporary, "SHA-1");
+            if (!expectedSha1.equalsIgnoreCase(actualSha1)) {
+                throw new IllegalStateException("SHA-1 mismatch for " + url + ": expected " + expectedSha1
+                        + " but downloaded " + actualSha1);
+            }
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (FileSystemException e) {
+                // Another writer (a thread, or a task of another project sharing the cache) moved the same file in
+                // first, and Windows refuses to replace a file in that state. Its file is as good as ours.
+                if (!hasSha1(target, expectedSha1)) {
+                    throw e;
+                }
+            }
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    private static boolean hasSha1(Path file, String expectedSha1) {
+        try {
+            return Files.isRegularFile(file) && expectedSha1.equalsIgnoreCase(hash(file, "SHA-1"));
+        } catch (UncheckedIOException e) {
+            return false;
         }
     }
 

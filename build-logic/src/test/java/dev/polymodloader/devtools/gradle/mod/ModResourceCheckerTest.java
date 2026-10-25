@@ -2,6 +2,7 @@ package dev.polymodloader.devtools.gradle.mod;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -120,10 +121,14 @@ class ModResourceCheckerTest {
         assertEquals(List.of(), ModResourceChecker.check(root));
     }
 
-    /** The showcase mod's resources load in the game (its game tests pass), so none may be reported. */
+    /**
+     * The showcase mod's resources load in the game (its game tests pass), so none may be reported. The public source
+     * has no examples/, so the test is skipped there.
+     */
     @Test
     void showcaseModResourcesHaveNoProblems() {
         Path showcase = Path.of("../examples/native-showcase-mod/src/main/resources");
+        assumeTrue(Files.isDirectory(Path.of("../examples")), "examples/ is not in this source");
         assertTrue(Files.isDirectory(showcase), showcase.toAbsolutePath().toString());
 
         assertEquals(List.of(), ModResourceChecker.check(showcase));

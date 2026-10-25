@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.1 — 2026-10-25
+
+### Highlights
+
+- The installer window has a language menu in its top right corner: switch between English and 한국어 (Korean) at any time; what you have entered stays. The window still opens in your system's language.
+
+### 주요 변경
+
+- 설치 프로그램 창 오른쪽 위에 언어 메뉴가 생겼습니다. English와 한국어를 언제든 바꿀 수 있고, 입력한 값은 그대로 남습니다. 창은 여전히 시스템 언어로 열립니다.
+
+### Installer
+
+- `InstallerWindow.Language`: the window starts in `Language.system()`; choosing another language rebuilds the window in place and carries over the target, Minecraft version, folders, memory sizes, check boxes, the Advanced section and the log. The menu is disabled while an install runs.
+
+### Building from source
+
+- The public source repository holds the loader's source and build: `examples/`, `test-mods/`, `docs/` and the CI workflows are not in it. Without `examples/` and `test-mods/` the build includes neither; the loader, the installer and the unit tests build, and the game test tasks that need those mods stop with a message.
+- Minecraft asset downloads no longer fail when several projects fill the shared cache at once on a fresh machine (Windows refused the second move of the same file); I/O errors and HTTP 429/5xx answers are retried.
+
 ## 1.2.0 — 2026-10-25
 
 ### Highlights
@@ -591,11 +610,11 @@
 - Class tweaker `extend-enum` lines are applied as in Fabric Loader: the enum gets a `public static final` stub constant after its existing ones, marked `org.spongepowered.asm.mixin.StubEnumConstant`, which Mixin's enum support lets the mod's mixin initialise (`EnumExtender`, adapted from FabricMC class-tweaker 0.3.0, Apache-2.0). `POLY-COMPAT-127` is retired. The `fabric-mixin` test mod adds `Difficulty.POLY_MIXIN_TEST`
 - `launcherProfileTest` also installs the `fabric-mixin` test mod, so the installed launcher profile is checked to carry Mixin
 - Forge groundwork (ADR-0021 G2, not used at run time yet): `ForgePatchSet` in `poly-bridge-forge` applies the binary patches of Forge's installer (`data/<side>.lzma`: LZMA zip of `.binpatch` files, GDIFF deltas, format read from `binarypatcher` 1.3.4) to the vanilla jar. For Forge 26.2-65.1.5's server patches the result is byte-identical to Forge's installer output for all 1394 classes (`ForgePatchSetTest` with `-PforgeInstaller`, `-PforgeVanillaServer`, `-PforgePatchedServer`). New library XZ for Java 1.9 (public domain)
-- Plans: the rest of Fabric support in `docs/plans/FABRIC_FULL_SUPPORT.md`; Forge support in `docs/plans/FORGE_SUPPORT.md` with the proposed [ADR-0021](docs/adr/0021-forge-on-polyloader.md) (run Forge's own code on a Forge-patched game jar built on the player's PC; nothing implemented yet)
+- Plans: the rest of Fabric support in `docs/plans/FABRIC_FULL_SUPPORT.md`; Forge support in `docs/plans/FORGE_SUPPORT.md` with the proposed ADR-0021 (run Forge's own code on a Forge-patched game jar built on the player's PC; nothing implemented yet)
 
 ### Fabric mods run as under Fabric Loader: Mixin, interface injection, environment stripping (2026-10-22)
 
-- Fabric mods that use Mixin now load and run ([ADR-0020](docs/adr/0020-fabric-mixin-and-runtime-fidelity.md)). Poly Mod Loader starts Mixin 0.8.7 (`net.fabricmc:sponge-mixin` 0.17.4, the build Fabric Loader 0.19.5 ships) and MixinExtras 0.5.5 on its game class loader through `PolyMixinService`, adapted from Fabric Loader's `MixinServiceKnot`. Configurations are added mod by mod with each mod's compatibility level, as in Fabric Loader. Mixin starts only when a loaded Fabric mod has a Mixin configuration
+- Fabric mods that use Mixin now load and run (ADR-0020). Poly Mod Loader starts Mixin 0.8.7 (`net.fabricmc:sponge-mixin` 0.17.4, the build Fabric Loader 0.19.5 ships) and MixinExtras 0.5.5 on its game class loader through `PolyMixinService`, adapted from Fabric Loader's `MixinServiceKnot`. Configurations are added mod by mod with each mod's compatibility level, as in Fabric Loader. Mixin starts only when a loaded Fabric mod has a Mixin configuration
 - The Fabric bridge applies Fabric Loader's own class transformations before Mixin, in Fabric Loader's order: `@Environment` stripping on mod and library classes, and class tweaker `inject-interface` on Minecraft classes. `extend-enum` stays blocked (`POLY-COMPAT-127`)
 - New bridge SPI `ModLoaderBridge.classTransformer` (`BridgeClassTransformer`): a bridge's transformation step that the game class loader runs after Poly Mod Loader's own rules, and that also defines Mixin's generated classes
 - Fabric entrypoints run where Fabric Loader runs them: `preLaunch` right after Mixin is ready, before the game; `main`, `client` and `server` after Minecraft's bootstrap (dedicated server and game test server: before `Util.startTimerHackThread()`; client: in the `Minecraft` constructor). The version adapters mark that point with the new transformation action `InvokeHookAtCall` (`GameVersionAdapter.bindModInitialization`). Poly Mods still initialise before the game. A Poly Mod that depends on a Fabric mod still gets load order and classes, but no longer the guarantee that the Fabric mod's initialisation finished first (ADR-0014 changed)
@@ -630,7 +649,7 @@
 
 ### Public Maven repository for the mod SDK (2026-10-21)
 
-- Mod developers no longer need the Poly Mod Loader repository. The website hosts a Maven repository at `https://polyloader.dothome.co.kr/maven/` with the `dev.polymodloader.mod` plugin and everything a mod project resolves through it ([ADR-0008](docs/adr/0008-mod-sdk-distribution.md), follow-up)
+- Mod developers no longer need the Poly Mod Loader repository. The website hosts a Maven repository at `https://polyloader.dothome.co.kr/maven/` with the `dev.polymodloader.mod` plugin and everything a mod project resolves through it (ADR-0008, follow-up)
 - `./gradlew publishSdk` publishes that set into `.poly/sdk-maven` (git-ignored, kept by `clean`, accumulates versions; another folder with `-PpolySdkRepo=<folder>`), including the included build's plugin, then checks it (`verifySdkRepository`):
   - 17 modules, found from the modules `dev.polymodloader.mod` uses (`poly-lifecycle-api`, `poly-bootstrap`, `poly-mod-metadata`, every version adapter) through the dependency graph. Not the installer, examples, test mods or tools
   - No source jars. JavaDoc jars only for `poly-lifecycle-api`, `poly-runtime-api`, `poly-system-api`, `poly-event-api` and `poly-game-api`
@@ -650,7 +669,7 @@
 
 ### Fabric class tweakers (2026-10-21)
 
-- Fabric mods with a class tweaker (`accessWidener` in `fabric.mod.json`) are no longer blocked for that alone. The Fabric bridge reads the file with Fabric Loader 0.19.5's grammar (`accessWidener v1/v2`, `classTweaker v1/v2`, `transitive-*`) and turns its `accessible`/`extendable`/`mutable` lines into Poly Mod Loader access widenings, including the class access Fabric implies. The link check verifies every target against the game jar before the mod loads ([ADR-0018](docs/adr/0018-fabric-class-tweakers.md))
+- Fabric mods with a class tweaker (`accessWidener` in `fabric.mod.json`) are no longer blocked for that alone. The Fabric bridge reads the file with Fabric Loader 0.19.5's grammar (`accessWidener v1/v2`, `classTweaker v1/v2`, `transitive-*`) and turns its `accessible`/`extendable`/`mutable` lines into Poly Mod Loader access widenings, including the class access Fabric implies. The link check verifies every target against the game jar before the mod loads (ADR-0018)
 - New codes:
   - `POLY-COMPAT-125`: class tweaker missing, unreadable or malformed, listing each bad line by number
   - `126`: namespace other than `official`
@@ -677,7 +696,7 @@
 - New transformation rules (javap-verified against 26.2): `poly:use_block`, `poly:use_item`, `poly:use_entity`, `poly:attack_entity`, `poly:block_break`, `poly:block_place` (call redirect), `poly:block_placed`; hooks in the new `InteractionHooks`
 - `GameTestContext.interactBlock`, `interactItem`, `interactEntity`, `attackEntity`, `breakBlock`: a mock server player acts like a client's input, events included
 - native-showcase-mod: `warded_block` and 6 game tests proving that each event cancels its action and that the uncancelled action still works
-- Roadmap of the remaining Fabric API / NeoForge gaps: [`docs/API_PARITY_ROADMAP.md`](docs/API_PARITY_ROADMAP.md)
+- Roadmap of the remaining Fabric API / NeoForge gaps: `docs/API_PARITY_ROADMAP.md`
 
 ### Server, world, respawn and entity lifecycle events
 
@@ -715,36 +734,36 @@
 
 ### 설치 프로그램, 첫 Poly 모드 튜토리얼, 라이선스, 배포 자동화 (2026-10-21)
 
-- 플레이어용 설치 프로그램 `PolyModLoader-<버전>.jar`·`.exe`: Minecraft Launcher에 "Poly 모드 로더 26.2" 프로필을 추가하고 `mods/` 폴더를 만듭니다. 창과 명령줄(`install`, `uninstall`)을 모두 지원하고, `.exe`는 런처가 받아 둔 Java로 실행됩니다([ADR-0017](docs/adr/0017-launcher-profile-installation.md))
+- 플레이어용 설치 프로그램 `PolyModLoader-<버전>.jar`·`.exe`: Minecraft Launcher에 "Poly 모드 로더 26.2" 프로필을 추가하고 `mods/` 폴더를 만듭니다. 창과 명령줄(`install`, `uninstall`)을 모두 지원하고, `.exe`는 런처가 받아 둔 Java로 실행됩니다(ADR-0017)
 - `poly.gameJar`가 없으면 클래스 경로에서 게임 jar를 찾습니다(런처 프로필 실행). 찾지 못하면 `POLY-BOOTSTRAP-006`
 - `:poly-bootstrap:launcherProfileTest`: 설치 jar로 새 런처 폴더에 설치하고, 런처와 같은 방식으로 프로필을 실행해 월드 접속까지 확인
 - "Poly 모드": Poly 모드 로더의 Native API로 만든 모드를 부르는 이름(Fabric 모드·Forge 모드처럼). 문서와 메시지를 이 이름으로 통일
-- 튜토리얼 "첫 Poly 모드 만들기"를 새 예제 [Crystal Garden](examples/crystal-garden)으로 다시 씀: 자라는 블록(블록 상태·블록 엔티티), 엔티티 데이터·월드 저장소, 명령어·권한, 접속 확인, 블록 엔티티 그리기·HUD·키, 게임 테스트 4개
+- 튜토리얼 "첫 Poly 모드 만들기"를 새 예제 Crystal Garden으로 다시 씀: 자라는 블록(블록 상태·블록 엔티티), 엔티티 데이터·월드 저장소, 명령어·권한, 접속 확인, 블록 엔티티 그리기·HUD·키, 게임 테스트 4개
 - 라이선스: PolyLoader Non-Commercial License 1.0(비상업적 사용·수정·배포 허용, 상업적 이용 제한, 자동 분석·AI 재구현을 파생물로 정의). 제3자 고지 `THIRD_PARTY_NOTICES.md`. 모든 jar의 `META-INF`에 둘 다 들어갑니다
 - 쓰지 않던 빈 `vml-*` 폴더와 `templates/vml-mod-template` 삭제
 
 ### Fabric Loader 런타임 API (2026-10-21)
 
-- Fabric 모드에 `FabricLoader.getInstance()`를 제공합니다: 모드 조회(Poly 모드 포함), `ModMetadata`(`custom` 값 포함), `ModContainer`·`ModOrigin`, 모든 키의 진입점, `ObjectShare`, 설정 폴더, 실행 환경·인수([ADR-0016](docs/adr/0016-fabric-loader-api.md))
+- Fabric 모드에 `FabricLoader.getInstance()`를 제공합니다: 모드 조회(Poly 모드 포함), `ModMetadata`(`custom` 값 포함), `ModContainer`·`ModOrigin`, 모든 키의 진입점, `ObjectShare`, 설정 폴더, 실행 환경·인수(ADR-0016)
 - 언어 어댑터: `languageAdapters`를 선언한 모드가 어댑터를 제공하고, 그 어댑터를 쓰는 모드는 그 모드를 필요로 합니다(`fabric-language-adapter:<이름>`). 기본 어댑터는 클래스·정적 필드·정적 메서드를 지원합니다
 - 브리지 jar는 Fabric Loader 본체 대신 공개 API와 그 닫힘만 담습니다(Apache-2.0 고지 포함). `getGameInstance`·`getMappingResolver`를 쓰는 모드는 링크 검사가 막습니다(`POLY-COMPAT-111`). 로더 런타임 패키지에서 실제로 없는 클래스도 이제 막습니다. 브리지 준비 실패는 `POLY-COMPAT-003`
 - 새 시나리오 `fabricLoaderApi`와 테스트 모드 3개. 실제 모드 묶음에서 로드 가능한 외부 모드가 3개에서 17개로 늘었고(`placeholder-api`, `fabric-language-kotlin`과 Kotlin 라이브러리 13개 포함), 이 상태로 게임 테스트 서버가 정상 시작합니다
 
 ### Fabric 중첩 jar (2026-10-21)
 
-- Fabric `jars`(jar-in-jar)를 풀어 각각 하나의 모드로 판정합니다. 여러 겹 중첩도 따라가고, `.poly/nested-jars/`에 내용 해시로 저장합니다. 바깥 모드가 로드될 때만 안쪽도 로드되고(`POLY-COMPAT-121`), 같은 모드의 사본은 하나만 씁니다(Native > 직접 설치 > 최고 버전, `122`). 출처 표시는 `120`, 없거나 읽을 수 없는 중첩 jar는 `123`, 일부만 로드되는 바깥 모드 경고는 `124`입니다([ADR-0015](docs/adr/0015-fabric-nested-jars.md))
+- Fabric `jars`(jar-in-jar)를 풀어 각각 하나의 모드로 판정합니다. 여러 겹 중첩도 따라가고, `.poly/nested-jars/`에 내용 해시로 저장합니다. 바깥 모드가 로드될 때만 안쪽도 로드되고(`POLY-COMPAT-121`), 같은 모드의 사본은 하나만 씁니다(Native > 직접 설치 > 최고 버전, `122`). 출처 표시는 `120`, 없거나 읽을 수 없는 중첩 jar는 `123`, 일부만 로드되는 바깥 모드 경고는 `124`입니다(ADR-0015)
 - 중첩 jar 자체로 차단하던 `POLY-COMPAT-103`은 폐기
 - 새 시나리오 `nestedJars`와 테스트 모드 4개. 실제 모드 묶음에서 중첩 모드 142개를 새로 판정(예외·크래시 0건). 로드 가능한 직접 설치 모드는 `fabric-api` 하나뿐이며, 하위 모듈은 44개 중 1개만 로드됩니다(`124`)
 
 ### 로더를 넘는 의존성, 시작 전 링크 검사, 실제 모드 호환성 테스트 (2026-10-21)
 
-- 서로 의존하는 모드: Poly 모드가 Fabric 모드에, Fabric 모드가 Native·Fabric 모드에 의존할 수 있습니다(`provides` 별칭 포함). 엔트리포인트는 로더를 가리지 않고 의존 대상이 먼저 돕니다([ADR-0014](docs/adr/0014-cross-loader-dependencies-and-link-check.md))
+- 서로 의존하는 모드: Poly 모드가 Fabric 모드에, Fabric 모드가 Native·Fabric 모드에 의존할 수 있습니다(`provides` 별칭 포함). 엔트리포인트는 로더를 가리지 않고 의존 대상이 먼저 돕니다(ADR-0014)
 - Fabric 의존성은 Fabric Loader의 버전 해석기로 판정합니다. `minecraft`·`java`·`fabricloader` 조건도 이제 확인하므로, 다른 Minecraft 버전용 Fabric 모드는 로드되지 않습니다
 - 차단 연쇄: 필요한 모드가 없음·차단됨·버전 불일치(`POLY-COMPAT-114`), `breaks`(`115`), `conflicts` 경고(`116`), 중복 ID(`117`). 각 모드가 모든 이유를 받습니다. Poly 모드가 차단된 외부 모드에 의존하면 `POLY-DEPENDENCY-009`. 다른 모드 의존 자체를 차단하던 `POLY-COMPAT-104`는 폐기
 - 시작 전 링크 검사(`ModLinkVerifier`): 로드하려는 외부 모드가 이 게임 버전에 없는 Minecraft 멤버(`112`), 제공하지 않는 Fabric Loader 런타임(`111`), 없는 JDK 클래스·읽을 수 없는 클래스 파일(`118`), 없는 엔트리포인트(`119`)를 쓰면 게임 도중이 아니라 시작 전에 제외합니다
 - 크래시 대신 진단: 깨진 jar(`POLY-DISCOVERY-003`), NeoForge 라이브러리 jar(`POLY-COMPAT-205`), 형식이 틀린 `fabric.mod.json`·`mods.toml` 값, 예외를 던지는 브리지(`POLY-COMPAT-002`)를 그 파일만 제외하고 계속 판정합니다
-- 실제 모드 호환성 테스트 `compatibilityCorpus`: Modrinth에서 26.2용 인기 모드 124개(Fabric·NeoForge·Forge 각 상위 40개와 필수 의존 모드)를 SHA-512로 고정한 목록(`poly-bootstrap/compat/mod-corpus-26.2.json`)으로 받습니다. 클라이언트·서버에서 모드 하나씩과 전부 함께 판정하고, 게임 테스트 서버에서도 실행합니다. 결과: 판정 예외·크래시 0건, 로드 가능 0개(Mixin·FML 필요). [COMPATIBILITY.md](docs/COMPATIBILITY.md)
-- 새 시나리오 `dependencyCrossLoader`, `dependencyBlockedChains`와 테스트 모드 10개([test-mods/README.md](test-mods/README.md))
+- 실제 모드 호환성 테스트 `compatibilityCorpus`: Modrinth에서 26.2용 인기 모드 124개(Fabric·NeoForge·Forge 각 상위 40개와 필수 의존 모드)를 SHA-512로 고정한 목록(`poly-bootstrap/compat/mod-corpus-26.2.json`)으로 받습니다. 클라이언트·서버에서 모드 하나씩과 전부 함께 판정하고, 게임 테스트 서버에서도 실행합니다. 결과: 판정 예외·크래시 0건, 로드 가능 0개(Mixin·FML 필요). COMPATIBILITY.md
+- 새 시나리오 `dependencyCrossLoader`, `dependencyBlockedChains`와 테스트 모드 10개(test-mods/README.md)
 - 고친 문제: `placeholder-api`처럼 Fabric Loader 런타임을 쓰는 라이브러리가 로드되어 게임 도중에 실패할 수 있던 문제. NeoForge 라이브러리가 "모드 아님"으로 보고되던 문제. 문서의 `POLY-COMPAT-110` 설명 오류(엔트리포인트 예외가 맞음)
 - `build-logic`: Java가 OS 인증서 저장소의 루트만 신뢰하는 PC(HTTPS 검사 소프트웨어 등)에서도 `modCorpus`가 받도록, Windows에서는 Windows 신뢰 저장소도 함께 신뢰(`SystemTrustedTls`)
 
@@ -760,17 +779,17 @@
 - `tickBenchmark -PtickBenchmarkHeap=2g`: 두 변형에 같은 고정 힙을 주고 GC 직후 힙도 비교(측정 3). 작업 부하를 돌 대신 유리로 채워 조명 계산 경쟁을 없앰
 - `:poly-bootstrap:frameBenchmark`: 바닐라 대 Poly 모드 로더 클라이언트 프레임 시간(`Minecraft.runTick`) p50/p95/p99 비교
 - `frameBenchmark`: 게임 창을 닫은 뒤 다음 창을 열기 전에 기다림(기본 20초, `-PframeBenchmarkCooldown`), 실행마다 결과를 `runs.jsonl`에 바로 기록. 개발 PC(NVIDIA 노트북 GPU)가 창을 연달아 다시 여는 순간 디스플레이 드라이버 오류(버그체크 0xD1)로 재부팅된 뒤 추가
-- 첫 클라이언트 프레임 시간 측정(측정 4): 개발용 모드를 함께 넣은 Poly 모드 로더가 바닐라보다 프레임 p50이 0.14ms 김(측정된 저하), p95·p99는 편차 안. [PERFORMANCE.md](docs/PERFORMANCE.md)
+- 첫 클라이언트 프레임 시간 측정(측정 4): 개발용 모드를 함께 넣은 Poly 모드 로더가 바닐라보다 프레임 p50이 0.14ms 김(측정된 저하), p95·p99는 편차 안. PERFORMANCE.md
 
 ### 서버 틱·힙·GC 측정 (2026-10-21)
 
-- `:poly-bootstrap:tickBenchmark`: 바닐라와 Poly 모드 로더를 같은 부하(바닐라에서도 도는 데이터 팩)로 번갈아 실행해 서버 틱 시간 p50/p95/p99·50ms 초과 비율, 피크 힙, GC 횟수·정지 시간을 비교. 결과는 [PERFORMANCE.md](docs/PERFORMANCE.md)
+- `:poly-bootstrap:tickBenchmark`: 바닐라와 Poly 모드 로더를 같은 부하(바닐라에서도 도는 데이터 팩)로 번갈아 실행해 서버 틱 시간 p50/p95/p99·50ms 초과 비율, 피크 힙, GC 횟수·정지 시간을 비교. 결과는 PERFORMANCE.md
 - `tools/tick-probe`: 틱 메서드를 호출마다 재는 측정용 Java 에이전트(JDK Class-File API, 양쪽에 똑같이 붙임)
 - 시작 시간 벤치마크와 실행 명령을 함께 쓰도록 정리(`BenchmarkLaunch`)
 
 ### 변환 엔진: 순서 계약, call-site 변경, 접근 확대, 캐시 상한 (2026-10-21)
 
-- 같은 메서드를 고치는 규칙은 `after`가 하나의 순서를 정하면 함께 적용(시작 훅·반환 훅은 선언 순서대로 실행). 상수 교체와 같은 호출을 바꾸는 규칙 둘은 여전히 함께 쓸 수 없음 ([ADR-0013](docs/adr/0013-transform-order-callsite-access.md))
+- 같은 메서드를 고치는 규칙은 `after`가 하나의 순서를 정하면 함께 적용(시작 훅·반환 훅은 선언 순서대로 실행). 상수 교체와 같은 호출을 바꾸는 규칙 둘은 여전히 함께 쓸 수 없음 (ADR-0013)
 - 새 동작 `RedirectCall`: 메서드 안의 특정 호출(모두 또는 n번째)을 정적 훅으로 바꿈
 - 접근 확대 `AccessWidening`(Fabric access widener와 같은 뜻: `accessible`, `extendable`, `mutable`), 대상이 없으면 `POLY-TRANSFORM-010`
 - `poly.mod.json`: `transforms`에 `invoke_hook_at_head`·`invoke_hook_before_return`·`redirect_call`과 `after`, 새 필드 `accessWidenings`(권한 `internal.callsite.intercept`, `internal.member.access`), 잘못된 접근 확대는 `POLY-METADATA-016`
@@ -786,7 +805,7 @@
 
 ### 이름 변경: Poly 모드 로더 (2026-10-21)
 
-- 프로젝트 이름을 Void Mod Loader(VML)에서 Poly 모드 로더로 바꿈. 패키지 `dev.polymodloader`, 모듈 `poly-*`, 메타데이터 `poly.mod.json`, 오류 코드 `POLY-*`(번호와 의미는 그대로), 모드 ID `poly`, 보고서 폴더 `.poly/`. 전체 대응표는 [ADR-0012](docs/adr/0012-rename-to-polyloader.md)
+- 프로젝트 이름을 Void Mod Loader(VML)에서 Poly 모드 로더로 바꿈. 패키지 `dev.polymodloader`, 모듈 `poly-*`, 메타데이터 `poly.mod.json`, 오류 코드 `POLY-*`(번호와 의미는 그대로), 모드 ID `poly`, 보고서 폴더 `.poly/`. 전체 대응표는 ADR-0012
 
 ### 문서 사이트와 API 레퍼런스 (2026-10-21)
 

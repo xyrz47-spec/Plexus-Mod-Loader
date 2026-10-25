@@ -1,7 +1,7 @@
 # poly-game-v26_2
 
 ## 이 모듈이 하는 일
-Minecraft 26.2의 게임 계층입니다([ADR-0010](../docs/adr/0010-native-api-game-layer.md)). Native API 선언을 실제 게임 객체로 만들고, 변환 규칙이 호출하는 훅을 제공합니다.
+Minecraft 26.2의 게임 계층입니다(ADR-0010). Native API 선언을 실제 게임 객체로 만들고, 변환 규칙이 호출하는 훅을 제공합니다.
 
 ## 무엇을 소유하는가
 - `GameLayer26_2`(진입점), `LayerState`

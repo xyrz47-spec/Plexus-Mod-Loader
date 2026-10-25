@@ -351,7 +351,8 @@ final class MinecraftDistributionInstaller {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted while downloading assets", e);
         } catch (java.util.concurrent.ExecutionException e) {
-            throw new IllegalStateException("Asset download failed", e.getCause());
+            // Gradle prints only this message, so it carries the cause.
+            throw new IllegalStateException("Asset download failed: " + e.getCause(), e.getCause());
         }
         return indexId;
     }

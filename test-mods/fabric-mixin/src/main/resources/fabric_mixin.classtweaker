@@ -1,5 +1,0 @@
-classTweaker v2 official
-inject-interface net/minecraft/server/MinecraftServer com/example/compat/mixin/Injected$Greeting
-inject-interface net/minecraft/server/MinecraftServer com/example/compat/mixin/Injected$Tagged<Ljava/lang/String;>
-# A stub constant, as Fabric Loader adds it; no mixin initialises it, so it stays null.
-extend-enum net/minecraft/world/Difficulty POLY_MIXIN_TEST

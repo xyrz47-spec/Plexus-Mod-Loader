@@ -1,8 +1,0 @@
-modLoader = "javafml"
-loaderVersion = "[1,)"
-license = "MIT"
-[[mods]]
-modId = "blocked_example"
-version = "1.0.0"
-[[mixins]]
-config = "blocked_example.mixins.json"

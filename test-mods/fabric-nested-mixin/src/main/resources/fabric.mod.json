@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "fabric_nested_mixin",
-  "version": "1.0.0",
-  "environment": "*",
-  "mixins": [
-    "fabric_nested_mixin.mixins.json"
-  ]
-}
