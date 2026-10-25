@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.compat.networkprobe.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MinecraftServerProbeMixin",
+    "GameTestServerProbeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

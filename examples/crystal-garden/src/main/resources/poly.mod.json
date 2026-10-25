@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "crystal_garden",
+  "version": "0.1.0",
+  "name": "Crystal Garden",
+  "environment": "both",
+  "minecraft": [
+    "26.*"
+  ],
+  "entrypoints": {
+    "common": ["com.example.crystalgarden.CrystalGardenMod"],
+    "client": ["com.example.crystalgarden.CrystalGardenClient"]
+  },
+  "depends": {
+    "poly": ">=1.0.0 <2.0.0"
+  }
+}

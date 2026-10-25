@@ -1,0 +1,100 @@
+# Single source of truth for dependency versions (design doc §6.4). Supported Minecraft versions
+# live in minecraft-versions.properties (ADR-0011).
+# Libraries that Minecraft also ships (gson, slf4j) are pinned to the exact versions in the
+# Minecraft version manifests so Poly Mod Loader and the game share one copy on the classpath (ADR-0005); with
+# several Minecraft versions, use the oldest version any of them ships.
+
+[versions]
+# Java of the version-independent modules: the lowest Java of all supported Minecraft versions.
+java = "25"
+asm = "9.11.1"
+gson = "2.14.0"
+slf4j = "2.0.17"
+junit = "6.1.3"
+spotless = "8.10.4"
+palantirJavaFormat = "2.102.0"
+fabricLoader = "0.19.5"
+# Mixin and MixinExtras at the versions Fabric Loader 0.19.5 ships (its fabric-installer.json and META-INF/jars).
+mixin = "0.17.4+mixin.0.8.7"
+mixinExtras = "0.5.5"
+# Quilt Loader (Apache-2.0): its public API and version classes are packed into the Fabric bridge jar (ADR-0027).
+quiltLoader = "0.31.0-beta.4"
+# Real Quilt Loader's own launcher profile for 0.31.0-beta.4 (meta.quiltmc.org/v3 .../server/json), used only by the
+# quiltLoaderReference check that runs real Quilt Loader (Quilt full support Q10), never shipped.
+quiltReferenceAsm = "9.10.1"
+quiltJson5 = "1.0.4+final"
+quiltConfig = "1.3.3"
+tomlj = "1.1.1"
+# LZMA for Forge's binary patches (data/<side>.lzma), ADR-0021 G2.
+xz = "1.9"
+# Forge's launcher API, compiled against (never shipped): Poly Mod Loader implements ModLauncher's contracts for FML
+# (ADR-0021). The versions Forge 26.2-65.1.5 uses; the jars themselves come from Forge's Maven on the player's PC.
+forgeModlauncher = "10.2.6"
+forgeSecuremodules = "2.2.24"
+# With securemodules, the jars Forge's shim puts on the JVM class path: Java finds file system and URL providers there
+# only, so FML's union and jar-in-jar file systems need them on Poly Mod Loader's class path too (ADR-0021).
+forgeUnsafe = "0.9.2"
+# FML's loader, for Poly Mod Loader's game test launch handler (a CommonLaunchHandler); compiled against only.
+forgeFml = "26.2-65.1.5"
+forgeSpi = "8.0.0"
+# The event bus of the pinned Forge release; the Forge test mods compile against it, with Forge and FML (ADR-0021 G4).
+forgeEventbus = "7.0.5"
+forgeJarJar = "0.4.2"
+forgeRoimfs = "1.0.0"
+# NeoForge's FancyModLoader and its distribution markers, compiled against (never shipped): Poly Mod Loader's host
+# for FML 11 (ADR-0026). The versions NeoForge 26.2.0.93 uses; the jars come from NeoForge's Maven on the player's PC.
+neoforgeFml = "11.0.16"
+neoforgeMergetool = "2.0.7"
+# The NeoForge release and its event bus the NeoForge test mods compile against (ADR-0026).
+neoforge = "26.2.0.93"
+neoforgeBus = "8.0.5"
+# The Maven version ranges FML checks mods.toml with (a Forge library; Poly Mod Loader's tests use the same).
+mavenArtifact = "3.8.8"
+# The config library of Forge 26.2-65.1.5, for the test of Poly Mod Loader's fix to it (NightConfigEmptyFilePatch).
+nightConfig = "3.7.4"
+# The option parser ModLauncher's API uses; Minecraft ships this version, so FML's services share the game's copy.
+joptSimple = "5.0.4"
+
+[libraries]
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
+asm-util = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
+asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
+asm-analysis = { module = "org.ow2.asm:asm-analysis", version.ref = "asm" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabricLoader" }
+sponge-mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin" }
+mixinextras-common = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinExtras" }
+quilt-loader = { module = "org.quiltmc:quilt-loader", version.ref = "quiltLoader" }
+quilt-json5 = { module = "org.quiltmc:quilt-json5", version.ref = "quiltJson5" }
+quilt-config = { module = "org.quiltmc:quilt-config", version.ref = "quiltConfig" }
+quilt-reference-asm = { module = "org.ow2.asm:asm", version.ref = "quiltReferenceAsm" }
+quilt-reference-asm-analysis = { module = "org.ow2.asm:asm-analysis", version.ref = "quiltReferenceAsm" }
+quilt-reference-asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "quiltReferenceAsm" }
+quilt-reference-asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "quiltReferenceAsm" }
+quilt-reference-asm-util = { module = "org.ow2.asm:asm-util", version.ref = "quiltReferenceAsm" }
+tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
+xz = { module = "org.tukaani:xz", version.ref = "xz" }
+forge-modlauncher = { module = "net.minecraftforge:modlauncher", version.ref = "forgeModlauncher" }
+forge-securemodules = { module = "net.minecraftforge:securemodules", version.ref = "forgeSecuremodules" }
+forge-unsafe = { module = "net.minecraftforge:unsafe", version.ref = "forgeUnsafe" }
+forge-jarjar-filesystems = { module = "net.minecraftforge:JarJarFileSystems", version.ref = "forgeJarJar" }
+forge-roimfs = { module = "net.minecraftforge:roimfs", version.ref = "forgeRoimfs" }
+maven-artifact = { module = "org.apache.maven:maven-artifact", version.ref = "mavenArtifact" }
+night-config-core = { module = "com.electronwill.night-config:core", version.ref = "nightConfig" }
+forge-fmlloader = { module = "net.minecraftforge:fmlloader", version.ref = "forgeFml" }
+forge-forgespi = { module = "net.minecraftforge:forgespi", version.ref = "forgeSpi" }
+forge-universal = { module = "net.minecraftforge:forge", version.ref = "forgeFml" }
+forge-fmlcore = { module = "net.minecraftforge:fmlcore", version.ref = "forgeFml" }
+forge-javafmllanguage = { module = "net.minecraftforge:javafmllanguage", version.ref = "forgeFml" }
+forge-eventbus = { module = "net.minecraftforge:eventbus", version.ref = "forgeEventbus" }
+neoforge-fml-loader = { module = "net.neoforged.fancymodloader:loader", version.ref = "neoforgeFml" }
+neoforge-mergetool-api = { module = "net.neoforged:mergetool", version.ref = "neoforgeMergetool" }
+neoforge-universal = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
+neoforge-bus = { module = "net.neoforged:bus", version.ref = "neoforgeBus" }
+jopt-simple = { module = "net.sf.jopt-simple:jopt-simple", version.ref = "joptSimple" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }

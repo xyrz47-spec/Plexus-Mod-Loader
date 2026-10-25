@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "twin-mod",
+  "version": "1.0.0",
+  "name": "Twin Mod",
+  "description": "Poly Mod Loader test mod: the Fabric build of a mod whose NeoForge build has the ID twin_mod and the same classes.",
+  "environment": "*",
+  "provides": [
+    "twin-mod-api"
+  ],
+  "entrypoints": {
+    "main": [
+      "com.example.twin.fabric.TwinFabric"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0"
+  }
+}

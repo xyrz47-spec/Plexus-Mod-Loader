@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_client_bootstrap_probe",
+  "version": "1.0.0",
+  "name": "Fabric Client Bootstrap Probe",
+  "description": "Poly Mod Loader test harness: with -Dfabric_client_bootstrap_probe.stop=true it stops the client in Minecraft.<init> right before it creates the game window, after mod initialization.",
+  "environment": "client",
+  "mixins": [
+    "fabric_client_bootstrap_probe.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=26.1"
+  }
+}

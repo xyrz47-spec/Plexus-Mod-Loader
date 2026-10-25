@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:overworld",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "native_showcase:waves",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:plains"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_api_events",
+  "version": "1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.compat.apievents.ApiEvents"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "26.2",
+    "fabric-events-interaction-v0": "*",
+    "fabric-lifecycle-events-v1": "*",
+    "fabric-resource-conditions-api-v1": "*",
+    "fabric-item-api-v1": "*"
+  }
+}

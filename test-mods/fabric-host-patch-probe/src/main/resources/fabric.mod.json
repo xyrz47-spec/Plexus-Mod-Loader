@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "poly_host_patch_probe",
+  "version": "1.0.0",
+  "environment": "*",
+  "mixins": [
+    "poly_host_patch_probe.mixins.json"
+  ]
+}

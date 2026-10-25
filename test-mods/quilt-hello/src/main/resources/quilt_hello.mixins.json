@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.compat.quilthello.mixins",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "MinecraftServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

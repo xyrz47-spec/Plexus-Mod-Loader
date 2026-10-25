@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:glowstone_dust",
+    "minecraft:amethyst_shard"
+  ],
+  "result": {
+    "count": 2,
+    "id": "native_showcase:spark"
+  }
+}

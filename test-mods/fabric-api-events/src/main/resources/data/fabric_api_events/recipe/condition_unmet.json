@@ -1,0 +1,14 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": ["no_such_mod_for_poly_test"]
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": ["minecraft:stick"],
+  "result": {
+    "id": "minecraft:stick",
+    "count": 2
+  }
+}

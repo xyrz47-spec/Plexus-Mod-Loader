@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_adapter_provider",
+  "version": "1.0.0",
+  "environment": "*",
+  "languageAdapters": {
+    "poly_test": "com.example.compat.adapter.TestAdapter"
+  }
+}

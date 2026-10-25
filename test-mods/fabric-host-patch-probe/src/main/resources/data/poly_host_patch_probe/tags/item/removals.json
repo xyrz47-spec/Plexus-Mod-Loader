@@ -1,0 +1,13 @@
+{
+  "values": [
+    "minecraft:stone",
+    "minecraft:dirt",
+    "minecraft:sand"
+  ],
+  "remove": [
+    "minecraft:sand"
+  ],
+  "fabric:remove": [
+    "minecraft:dirt"
+  ]
+}

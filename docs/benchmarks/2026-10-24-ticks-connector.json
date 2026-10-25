@@ -1,0 +1,43 @@
+{
+  "scenario": "game test server, test poly_tick_benchmark:hold for 1200 ticks, data pack: 40 pigs and a 16x16x16 glass fill/clear every tick",
+  "runsPerVariant": 5,
+  "warmupRunsDiscarded": 1,
+  "warmupTicksDiscarded": 200,
+  "heapSize": "4g",
+  "java": "25.0.3+9-LTS-195",
+  "reference": {"name": "connector", "neoForge": "26.2.0.93", "mods": ["Jade-mc26.2-Fabric-26.2.11.jar", "appleskin-fabric-mc26.2-3.0.10.jar", "cloth-config-26.2.155.jar", "collective-26.2.0-8.60.jar", "connector-3.1.0-beta.3+26.2-full.jar", "entityculling-fabric-1.11.3-mc26.2.jar", "fabric-language-kotlin-1.14.2+kotlin.2.4.21.jar", "fancymenu_fabric_3.9.14_MC_26.2.jar", "ferritecore-9.0.0-fabric.jar", "forgified-fabric-api-0.161.0+26.2+4.0.2.jar", "geckolib-fabric-26.2-5.5.5.jar", "jei-26.2-fabric-30.47.0.239.jar", "konkrete_fabric_1.11.1_MC_26.2.jar", "launchpad-1.10.2+26.2-full.jar", "melody_fabric_1.0.17_MC_26.2.jar", "mezz_config-26.2-fabric-0.6.8.jar", "neoforge-gametest-harness-1.0.0.jar", "notenoughanimations-fabric-1.12.5-mc26.2.jar", "placeholder-api-3.1.0-beta.1+26.2.jar", "skinlayers3d-fabric-1.11.4-mc26.2.jar", "veinminer-fabric-2.12.1.jar", "voicechat-fabric-2.6.24+26.2.jar", "yet_another_config_lib_v3-3.9.7+26.2-fabric.jar"]},
+  "polyMods": ["Jade-mc26.2-Fabric-26.2.11.jar", "appleskin-fabric-mc26.2-3.0.10.jar", "cloth-config-26.2.155.jar", "collective-26.2.0-8.60.jar", "entityculling-fabric-1.11.3-mc26.2.jar", "fabric-api-0.161.0+26.2.jar", "fabric-gametest-harness-1.0.0.jar", "fabric-language-kotlin-1.14.2+kotlin.2.4.21.jar", "fancymenu_fabric_3.9.14_MC_26.2.jar", "ferritecore-9.0.0-fabric.jar", "geckolib-fabric-26.2-5.5.5.jar", "jei-26.2-fabric-30.47.0.239.jar", "konkrete_fabric_1.11.1_MC_26.2.jar", "melody_fabric_1.0.17_MC_26.2.jar", "mezz_config-26.2-fabric-0.6.8.jar", "notenoughanimations-fabric-1.12.5-mc26.2.jar", "placeholder-api-3.1.0-beta.1+26.2.jar", "skinlayers3d-fabric-1.11.4-mc26.2.jar", "veinminer-fabric-2.12.1.jar", "voicechat-fabric-2.6.24+26.2.jar", "yet_another_config_lib_v3-3.9.7+26.2-fabric.jar"],
+  "vanilla": {
+    "runs": [
+      {"ticks": 1006, "p50Millis": 8.5287, "p95Millis": 10.5728, "p99Millis": 12.6755, "maxMillis": 61.5698, "over50MillisPercent": 0.0994, "peakHeapMiB": 2463.5, "peakHeapAfterGcMiB": 138.4, "collections": 12, "pauseMillis": 192.92, "longestPauseMillis": 52.06},
+      {"ticks": 1008, "p50Millis": 8.7074, "p95Millis": 10.5339, "p99Millis": 13.1611, "maxMillis": 57.4152, "over50MillisPercent": 0.1984, "peakHeapMiB": 2463.5, "peakHeapAfterGcMiB": 138.5, "collections": 12, "pauseMillis": 222.68, "longestPauseMillis": 46.84},
+      {"ticks": 1007, "p50Millis": 8.6309, "p95Millis": 11.4771, "p99Millis": 13.4634, "maxMillis": 57.1874, "over50MillisPercent": 0.1986, "peakHeapMiB": 2463.2, "peakHeapAfterGcMiB": 137.2, "collections": 12, "pauseMillis": 196.91, "longestPauseMillis": 45.23},
+      {"ticks": 1007, "p50Millis": 8.2916, "p95Millis": 10.2835, "p99Millis": 12.3750, "maxMillis": 38.5900, "over50MillisPercent": 0.0000, "peakHeapMiB": 2463.3, "peakHeapAfterGcMiB": 137.3, "collections": 12, "pauseMillis": 173.47, "longestPauseMillis": 32.30},
+      {"ticks": 1006, "p50Millis": 8.7284, "p95Millis": 10.6511, "p99Millis": 13.4198, "maxMillis": 55.8937, "over50MillisPercent": 0.0994, "peakHeapMiB": 2463.4, "peakHeapAfterGcMiB": 139.4, "collections": 12, "pauseMillis": 191.53, "longestPauseMillis": 39.29}
+    ],
+    "median": {"ticks": 1007, "p50Millis": 8.631, "p95Millis": 10.573, "p99Millis": 13.161, "maxMillis": 57.187, "over50MillisPercent": 0.099, "peakHeapMiB": 2463.4, "peakHeapAfterGcMiB": 138.4, "collections": 12, "pauseMillis": 192.9, "longestPauseMillis": 45.23},
+    "stdDev": {"p50Millis": 0.178, "p95Millis": 0.454, "p99Millis": 0.477, "peakHeapMiB": 0.1, "peakHeapAfterGcMiB": 0.9, "collections": 0.0, "pauseMillis": 17.7}
+  },
+  "poly": {
+    "runs": [
+      {"ticks": 1005, "p50Millis": 8.1055, "p95Millis": 10.1847, "p99Millis": 13.9660, "maxMillis": 63.6771, "over50MillisPercent": 0.1990, "peakHeapMiB": 2465.1, "peakHeapAfterGcMiB": 174.1, "collections": 16, "pauseMillis": 282.30, "longestPauseMillis": 55.25},
+      {"ticks": 1006, "p50Millis": 8.4740, "p95Millis": 10.9131, "p99Millis": 12.8249, "maxMillis": 52.1178, "over50MillisPercent": 0.0994, "peakHeapMiB": 2465.1, "peakHeapAfterGcMiB": 173.1, "collections": 16, "pauseMillis": 257.20, "longestPauseMillis": 44.17},
+      {"ticks": 1007, "p50Millis": 8.7799, "p95Millis": 11.0223, "p99Millis": 15.5387, "maxMillis": 61.7048, "over50MillisPercent": 0.0993, "peakHeapMiB": 2465.1, "peakHeapAfterGcMiB": 173.1, "collections": 16, "pauseMillis": 242.93, "longestPauseMillis": 49.00},
+      {"ticks": 1007, "p50Millis": 8.6760, "p95Millis": 10.8842, "p99Millis": 13.9792, "maxMillis": 61.8140, "over50MillisPercent": 0.3972, "peakHeapMiB": 2465.1, "peakHeapAfterGcMiB": 171.1, "collections": 16, "pauseMillis": 284.77, "longestPauseMillis": 49.48},
+      {"ticks": 1007, "p50Millis": 8.4472, "p95Millis": 10.9394, "p99Millis": 13.9116, "maxMillis": 74.4791, "over50MillisPercent": 0.3972, "peakHeapMiB": 2465.1, "peakHeapAfterGcMiB": 173.1, "collections": 16, "pauseMillis": 332.10, "longestPauseMillis": 60.05}
+    ],
+    "median": {"ticks": 1007, "p50Millis": 8.474, "p95Millis": 10.913, "p99Millis": 13.966, "maxMillis": 61.814, "over50MillisPercent": 0.199, "peakHeapMiB": 2465.1, "peakHeapAfterGcMiB": 173.1, "collections": 16, "pauseMillis": 282.3, "longestPauseMillis": 49.48},
+    "stdDev": {"p50Millis": 0.259, "p95Millis": 0.342, "p99Millis": 0.968, "peakHeapMiB": 0.0, "peakHeapAfterGcMiB": 1.1, "collections": 0.0, "pauseMillis": 34.0}
+  },
+  "connector": {
+    "runs": [
+      {"ticks": 1007, "p50Millis": 8.1336, "p95Millis": 9.6720, "p99Millis": 11.9693, "maxMillis": 55.4591, "over50MillisPercent": 0.0993, "peakHeapMiB": 2543.5, "peakHeapAfterGcMiB": 207.0, "collections": 15, "pauseMillis": 335.34, "longestPauseMillis": 105.96},
+      {"ticks": 1007, "p50Millis": 8.5425, "p95Millis": 9.9370, "p99Millis": 12.5116, "maxMillis": 57.1352, "over50MillisPercent": 0.0993, "peakHeapMiB": 2543.0, "peakHeapAfterGcMiB": 201.0, "collections": 15, "pauseMillis": 293.53, "longestPauseMillis": 78.92},
+      {"ticks": 1007, "p50Millis": 8.4471, "p95Millis": 10.0238, "p99Millis": 13.8237, "maxMillis": 57.2573, "over50MillisPercent": 0.0993, "peakHeapMiB": 2543.0, "peakHeapAfterGcMiB": 201.0, "collections": 15, "pauseMillis": 263.69, "longestPauseMillis": 62.33},
+      {"ticks": 1006, "p50Millis": 8.5427, "p95Millis": 12.1246, "p99Millis": 18.1481, "maxMillis": 58.7719, "over50MillisPercent": 0.0994, "peakHeapMiB": 2543.5, "peakHeapAfterGcMiB": 203.0, "collections": 15, "pauseMillis": 284.37, "longestPauseMillis": 60.72},
+      {"ticks": 1006, "p50Millis": 8.4804, "p95Millis": 9.7907, "p99Millis": 10.8153, "maxMillis": 62.6416, "over50MillisPercent": 0.0994, "peakHeapMiB": 2541.7, "peakHeapAfterGcMiB": 205.7, "collections": 15, "pauseMillis": 352.02, "longestPauseMillis": 113.74}
+    ],
+    "median": {"ticks": 1007, "p50Millis": 8.480, "p95Millis": 9.937, "p99Millis": 12.512, "maxMillis": 57.257, "over50MillisPercent": 0.099, "peakHeapMiB": 2543.0, "peakHeapAfterGcMiB": 203.0, "collections": 15, "pauseMillis": 293.5, "longestPauseMillis": 78.92},
+    "stdDev": {"p50Millis": 0.170, "p95Millis": 1.024, "p99Millis": 2.838, "peakHeapMiB": 0.7, "peakHeapAfterGcMiB": 2.7, "collections": 0.0, "pauseMillis": 36.7}
+  }
+}

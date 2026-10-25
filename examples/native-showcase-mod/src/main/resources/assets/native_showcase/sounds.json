@@ -1,0 +1,8 @@
+{
+  "chime": {
+    "sounds": [
+      "minecraft:random/orb"
+    ],
+    "subtitle": "subtitles.native_showcase.chime"
+  }
+}

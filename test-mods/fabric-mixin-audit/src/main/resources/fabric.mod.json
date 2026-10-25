@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "poly_mixin_audit",
+  "version": "1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "preLaunch": ["com.example.compat.mixinaudit.MixinAudit"]
+  }
+}

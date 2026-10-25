@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "dev.polymodloader.test",
+    "id": "quilt_hello",
+    "version": "1.0.0",
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "metadata": {
+      "name": "Quilt Hello",
+      "description": "Quilt test mod of Poly Mod Loader's compatibility matrix.",
+      "contributors": {
+        "PolyDev": "Owner",
+        "Helper": "Tester"
+      },
+      "contact": {
+        "homepage": "https://example.com/quilt_hello"
+      },
+      "license": "MIT",
+      "icon": "assets/quilt_hello/icon.png"
+    },
+    "provides": [
+      "quilt_hello_api",
+      {
+        "id": "quilt_hello_versioned",
+        "version": "3.0.0"
+      }
+    ],
+    "entrypoints": {
+      "main": "com.example.compat.quilthello.QuiltHello",
+      "client": "com.example.compat.quilthello.QuiltHelloClient",
+      "pre_launch": "com.example.compat.quilthello.QuiltPreLaunch",
+      "preLaunch": "com.example.compat.quilthello.FabricPreLaunch",
+      "init": "com.example.compat.quilthello.QslInit",
+      "quilt_hello:custom": {
+        "adapter": "default",
+        "value": "com.example.compat.quilthello.CustomGreeting"
+      }
+    },
+    "jars": [
+      "META-INF/jars/fabric-nested-lib.jar",
+      "META-INF/jars/quilt-nested-lib.jar",
+      "META-INF/jars/quilt-nested-unused.jar"
+    ],
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "versions": ">=0.30.0"
+      },
+      {
+        "id": "minecraft",
+        "versions": {
+          "any": [
+            "26.1.x",
+            "26.2.x"
+          ]
+        }
+      },
+      {
+        "id": "java",
+        "versions": ">=25"
+      },
+      {
+        "id": "quilt_nested_lib",
+        "versions": ">=1.0.0"
+      },
+      {
+        "id": "fabric_lib",
+        "versions": "1.0.0",
+        "optional": true,
+        "reason": "Quilt reads 1.0.0 as ^1.0.0, so fabric_lib 1.2.0 meets it; Fabric would want exactly 1.0.0"
+      },
+      {
+        "id": "absent_optional",
+        "optional": true
+      },
+      {
+        "id": "absent_required",
+        "unless": "quilt_loader"
+      },
+      [
+        {
+          "id": "absent_a"
+        },
+        {
+          "id": "quilt_loader"
+        }
+      ]
+    ],
+    "breaks": [
+      [
+        {
+          "id": "fabric_lib"
+        },
+        {
+          "id": "absent_b"
+        }
+      ]
+    ]
+  },
+  "mixin": {
+    "config": "quilt_hello.mixins.json",
+    "environment": "*"
+  },
+  "access_widener": [
+    "quilt_hello.accesswidener",
+    "quilt_hello_extra.accesswidener"
+  ],
+  "minecraft": {
+    "environment": "*"
+  },
+  "quilt_hello:settings": {
+    "answer": 42
+  }
+}

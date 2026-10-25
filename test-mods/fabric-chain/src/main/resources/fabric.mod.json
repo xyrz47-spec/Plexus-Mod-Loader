@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_chain",
+  "version": "1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.compat.fabricchain.FabricChain"
+    ]
+  },
+  "depends": {
+    "fabric_old": "*",
+    "blocked_example": "*",
+    "fabric-api": "*"
+  }
+}

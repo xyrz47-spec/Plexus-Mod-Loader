@@ -1,0 +1,136 @@
+pluginManagement {
+    includeBuild("build-logic")
+}
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        mavenCentral()
+        exclusiveContent {
+            forRepository { maven("https://maven.fabricmc.net/") { name = "FabricMC" } }
+            filter { includeGroup("net.fabricmc") }
+        }
+        exclusiveContent {
+            forRepository { maven("https://maven.minecraftforge.net/") { name = "MinecraftForge" } }
+            filter { includeGroup("net.minecraftforge") }
+        }
+        exclusiveContent {
+            forRepository { maven("https://maven.neoforged.net/releases/") { name = "NeoForged" } }
+            filter { includeGroupAndSubgroups("net.neoforged") }
+        }
+        exclusiveContent {
+            forRepository { maven("https://maven.quiltmc.org/repository/release/") { name = "QuiltMC" } }
+            filter { includeGroup("org.quiltmc") }
+        }
+    }
+}
+
+rootProject.name = "polymodloader"
+
+// One version adapter and one game layer per supported Minecraft version (ADR-0011).
+val minecraftVersions = java.util.Properties().apply {
+    file("gradle/minecraft-versions.properties").inputStream().use(::load)
+}
+// Experimental versions (ADR-0019) have modules too; the build compiles and tests them, but they are not supported.
+val versionsWithModules = listOf("supported", "experimental").flatMap { key ->
+    minecraftVersions.getProperty(key, "").split(",").map(String::trim).filter(String::isNotEmpty)
+}
+for (version in versionsWithModules) {
+    val id = version.replace('.', '_').replace('-', '_')
+    for (module in listOf("poly-version-adapter-v$id", "poly-game-v$id")) {
+        require(file(module).isDirectory) {
+            "Minecraft $version is listed in gradle/minecraft-versions.properties but $module/ is missing; " +
+                "create it with ./gradlew newMinecraftVersion -Pfrom=<version> -Pto=$version"
+        }
+        include(module)
+    }
+}
+
+include(
+    "poly-runtime-api",
+    "poly-lifecycle-api",
+    "poly-event-api",
+    "poly-game-api",
+    "poly-system-api",
+    "poly-system-registry",
+    "poly-mod-metadata",
+    "poly-transform-api",
+    "poly-transform-engine",
+    "poly-version-adapter-api",
+    "poly-runtime-impl",
+    "poly-bridge-api",
+    "poly-bridge-fabric",
+    "poly-bridge-forge",
+    "poly-bootstrap",
+    "poly-installer",
+    "examples:minimal-native-mod",
+    "examples:custom-system-mod",
+    "examples:transform-demo-mod",
+    "examples:native-showcase-mod",
+    "test-mods:fabric-entrypoint-only",
+    "test-mods:neoforge-blocked",
+    "test-mods:transform-conflict",
+    // Cross-loader dependency and robustness scenarios (compatibilityMatrix).
+    "test-mods:native-library",
+    "test-mods:native-addon",
+    "test-mods:fabric-library",
+    "test-mods:fabric-addon",
+    "test-mods:fabric-wrong-version",
+    "test-mods:fabric-chain",
+    "test-mods:fabric-stale",
+    "test-mods:fabric-loader-user",
+    "test-mods:fabric-malformed",
+    "test-mods:fml-library",
+    "test-mods:forge-hello",
+    "test-mods:neoforge-hello",
+    "test-mods:neoforge-mixin",
+    "test-mods:fabric-registry",
+    "test-mods:multi-loader-fallback",
+    "test-mods:fabric-twin",
+    "test-mods:neoforge-twin",
+    "test-mods:fabric-twin-user",
+    "test-mods:fabric-client-bootstrap-probe",
+    "test-mods:fabric-network-probe",
+    "test-mods:neoforge-network-probe",
+    "test-mods:neoforge-gametest-harness",
+    "test-mods:neoforge-unmet",
+    "test-mods:neoforge-client-session",
+    "test-mods:neoforge-early-service",
+    "test-mods:neoforge-environment-probe",
+    "test-mods:forge-at",
+    "test-mods:forge-mixin",
+    // Jar-in-jar scenario (nestedJars).
+    "test-mods:fabric-bundle",
+    "test-mods:fabric-nested-lib",
+    "test-mods:fabric-nested-deep",
+    "test-mods:fabric-nested-mixin",
+    // Fabric Loader API scenario (fabricLoaderApi).
+    "test-mods:fabric-api-user",
+    "test-mods:fabric-launcher-user",
+    "test-mods:fabric-adapter-provider",
+    "test-mods:fabric-adapter-user",
+    // Fabric class tweaker scenario (fabricClassTweaker).
+    "test-mods:fabric-class-tweaker",
+    "test-mods:fabric-class-tweaker-stale",
+    // Mixin scenario (fabricMixin, ADR-0020).
+    "test-mods:fabric-mixin",
+    "test-mods:fabric-mixin-broken",
+    "test-mods:fabric-client-session",
+    // Quilt mods (ADR-0027 Q3: quiltOnly, quiltFabricPoly, quiltBlocked).
+    "test-mods:quilt-hello",
+    "test-mods:quilt-nested-lib",
+    "test-mods:quilt-nested-unused",
+    "test-mods:fabric-quilt-dual",
+    "test-mods:quilt-qsl-resource",
+    "test-mods:quilt-blocked",
+    // Harness glue for headless corpus runs on Mojang's game test server (compatibilityCorpus).
+    "test-mods:fabric-gametest-harness",
+    // Applies every installed mod's mixins for one side and stops before the game (mixinAuditQuilt, diagnosis).
+    "test-mods:fabric-mixin-audit",
+    // Fabric API features whose mixins meet members MinecraftForge's patch added or changed (corpusFabricForge).
+    "test-mods:fabric-host-patch-probe",
+    // Real Fabric API's events and data under MinecraftForge's patch (forgeFabricApiGameTest, ADR-0021 G8).
+    "test-mods:fabric-api-events",
+    "tools:api-reference",
+    "tools:tick-probe",
+)

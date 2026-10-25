@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_hello",
+  "version": "1.0.0",
+  "name": "Fabric Hello",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.example.fabrichello.FabricHello"],
+    "client": ["com.example.fabrichello.FabricHelloClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "~26.2",
+    "java": ">=25"
+  }
+}

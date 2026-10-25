@@ -1,0 +1,16 @@
+[package]
+name = "polymodloader-installer"
+version = "0.1.0"
+edition = "2021"
+description = "Windows launcher of the Poly Mod Loader installer jar"
+publish = false
+
+# No dependencies: the program only finds a Java runtime and runs the installer jar inside it.
+[dependencies]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

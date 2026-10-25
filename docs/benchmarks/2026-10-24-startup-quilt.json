@@ -1,0 +1,12 @@
+{
+  "scenario": "game test server, minecraft:always_pass, fresh world",
+  "runsPerVariant": 5,
+  "warmupRunsDiscarded": 1,
+  "vanillaSeconds": [6.5612538, 6.2778461, 6.5391689, 7.3071033, 6.1462367],
+  "polySeconds": [14.2622919, 12.356283, 13.0664762, 12.8725037, 12.4869312],
+  "vanillaMedian": 6.539,
+  "polyMedian": 12.873,
+  "vanillaStdDev": 0.450,
+  "polyStdDev": 0.757,
+  "java": "25.0.3+9-LTS-195"
+}

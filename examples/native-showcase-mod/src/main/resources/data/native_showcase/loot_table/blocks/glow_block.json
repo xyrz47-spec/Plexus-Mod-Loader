@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "native_showcase:glow_block"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "native_showcase:blocks/glow_block"
+}

@@ -1,0 +1,1 @@
+{"schemaVersion": "one", "id": "fabric_malformed", "version": 3, "entrypoints": {"main": "x.Y"}, "depends": {"minecraft": 26}, "accessWidener": {"file": 1}}

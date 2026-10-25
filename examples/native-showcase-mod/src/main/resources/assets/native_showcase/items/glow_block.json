@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "native_showcase:block/glow_block"
+  }
+}

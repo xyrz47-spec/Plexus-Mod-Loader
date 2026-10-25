@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "dev.polymodloader.test",
+    "id": "quilt_nested_lib",
+    "version": "1.0.0",
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "metadata": {
+      "name": "Quilt Nested Library"
+    },
+    "entrypoints": {
+      "main": "com.example.compat.quiltnestedlib.QuiltNestedLib"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "twin_mod"
+version = "1.0.0"
+displayName = "Twin Mod"
+description = "Poly Mod Loader test mod: the NeoForge build of a mod whose Fabric build has the ID twin-mod and the same classes."
+
+[[dependencies.twin_mod]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.1,)"
+ordering = "NONE"
+side = "BOTH"

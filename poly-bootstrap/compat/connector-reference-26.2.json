@@ -1,0 +1,37 @@
+{
+  "gameVersion": "26.2",
+  "created": "2026-10-24",
+  "source": "Sinytra Connector and the mods its README lists as required (Forgified Fabric API, Launchpad), newest Modrinth builds for 26.2 and NeoForge on 2026-10-24; the NeoForge server they run on is installed by installNeoForgeReferenceServer",
+  "mods": [
+    {
+      "loader": "connector",
+      "projectId": "u58R1TMW",
+      "reason": "Sinytra Connector",
+      "version": "3.1.0-beta.3+26.2",
+      "versionId": "6UZzQrT0",
+      "file": "connector-3.1.0-beta.3+26.2-full.jar",
+      "url": "https://cdn.modrinth.com/data/u58R1TMW/versions/6UZzQrT0/connector-3.1.0-beta.3%2B26.2-full.jar",
+      "sha512": "dcbfe9d5e7b41d2c435f16eadd5f60e20f24f3bf584895668eca39cc564c5d262d5c18928dcb794f4f5c79e43a3226dee27167e41cfecf0d4d695e836d2df8e3"
+    },
+    {
+      "loader": "connector",
+      "projectId": "Aqlf1Shp",
+      "reason": "required by connector",
+      "version": "0.161.0+26.2+4.0.2",
+      "versionId": "LfyblCbV",
+      "file": "forgified-fabric-api-0.161.0+26.2+4.0.2.jar",
+      "url": "https://cdn.modrinth.com/data/Aqlf1Shp/versions/LfyblCbV/forgified-fabric-api-0.161.0%2B26.2%2B4.0.2.jar",
+      "sha512": "0bdb87556418929aa88a1322c04e8993727580414b95b0410e58c358cb05697bde2a30840043f5a9922e7c751dbdaf1c20a0d7b44c0832ad9655aab5977c3672"
+    },
+    {
+      "loader": "connector",
+      "projectId": "voWgQoWV",
+      "reason": "required by connector",
+      "version": "1.10.2+26.2",
+      "versionId": "QMTIAZjK",
+      "file": "launchpad-1.10.2+26.2-full.jar",
+      "url": "https://cdn.modrinth.com/data/voWgQoWV/versions/QMTIAZjK/launchpad-1.10.2%2B26.2-full.jar",
+      "sha512": "a15969ad4c4dd4ceba2346ac49352cf46d8d07c1a14525eca45c8dfa6f1553762176440eb80827a9cdece028cf71b4756aef06f78b94bed527af9ff1ab5e1c58"
+    }
+  ]
+}

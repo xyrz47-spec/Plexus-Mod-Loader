@@ -1,0 +1,15 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "neoforge_client_session"
+version = "1.0.0"
+displayName = "NeoForge Client Session"
+description = "Poly Mod Loader test mod: plays in the saved world for a while, then saves and quits as a player does."
+
+[[dependencies.neoforge_client_session]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.1,)"
+side = "CLIENT"

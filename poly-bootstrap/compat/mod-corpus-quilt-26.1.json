@@ -1,0 +1,987 @@
+{
+  "gameVersion": "26.1",
+  "created": "2026-10-24",
+  "source": "Modrinth: every mod with a build for 26.1 made for Quilt and not for Fabric (its newest such build), in download order, plus the dependencies those builds require",
+  "mods": [
+    {
+      "loader": "quilt",
+      "projectId": "9eGKb6K1",
+      "reason": "quilt-only",
+      "version": "quilt-2.6.25+26.1.2",
+      "versionId": "a36MvuVy",
+      "file": "voicechat-quilt-2.6.25+26.1.2.jar",
+      "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/a36MvuVy/voicechat-quilt-2.6.25%2B26.1.2.jar",
+      "sha512": "9a1d981286c7fa5b63314ab46edfe18522a96db1df3889e843d7febe150d6d87185285a9fd626ada3a54cbc755b7886c44e4b7f45f8a95b8c510b8e04d59e02c"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "nUay74Bn",
+      "reason": "quilt-only",
+      "version": "1.1.4",
+      "versionId": "XcjDy1Y2",
+      "file": "All-in-One-VeinMiner-TreeFeller-1.1.4.jar",
+      "url": "https://cdn.modrinth.com/data/nUay74Bn/versions/XcjDy1Y2/All-in-One-VeinMiner-TreeFeller-1.1.4.jar",
+      "sha512": "ffb33a94481d13f14b83fd07340e25f31a2a9f3d2e8f634eff79d262424e7af30a260c03ac75ef2f659a454bfb2fd8f3d30ac00a61388ac5e8ed0fb10c83eaee"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "LbDPuvYD",
+      "reason": "quilt-only",
+      "version": "1.5+mod",
+      "versionId": "euADRaBO",
+      "file": "moreenchantments-1.5.jar",
+      "url": "https://cdn.modrinth.com/data/LbDPuvYD/versions/euADRaBO/moreenchantments-1.5.jar",
+      "sha512": "88674486913c29f8cfa06d33aeeb3d0c4afa7b77040b396a041fe11681ee88619e0812bd2f38c2eaba6ef4f17bfa8c111b0f4734add4c9584d4a1d4157c6fa5f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "3Gjekf6h",
+      "reason": "quilt-only",
+      "version": "2.5.0+quilt",
+      "versionId": "XudpKRPD",
+      "file": "LifeSteal_quilt_mod.jar",
+      "url": "https://cdn.modrinth.com/data/3Gjekf6h/versions/XudpKRPD/LifeSteal_quilt_mod.jar",
+      "sha512": "418092231871aa5c2982510f13738d35f1a52b28f8ff1cb84001bf0a94f45b60671e3b4b9ee63d878baae3e8321f49ce56961613ae275479bc2e0a9498d70fe4"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "7P6tQJuB",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "zH4B9nnD",
+      "file": "blocks_silk_touch_budding_amethyst_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/7P6tQJuB/versions/zH4B9nnD/blocks_silk_touch_budding_amethyst_v4.12-quilt.jar",
+      "sha512": "7d2217012d4bee5e29acee3359ff48d5635864f9abd463301efb7d869766f80b8c783b8f0c03e9a137b449109e163bc92a09702993193c53f22a12795cb94ac3"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "yg9AxrZ9",
+      "reason": "quilt-only",
+      "version": "2.3.5+quilt",
+      "versionId": "94toGFaK",
+      "file": "wide-mining-2.3.5-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/yg9AxrZ9/versions/94toGFaK/wide-mining-2.3.5-quilt.jar",
+      "sha512": "750181777ae873b03adb71dd84c0c01ecec83c7329d6511a9acca6a4fc2ee4df1b435239cc29e0960517945f65887057cd97f00e662dcd867edc99cd7a9dfeaa"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "zaVwh7an",
+      "reason": "quilt-only",
+      "version": "4.3",
+      "versionId": "wvZU13HB",
+      "file": "eslium-quilt-4.3.jar",
+      "url": "https://cdn.modrinth.com/data/zaVwh7an/versions/wvZU13HB/eslium-quilt-4.3.jar",
+      "sha512": "e574dcf7d222ab2144a0c05044afba4f193e6367433657825771ca1a30fcbc8e1164657485c206fab7de906d65b8c78194eb1c958d0fb7ec82929b6b000eb823"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "WEP61IQU",
+      "reason": "quilt-only",
+      "version": "3.0.0",
+      "versionId": "zfln1qYS",
+      "file": "AutoAim-3.0.0-Quilt+mc26.1.jar",
+      "url": "https://cdn.modrinth.com/data/WEP61IQU/versions/zfln1qYS/AutoAim-3.0.0-Quilt%2Bmc26.1.jar",
+      "sha512": "74331cff7ca849721027bd801516baf64a353a40932acdc6a0ec30fab43f9f91b5c4f1b198480e0d49a8df4cdcfa87de8271aace04bada6b5d31e86aded50921"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "FK8ma0OQ",
+      "reason": "quilt-only",
+      "version": "1.2-OVERHAUL+26.1-quilt",
+      "versionId": "lmDh6x3F",
+      "file": "omni-1.2-OVERHAUL+26.1-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/FK8ma0OQ/versions/lmDh6x3F/omni-1.2-OVERHAUL%2B26.1-quilt.jar",
+      "sha512": "86ff0d73371713ba60d68930bd030bf8e2497d92ba7d9021b23c08620e7e7ada73202f90663a17ec2b3b269a02745c59417b400d6066f92e6cb69e0405333f11"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "sKa9BOA6",
+      "reason": "quilt-only",
+      "version": "1.5.3+quilt",
+      "versionId": "1ch1nG5m",
+      "file": "CauldronConcretePowder_quilt_mod.jar",
+      "url": "https://cdn.modrinth.com/data/sKa9BOA6/versions/1ch1nG5m/CauldronConcretePowder_quilt_mod.jar",
+      "sha512": "dc2872063f3eee6becbb58e26bede36a41f44ca86cf36389d63914d54d0a0c2c66038fbf83a614f3d2bc670d9f8cca795bc921fd4f44893df4dc49f363b6fced"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "kbuqezYO",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "4IXiAx5i",
+      "file": "effective_tools_pickaxe_reinforced_deepslate_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/kbuqezYO/versions/4IXiAx5i/effective_tools_pickaxe_reinforced_deepslate_v3.12-quilt.jar",
+      "sha512": "1b96a0cbbac1ba22b41e90ce6b588593b8d6a180305bd7448e3b66487941255a22ac7d40138697f10b261b7f62f249714f8bfb6c2c149d45baadc7b6871f0ea0"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Bfe3nUUz",
+      "reason": "quilt-only",
+      "version": "1.0.3",
+      "versionId": "mANiOhee",
+      "file": "abandoned Quilt 26._.jar",
+      "url": "https://cdn.modrinth.com/data/Bfe3nUUz/versions/mANiOhee/abandoned%20Quilt%2026.%2A.jar",
+      "sha512": "4b3e99a22ef39127a0ef5116cf340eae0228a9a8a8c0c51a63351fe14c1a209463771a34fcb236aec0a329d008ba79201e3290667cee3e43a38b48d51fd40897"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "t5xqR0AK",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "XcQ7binZ",
+      "file": "crafting_smithing_armor_netherite_no_template_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/t5xqR0AK/versions/XcQ7binZ/crafting_smithing_armor_netherite_no_template_v4.12-quilt.jar",
+      "sha512": "cbba02191fe6b094bdf25244dd64ffdade4c9ae081a345cadd6f004af1b3486bfadd01ff1225462c07203728ecbd1f3276a3808bd725df411ab88848fc3d30a3"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "lANiwxxT",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "lqCC0XMC",
+      "file": "crafting_re_dye_terracotta_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/lANiwxxT/versions/lqCC0XMC/crafting_re_dye_terracotta_v4.13-quilt.jar",
+      "sha512": "6d993e3bee3b99895ca49077bf832ca182c78d41182aa52cc7c16d4507e9677960204a7b63e911f59048fc9b070bc3cbc1a962fe27a83b6668e787f42e79b8c8"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Sue2z8Bl",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "YdaTa7XF",
+      "file": "crafting_smelting_raw_ore_blocks_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/Sue2z8Bl/versions/YdaTa7XF/crafting_smelting_raw_ore_blocks_v4.12-quilt.jar",
+      "sha512": "4680c1d85a4234db103b2e9f3930852f9b9c8dec1ffe94de9b909854733204b4d1b1d07dffce1ac0fcb5d80d42cc558d6bdb580da7b0b39c22d61d3e3eaec79a"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "sbHA4Z4I",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "D2z2VhYq",
+      "file": "crafting_re_dye_glass_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/sbHA4Z4I/versions/D2z2VhYq/crafting_re_dye_glass_v4.13-quilt.jar",
+      "sha512": "182195a85fa846b6c572910ad7a6336bd55fd0242a99d714047db30fc3b4c4eac05d1d0cff82d7cea6b6cbce87c12a4bea6ad6c11c0ad4ccf40665de853ea493"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "y87pO5HP",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "cVKxI8xO",
+      "file": "effective_tools_pickaxe_glass_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/y87pO5HP/versions/cVKxI8xO/effective_tools_pickaxe_glass_v3.12-quilt.jar",
+      "sha512": "26ac3538c35ea49494af761e52bab9bc0f3f07da4a402756609fdccce4e9ddd60c1fe5c9636b4eaa8f96f97cf0ba44a3d07641e0e2dddf61ee603272af44fe9c"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "ERLjKg7g",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "pLDJbWDd",
+      "file": "effective_tools_pickaxe_light_source_blocks_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/ERLjKg7g/versions/pLDJbWDd/effective_tools_pickaxe_light_source_blocks_v3.12-quilt.jar",
+      "sha512": "0494173c5806dcef30836c3d8de3a08fde26e0bd338fde44e15d92c8bf8ce870185dacd8409761d0bf6eab197fad6efc732c813af22e4f3fcd9b44dfc7b4978f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "R1WCIhLq",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "Q6nTjn9C",
+      "file": "crafting_smithing_tools_netherite_no_template_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/R1WCIhLq/versions/Q6nTjn9C/crafting_smithing_tools_netherite_no_template_v4.13-quilt.jar",
+      "sha512": "0e4257536114cc4c565118be1d3410a51a7d5d44da75fb0139da5c64c1afc88ec8b5764377bd74fdedc51afe4208fa3e8961c7c0940d60abdd3f56c9e17aac56"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "DUoieMnq",
+      "reason": "quilt-only",
+      "version": "4.11-quilt",
+      "versionId": "6ERkjDtc",
+      "file": "crafting_re_dye_concrete_powder_v4.11-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/DUoieMnq/versions/6ERkjDtc/crafting_re_dye_concrete_powder_v4.11-quilt.jar",
+      "sha512": "9d7956d6b3c1e95e61542bb4121d786536defd089d456146d66000cda6371109cdfc04b513201b93f5bbb7c944e22c831fdd0de0b9348b65118c2d7ef54c5c45"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Xqq7IBeE",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "iuU1OUK0",
+      "file": "effective_tools_hoe_cactus_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/Xqq7IBeE/versions/iuU1OUK0/effective_tools_hoe_cactus_v3.12-quilt.jar",
+      "sha512": "50bd34906215015f4212626e1aabced73e874d02e991170488d760b18648686c74ae2db510214404492d39a63ad1dab0a0135cf8375c55443b4c8b552d4c1166"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "fOi8LwAw",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "ox4hFiyY",
+      "file": "crafting_smithing_tools_iron_to_diamond_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/fOi8LwAw/versions/ox4hFiyY/crafting_smithing_tools_iron_to_diamond_v4.13-quilt.jar",
+      "sha512": "c10374f9541eff14fe18acd4c6d38467be30045fdbbb90777349c0c83af6109abff56afaa7b50a79f64bc9f33da49466100152813c863de2a2b3b603fb8077a3"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "NhxPgV4c",
+      "reason": "quilt-only",
+      "version": "5.7-quilt",
+      "versionId": "vJqjCZpj",
+      "file": "world_behavior_transparent_blocks_in_enchant_area_v5.7-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/NhxPgV4c/versions/vJqjCZpj/world_behavior_transparent_blocks_in_enchant_area_v5.7-quilt.jar",
+      "sha512": "c4c5f22bc9189bfbbb1a77beafcb1c512482560761ff684541a05c9a11bd17229e341221d8df6254dc6b5a43185c85aff0509651bbc54361b2fc2d1202fc456d"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "ZLRxxRmh",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "FT1Fwq9l",
+      "file": "mobs_behavior_axolotl_breed_with_tropical_fish_item_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/ZLRxxRmh/versions/FT1Fwq9l/mobs_behavior_axolotl_breed_with_tropical_fish_item_v4.12-quilt.jar",
+      "sha512": "d2a77305994190c58523e9f9768e7e1e99896987ba93e5555aa917beadcff4d6ec07bf43336faa6c4adfef70839e00a172ae3e4a1e38941db0284ce78f28a55e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "dpLYDTiH",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "QRWoBhJ5",
+      "file": "effective_tools_hoe_froglights_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/dpLYDTiH/versions/QRWoBhJ5/effective_tools_hoe_froglights_v3.12-quilt.jar",
+      "sha512": "c558d429a37fb2d2ea1bfb2bacf1eedd6ae2e957148c7320dd37a1973f328e5f679cfd15f2ff14f320e824e805797a3f988da2feeae111495e2d6f6d4f7b6722"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "UwL3n8Ei",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "obXRgovS",
+      "file": "crafting_smithing_armor_iron_to_diamond_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/UwL3n8Ei/versions/obXRgovS/crafting_smithing_armor_iron_to_diamond_v4.12-quilt.jar",
+      "sha512": "787e6b0a7be865fde793c227cfb0862bef365a147c7cd3d7f987b779c7294f5079927161e4252fbd76876703d836584d0222a8e114f9f25a8d9ae76085f50024"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "z9M75QAX",
+      "reason": "quilt-only",
+      "version": "5.13-quilt",
+      "versionId": "D1xwgPck",
+      "file": "crafting_re_dye_more_dyed_wool_and_carpet_v5.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/z9M75QAX/versions/D1xwgPck/crafting_re_dye_more_dyed_wool_and_carpet_v5.13-quilt.jar",
+      "sha512": "1f3639557a1596677c2904caf48e83b650c39d484633d6ec1458edb233b11c575e72ab569c59f0ad9f861eb6e3d52be99d7769daf362b46b25a86d8f02a0c7f5"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "zFdrE9Wt",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "BZDnvKpj",
+      "file": "beacon_base_copper_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/zFdrE9Wt/versions/BZDnvKpj/beacon_base_copper_v4.12-quilt.jar",
+      "sha512": "471a6aaf854a47573154820f77bef7f0e97abf23a79ca1882450033dcd738429b26743fd1e1865b10ef8af2285f751f0fe88630c74fe0450018e60a216b77a3e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "504BLPX7",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "tAh5Xh6R",
+      "file": "world_behavior_chiseled_bookshelves_add_enchantment_power_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/504BLPX7/versions/tAh5Xh6R/world_behavior_chiseled_bookshelves_add_enchantment_power_v3.12-quilt.jar",
+      "sha512": "bd81b2148eb18de2ba4be1940a752349926b67e68f1734e697358f17fb8781de5dc7aaa19d0f737f34a8065f9d3009de50b8c7efe8f5f172724119db25be6710"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "aKeMRgHX",
+      "reason": "quilt-only",
+      "version": "1.3.7+quilt",
+      "versionId": "x43Sp9we",
+      "file": "RandomMobSizes_quilt_mod.jar",
+      "url": "https://cdn.modrinth.com/data/aKeMRgHX/versions/x43Sp9we/RandomMobSizes_quilt_mod.jar",
+      "sha512": "18d4efdd47f08871c2f8309873d69f44ee125971b5e5e9b0ae397e3814850abbe05f2ea0f98703e833323c0faa2a09b0e0ec98dcbc095f2ad7b1b6152a303120"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "HAm8Lm3M",
+      "reason": "quilt-only",
+      "version": "26.1.x_quilt",
+      "versionId": "te8VOw7n",
+      "file": "origins-quilt-26.1.jar",
+      "url": "https://cdn.modrinth.com/data/HAm8Lm3M/versions/te8VOw7n/origins-quilt-26.1.jar",
+      "sha512": "5136357db8b2556217a14c331a2987d5487ec8cd0b390c0e68ec9d0e7b8c2ab4a31e8cffe9569db7d6d2578a98630af1bd5d97e221e967ae7decfa60e48f5fe4"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "yQr7wOEY",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "NIcwRHxm",
+      "file": "crafting_smelting_blasting_smelts_glass_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/yQr7wOEY/versions/NIcwRHxm/crafting_smelting_blasting_smelts_glass_v4.12-quilt.jar",
+      "sha512": "7a70a5bab34db6b8efbee8d302ede1a0527842aafb79d0566fa7b7716dd9d08647cc1dd5e313055aff94c541d1d52645aa39c579e7d7342c1c421c9127c5d36b"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "S7cHoMDR",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "QedJICq0",
+      "file": "effective_tools_axe_skulls_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/S7cHoMDR/versions/QedJICq0/effective_tools_axe_skulls_v3.12-quilt.jar",
+      "sha512": "457641b23c1a507d6d7fed39a34447e71f93caf333bc59b4f4154d7f5fa375b3938d21fb722101331b598d7121ad34e2e998c683779ae554a8294a38532ba28c"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "yDe2kPBC",
+      "reason": "quilt-only",
+      "version": "4.0.0-beta.8+paper",
+      "versionId": "NOjt96FB",
+      "file": "xdlib-paper-4.0.0-beta.8.jar",
+      "url": "https://cdn.modrinth.com/data/yDe2kPBC/versions/NOjt96FB/xdlib-paper-4.0.0-beta.8.jar",
+      "sha512": "06f5a2a67d8e11fa3db3ac3b94ffb35d0f6c62b6e96f9e8b661f780bc01c08c00f9fee1e75ffb095e43586812f928410784d2a6d38badb3c6645ba145cd08e4b"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "B92jc48r",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "owMPpt8C",
+      "file": "blocks_silk_touch_reinforced_deepslate_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/B92jc48r/versions/owMPpt8C/blocks_silk_touch_reinforced_deepslate_v4.12-quilt.jar",
+      "sha512": "fa77fe198bfbd0c37bcfaacbd5b9bd519cb0c08bfc6b77faa99470dc4490b7a08cca3f94c8324ea98326c53cd970c89f8ced8e9b18cb2b8c20fd3b5879503b77"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "fffp1OgS",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "Yqeiilaq",
+      "file": "mobs_loot_tables_bartering_rebalance_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/fffp1OgS/versions/Yqeiilaq/mobs_loot_tables_bartering_rebalance_v4.13-quilt.jar",
+      "sha512": "f4b2a69739d014fd86f790ec6e78565ddf3c55304ab31b91cd61b1b7e8c060eb91004f06dbb90b976bb9fca0e6c4633595c11c2ea37de5196067c08eee44a079"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "8zLmjJ4K",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "kOCgqLQ6",
+      "file": "crafting_smithing_tools_stone_to_iron_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/8zLmjJ4K/versions/kOCgqLQ6/crafting_smithing_tools_stone_to_iron_v4.13-quilt.jar",
+      "sha512": "85ce547f8ff1be34e1fc6f28578e60f063802c58b84f2d9e0a352f69205ab1479122e662470bf5fae1f650eb4f7d0e3095a8e2c3436b95cf311ff2d774bc02e4"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "XTgPDqp3",
+      "reason": "quilt-only",
+      "version": "1.3.3+quilt",
+      "versionId": "TZym5rR0",
+      "file": "MoreApples_quilt_mod.jar",
+      "url": "https://cdn.modrinth.com/data/XTgPDqp3/versions/TZym5rR0/MoreApples_quilt_mod.jar",
+      "sha512": "5438a954397ce9b89de0b74479782b90874f07e071a2b7c02dc37e62fd27ab2c77d2c3d00b8d178ace405bed5dfbc29cc841d6bbdbc86f9c2a59541dada4a5d2"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "uqr5V1OT",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "xV6Yiewa",
+      "file": "mobs_behavior_axolotl_ignore_passives_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/uqr5V1OT/versions/xV6Yiewa/mobs_behavior_axolotl_ignore_passives_v3.12-quilt.jar",
+      "sha512": "522086bb327ccf4885d591ff73860fe4c06f1abbabed676960e7567384e30abe16b563e6a69714758a844d9fcc5e6656030d1b78602065ca6f37ad97acde018e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "JcYSPSu5",
+      "reason": "quilt-only",
+      "version": "2.4+mod",
+      "versionId": "6NFb1PDC",
+      "file": "magic-items-2.4.jar",
+      "url": "https://cdn.modrinth.com/data/JcYSPSu5/versions/6NFb1PDC/magic-items-2.4.jar",
+      "sha512": "157ee7bc64beb8f9113562b48f5b489e93e70f54085a1ab72872a06e4054a389f38eacead1280f6f6138fa368db0df325f28552c784d1dacaa4b6e86a79ca010"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "I2neFSkP",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "lk08tu5K",
+      "file": "beacon_base_redstone_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/I2neFSkP/versions/lk08tu5K/beacon_base_redstone_v3.12-quilt.jar",
+      "sha512": "f1079eb8b5c7a09e073f54faa4301d046355f9a5bf0b440fb3ec32a7e57282e23276e600864d5febcd45271c2d236889c6f7d388f13367e9708872da8a086b9a"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "NLzRxVcC",
+      "reason": "quilt-only",
+      "version": "2.12-quilt",
+      "versionId": "HH28vJ1C",
+      "file": "enchant_infinity_and_mending_bows_v2.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/NLzRxVcC/versions/HH28vJ1C/enchant_infinity_and_mending_bows_v2.12-quilt.jar",
+      "sha512": "ff9dddd063aaa4fd59be7b1e03544e2a9bb139dcfed58d91a3d1503a7280afed5c5062b435fb81857ad4b40754a2b78c9d6807f6eaef8ab09c77ce9dd6988779"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "fEg9tXQ6",
+      "reason": "quilt-only",
+      "version": "4.13-quilt",
+      "versionId": "g7x6009J",
+      "file": "crafting_smithing_tools_wooden_to_stone_v4.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/fEg9tXQ6/versions/g7x6009J/crafting_smithing_tools_wooden_to_stone_v4.13-quilt.jar",
+      "sha512": "f9508b60a3ff5d4ff4a3360d9dde01ab4c7fdfb20809acdfeb1a42293ebbaf563b028522b50b66bc6a7b2c38a2caa8f4936906dd3cc1be8c51ec874ca2855b59"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "gDqoouES",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "qXBZgeUn",
+      "file": "beacon_base_lapis_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/gDqoouES/versions/qXBZgeUn/beacon_base_lapis_v3.12-quilt.jar",
+      "sha512": "b684e5a49fb0bf9c489cb4be22c5b030d3d4b5e930dbae56ad756a0ca84059c88bfda0b7ba2b9bfa252d811022a77d214a72d9d1d577d179c24678b56a1c9763"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "cNHq7t9M",
+      "reason": "quilt-only",
+      "version": "4.12-quilt",
+      "versionId": "opYgMdIj",
+      "file": "crafting_misc_one_step_dyed_shulker_boxes_v4.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/cNHq7t9M/versions/opYgMdIj/crafting_misc_one_step_dyed_shulker_boxes_v4.12-quilt.jar",
+      "sha512": "11ec463b14a62b11c90b7d95db299ed66a2ef374c3b3f8ba26608f110ca1b466c90987bb4279cea0429a0f7421edd1b958ea19dd8e0e6d7e951d8b3886b00244"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "EP4tesbZ",
+      "reason": "quilt-only",
+      "version": "3.14-quilt",
+      "versionId": "cGL7FH1S",
+      "file": "beacon_base_amethyst_v3.14-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/EP4tesbZ/versions/cGL7FH1S/beacon_base_amethyst_v3.14-quilt.jar",
+      "sha512": "80f4f5f20cedde7c3be1c4534c1dc1fae8e63aabfb0074a1e644ae78aaed7668ffcf33f8ae4d83b2fb0383b1f473ad05c6bf3df16b20fa39a37933966ef313f3"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "1hrzfBkm",
+      "reason": "quilt-only",
+      "version": "2.13-quilt",
+      "versionId": "xHYSxleA",
+      "file": "crafting_re_dye_concrete_v2.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/1hrzfBkm/versions/xHYSxleA/crafting_re_dye_concrete_v2.13-quilt.jar",
+      "sha512": "d10a0d7884156d577796b90b49bd57764aea63a73f845f2963bbff5bf251f95e9d436249dd5dfd0abbdc26c7c2612f68d459ee267caaa2e6a07644260729e7f1"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "mBcDOO3o",
+      "reason": "quilt-only",
+      "version": "2.11-quilt",
+      "versionId": "WaQv3f0C",
+      "file": "crafting_re_dye_glazed_terracotta_v2.11-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/mBcDOO3o/versions/WaQv3f0C/crafting_re_dye_glazed_terracotta_v2.11-quilt.jar",
+      "sha512": "eeadaefa778e0b660b03efcbfe8a33ae8012c8c12152264d8be20246d3072d5c839bada29645dab6e468ca01af1c3bfba833c5a558555f8b1aac2668301e7f5d"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "BGQbkvra",
+      "reason": "quilt-only",
+      "version": "1.0.6",
+      "versionId": "mJbdbNaf",
+      "file": "betterdoors-1.0.6-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/BGQbkvra/versions/mJbdbNaf/betterdoors-1.0.6-quilt.jar",
+      "sha512": "82d2f47543e48b6ac200274c3d2a29d418f7c92bf4c63974e013fd7a6d355099fb59b37ea8e078144ea023c1a71d8bae6264ec4d56fcbed567bd0f656f4c705a"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Brn4WjBD",
+      "reason": "quilt-only",
+      "version": "0.1.0+26.1.2-quilt",
+      "versionId": "c23B1iKY",
+      "file": "stop_minimizing_on_focus_loss-0.1.0+26.1.2-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/Brn4WjBD/versions/c23B1iKY/stop_minimizing_on_focus_loss-0.1.0%2B26.1.2-quilt.jar",
+      "sha512": "8019a857333007bc2b46cc5583c276e7fe015b1b64617874fa2d8dc1cd4e033478b74b11045fd048e39ecf43116ecaac716471c0627a6abfd1834558ca344310"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "HNjAl05C",
+      "reason": "quilt-only",
+      "version": "2.1.2+quilt",
+      "versionId": "oOwrsYT8",
+      "file": "leash-everything-2.1.2-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/HNjAl05C/versions/oOwrsYT8/leash-everything-2.1.2-quilt.jar",
+      "sha512": "5c5f1784e270d6e9bb5ad31c0c5d7b7db522ab9386f553922c3a6cbe22baba6f516b28b10247f6e02dbfe071f64265344dd013821e7708f6fab9fb9b18507aab"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "ocbOUiHH",
+      "reason": "quilt-only",
+      "version": "2.1.5",
+      "versionId": "WSEKR44P",
+      "file": "Custom-Capes-2.1.5+quilt-26.1-26.3-obf.jar",
+      "url": "https://cdn.modrinth.com/data/ocbOUiHH/versions/WSEKR44P/Custom-Capes-2.1.5%2Bquilt-26.1-26.3-obf.jar",
+      "sha512": "bff94ce398eb0afec56abe6902fc4f9de1646746d282e9e7bcd60d5cd567db6d3627db5b4cb407d975b2d8f5c6cebbf5e94d98d0ea451b3bf5280dd93081cbe7"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "rvzRe1CC",
+      "reason": "quilt-only",
+      "version": "2.12-quilt",
+      "versionId": "X1iyBRyY",
+      "file": "enchant_infinity_on_crossbow_v2.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/rvzRe1CC/versions/X1iyBRyY/enchant_infinity_on_crossbow_v2.12-quilt.jar",
+      "sha512": "c1f123721a2b5614754a1a062101b935f00b36c440b2465906c6d8c57f7658bb3f44cfd03e0c13b1b397a87dce7869ac6d01cb1af502a2f4a038026906e53d05"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Hg375Ziz",
+      "reason": "quilt-only",
+      "version": "1.0.4",
+      "versionId": "gpbKASH5",
+      "file": "chest-on-ghast-quilt-1.0.4.jar",
+      "url": "https://cdn.modrinth.com/data/Hg375Ziz/versions/gpbKASH5/chest-on-ghast-quilt-1.0.4.jar",
+      "sha512": "75c3697ed4027d4c5ca7441b87e607d90a19c866c5817bbbbed62a5edc1bdbc775c01dd15ced5118b7a3c763cd1cd61d42f2ca65b8d0546dec7a04f1023a9632"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "UDhPA1TM",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "nuI65rIT",
+      "file": "world_behavior_four_new_paintings_are_placeable_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/UDhPA1TM/versions/nuI65rIT/world_behavior_four_new_paintings_are_placeable_v3.12-quilt.jar",
+      "sha512": "b0b5d21b82acf32c9ad5dcf45b8afa0b9d3e49588e89a8264748378db7ca837f66160b520240bea44c0e8deb8b1f056df4d2ceba591872730749a9373a23d851"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "5cN5qhbm",
+      "reason": "quilt-only",
+      "version": "2.3.8.4+26.1-quilt",
+      "versionId": "yWooPnmd",
+      "file": "minelights-2.3.8.4+26.1-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/5cN5qhbm/versions/yWooPnmd/minelights-2.3.8.4%2B26.1-quilt.jar",
+      "sha512": "b05594456b638314b3ab7997c94ffbd21b927b375ea4070f4c2eb636383a27157e29d8e7a9db8a4dfa61e3dbee5fd103cf8f8e7a9c848c32231b1bf7ab49f133"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Z7xAH01M",
+      "reason": "quilt-only",
+      "version": "2.1.0",
+      "versionId": "8MLG1YOA",
+      "file": "gatewayofdoom-quilt-26.1-2.1.0.jar",
+      "url": "https://cdn.modrinth.com/data/Z7xAH01M/versions/8MLG1YOA/gatewayofdoom-quilt-26.1-2.1.0.jar",
+      "sha512": "0683555caf4f30b39a0117e1fe0fc460f95b148af9f8ee9d70089117de60e869e21126af5fa347acc1b7e0acf70a05522d9c76a924fae2e04f2659d83c226b38"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "k1GdBHzI",
+      "reason": "quilt-only",
+      "version": "2.0.0+mod.quilt.26.1",
+      "versionId": "naqAtLl5",
+      "file": "dwarfsandgiants-quilt-2.0.0+26.1.jar",
+      "url": "https://cdn.modrinth.com/data/k1GdBHzI/versions/naqAtLl5/dwarfsandgiants-quilt-2.0.0%2B26.1.jar",
+      "sha512": "7950b9cfade6d9e82cd30aab0447bf9b6dc2a7408c4a704c6daa6a069a34c076818e78fcc0f42111951a43fb24ec324ec6e415509deb4659c163ca25f7d734f0"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "YUCKBQjM",
+      "reason": "quilt-only",
+      "version": "2.0.0",
+      "versionId": "Jojc8oBk",
+      "file": "logcleaner-2.0.0-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/YUCKBQjM/versions/Jojc8oBk/logcleaner-2.0.0-quilt.jar",
+      "sha512": "eea2ee553a994c35f275f579aa4f20f5617e946bfe5ed98c00b6082e3f717474987fa65d055d36fe581f6a0420341077d0ddfd0da2f1b7a9e301dbe28228326e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "ItRpuGf4",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "lnF1604r",
+      "file": "beacon_base_raw_copper_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/ItRpuGf4/versions/lnF1604r/beacon_base_raw_copper_v3.12-quilt.jar",
+      "sha512": "7637b7184a9a2466dbec86b99efd71ce609d403ba6fa1001895b7e94b99d246dbba1df54c7ca299aa4e820f5ef46534493b7a8336eac572fb833267d59788b66"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "MqaYXlAP",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "m5DZckHL",
+      "file": "beacon_base_raw_gold_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/MqaYXlAP/versions/m5DZckHL/beacon_base_raw_gold_v3.12-quilt.jar",
+      "sha512": "9eecd573916a3e4af9b2aff5cc5f6a9840e56e3678a0c62437d0b3382def41228a6a8f304d90187d17f0e5e814181bf8be19c9979a6aaca9c34b090469e2882f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "8iJVgUtF",
+      "reason": "quilt-only",
+      "version": "3.12-quilt",
+      "versionId": "IZ195IoV",
+      "file": "beacon_base_raw_iron_v3.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/8iJVgUtF/versions/IZ195IoV/beacon_base_raw_iron_v3.12-quilt.jar",
+      "sha512": "84ec1195eedb21df0b97c4a99e5ffdaa527c24e2897a1b35615184566c69e4929a92f462d07d8755fa35ba9eadfc59fc9a5fb1418697396f9ad090f2c95e771f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "2rLn4T4L",
+      "reason": "quilt-only",
+      "version": "12.2.1",
+      "versionId": "yBAF4OpK",
+      "file": "allstacksinfinite-12.2.1.jar",
+      "url": "https://cdn.modrinth.com/data/2rLn4T4L/versions/yBAF4OpK/allstacksinfinite-12.2.1.jar",
+      "sha512": "0e07bee3d0952be1c7eb9fb8dee3b2318ec8f16738e613ffa7b56cc2bd36f0f3e9e55284991878e81f58e6ddf16e8981a83218967fffcf37978a08f3f1305228"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "RoFWvfbW",
+      "reason": "quilt-only",
+      "version": "3.6.0",
+      "versionId": "xI3Jm7tQ",
+      "file": "FlickView-3.6.0-Quilt+mc26.1.jar",
+      "url": "https://cdn.modrinth.com/data/RoFWvfbW/versions/xI3Jm7tQ/FlickView-3.6.0-Quilt%2Bmc26.1.jar",
+      "sha512": "96f8c62c8e02b6429fedd9a648dd2632fb2bd40a71c8bb1f22f138c29e628442b47e7670122eaf42b568898ea496807f7169d405b08e51029020edd5fa1c3c3e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "E5cmhDev",
+      "reason": "quilt-only",
+      "version": "1.0.2",
+      "versionId": "kdJx1YIv",
+      "file": "f34-quilt-26.1-1.0.2.jar",
+      "url": "https://cdn.modrinth.com/data/E5cmhDev/versions/kdJx1YIv/f34-quilt-26.1-1.0.2.jar",
+      "sha512": "17d9b55d0060535b84cf2392816cc4bfe42c9d0f0d6d38ee1a7485ec9618c9cc9e88780f7829a242b7cc6818379ae48d0146d20811a45ff8c9d9813864dada1f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "noKcRQOR",
+      "reason": "quilt-only",
+      "version": "2.2.5+1.21.11-quilt",
+      "versionId": "53wqD5mT",
+      "file": "mc-sync-quilt-1.21.11-2.2.5.jar",
+      "url": "https://cdn.modrinth.com/data/noKcRQOR/versions/53wqD5mT/mc-sync-quilt-1.21.11-2.2.5.jar",
+      "sha512": "79132f068f95feda54a2feb599cfd8ccaefed8f5d01ff9d8d3835af0438784c8b3ee7e66e4d1020d13a6c1c1465447f02fafab67328f75554f5137379a016fe4"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "imR8I7dT",
+      "reason": "quilt-only",
+      "version": "2.12-quilt",
+      "versionId": "M7PqtCCF",
+      "file": "enchant_remove_mending_v2.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/imR8I7dT/versions/M7PqtCCF/enchant_remove_mending_v2.12-quilt.jar",
+      "sha512": "5f170ac0dc2e545a178fcb04d852f434e3c56a572bbc8c5fec4a38608da78987cd73e0182808e5b461393d07eaffba8257a115059781578fc2985ecd8d816d87"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "2eBnbq9r",
+      "reason": "quilt-only",
+      "version": "1.0.1+quilt-1.21-26",
+      "versionId": "IF0nT8Lh",
+      "file": "yeths-tpa-quilt-1.21-26.1.2.jar",
+      "url": "https://cdn.modrinth.com/data/2eBnbq9r/versions/IF0nT8Lh/yeths-tpa-quilt-1.21-26.1.2.jar",
+      "sha512": "53db944316c914adbe000ab1b80ddb24f0244bcf073e9b84edb50de1ba71a387a5c8045262da94bacea7644a963dd168d44b514168e844b075964c4ad6eeb826"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "k4swAzko",
+      "reason": "quilt-only",
+      "version": "1.13-quilt",
+      "versionId": "DsPCVwCV",
+      "file": "crafting_stonecutting_wood_slabs_and_stairs_v1.13-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/k4swAzko/versions/DsPCVwCV/crafting_stonecutting_wood_slabs_and_stairs_v1.13-quilt.jar",
+      "sha512": "91ed2091284bbf9fa305d5c04726295df841ec3aeb6a7c53a97350db8ce1f07dbc50698407b35bc8e05d46dd0c89c3e449ebde90f50f7d66abc3138e26dbbf52"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "VWWrpSlM",
+      "reason": "quilt-only",
+      "version": "1.12-quilt",
+      "versionId": "NpvxY3ht",
+      "file": "crafting_stonecutting_wood_doors_and_trapdoors_v1.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/VWWrpSlM/versions/NpvxY3ht/crafting_stonecutting_wood_doors_and_trapdoors_v1.12-quilt.jar",
+      "sha512": "d2d50614bdceea488deaf19ad57abc444202d9c644c68f99724c09492d3b44389cef27891929e86c53882f1f3ce04bbcf0d82833452682eeda09ca7b1a155903"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "MLSBS2V0",
+      "reason": "quilt-only",
+      "version": "2.0.0",
+      "versionId": "DWYyEXU7",
+      "file": "MTA NYC Subway Signs - Quilt 26.1 - v2.0.0.jar",
+      "url": "https://cdn.modrinth.com/data/MLSBS2V0/versions/DWYyEXU7/MTA%20NYC%20Subway%20Signs%20-%20Quilt%2026.1%20-%20v2.0.0.jar",
+      "sha512": "feb6809f80b19027eff316d17313180f6712d063a52f9aa8ecc6725c0931a3053b87731f96dea9e96006d3c4b5a3ac9b7f976f03e3fdf6b701afdcff27f208cb"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "tTWmqzmB",
+      "reason": "quilt-only",
+      "version": "1.0.4",
+      "versionId": "fIEWXcQB",
+      "file": "light-up-1.0.4-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/tTWmqzmB/versions/fIEWXcQB/light-up-1.0.4-quilt.jar",
+      "sha512": "1f48c9f1378f8b6e92b4b32de17a01753b134047ebb9ac498186a7caefc532e1351e85ba2c1a164420709e5a23c7418e901dfeced24caca21b54888227f0875f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "yreFRx7Z",
+      "reason": "quilt-only",
+      "version": "26.1-1.0.0",
+      "versionId": "oDjSLUgz",
+      "file": "smoothmenu-quilt-26.1-1.0.0.jar",
+      "url": "https://cdn.modrinth.com/data/yreFRx7Z/versions/oDjSLUgz/smoothmenu-quilt-26.1-1.0.0.jar",
+      "sha512": "998cff1717c40a4caedc42cf340cc8365d7bada490f25acb944cffe1473ec60b15b05dd2472b902757523b09b9e7698a91c3f5abdda12f5b14716966a51eeaee"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "s8jPicuI",
+      "reason": "quilt-only",
+      "version": "1.3.3+26.1-quilt",
+      "versionId": "n7u2eqdt",
+      "file": "invsearch-storage-indexer-1.3.3+26.1-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/s8jPicuI/versions/n7u2eqdt/invsearch-storage-indexer-1.3.3%2B26.1-quilt.jar",
+      "sha512": "981606babfe97c198b4297746e64df06d10c26eb990cccfc41a2cdc6e7436582af97e9b669f0682a6a5c86d26e08e036407f091e516e6f6aab3a63cc2f25bc8e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Wjm86ltu",
+      "reason": "quilt-only",
+      "version": "1.2",
+      "versionId": "hVciHU9I",
+      "file": "RailOptimization-1.2-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/Wjm86ltu/versions/hVciHU9I/RailOptimization-1.2-quilt.jar",
+      "sha512": "d7d25b581226ba7761608bf59a6170a9bb1f9e55016e1d47890cc3933ef69f33a496290571f774f1bf6a0be48f2cbc6a781c395fe51e233dca1217d1d33513c6"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "QZKMChtj",
+      "reason": "quilt-only",
+      "version": "2.12-quilt",
+      "versionId": "OBOlxZ58",
+      "file": "enchant_elytra_ignores_unbreaking_v2.12-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/QZKMChtj/versions/OBOlxZ58/enchant_elytra_ignores_unbreaking_v2.12-quilt.jar",
+      "sha512": "5206b5eaa3ebef743154f4045bc649022a415f8e8aa8060991f0837aa879b361e382d146d12b67a319152fdec26a1846c05dece1ca89a5ff072b488aae8106c2"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "bxKeisRX",
+      "reason": "quilt-only",
+      "version": "0.1.4+quilt.26.1.x",
+      "versionId": "kZx3Jx0l",
+      "file": "cyanspeech-0.1.4-0.1.4-quilt-26.1.x.jar",
+      "url": "https://cdn.modrinth.com/data/bxKeisRX/versions/kZx3Jx0l/cyanspeech-0.1.4-0.1.4-quilt-26.1.x.jar",
+      "sha512": "547561b5fc11f5de03b0d814e89522b197ffb3702172759ceeb8e1d3b2fa6e7d5a52b9df8391c744d69297466ca111f504b59287c13f181775233928a5bb577f"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "IF84SmZ4",
+      "reason": "quilt-only",
+      "version": "1.1.0+quilt-26.1",
+      "versionId": "v471e1aT",
+      "file": "even-better-moon-sun-1.1.0.jar",
+      "url": "https://cdn.modrinth.com/data/IF84SmZ4/versions/v471e1aT/even-better-moon-sun-1.1.0.jar",
+      "sha512": "5fb7de8a484840d33e5e0d4a6fdda66f93f9cba3cfbdc015b33fbe77f5fdec6dfdd418e5ac25e320aa6812c4ebd03b60fc7c90db2cae104b23502032fd5cf088"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "nlde8cvK",
+      "reason": "quilt-only",
+      "version": "1.4.1+quilt+26.1",
+      "versionId": "Z8pbYw38",
+      "file": "Statusmod-1.4.1-quilt-26.1.jar",
+      "url": "https://cdn.modrinth.com/data/nlde8cvK/versions/Z8pbYw38/Statusmod-1.4.1-quilt-26.1.jar",
+      "sha512": "fcde54e1bf148701158f639f3cd11ea7eb7559c3d4ea079664b880ebb1918291bf3d8effb4d34b34b1a3e84ba132dc78732266ebbef36c2ea6784cdfa4844bc9"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "UqPX8SRT",
+      "reason": "quilt-only",
+      "version": "26.1.2-1.0.3",
+      "versionId": "uzBwWp68",
+      "file": "increased-chat-height-1.0.3-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/UqPX8SRT/versions/uzBwWp68/increased-chat-height-1.0.3-quilt.jar",
+      "sha512": "dd76f6e54fb1f388f6bb30caaf541b2c72ab2f9a7e523072bce54e427fd0538440af46951bd35d41f933ad82910669c36cdbab4da862cacd88da899e5ea67093"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "i4ojAtM6",
+      "reason": "quilt-only",
+      "version": "1.0.0+mod",
+      "versionId": "5vYvp81r",
+      "file": "no-more-mace-1.0.0.jar",
+      "url": "https://cdn.modrinth.com/data/i4ojAtM6/versions/5vYvp81r/no-more-mace-1.0.0.jar",
+      "sha512": "51864cb1c4e04088e439bab2babc3d4d92bf6dd9fce16c96bbe317ae8187a8fca978f110bc74c85c820adbc2a204391c9df30f3a3de9dfee7704e1ca8c954d3e"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "EMmA7E5Q",
+      "reason": "quilt-only",
+      "version": "2.7.9",
+      "versionId": "XNEgwzJx",
+      "file": "armorvisibility-2.7.9.jar",
+      "url": "https://cdn.modrinth.com/data/EMmA7E5Q/versions/XNEgwzJx/armorvisibility-2.7.9.jar",
+      "sha512": "46af6af8ed39feee6c1f61b1054a6aac25810a09ee3563241f6738dc546bbbfe9be2bc4478629d8dc91cba9b10a0dacf63486555fcdc7c927f8204889d5ab588"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "vLOiOjMQ",
+      "reason": "quilt-only",
+      "version": "1.1.2+quilt",
+      "versionId": "R1EOmUwp",
+      "file": "smelt-mining-1.1.2-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/vLOiOjMQ/versions/R1EOmUwp/smelt-mining-1.1.2-quilt.jar",
+      "sha512": "de01ed0d581314be083d2b4d9f10ee8e8ae086b839a6ac9880178ffe646f3f3742fb5b52b2ecc11a911d2ee7c70d3c9fdb4f65b5e389434c0b298419fea595c2"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "uxOkzaAO",
+      "reason": "quilt-only",
+      "version": "1.2.1",
+      "versionId": "tjQ21WNz",
+      "file": "quilt-1.2.1.jar",
+      "url": "https://cdn.modrinth.com/data/uxOkzaAO/versions/tjQ21WNz/quilt-1.2.1.jar",
+      "sha512": "5f4c5434af227440d9cb5380f8d0faf4f45d878e63c24050b5518c665d21e6fe39aa3a61a009f6e0ee3732e4a0d0f9b31158282784502c4c2e787393796fbe7c"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "HwkBvmkg",
+      "reason": "quilt-only",
+      "version": "26.7.1+quilt-26.1-26.1.2",
+      "versionId": "43l29YdO",
+      "file": "autoconnect-quilt-26.7.1-26.1-26.1.2.jar",
+      "url": "https://cdn.modrinth.com/data/HwkBvmkg/versions/43l29YdO/autoconnect-quilt-26.7.1-26.1-26.1.2.jar",
+      "sha512": "6af8a0ad6134f36ef5f30160912b20ce253d25e097af63c52f652350b9fc72661c9f7680f56ebc47c5927fe97e117753baa5fe40260f0d24c5b20c04254e5017"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "UNSjhMSv",
+      "reason": "quilt-only",
+      "version": "v0.2a_26.1_Quilt",
+      "versionId": "FFwGNFit",
+      "file": "RealFootball-5.3.0-mc26.1-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/UNSjhMSv/versions/FFwGNFit/RealFootball-5.3.0-mc26.1-quilt.jar",
+      "sha512": "6f267897aabeba9bd202fbc1eeb79f3222bf679f35e2fe4a220f1e5ff6803901555959af11b80c7bd9c55907e706738b859e55560f81cfa1f435cbdab7774d94"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "jt3edG9b",
+      "reason": "quilt-only",
+      "version": "1.1.2+quilt",
+      "versionId": "OGtuyw2m",
+      "file": "instant-replant-1.1.2-quilt.jar",
+      "url": "https://cdn.modrinth.com/data/jt3edG9b/versions/OGtuyw2m/instant-replant-1.1.2-quilt.jar",
+      "sha512": "f1623a2987fe46edaacf78db3cd5b2cf5cbe17d09fe648cb5dcce20deaff4951a425dfc56f72093053987f23ff4e6f8c8077160b3f61c70da775228e5d0e3957"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "AtMdye7H",
+      "reason": "quilt-only",
+      "version": "3.1.0-quilt",
+      "versionId": "XaZqPCQM",
+      "file": "PinChat 3.1.0 Minecraft 26.1.jar",
+      "url": "https://cdn.modrinth.com/data/AtMdye7H/versions/XaZqPCQM/PinChat%203.1.0%20Minecraft%2026.1.jar",
+      "sha512": "6bc56c47d00fb0bee568425f4265f02835a53fa347e8529f55528227a872c2c353a02e3032aefce5dd1db7f42361a11ddfc1c8adabd89efc7c1a906e80b41a35"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "tkGY6huS",
+      "reason": "quilt-only",
+      "version": "1.0.0+mod",
+      "versionId": "Q6OQG4Gt",
+      "file": "craftable-nautilus-armour-recipe-1.0.0.jar",
+      "url": "https://cdn.modrinth.com/data/tkGY6huS/versions/Q6OQG4Gt/craftable-nautilus-armour-recipe-1.0.0.jar",
+      "sha512": "9017cec0d50e3bdaccfe3b008fed9222be4b7ef2ead1dd19ee13fb520392b59a3462ee648791597fae2b9d4360424032a153d917934413ed4afa435314bbe9d2"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "HS2YOpIX",
+      "reason": "quilt-only",
+      "version": "2.1.2",
+      "versionId": "GrwqfZt5",
+      "file": "Fov-changer-2.1.2.jar",
+      "url": "https://cdn.modrinth.com/data/HS2YOpIX/versions/GrwqfZt5/Fov-changer-2.1.2.jar",
+      "sha512": "bbd19083c9d4875a0f505305420bd29a201d8b27623096af865ecfaae7dbf446c182c06dc88b51adfb5e9cf6112e34e613924cf563c5ae4e0cc10d2852db474d"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "9PdugMiF",
+      "reason": "quilt-only",
+      "version": "0.1.4+quilt.26.1.x",
+      "versionId": "SWJpbku2",
+      "file": "cyankeys-0.1.4-0.1.4-quilt-26.1.x.jar",
+      "url": "https://cdn.modrinth.com/data/9PdugMiF/versions/SWJpbku2/cyankeys-0.1.4-0.1.4-quilt-26.1.x.jar",
+      "sha512": "e41d38271adb2e6dfc6d734cbdc0127e2594bb57a1114f7887761db070b273c097243a7e9c3f48d6b90d549718e8331435d46ff1dabc51bc80b1bf70af53c9da"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "S5f2NKoR",
+      "reason": "quilt-only",
+      "version": "1.0.0",
+      "versionId": "EENAFDTg",
+      "file": "gallery-of-trims-quilt-1.0.0.jar",
+      "url": "https://cdn.modrinth.com/data/S5f2NKoR/versions/EENAFDTg/gallery-of-trims-quilt-1.0.0.jar",
+      "sha512": "be3bd4db5e47f9a71704680ce77e3e447d6fd46b771dce55d6c4bdb65a8cb2cd9e38be615d3a9538b03ab1e598584c35138fc0cfd2b58fb9208bb4a297f8ec8a"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "S1BWs1m5",
+      "reason": "quilt-only",
+      "version": "1.0.0",
+      "versionId": "mDL98wSM",
+      "file": "american_landscape_photographs-1.0.0-quilt-26.1.jar",
+      "url": "https://cdn.modrinth.com/data/S1BWs1m5/versions/mDL98wSM/american_landscape_photographs-1.0.0-quilt-26.1.jar",
+      "sha512": "f91c33d22a5e2050717a0512045c3557425b6cfd74f69b1d79ae8a3f839f061d8ee4260cba5e452ccbad7df358d77c3c4ff8c73b8a4523190caf6d31c490aa03"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "yv9mXFdB",
+      "reason": "quilt-only",
+      "version": "1.1.0+quilt",
+      "versionId": "6GeAdXzP",
+      "file": "fleisync-fabric-1.1.0.jar",
+      "url": "https://cdn.modrinth.com/data/yv9mXFdB/versions/6GeAdXzP/fleisync-fabric-1.1.0.jar",
+      "sha512": "fdfeb76a72f025c4492e2c67a069fb6d38b490b2e43bddf8b0fce2ff00cf909bd6e3351588ab246b65a71ef7a1b0d6691c37935af6162717368cba1d2b3b04c9"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "Uqz7o8tN",
+      "reason": "quilt-only",
+      "version": "1.0.0",
+      "versionId": "dzI2J2Th",
+      "file": "a-anticrash-quilt-1.21+.jar",
+      "url": "https://cdn.modrinth.com/data/Uqz7o8tN/versions/dzI2J2Th/a-anticrash-quilt-1.21%2B.jar",
+      "sha512": "d89459ea66ad6783475886b9de0870d52167b6c60c3869e291ab221cb83f748fdb707b61bf1362f32d474c1970e88ab2d8d0ca5a112cf5075f214c16bffe3a53"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "a2h1echn",
+      "reason": "quilt-only",
+      "version": "1.0-release+mod",
+      "versionId": "2vw3zEw1",
+      "file": "more-beets-1.0-release.jar",
+      "url": "https://cdn.modrinth.com/data/a2h1echn/versions/2vw3zEw1/more-beets-1.0-release.jar",
+      "sha512": "232ce41fa8e00f2bdf68a8704000bc2c712f50f4f534007464063ba5dc13480fbcf0962e94927d70c16820ebf03acc8b34cc476eb14585a609737b3ffe5e5cc5"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "lIjfoxzm",
+      "reason": "quilt-only",
+      "version": "1.0.0",
+      "versionId": "XNyJYy3g",
+      "file": "crashmod-quilt-1.21+.jar",
+      "url": "https://cdn.modrinth.com/data/lIjfoxzm/versions/XNyJYy3g/crashmod-quilt-1.21%2B.jar",
+      "sha512": "6cbdf94418fb57a04256014bcee9e71b2869ca91973cabe9446fb137cf0cf72313f65cfc2718fc7d0ab248775fa7240d29b32351ee84d622a761bde9a5e79265"
+    },
+    {
+      "loader": "quilt",
+      "projectId": "P7dR8mSH",
+      "reason": "required by 7P6tQJuB",
+      "version": "0.155.3+26.1.2",
+      "versionId": "3dM0X6ou",
+      "file": "fabric-api-0.155.3+26.1.2.jar",
+      "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/3dM0X6ou/fabric-api-0.155.3%2B26.1.2.jar",
+      "sha512": "fa0308b42e9cd0dc3ff946f246d199d74547e0c946d7e3c9780a2537155307baf25129f69bd1349273babf879ffb4608b7e4af0740938f9c0f7b371b1c67d6ca"
+    }
+  ]
+}

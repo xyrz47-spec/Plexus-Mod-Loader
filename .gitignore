@@ -1,0 +1,54 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Game run directories (worlds, logs, options, downloaded state)
+run/
+
+# The SDK Maven repository publishSdk fills and the website build copies to /maven/ (ADR-0008); it keeps
+# every published version, so clean does not touch it
+/.poly/
+
+# IntelliJ IDEA — shared run configurations live in .run/
+.idea/
+*.iml
+out/
+
+# Node packages (docs site, local browser tools)
+node_modules/
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# OS / secrets
+.DS_Store
+Thumbs.db
+.env
+*.env
+
+# Hand-copied Minecraft files for new versions (never committed); only the README is tracked
+/MinecraftFiles/*
+!/MinecraftFiles/README.md
+
+# Claude Code agent worktrees
+.claude/worktrees/
+
+# Claude Code session logs (local only, may hold personal paths); only the README is tracked
+/.claude/session-logs/*
+!/.claude/session-logs/README.md
+
+# Playwright MCP console logs and page snapshots (local only)
+/.playwright-mcp/
+
+# Not part of the public repository (ADR-0028)
+/site/
+/.claude/
+/CLAUDE.md
+/AGENTS.md
+/docs/CLAUDE_SKILLS.md
+/docs/RELEASE_AND_DEPLOY.md
+/.github/public-repo/
+/.github/workflows/docs.yml
+/.github/scripts/export-public-repo.py
+/.github/scripts/publish-release.py

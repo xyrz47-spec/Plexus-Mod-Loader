@@ -1,0 +1,28 @@
+{
+  "scenario": "client, Quick Play into the world saved by worldCreateSaveTest, 10 s to settle, then 30 s of frames; vsync off, frame rate uncapped",
+  "runsPerVariant": 5,
+  "warmupRunsDiscarded": 1,
+  "java": "25.0.3+9-LTS-195",
+  "vanilla": {
+    "runs": [
+      {"frames": 34991, "meanFps": 1191.08, "p50Millis": 0.7267, "p95Millis": 1.5451, "p99Millis": 2.0265, "maxMillis": 21.0510, "over33MillisPercent": 0.0000},
+      {"frames": 39093, "meanFps": 1338.17, "p50Millis": 0.6564, "p95Millis": 1.2636, "p99Millis": 2.0704, "maxMillis": 24.3629, "over33MillisPercent": 0.0000},
+      {"frames": 44909, "meanFps": 1535.69, "p50Millis": 0.5968, "p95Millis": 0.8731, "p99Millis": 1.5347, "maxMillis": 31.6565, "over33MillisPercent": 0.0000},
+      {"frames": 38877, "meanFps": 1331.01, "p50Millis": 0.6180, "p95Millis": 1.6253, "p99Millis": 2.4927, "maxMillis": 30.0656, "over33MillisPercent": 0.0000},
+      {"frames": 32340, "meanFps": 1107.91, "p50Millis": 0.6873, "p95Millis": 2.1080, "p99Millis": 3.0802, "maxMillis": 13.0594, "over33MillisPercent": 0.0000}
+    ],
+    "median": {"frames": 38877, "meanFps": 1331.01, "p50Millis": 0.656, "p95Millis": 1.545, "p99Millis": 2.070, "maxMillis": 24.363, "over33MillisPercent": 0.000},
+    "stdDev": {"meanFps": 163.35, "p50Millis": 0.052, "p95Millis": 0.457, "p99Millis": 0.579}
+  },
+  "poly": {
+    "runs": [
+      {"frames": 34218, "meanFps": 1163.20, "p50Millis": 0.7987, "p95Millis": 1.0825, "p99Millis": 1.9618, "maxMillis": 20.1655, "over33MillisPercent": 0.0000},
+      {"frames": 34261, "meanFps": 1164.64, "p50Millis": 0.8000, "p95Millis": 1.0797, "p99Millis": 1.9296, "maxMillis": 24.9274, "over33MillisPercent": 0.0000},
+      {"frames": 35979, "meanFps": 1223.85, "p50Millis": 0.7579, "p95Millis": 1.0451, "p99Millis": 1.9146, "maxMillis": 21.6172, "over33MillisPercent": 0.0000},
+      {"frames": 30298, "meanFps": 1028.04, "p50Millis": 0.8515, "p95Millis": 1.7464, "p99Millis": 2.3331, "maxMillis": 23.7912, "over33MillisPercent": 0.0000},
+      {"frames": 23536, "meanFps": 799.82, "p50Millis": 0.9530, "p95Millis": 2.6415, "p99Millis": 3.6601, "maxMillis": 25.3059, "over33MillisPercent": 0.0000}
+    ],
+    "median": {"frames": 34218, "meanFps": 1163.20, "p50Millis": 0.800, "p95Millis": 1.083, "p99Millis": 1.962, "maxMillis": 23.791, "over33MillisPercent": 0.000},
+    "stdDev": {"meanFps": 170.22, "p50Millis": 0.075, "p95Millis": 0.693, "p99Millis": 0.747}
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_mixin_broken",
+  "version": "1.0.0",
+  "environment": "*",
+  "mixins": [
+    "fabric_mixin_broken.missing.mixins.json",
+    "fabric_mixin_broken.newer.mixins.json"
+  ]
+}

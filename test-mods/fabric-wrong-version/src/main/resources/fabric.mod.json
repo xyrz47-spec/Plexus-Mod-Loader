@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_old",
+  "version": "1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.compat.fabricold.FabricOld"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.4"
+  }
+}

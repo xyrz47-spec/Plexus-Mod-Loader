@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_nested_lib",
+  "version": "2.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.compat.nestedlib.NestedLib"
+    ]
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/fabric-nested-deep.jar"
+    }
+  ],
+  "depends": {
+    "fabric_nested_deep": ">=3.0.0"
+  }
+}

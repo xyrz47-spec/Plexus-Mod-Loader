@@ -1,0 +1,22 @@
+{
+  "type": "native_showcase:pocket",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:plains",
+      "features": false,
+      "lakes": false,
+      "layers": [
+        {
+          "block": "minecraft:bedrock",
+          "height": 1
+        },
+        {
+          "block": "native_showcase:glow_block",
+          "height": 2
+        }
+      ],
+      "structure_overrides": []
+    }
+  }
+}

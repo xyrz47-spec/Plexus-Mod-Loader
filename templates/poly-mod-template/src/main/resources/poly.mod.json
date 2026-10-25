@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "my_mod",
+  "version": "0.1.0",
+  "name": "My Mod",
+  "environment": "both",
+  "minecraft": [
+    "26.*"
+  ],
+  "entrypoints": {
+    "common": ["com.example.mymod.MyMod"]
+  },
+  "depends": {
+    "poly": ">=1.0.0 <2.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+plugins {
+    id("poly.java-conventions")
+}
+
+description = "Public Native gameplay API: content, world and entity views, commands, networking, client, and game tests."
+
+dependencies {
+    api(project(":poly-runtime-api"))
+    api(project(":poly-event-api"))
+}

@@ -1,7 +1,11 @@
 # Third-party notices
 
-PolyLoader is licensed under the PolyLoader Non-Commercial License (see `LICENSE`). The components below are
-not PolyLoader's own work. They keep their own licenses, which the PolyLoader license does not change.
+Poly Mod Loader is licensed under the Mozilla Public License 2.0 (see `LICENSE`). Its source code is at
+https://github.com/xyrz47-spec/Poly-Mod-Loader. The components below are not Poly Mod Loader's own work. They keep
+their own licenses, which Poly Mod Loader's license does not change.
+
+Releases up to 1.1.0 were distributed under the PolyLoader Non-Commercial License 1.0; those copies keep that
+license, in addition to any more permissive terms granted later.
 
 ## Distributed with PolyLoader
 
@@ -10,6 +14,7 @@ These are inside PolyLoader's jars, the installer, or the libraries the installe
 | Component | Version | License | Where |
 |---|---|---|---|
 | [Fabric Loader](https://github.com/FabricMC/fabric-loader) public API classes (`net.fabricmc.api`, `net.fabricmc.loader.api`, and the classes they need) | 0.19.5 | Apache License 2.0 | `poly-bridge-fabric` jar, with its `LICENSE_fabric-loader` |
+| [Quilt Loader](https://github.com/QuiltMC/quilt-loader) public API classes (`org.quiltmc.loader.api`, its `entrypoint` and `minecraft` packages) and the helper classes they need (versions, dependency objects, licences, JSON values, logging; 90 classes, ADR-0027) | 0.31.0-beta.4 | Apache License 2.0 | `poly-bridge-fabric` jar, with its `LICENSE_quilt-loader` and `quilt_loader/licenses.json` |
 | [ASM](https://asm.ow2.io/) (`asm`, `asm-tree`, `asm-analysis`, `asm-util`) | 9.11.1 | BSD 3-Clause | runtime library |
 | [tomlj](https://github.com/tomlj/tomlj) | 1.1.1 | Apache License 2.0 | runtime library |
 | [XZ for Java](https://tukaani.org/xz/java.html) (`org.tukaani:xz`) | 1.9 | Public domain | runtime library (reads Forge's binary patches, ADR-0021) |
@@ -20,6 +25,7 @@ These are inside PolyLoader's jars, the installer, or the libraries the installe
 | [MixinExtras](https://github.com/LlamaLad7/MixinExtras) (`mixinextras-common`) | 0.5.5 | MIT | runtime library (Fabric bridge, ADR-0020) |
 | [ASM](https://asm.ow2.io/) `asm-commons` | 9.11.1 | BSD 3-Clause | runtime library (needed by Mixin) |
 | Code adapted from [Fabric Loader](https://github.com/FabricMC/fabric-loader): its Mixin service (`MixinServiceKnot`), Mixin compatibility table (`FabricMixinVersions`), environment stripping (`EnvironmentStrippingData`, `ClassStripper`, `FabricTransformer`) | 0.19.5 | Apache License 2.0 | `poly-bridge-fabric` jar (`dev.polyloader.compat.fabric.mixin.PolyMixinService`, `MixinCompatibility`, `dev.polyloader.compat.fabric.EnvironmentStripper`); each file names its source and changes, and the jar carries `LICENSE_fabric-loader` |
+| Code adapted from [Quilt Loader](https://github.com/QuiltMC/quilt-loader): version specifiers and `versions` values of `quilt.mod.json` (`V1ModMetadataReader.readVersionSpecifier`, `readVersionsValue`, `readVersionsObject`), environment stripping of Quilt mods' classes (`AbstractStripData`, `ClassStrippingData`, `PackageStrippingData`, `LambdaStripCalculator`, `QuiltTransformer`) | 0.31.0-beta.4 | Apache License 2.0 | `poly-bridge-fabric` jar (`dev.polymodloader.compat.quilt.QuiltVersionSpecifier`, `dev.polymodloader.compat.fabric.EnvironmentStripper`); each file names its source and changes, and the jar carries `LICENSE_quilt-loader` |
 | Code adapted from [class-tweaker](https://github.com/FabricMC/class-tweaker), the class tweaker library Fabric Loader ships: enum extension (`EnumExtensionClassVisitor`) | 0.3.0 | Apache License 2.0 | `poly-bridge-fabric` jar (`dev.polyloader.compat.fabric.EnumExtender`) |
 
 ## Used but not distributed by PolyLoader

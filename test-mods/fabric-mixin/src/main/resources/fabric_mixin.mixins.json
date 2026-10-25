@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.compat.mixin.mixins",
+  "compatibilityLevel": "JAVA_25",
+  "plugin": "com.example.compat.mixin.FabricMixinPlugin",
+  "mixins": [
+    "CalculatorDisabledMixin",
+    "CalculatorMixin",
+    "MinecraftServerMixin",
+    "MthAccessor",
+    "SharedConstantsInvoker",
+    "SharedConstantsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

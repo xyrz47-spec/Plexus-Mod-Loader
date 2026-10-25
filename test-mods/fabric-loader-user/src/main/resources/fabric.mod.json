@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_loader_user",
+  "version": "1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.compat.loaderuser.LoaderUser"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.0"
+  }
+}

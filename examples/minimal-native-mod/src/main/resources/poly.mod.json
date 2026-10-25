@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "minimal_native_mod",
+  "version": "0.1.0",
+  "name": "Minimal Native Mod",
+  "environment": "both",
+  "minecraft": [
+    "26.*"
+  ],
+  "entrypoints": {
+    "common": ["com.example.poly.minimal.MinimalNativeMod"],
+    "client": ["com.example.poly.minimal.MinimalNativeModClient"]
+  },
+  "depends": {
+    "poly": ">=1.0.0 <2.0.0"
+  },
+  "conflicts": []
+}
