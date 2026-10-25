@@ -173,6 +173,7 @@ public abstract class FrameBenchmarkTask extends DefaultTask {
                 first = false;
                 Path directory = work.resolve(variant + "-" + i);
                 ClientWorldReloadTask.copyDirectory(world, directory.resolve("saves").resolve(WORLD_NAME));
+                StableVanillaDimensions.apply(directory.resolve("saves").resolve(WORLD_NAME));
                 Files.createDirectories(directory.resolve("mods"));
                 Files.writeString(directory.resolve("options.txt"), OPTIONS, StandardCharsets.UTF_8);
                 Path frames = directory.resolve("frames.txt");

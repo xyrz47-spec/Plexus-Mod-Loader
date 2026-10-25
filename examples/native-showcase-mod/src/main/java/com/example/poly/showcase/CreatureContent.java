@@ -43,7 +43,12 @@ final class CreatureContent {
                         .panicWhenHurt()
                         .temptedBy(NativeShowcaseMod.SPARK)
                         .spawnEgg(CreativeTab.SPAWN_EGGS)
-                        .spawnsNaturally(BiomeSelector.ids(ResourceId.minecraft("plains")), 5, 1, 2)
+                        // Plains, and desert: the game test world of Minecraft 26.3 and later is desert.
+                        .spawnsNaturally(
+                                BiomeSelector.ids(ResourceId.minecraft("plains"), ResourceId.minecraft("desert")),
+                                5,
+                                1,
+                                2)
                         .goal(4, SeekGlowBlockGoal::new)
                         .rideable(true)
                         .behavior(new GolemBehavior())

@@ -5,7 +5,7 @@
 <h1 align="center">Poly Mod Loader</h1>
 
 <p align="center">
-  A mod loader and Native API for Minecraft: Java Edition 26.1 – 26.2<br>
+  A mod loader and Native API for Minecraft: Java Edition 26.1 – 26.3<br>
   <a href="https://www.polymc.net/docs/">Docs</a> ·
   <a href="https://www.polymc.net/download/">Download</a> ·
   <a href="https://www.polymc.net/docs/getting-started/first-mod/">Make your first Poly Mod</a> ·
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img alt="Minecraft 26.1 – 26.2" src="https://img.shields.io/badge/Minecraft-26.1%20%E2%80%93%2026.2-62b47a">
+  <img alt="Minecraft 26.1 – 26.3" src="https://img.shields.io/badge/Minecraft-26.1%20%E2%80%93%2026.3-62b47a">
   <img alt="Java 25" src="https://img.shields.io/badge/Java-25-e76f00">
   <img alt="status stable" src="https://img.shields.io/badge/status-stable-f5b700">
   <img alt="license MPL-2.0" src="https://img.shields.io/badge/license-MPL--2.0-555">
@@ -26,11 +26,11 @@ Poly Mod Loader is a mod loader that keeps Minecraft's launch foundation as it i
 
 A **Poly Mod** is a mod made with the Native API that runs on Poly Mod Loader, the same way people say Fabric mod or Forge mod.
 
-> It supports Minecraft 26.1, 26.1.1, 26.1.2 and 26.2. Every Native API is still in preview and may change. Back up worlds you care about.
+> It supports Minecraft 26.1, 26.1.1, 26.1.2, 26.2 and 26.3. On 26.3, mods of the other loaders are checked with test mods; the popular-mod runs below are on 26.1 and 26.2. Every Native API is still in preview and may change. Back up worlds you care about.
 
 ## Install (players)
 
-1. Run the vanilla version you want (26.1, 26.1.1, 26.1.2 or 26.2) once in the Minecraft Launcher, quit the game, and close the launcher.
+1. Run the vanilla version you want (26.1, 26.1.1, 26.1.2, 26.2 or 26.3) once in the Minecraft Launcher, quit the game, and close the launcher.
 2. Download from the [download page](https://www.polymc.net/download/) (the files are the [GitHub releases](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)).
    - Windows: `PolyModLoader-<version>.exe`. No separate Java install is needed; it uses the Java the launcher downloaded.
    - macOS and Linux: `PolyModLoader-<version>.jar`. Run it with Java 17 or newer (`java -jar PolyModLoader-<version>.jar`).
@@ -67,8 +67,8 @@ The public API exposes no Minecraft classes, so a mod that uses only the Native 
 | Poly Mods | Supported |
 | Fabric mods | Supported. Fabric mods run as under Fabric Loader, Mixin included. On 26.1 and 26.2, popular Fabric mods (138 on 26.2: Sodium, Iris, Lithium and more) play a world together on the client, save it and quit, and 100 start a real dedicated server; the only mods left out are ones Fabric Loader refuses too |
 | Quilt mods | Supported. `quilt.mod.json` is read with Quilt Loader's rules, and Quilt mods get Quilt Loader's API, their Mixins and access wideners, next to Fabric, Forge and Poly Mods. On 26.1, 26.1.2 and 26.2, every Quilt-only build on Modrinth (114 on 26.2) was run: on the client they play a saved world, save it and quit, they create and save a world on the server and start a real dedicated server, and the installed launcher profile and server run them. The only mods left out are ones Quilt Loader refuses or cannot run too. Quilt Standard Libraries (QSL) have no release for 26.x, so mods that need QSL are left out with the reason. A jar with both `fabric.mod.json` and `quilt.mod.json` runs as a Fabric mod |
-| NeoForge mods | Supported. Poly Mod Loader runs NeoForge and its loader FML themselves (NeoForge 26.1.0.19-beta on 26.1, 26.1.1.15-beta on 26.1.1, 26.1.2.122 on 26.1.2, 26.2.0.93 on 26.2). On 26.1, 26.1.2 and 26.2, popular NeoForge mods play a saved world on the client, save it and quit (54 on 26.2, Sodium and Iris included), create and save a world on the server and start a real dedicated server, next to Poly Mods; the installed launcher profile and server run them too. The only mods left out are ones NeoForge cannot run either. NeoForge mods also run in the same game as Fabric and Quilt mods (checked on 26.1, 26.1.2 and 26.2, with the client playing a saved world); Fabric injections that do not fit NeoForge's patch are skipped and reported (`POLY-COMPAT-138`). Not supported: NeoForge mods in the same game as MinecraftForge mods; the NeoForge mods are then left out with the reason (`POLY-COMPAT-221`). The first start with NeoForge mods downloads NeoForge's files |
-| Forge mods | Supported. Poly Mod Loader runs Forge and FML themselves (Forge 62.0.9 on 26.1, 64.1.5 on 26.1.2, 65.1.5 on 26.2). On 26.1 and 26.2, popular Forge mods play a saved world on the client, save it and quit (40 on 26.2), create and save a world on the server and start a real dedicated server, also next to Fabric mods; the installed launcher profile and server run them too. The only mods left out are ones Forge refuses too. The first start with Forge mods downloads Forge's files |
+| NeoForge mods | Supported. Poly Mod Loader runs NeoForge and its loader FML themselves (NeoForge 26.1.0.19-beta on 26.1, 26.1.1.15-beta on 26.1.1, 26.1.2.122 on 26.1.2, 26.2.0.93 on 26.2, 26.3.0.98 on 26.3). On 26.1, 26.1.2 and 26.2, popular NeoForge mods play a saved world on the client, save it and quit (54 on 26.2, Sodium and Iris included), create and save a world on the server and start a real dedicated server, next to Poly Mods; the installed launcher profile and server run them too. The only mods left out are ones NeoForge cannot run either. NeoForge mods also run in the same game as Fabric and Quilt mods (checked on 26.1, 26.1.2 and 26.2, with the client playing a saved world); Fabric injections that do not fit NeoForge's patch are skipped and reported (`POLY-COMPAT-138`). Not supported: NeoForge mods in the same game as MinecraftForge mods; the NeoForge mods are then left out with the reason (`POLY-COMPAT-221`). The first start with NeoForge mods downloads NeoForge's files |
+| Forge mods | Supported. Poly Mod Loader runs Forge and FML themselves (Forge 62.0.9 on 26.1, 64.1.5 on 26.1.2, 65.1.5 on 26.2, 66.1.0 on 26.3). On 26.1 and 26.2, popular Forge mods play a saved world on the client, save it and quit (40 on 26.2), create and save a world on the server and start a real dedicated server, also next to Fabric mods; the installed launcher profile and server run them too. The only mods left out are ones Forge refuses too. The first start with Forge mods downloads Forge's files |
 
 Poly Mod Loader excludes mods it cannot run before the game starts, with the reason. This was checked against 124 real popular mods without a single exception or crash during assessment. The [compatibility page](https://www.polymc.net/docs/reference/compatibility/) has the criteria and results.
 
@@ -110,11 +110,11 @@ Poly 모드 로더는 Minecraft의 실행 기반은 그대로 두고, 그 위의
 
 **Poly 모드**(영어: Poly Mod)는 Native API로 만들어 Poly 모드 로더에서 실행하는 모드입니다. Fabric 모드, Forge 모드와 같은 방식으로 부르는 이름입니다.
 
-> Minecraft 26.1, 26.1.1, 26.1.2, 26.2를 지원합니다. Native API는 모두 미리보기 단계라 바뀔 수 있습니다. 중요한 월드는 백업하세요.
+> Minecraft 26.1, 26.1.1, 26.1.2, 26.2, 26.3을 지원합니다. 26.3에서 다른 로더의 모드는 테스트 모드로 확인했고, 아래 인기 모드 실행 결과는 26.1과 26.2의 것입니다. Native API는 모두 미리보기 단계라 바뀔 수 있습니다. 중요한 월드는 백업하세요.
 
 ### 설치 (플레이어)
 
-1. Minecraft Launcher에서 쓰려는 바닐라 버전(26.1, 26.1.1, 26.1.2, 26.2)을 한 번 실행한 뒤 런처를 닫습니다.
+1. Minecraft Launcher에서 쓰려는 바닐라 버전(26.1, 26.1.1, 26.1.2, 26.2, 26.3)을 한 번 실행한 뒤 런처를 닫습니다.
 2. [릴리스 페이지](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)에서 설치 파일을 다운로드합니다.
    - Windows: `PolyModLoader-<버전>.exe`. Java를 따로 설치하지 않아도 됩니다. 런처에 들어 있는 Java를 사용합니다.
    - macOS·Linux: `PolyModLoader-<버전>.jar`. Java 17 이상에서 실행합니다(`java -jar PolyModLoader-<버전>.jar`).
@@ -151,8 +151,8 @@ Native API로 할 수 있는 일:
 | Poly 모드 | 지원 |
 | Fabric 모드 | 지원. Mixin을 포함해 Fabric Loader에서처럼 실행됩니다. 26.1과 26.2에서 인기 Fabric 모드(26.2는 Sodium, Iris, Lithium 등 138개)를 함께 넣고 클라이언트에서 월드를 플레이하고 저장한 뒤 나오며, 100개가 실제 전용 서버 시작을 통과합니다. 빠지는 모드는 Fabric Loader도 실행하지 않는 경우뿐입니다 |
 | Quilt 모드 | 지원. `quilt.mod.json`을 Quilt Loader 규칙으로 읽고, Quilt 모드에 Quilt Loader API와 Mixin·access widener를 주며 Fabric·Forge·Poly 모드와 함께 실행합니다. 26.1, 26.1.2, 26.2에서 Modrinth의 Quilt 전용 판 전부(26.2는 114개)를 넣고 클라이언트에서 저장된 월드를 플레이하고 저장한 뒤 나오며, 서버에서 월드를 만들고 저장하고 실제 전용 서버를 시작하고, 설치한 런처 프로필과 서버에서도 실행됩니다. 빠지는 모드는 Quilt Loader도 거부하거나 실행하지 못하는 경우뿐입니다. Quilt 표준 라이브러리(QSL)는 26.x 판이 없어 QSL이 필요한 모드는 이유와 함께 빠집니다. `fabric.mod.json`과 `quilt.mod.json`을 다 든 jar는 Fabric 모드로 실행합니다 |
-| NeoForge 모드 | 지원. Poly 모드 로더가 NeoForge와 그 로더 FML을 그대로 실행합니다(26.1은 NeoForge 26.1.0.19-beta, 26.1.1은 26.1.1.15-beta, 26.1.2는 26.1.2.122, 26.2는 26.2.0.93). 26.1, 26.1.2, 26.2에서 인기 NeoForge 모드를 넣고 클라이언트에서 저장된 월드를 플레이하고 저장한 뒤 나오며(26.2는 Sodium·Iris를 포함해 54개), 서버에서 월드를 만들고 저장하고 실제 전용 서버를 시작합니다. Poly 모드와 함께도 되고, 설치한 런처 프로필과 서버에서도 실행됩니다. 빠지는 모드는 NeoForge도 실행하지 못하는 경우뿐입니다. Fabric·Quilt 모드와 한 게임에서도 실행됩니다(26.1, 26.1.2, 26.2에서 클라이언트로 저장된 월드를 플레이까지 확인). NeoForge 패치와 맞지 않는 Fabric 주입은 실행하지 않고 알립니다(`POLY-COMPAT-138`). 지원하지 않는 것: MinecraftForge 모드와 한 게임에서 실행. 그때는 NeoForge 모드가 이유와 함께 빠집니다(`POLY-COMPAT-221`). NeoForge 모드를 넣고 처음 시작하면 NeoForge 파일을 받습니다 |
-| Forge 모드 | 지원. Poly 모드 로더가 Forge와 FML을 그대로 실행합니다(26.1은 Forge 62.0.9, 26.1.2는 64.1.5, 26.2는 65.1.5). 26.1과 26.2에서 인기 Forge 모드를 넣고 클라이언트에서 저장된 월드를 플레이하고 저장한 뒤 나오며(26.2는 40개), 서버에서 월드를 만들고 저장하고 실제 전용 서버를 시작합니다. Fabric 모드와 함께도 되고, 설치한 런처 프로필과 서버에서도 실행됩니다. 빠지는 모드는 Forge도 실행하지 않는 경우뿐입니다. Forge 모드를 넣고 처음 시작하면 Forge 파일을 받습니다 |
+| NeoForge 모드 | 지원. Poly 모드 로더가 NeoForge와 그 로더 FML을 그대로 실행합니다(26.1은 NeoForge 26.1.0.19-beta, 26.1.1은 26.1.1.15-beta, 26.1.2는 26.1.2.122, 26.2는 26.2.0.93, 26.3은 26.3.0.98). 26.1, 26.1.2, 26.2에서 인기 NeoForge 모드를 넣고 클라이언트에서 저장된 월드를 플레이하고 저장한 뒤 나오며(26.2는 Sodium·Iris를 포함해 54개), 서버에서 월드를 만들고 저장하고 실제 전용 서버를 시작합니다. Poly 모드와 함께도 되고, 설치한 런처 프로필과 서버에서도 실행됩니다. 빠지는 모드는 NeoForge도 실행하지 못하는 경우뿐입니다. Fabric·Quilt 모드와 한 게임에서도 실행됩니다(26.1, 26.1.2, 26.2에서 클라이언트로 저장된 월드를 플레이까지 확인). NeoForge 패치와 맞지 않는 Fabric 주입은 실행하지 않고 알립니다(`POLY-COMPAT-138`). 지원하지 않는 것: MinecraftForge 모드와 한 게임에서 실행. 그때는 NeoForge 모드가 이유와 함께 빠집니다(`POLY-COMPAT-221`). NeoForge 모드를 넣고 처음 시작하면 NeoForge 파일을 받습니다 |
+| Forge 모드 | 지원. Poly 모드 로더가 Forge와 FML을 그대로 실행합니다(26.1은 Forge 62.0.9, 26.1.2는 64.1.5, 26.2는 65.1.5, 26.3은 66.1.0). 26.1과 26.2에서 인기 Forge 모드를 넣고 클라이언트에서 저장된 월드를 플레이하고 저장한 뒤 나오며(26.2는 40개), 서버에서 월드를 만들고 저장하고 실제 전용 서버를 시작합니다. Fabric 모드와 함께도 되고, 설치한 런처 프로필과 서버에서도 실행됩니다. 빠지는 모드는 Forge도 실행하지 않는 경우뿐입니다. Forge 모드를 넣고 처음 시작하면 Forge 파일을 받습니다 |
 
 Poly 모드 로더는 실행할 수 없는 모드를 게임이 시작되기 전에 이유와 함께 제외합니다. 실제 인기 모드 124개로 이 판정을 검증했고, 판정 중 예외나 크래시는 없었습니다. 자세한 기준과 결과는 [호환성 문서](https://www.polymc.net/ko/docs/reference/compatibility/)에 있습니다.
 

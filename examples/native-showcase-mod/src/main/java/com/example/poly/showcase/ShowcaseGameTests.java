@@ -385,12 +385,16 @@ final class ShowcaseGameTests {
             });
         });
         tests.register("natural_spawns_in_plains", test -> {
-            List<ResourceId> creatures = test.world()
-                    .naturalSpawns(
-                            test.absolute(ABOVE_ORIGIN), dev.polymodloader.api.content.entity.MobCategory.CREATURE);
-            test.assertTrue(creatures.contains(CreatureContent.GOLEM), "plains creatures: " + creatures);
-            test.assertTrue(
-                    creatures.contains(ResourceId.minecraft("cow")), "the game's own spawns stay: " + creatures);
+            // The game test world is plains up to Minecraft 26.2 and desert from 26.3; the golem spawns in both.
+            BlockPos at = test.absolute(ABOVE_ORIGIN);
+            ResourceId biome = test.world().biomeAt(at);
+            List<ResourceId> creatures =
+                    test.world().naturalSpawns(at, dev.polymodloader.api.content.entity.MobCategory.CREATURE);
+            test.assertTrue(creatures.contains(CreatureContent.GOLEM), biome + " creatures: " + creatures);
+            ResourceId gameCreature = biome.equals(ResourceId.minecraft("desert"))
+                    ? ResourceId.minecraft("camel")
+                    : ResourceId.minecraft("cow");
+            test.assertTrue(creatures.contains(gameCreature), "the game's own spawns stay: " + creatures);
             test.succeed();
         });
         tests.register("custom_goal_seeks_glow_block", 200, new TestArea(10, 4, 5), test -> {

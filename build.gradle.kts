@@ -9,7 +9,7 @@ plugins {
 }
 
 // The test mods and the transform example are written for Minecraft 26.2 and name it in their metadata
-// (fabric.mod.json "~26.2", poly.mod.json "26.2" for exact transform targets). They are built for the
+// (fabric.mod.json "~26.2", poly.mod.json "26.2" for exact transform targets, quilt.mod.json "26.2.x"). They are built for the
 // version this build runs (-PpolyMinecraft, ADR-0011), so the verification tasks check every supported
 // version with the same mods; the game members they use were checked with javap in each one. With the
 // default version nothing changes.
@@ -37,6 +37,13 @@ subprojects {
                 inputs.property("polyMinecraft", runMinecraft)
                 filesMatching(listOf("fabric.mod.json", "poly.mod.json")) {
                     filter { line -> line.replace(writtenFor, runMinecraft) }
+                }
+                // quilt.mod.json names the version Quilt's way, "26.2.x" (26.2 and its hotfixes); a run of a version
+                // outside that range names exactly that version.
+                if (runMinecraft != "26.2" && !runMinecraft.startsWith("26.2.")) {
+                    filesMatching("quilt.mod.json") {
+                        filter { line -> line.replace("\"26.2.x\"", "\"=$runMinecraft\"") }
+                    }
                 }
             }
         }

@@ -384,7 +384,8 @@ public interface NativeDeclarations {
      *
      * @param ownerModId declaring mod
      * @param id binding ID
-     * @param defaultKey default GLFW key code, or -1 for unbound
+     * @param defaultKey default Poly Mod Loader key code (a GLFW key token, ADR-0029), or -1 for unbound; the game
+     *     layer converts it to the running version's key code
      * @param bind call with the game's key state once the binding exists
      */
     record KeyBindingDeclaration(

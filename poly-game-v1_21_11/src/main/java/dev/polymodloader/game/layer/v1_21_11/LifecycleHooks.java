@@ -17,6 +17,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.ProgressListener;
 import net.minecraft.world.entity.Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Hooks for the server, world, player-respawn, and entity lifecycle events: {@link
@@ -26,6 +28,8 @@ import net.minecraft.world.entity.Entity;
  * Minecraft1_21_11Adapter}; parameter lists mirror the targets (verified with {@code javap}).
  */
 public final class LifecycleHooks {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
 
     private LifecycleHooks() {}
 
@@ -69,6 +73,9 @@ public final class LifecycleHooks {
 
     /** Before the return of {@code MinecraftServer.stopServer()}. */
     public static void onServerStopped(MinecraftServer server) {
+        // stopServer has saved and closed every world by now. Checks read this line: since 26.3 the game no
+        // longer logs that all dimensions are saved.
+        LOGGER.info("[Poly Mod Loader] Server stopped after saving and closing its worlds");
         GameLayerContext context = listening(ServerEvents.STOPPED);
         if (context != null) {
             ServerView view = new GameServerView(server);

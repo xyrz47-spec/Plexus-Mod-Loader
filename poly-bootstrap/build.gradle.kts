@@ -17,6 +17,14 @@ val minecraftVersions = dev.polymodloader.devtools.gradle.minecraft.MinecraftVer
 // A hotfix (hotfixes.<version>) runs on the modules, adapter and game layer of the version it is listed under.
 val minecraftModules = minecraftVersions.modulesVersion(minecraft)
 val gameLayer = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.gameLayerClass(minecraftModules)
+// The line showing that a stopping server saved every world. The game logged one up to 26.2; 26.3 logs none, so
+// there the check reads Poly Mod Loader's line from the end of MinecraftServer.stopServer (LifecycleHooks).
+val worldsSavedLine =
+    if (minecraftModules == "26.1" || minecraftModules == "26.2" || minecraftModules.startsWith("1.")) {
+        "ThreadedAnvilChunkStorage: All dimensions are saved"
+    } else {
+        "[Poly Mod Loader] Server stopped after saving and closing its worlds"
+    }
 
 dependencies {
     implementation(project(":poly-runtime-impl"))
@@ -119,7 +127,7 @@ tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("wo
         "[native_showcase] Overworld ready, load count 1",
         "All 1 required tests passed",
         "[minimal_native_mod] Server stopping after",
-        "ThreadedAnvilChunkStorage: All dimensions are saved",
+        worldsSavedLine,
         "[minimal_native_mod] Shutdown task ran",
     )
     expectedFiles.addAll(".poly/startup-report.json", ".poly/transformation-report.json")
@@ -581,7 +589,7 @@ scenarios.gameTest("forgeWorldTest", files()) {
         "[Poly Mod Loader] FML's game layer:",
         "Forge mod loading, version ",
         "All 1 required tests passed",
-        "ThreadedAnvilChunkStorage: All dimensions are saved",
+        worldsSavedLine,
     )
 }
 
@@ -595,7 +603,7 @@ scenarios.gameTest("neoForgeWorldTest", modJars(":test-mods:neoforge-gametest-ha
         "[Poly Mod Loader] FML ",
         "[neoforge_gametest_harness] NeoForge runs in production and does not tick game tests; the harness ticks them",
         "All 1 required tests passed",
-        "ThreadedAnvilChunkStorage: All dimensions are saved",
+        worldsSavedLine,
     )
 }
 
@@ -611,11 +619,21 @@ val matrix = listOf(
         description = "Runs a NeoForge mod nested in an early service jar, as Sodium ships, through Poly Mod Loader on the game test server."
         runsNeoForge()
         expectedOutput.addAll(
-            "Running graphics bootstrap plugin neoforge_early_service",
-            "[neoforge_early_service] early service ran before mod discovery",
+            "Found 1 early service jars",
             "[neoforge_early_service] Constructed by FML from the jar nested in the early service jar",
             "All 1 required tests passed",
         )
+        if (minecraftModules == "26.1" || minecraftModules == "26.2") {
+            // FML 11 runs graphics bootstrap plugins before it decides not to open the early window on a server.
+            expectedOutput.addAll(
+                "Running graphics bootstrap plugin neoforge_early_service",
+                "[neoforge_early_service] early service ran before mod discovery",
+            )
+        } else {
+            // FML 12 (NeoForge for 26.3) returns before running them when it is headless, as on this server.
+            expectedOutput.add("Not loading early display in headless mode.")
+            unexpectedOutput.add("Running graphics bootstrap plugin")
+        }
         unexpectedOutput.addAll("Attempted to select a dependency jar for JarJar which was passed in as source")
     },
     scenarios.gameTest("matrixNativeOnly", modJars(native)) { expectedOutput.add(nativeHello) },
@@ -1046,7 +1064,7 @@ val corpusScenarios = listOf(
         expectedOutput.addAll(
             corpusCounts("[Poly Mod Loader] Foreign mods: 98 loaded, 73 not loaded"),
             "[poly_gametest_harness] froze registries after mod initialisation",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
     },
     // The real dedicated server start (net.minecraft.server.Main) with every Fabric mod: bootstrap, Mixin, mod
@@ -1090,7 +1108,7 @@ val corpusScenarios = listOf(
             corpusCounts("FML 11.0 loaded 50 mod(s); game layer of 57 module(s)", "[Poly Mod Loader] FML "),
             "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge ",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
         expectedFiles.add("universe/gametestworld/level.dat")
     },
@@ -1134,7 +1152,7 @@ val corpusScenarios = listOf(
             ),
             "Forge mod loading, version ",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
     },
     // The real dedicated server start with every Forge mod of the corpus (Forge full support B4): Poly Mod Loader's
@@ -1176,7 +1194,7 @@ val corpusScenarios = listOf(
             "[poly_host_patch_probe] fabric-object-builder-api-v1: AttributeSupplier\$Builder implements AttributeSupplierBuilderAccessor: true; getBuilder() throws UnsupportedOperationException: POLY-COMPAT-214 Fabric mod fabric-object-builder-api-v1",
             "[poly_host_patch_probe] fabric-data-generation-api-v1: Advancement\$Builder implements FabricAdvancementBuilder: true",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
     },
     // Fabric and NeoForge mods of the corpus in one instance (ADR-0026 30, 31): Fabric runs the Fabric mods, NeoForge's
@@ -1205,7 +1223,7 @@ val corpusScenarios = listOf(
             "POLY-COMPAT-139 Fabric mod cloth-config (cloth-config-",
             "loads its own build of it as cloth_config (the same ID as NeoForge spells it)",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
         unexpectedOutput.addAll("POLY-COMPAT-216")
         expectedFiles.add("universe/gametestworld/level.dat")
@@ -1271,7 +1289,7 @@ val corpusScenarios = listOf(
             "Fabric or Quilt mod(s) run together; one Mixin serves both (ADR-0026 30)",
             "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge ",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
         unexpectedOutput.addAll("POLY-COMPAT-216", "POLY-COMPAT-139")
         expectedFiles.add("universe/gametestworld/level.dat")
@@ -1307,7 +1325,7 @@ val corpusScenarios = listOf(
         dependsOn(modCorpus)
         // With Forge mods, NeoForge does not run (ADR-0026 34): its mods are named with the reason, then diagnosed.
         expectedOutput.add("NeoForge mod file(s) are NOT loaded: MinecraftForge mods are in the same game")
-        expectedOutput.addAll(nativeHello, fabricHello, corpusCounts("[Poly Mod Loader] Foreign mods: 98 loaded, 160 not loaded"), corpusCounts("[Poly Mod Loader] Initialising 98 foreign mod(s)", "[Poly Mod Loader] Initialising "), "ThreadedAnvilChunkStorage: All dimensions are saved")
+        expectedOutput.addAll(nativeHello, fabricHello, corpusCounts("[Poly Mod Loader] Foreign mods: 98 loaded, 160 not loaded"), corpusCounts("[Poly Mod Loader] Initialising 98 foreign mod(s)", "[Poly Mod Loader] Initialising "), worldsSavedLine)
     },
 )
 
@@ -1382,7 +1400,7 @@ val quiltCorpusScenarios = listOf(
             corpusCounts("[Poly Mod Loader] Mixin: 55 configuration(s) from 42 Fabric mod(s) and 12 Quilt mod(s) for DEDICATED_SERVER", "[Poly Mod Loader] Mixin: "),
             corpusCounts("[Poly Mod Loader] Initialising 135 foreign mod(s)", "[Poly Mod Loader] Initialising "),
             corpusCounts("[voicechat] Voice chat server started at port", "All 1 required tests passed"),
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
         unexpectedOutput.addAll(quiltCorpusUnexpected)
         expectedFiles.add("universe/gametestworld/level.dat")
@@ -1433,7 +1451,7 @@ val quiltCorpusScenarios = listOf(
             "share Fabric's Mixin",
             "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge ",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
         if (minecraft == "26.2") {
             // The 26.2 Quilt corpus's Cloth Config is the Fabric build; NeoForge's build cloth_config runs instead and
@@ -1483,7 +1501,7 @@ val quiltCorpusScenarios = listOf(
             "share Fabric's Mixin",
             "Forge mod loading, version ",
             "All 1 required tests passed",
-            "ThreadedAnvilChunkStorage: All dimensions are saved",
+            worldsSavedLine,
         )
         unexpectedOutput.addAll(quiltCorpusUnexpected)
     },

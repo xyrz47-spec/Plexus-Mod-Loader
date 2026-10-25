@@ -1,6 +1,6 @@
 # 설계 결정 (ADR)
 
-Poly 모드 로더의 중요한 설계 결정은 ADR(Architecture Decision Record)로 남깁니다. 각 ADR 원문은 이 폴더에 있습니다. ADR-0001부터 ADR-0010까지는 2026-10-19에, ADR-0011~0018은 2026-10-21에, ADR-0020과 ADR-0022는 2026-10-22에, ADR-0023~0025는 2026-10-23에, ADR-0027은 2026-10-24에 채택됐습니다. ADR-0019와 ADR-0021은 제안 상태입니다.
+Poly 모드 로더의 중요한 설계 결정은 ADR(Architecture Decision Record)로 남깁니다. 각 ADR 원문은 이 폴더에 있습니다. ADR-0001부터 ADR-0010까지는 2026-10-19에, ADR-0011~0018은 2026-10-21에, ADR-0020과 ADR-0022는 2026-10-22에, ADR-0023~0025는 2026-10-23에, ADR-0027은 2026-10-24에, ADR-0028·0029는 2026-10-25에 채택됐습니다. ADR-0019와 ADR-0021은 제안 상태입니다.
 
 | 번호 | 제목 | 결정 | 주요 결과 |
 |---|---|---|---|
@@ -34,3 +34,4 @@ Poly 모드 로더의 중요한 설계 결정은 ADR(Architecture Decision Recor
 | 0026 | NeoForge 모드를 NeoForge 자신의 코드로 실행 — **채택** | 사용자 PC에서 `NFPATCHBUNDLE001` 패치를 적용한 게임 jar를 만들고, FML의 `FMLLoader.create`를 그대로 실행하되 게임 레이어를 만드는 호출과 mods 폴더 검색만 검사한 형태일 때 Poly 모드 로더 호스트로 바꿉니다. 게임 레이어는 게임 클래스로더가 정의하고, FML의 `ClassProcessor`는 브리지 변환 단계에서 부릅니다. Fabric·Quilt 모드와 함께 넣으면 NeoForge 쪽을 막습니다(`216`, 이유는 22번). | 2026-10-24 채택. 26.1·26.1.1(베타)·26.1.2·26.2의 NeoForge로 실제 모드 묶음까지 확인했고 기본값으로 켭니다(`-Dpoly.neoforge=off`로 끔). FML의 `ModList`가 Poly 모드에 답하고(`218`), 타이틀 화면에 NeoForge 줄이 있습니다. |
 | 0027 | Quilt 모드를 Poly 모드 로더에서 실행 — **채택**(2026-10-24) | `quilt.mod.json`은 `poly-bridge-fabric` 안의 형제 브리지 `QuiltBridge`가 읽고, Mixin·class tweaker·진입점 저장소는 Fabric 쪽 것을 함께 씁니다. 두 메타데이터를 다 든 jar는 Fabric 모드로 실행합니다. 버전 지정은 Quilt 뜻(`1.0.0` = `^1.0.0`)으로, Quilt Loader jar의 API·버전 클래스를 담고 `QuiltLoaderImpl`·`GameProvider`·`DefaultLanguageAdapter`만 대체본을 둡니다. | 새 오류 코드 `POLY-COMPAT-300..310`(Quilt 블록). 내부 SPI에 `BridgedDependency`의 `IF_PRESENT`·묶음·`unless`, `BridgeAssessment.providedVersions`·`loadOnlyIfRequired`, `ModLoaderBridge.nestedMetadataPaths()`가 늘어납니다. QSL이 필요한 모드는 Quilt Loader처럼 빠지고 이유가 나옵니다. 구현되었고, Quilt 완전 지원 점검이 26.2·26.1·26.1.2에서 통과했습니다(`COMPATIBILITY.md`). |
 | 0028 | 소스를 Mozilla Public License 2.0으로 공개 — **채택**(2026-10-25) | 1.1.0 다음 버전부터 `LICENSE`를 MPL 2.0으로 바꾸고, `templates/`·`examples/`는 MIT-0, 이름과 로고는 `TRADEMARKS.md`로 정합니다. 공개 저장소에는 웹사이트·Claude 설정·비공개 도구를 뺀 소스를 새 커밋 하나로 올립니다(`.github/scripts/export-public-repo.py`). | 상업적 이용이 허용되고 예전 라이선스의 AI·재구현 제한은 없어집니다. 오픈소스용 코드 서명을 신청할 수 있습니다. 1.1.0까지의 배포 파일은 예전 라이선스를 따릅니다. |
+| 0029 | Poly 모드 로더의 키 코드 — **채택**(2026-10-25) | `KeyCodes`와 기본 키 값은 게임 버전과 상관없이 GLFW 키 토큰 값으로 고정하고, 게임 계층이 실행 중인 버전의 키 코드로 바꿉니다. 26.1·26.2는 그대로, 26.3은 GLFW→SDL 스캔코드 표로 바꿉니다. 표에 없는 값은 "키 없음"으로 두고 경고합니다. | 이미 빌드된 Poly 모드가 26.3에서도 같은 키를 받습니다. 키 체계를 바꾸는 버전마다 게임 계층에 표가 필요합니다. |

@@ -1,18 +1,32 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 2026-10-25
 
 ### Highlights
 
+- Minecraft 26.3 is supported. Poly Mods run on it without being rebuilt, including their default key bindings (26.3 reads the keyboard through SDL; Poly Mod Loader converts its key codes, ADR-0029). Fabric, Quilt, Forge (26.3-66.1.0) and NeoForge (26.3.0.98) mods run with the compatibility test mods on 26.3; the real-mod corpus for 26.3 is not run yet.
+- A mod can carry data and assets for several Minecraft versions in one jar: Poly Mod Loader now reads the overlays of a mod's `pack.mcmeta`, as the game does for its own packs. 26.3 changed several data formats (`worldgen/feature`, `material_rule`) and compiles shaders with `#include` and explicit locations, so mods that ship such files need a 26.3 overlay.
 - Poly Mod Loader is now open source under the Mozilla Public License 2.0, and its source is public at https://github.com/xyrz47-spec/Poly-Mod-Loader. You may use, modify and redistribute it for any purpose, including commercial ones; files of Poly Mod Loader that you change and distribute stay under the MPL 2.0. Mods, modpacks and launchers choose their own license.
 - Code in `templates/` and `examples/` is under MIT No Attribution, so it can be copied into mods freely. The names "Poly" and "Poly Mod Loader" and the logo are not covered by the license; `TRADEMARKS.md` says how to use them.
 - Releases up to 1.1.0 keep the PolyLoader Non-Commercial License 1.0 they were distributed under.
 
 ### 주요 변경
 
+- Minecraft 26.3을 지원합니다. Poly 모드는 다시 빌드하지 않고 26.3에서 실행되며, 기본 키 바인딩도 그대로입니다(26.3은 키보드를 SDL로 읽고, Poly 모드 로더가 키 코드를 바꿉니다, ADR-0029). Fabric·Quilt·Forge(26.3-66.1.0)·NeoForge(26.3.0.98) 모드가 26.3에서 호환성 테스트 모드와 함께 실행됩니다. 26.3 실제 모드 묶음 검증은 아직 하지 않았습니다.
+- 모드 하나에 여러 Minecraft 버전용 데이터와 리소스를 담을 수 있습니다. 게임이 자기 팩에 하듯 모드의 `pack.mcmeta` 오버레이를 읽습니다. 26.3은 데이터 형식 몇 가지(`worldgen/feature`, `material_rule`)를 바꾸고 셰이더를 `#include`와 명시적 위치로 컴파일하므로, 그런 파일을 든 모드는 26.3 오버레이가 필요합니다.
 - Poly 모드 로더가 Mozilla Public License 2.0을 따르는 오픈소스가 되었고, 소스를 https://github.com/xyrz47-spec/Poly-Mod-Loader 에 공개합니다. 상업적 목적을 포함해 어떤 목적으로든 사용, 수정, 재배포할 수 있습니다. 고쳐서 배포하는 Poly 모드 로더 파일은 MPL 2.0으로 남습니다. 모드, 모드팩, 런처는 자기 라이선스를 정합니다.
 - `templates/`와 `examples/`의 코드는 MIT No Attribution이라 모드에 자유롭게 가져다 쓸 수 있습니다. "Poly", "Poly 모드 로더"라는 이름과 로고는 라이선스에 포함되지 않으며, 쓰는 방법은 `TRADEMARKS.md`에 있습니다.
 - 1.1.0까지의 릴리스는 배포 당시의 PolyLoader Non-Commercial License 1.0을 따릅니다.
+
+### Minecraft 26.3
+
+- New modules `poly-version-adapter-v26_3` and `poly-game-v26_3`: natural mob spawns as the biome attribute `NATURAL_MOB_SPAWNS`, the merged `ChunkGenerator.buildTerrain`, features that carry their configuration, compiled density functions, the `renderpearl` rendering API (mod shader uniforms bound in `FrontendRenderPass.setPipeline`), and the spectated-entity post effect slot.
+- Key codes (ADR-0029): `KeyCodes` and default keys stay GLFW values on every version; on 26.3 the game layer converts them to SDL scancodes, and a key 26.3 does not have starts unbound with `POLY-CLIENT-008`.
+- Mod packs use the overlays their `pack.mcmeta` picks for the running pack format (all versions); an unreadable `pack.mcmeta` is `POLY-RESOURCE-010` and the pack is used without overlays.
+- Forge 26.3-66.1.0 and NeoForge 26.3.0.98 run Forge and NeoForge mods on 26.3. NeoForge for 26.3 (FML 12) no longer runs graphics bootstrap plugins on a server, as on NeoForge's own server.
+- A stopped server logs `[Poly Mod Loader] Server stopped after saving and closing its worlds` (26.3 no longer logs that all dimensions are saved).
+- Checked on 26.3: `check`, `serverBootSmokeTest`, `worldCreateSaveTest`, `nativeApiGameTests` (62), `compatibilityMatrix` (17 scenarios), `neoForgeWorldTest`, `forgeWorldTest`, `serverInstallTest` (installed server with Forge, Quilt and NeoForge mods), and with a window `clientWorldReloadTest` (mod shaders, uniforms, key bindings) and `launcherProfileTest`. 26.1 and 26.2 pass the same headless checks. Not run on 26.3 yet: the real-mod corpus (`compatibilityCorpus`).
+- Test worlds made by the 26.3 game test server are flat in every dimension, which the game opens only after a backup prompt; the client checks give the copied world the game's own nether and end generators. `serverInstallTest` installs the Minecraft version the build runs, which its test mods are built for.
 
 ### License (ADR-0028)
 

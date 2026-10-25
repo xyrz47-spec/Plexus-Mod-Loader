@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.zip.ZipFile;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.FilePackResources;
 import net.minecraft.server.packs.PackLocationInfo;
@@ -25,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Adds every mod jar as a required pack ({@code poly/<mod id>}): its {@code assets/} to the client's
- * resource packs and its {@code data/} to the server's data packs, above the game's own packs.
+ * resource packs and its {@code data/} to the server's data packs, above the game's own packs. A jar
+ * with a {@code pack.mcmeta} also gets the overlay directories it lists for the running game's pack
+ * format, as the game's own packs do, so one mod can carry data and assets for several versions.
  */
 final class ModPacks {
 
@@ -40,23 +44,27 @@ final class ModPacks {
             PackType type = packType(source);
             String root = type == PackType.CLIENT_RESOURCES ? "assets/" : "data/";
             for (ModResourcePack mod : context.resourcePacks()) {
-                if (hasDirectory(mod.jar(), root)) {
+                if (hasEntry(mod.jar(), name -> name.startsWith(root))) {
+                    PackLocationInfo location = location(
+                            "poly/" + mod.modId(), mod.name(), new KnownPack("poly", mod.modId(), mod.version()));
+                    Pack.ResourcesSupplier resources = new FilePackResources.FileResourcesSupplier(mod.jar());
                     output.accept(pack(
-                            "poly/" + mod.modId(),
-                            mod.name(),
+                            location,
                             mod.name() + " " + mod.version() + " (Poly Mod Loader)",
-                            new FilePackResources.FileResourcesSupplier(mod.jar()),
-                            new KnownPack("poly", mod.modId(), mod.version())));
+                            resources,
+                            overlays(location, resources, type, mod.jar())));
                 }
             }
             if (type == PackType.SERVER_DATA) {
                 LayerState.generatedDataPack()
                         .ifPresent(directory -> output.accept(pack(
-                                "poly/generated",
-                                "Poly Mod Loader generated data",
+                                location(
+                                        "poly/generated",
+                                        "Poly Mod Loader generated data",
+                                        new KnownPack("poly", "generated", LayerState.generatedDataPackVersion())),
                                 "Data Poly Mod Loader derives from mod declarations",
                                 new PathPackResources.PathResourcesSupplier(directory),
-                                new KnownPack("poly", "generated", LayerState.generatedDataPackVersion()))));
+                                List.of())));
             }
         });
     }
@@ -67,18 +75,46 @@ final class ModPacks {
      * mark worlds as experimental, and clients with the same mod load them from their own jar.
      */
     private static Pack pack(
-            String id, String title, String description, Pack.ResourcesSupplier resources, KnownPack known) {
+            PackLocationInfo location, String description, Pack.ResourcesSupplier resources, List<String> overlays) {
         return new Pack(
-                new PackLocationInfo(id, Component.literal(title), PackSource.BUILT_IN, Optional.of(known)),
+                location,
                 resources,
                 new Pack.Metadata(
-                        Component.literal(description), PackCompatibility.COMPATIBLE, FeatureFlagSet.of(), List.of()),
+                        Component.literal(description), PackCompatibility.COMPATIBLE, FeatureFlagSet.of(), overlays),
                 REQUIRED_ON_TOP);
     }
 
-    private static boolean hasDirectory(Path jar, String root) {
+    private static PackLocationInfo location(String id, String title, KnownPack known) {
+        return new PackLocationInfo(id, Component.literal(title), PackSource.BUILT_IN, Optional.of(known));
+    }
+
+    /**
+     * The overlay directories the jar's {@code pack.mcmeta} lists for the running game's pack format, read
+     * the way the game reads its own packs; none without a {@code pack.mcmeta}. The pack stays required and
+     * compatible whatever formats the file names: the mod's metadata decided where it runs.
+     */
+    static List<String> overlays(PackLocationInfo location, Pack.ResourcesSupplier resources, PackType type, Path jar) {
+        if (!hasEntry(jar, name -> name.equals("pack.mcmeta"))) {
+            return List.of();
+        }
+        Pack.Metadata metadata = Pack.readPackMetadata(
+                location, resources, SharedConstants.getCurrentVersion().packVersion(type), type);
+        if (metadata == null) {
+            LOGGER.warn(
+                    "[Poly Mod Loader] POLY-RESOURCE-010 cannot read pack.mcmeta of {} (see the warning above); "
+                            + "its overlays are not used",
+                    location.id());
+            return List.of();
+        }
+        if (!metadata.overlays().isEmpty()) {
+            LOGGER.info("[Poly Mod Loader] Pack {} uses overlays {}", location.id(), metadata.overlays());
+        }
+        return metadata.overlays();
+    }
+
+    private static boolean hasEntry(Path jar, Predicate<String> name) {
         try (ZipFile zip = new ZipFile(jar.toFile())) {
-            return zip.stream().anyMatch(entry -> entry.getName().startsWith(root));
+            return zip.stream().anyMatch(entry -> name.test(entry.getName()));
         } catch (IOException e) {
             LOGGER.warn("[Poly Mod Loader] Cannot read {} to add it as a pack: {}", jar, e.toString());
             return false;

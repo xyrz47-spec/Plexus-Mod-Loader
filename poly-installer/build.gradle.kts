@@ -154,7 +154,8 @@ configurations.create("installerJarElements") {
 
 // The dedicated server path end to end: the installer jar installs a server (Mojang's server jar, network needed)
 // into a fresh folder, then java -jar polymodloader-server.jar starts it through Poly Mod Loader. Headless; the Minecraft
-// version is the newest the installer lists, or -PserverInstallMinecraft=<version> (one the installer lists).
+// version is the one this build runs (the default, or -PpolyMinecraft), which the test mods are built for, or
+// -PserverInstallMinecraft=<version> (one the installer lists).
 //  1. no mods: up to Minecraft's EULA check, which nobody accepts here; nothing of Forge is downloaded or logged
 //  2. the Forge test mod forge-hello in mods/, on Mojang's game test server: the launch jar's Java agent puts Forge's
 //     file systems on the class path (ADR-0024), FML constructs the mod, a world is created and a GameTest passes
@@ -164,8 +165,8 @@ configurations.create("installerJarElements") {
 //     game test server: the launch jar's Java agent opens java.lang.invoke to FML's modules, FML constructs the mods, a
 //     world is created and a GameTest passes
 //  7. the same mods on the dedicated server: NeoForge starts the game, up to the EULA check
-// forge-hello is built for the newest version's Forge; on another version, phases 2 and 3 run Forge without mods
-// (-Dpoly.forge=always), as forgeWorldTest does. neoforge-hello is built for the newest version's NeoForge; on another
+// forge-hello is built for the build's version; on another version, phases 2 and 3 run Forge without mods
+// (-Dpoly.forge=always), as forgeWorldTest does. neoforge-hello is built for the build's version; on another
 // version, phases 6 and 7 run NeoForge without it. Phase 6 also has neoforge-early-service, a mod nested in an early
 // service jar as Sodium ships, which FML loads from the mods folder.
 val serverJava = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
@@ -190,7 +191,7 @@ val neoForgeTestMods = configurations.create("serverInstallTestNeoForgeMods") {
     }
 }
 dependencies {
-    // Built against the default (newest) Minecraft version, the one this test installs.
+    // Built for the Minecraft version this build runs, the one this test installs unless told otherwise.
     forgeTestMod(project(":test-mods:forge-hello"))
     neoForgeTestMods(project(":test-mods:neoforge-hello"))
     neoForgeTestMods(project(":test-mods:neoforge-gametest-harness"))
@@ -227,12 +228,12 @@ tasks.register("serverInstallTest") {
     val jar = installerJar.flatMap { it.archiveFile }
     val java = serverJava.map { it.executablePath.asFile.absolutePath }
     val folder = layout.buildDirectory.dir("server install test/server")
-    val newest = supportedMinecraft.last()
-    val minecraft = providers.gradleProperty("serverInstallMinecraft").orNull ?: newest
+    val built = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).selected(project)
+    val minecraft = providers.gradleProperty("serverInstallMinecraft").orNull ?: built
     if (minecraft !in supportedMinecraft) {
         throw GradleException("serverInstallMinecraft=$minecraft is not one of $supportedMinecraft")
     }
-    val withForgeMod = minecraft == newest
+    val withForgeMod = minecraft == built
     inputs.property("minecraft", minecraft)
     val workDirectory = projectDir
     val forgeMod = forgeTestMod.incoming.files
@@ -394,10 +395,13 @@ tasks.register("serverInstallTest") {
                 "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge $neoForgeVersion starts the game",
                 "[neoforge_gametest_harness] NeoForge runs in production and does not tick game tests; the harness ticks them",
                 // FML loads the early service jar from the mods folder and the mod nested in it.
-                "Running graphics bootstrap plugin neoforge_early_service",
+                "Found 1 early service jars",
                 "[neoforge_early_service] Constructed by FML from the jar nested in the early service jar",
                 "All 1 required tests passed",
-            ) + (if (withForgeMod) listOf(
+            ) + (if (minecraft.startsWith("26.1") || minecraft == "26.2") listOf(
+                // FML 11 runs graphics bootstrap plugins on a server too; FML 12 (NeoForge for 26.3) only with a window.
+                "Running graphics bootstrap plugin neoforge_early_service",
+            ) else listOf()) + (if (withForgeMod) listOf(
                 "[neoforge_hello] Constructed by FML in module neoforge_hello (neoforge_hello)",
                 "[neoforge_hello] Common setup: item neoforge_hello:hello_item is registered",
             ) else listOf()),

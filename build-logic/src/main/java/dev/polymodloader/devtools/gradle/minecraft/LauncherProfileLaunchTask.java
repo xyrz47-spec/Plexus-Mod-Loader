@@ -191,6 +191,8 @@ public abstract class LauncherProfileLaunchTask extends DefaultTask {
 
         ClientWorldReloadTask.copyDirectory(
                 getSourceWorld().get().getAsFile().toPath(), minecraft.resolve("saves").resolve(getWorldName().get()));
+        // As in ClientWorldReloadTask: a 26.3 game test world would stop Quick Play at a backup prompt.
+        StableVanillaDimensions.apply(minecraft.resolve("saves").resolve(getWorldName().get()));
         for (File mod : getModJars().getFiles()) {
             Files.copy(mod.toPath(), minecraft.resolve("mods").resolve(mod.getName()));
         }

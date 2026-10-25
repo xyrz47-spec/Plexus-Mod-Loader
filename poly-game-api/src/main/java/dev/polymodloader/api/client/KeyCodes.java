@@ -3,7 +3,12 @@ package dev.polymodloader.api.client;
 import dev.polymodloader.api.stability.ApiStability;
 import dev.polymodloader.api.stability.StabilityLevel;
 
-/** Keyboard key codes for default key bindings (the GLFW codes the game uses). */
+/**
+ * Poly Mod Loader key codes for default key bindings (ADR-0029). The values are the GLFW key tokens on every
+ * Minecraft version, not the key codes of the running game: the game layer converts them, so a mod built once gets
+ * the same key on a version whose game uses other codes (26.3 uses SDL scancodes). Other GLFW keyboard tokens are
+ * accepted too; a value the running version cannot map leaves the binding unbound and logs a warning.
+ */
 @ApiStability(StabilityLevel.PREVIEW)
 public final class KeyCodes {
 

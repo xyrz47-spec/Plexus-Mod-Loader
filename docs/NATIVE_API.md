@@ -24,7 +24,8 @@ mod.content().item("ruby", ItemDefinition.builder().rarity(ItemRarity.RARE).buil
 모드 jar의 `assets/`는 클라이언트 리소스 팩으로, `data/`는 서버 데이터 팩으로 자동 추가됩니다.
 - 팩 ID는 `poly/<mod id>`입니다.
 - 필수 팩이며, 바닐라 위에 놓입니다.
-- 형식은 바닐라 26.2와 같습니다.
+- 형식은 실행 중인 게임 버전의 바닐라 형식입니다. 버전마다 형식이 다른 파일(예: 26.3의 `worldgen/feature`, `noise_settings`의 `material_rule`, 셰이더의 `#include`와 `layout(location = N)`)은 바닐라 팩처럼 jar 맨 위 `pack.mcmeta`의 `overlays`로 버전별 폴더에 둡니다. Poly 모드 로더는 게임이 자기 팩을 읽는 방식대로 그 버전의 팩 형식에 맞는 오버레이를 씁니다. `pack.mcmeta`가 없으면 오버레이 없이 지금처럼 동작하고, 읽지 못하면 `POLY-RESOURCE-010` 경고 뒤 오버레이 없이 씁니다. 팩은 형식 범위와 상관없이 항상 켜집니다.
+- 한 `pack.mcmeta`가 리소스 팩과 데이터 팩 양쪽에 쓰이고, 오버레이 범위는 클라이언트에서는 리소스 팩 형식으로, 서버에서는 데이터 팩 형식으로 견줍니다(26.3: 리소스 97, 데이터 121). 그래서 `assets/`용과 `data/`용 오버레이 폴더를 따로 둡니다. 예: 예제 `native-showcase-mod`의 `pack.mcmeta`와 `poly_26_3/`.
 
 | 경로 | 용도 |
 |---|---|
@@ -78,6 +79,7 @@ greetings.sendToServer("thanks");                    // 클라이언트에서
 
 클라이언트 엔트리포인트에서 `mod.client()`를 씁니다. 전용 서버에서는 `POLY-CLIENT-001`입니다.
 - `keyBinding(path, KeyCodes.K)`: 조작 설정에 표시되고, 다시 지정할 수 있습니다.
+  기본 키는 게임 버전의 키 코드가 아니라 Poly 모드 로더의 키 코드(GLFW 키 토큰 값)입니다. 게임 계층이 실행 중인 버전의 키로 바꾸므로, 26.3(SDL 스캔코드)에서도 다시 빌드하지 않고 같은 키를 받습니다(ADR-0029).
 - `hudLayer(path, canvas -> …)`: 글자와 사각형을 그립니다. 예외가 나면 그 레이어만 끄고 `POLY-CLIENT-003`으로 기록합니다.
 
 ## 7. 게임 내 테스트
@@ -626,12 +628,14 @@ mod.events().register(ClientEvents.ITEM_TOOLTIP, (stack, lines, advanced) -> {  
 | `POLY-CLIENT-005` | 동적 텍스처를 클라이언트 스레드가 아닌 곳에서 올림, 또는 파티클·후처리 연결 실패 |
 | `POLY-CLIENT-006` | 모드 셰이더 파이프라인을 만들거나 컴파일하지 못함(한 번 기록, 그 사각형은 건너뜀) |
 | `POLY-CLIENT-007` | 모드 셰이더 유니폼 값이 예외를 던지거나 개수가 틀림, 또는 업로드 실패(한 번 기록, 마지막 올바른 값을 씀) |
+| `POLY-CLIENT-008` | 키 바인딩의 기본 키 코드에 해당하는 키가 실행 중인 게임 버전에 없음(경고, 그 키 바인딩은 키 없이 시작, ADR-0029) |
 | `POLY-BOOTSTRAP-004` / `005` | 게임 계층 jar를 찾을 수 없음 / 게임 계층 시작 실패 |
 | `POLY-SCHEDULE-001` | 예약 작업이 예외를 던짐(기록 후 계속) |
 | `POLY-WORLDGEN-001` / `002` / `003` | 모르는 배치 기능 / 등록이 닫힌 뒤 선언 / 바이옴 기능·스폰 목록에 접근할 수 없음 |
 | `POLY-WORLDGEN-004` | 잘못되었거나 중복된 생성기·바이옴·배치 기능·density function·구조물 ID, 또는 density function 범위가 거꾸로 |
 | `POLY-WORLDGEN-005` | 코드 배치 기능·density function·구조물이 예외를 던짐(한 번 기록, 그 자리는 건너뜀) |
 | `POLY-RESOURCE-001` / `002` / `003` | 잘못된 리로드 디렉터리 / 등록이 닫힌 뒤 선언 / 파일을 읽지 못함·리스너 실패(기록 후 계속) |
+| `POLY-RESOURCE-010` | 모드 jar의 `pack.mcmeta`를 읽지 못함(경고, 오버레이 없이 팩을 씀) |
 | `POLY-PERMISSION-001` / `002` / `003` | 잘못되었거나 중복된 권한 노드 / 등록이 닫힌 뒤 선언 / 공급자 예외(그 공급자 건너뜀) |
 | `POLY-STORAGE-001` | 저장소가 더 새 버전으로 저장됨(그대로 둠) |
 | `POLY-BACKUP-001` | 월드 백업 확인 실패(불러오기는 계속) |

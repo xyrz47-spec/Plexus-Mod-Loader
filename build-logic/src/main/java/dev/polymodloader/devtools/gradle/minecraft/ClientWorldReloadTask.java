@@ -98,6 +98,14 @@ public abstract class ClientWorldReloadTask extends DefaultTask {
         VerifiedGameRunTask.deleteRecursively(runDirectory);
         Path world = runDirectory.resolve("saves").resolve(getWorldName().get());
         copyDirectory(getSourceWorld().get().getAsFile().toPath(), world);
+        List<String> madeStable = StableVanillaDimensions.apply(world);
+        if (!madeStable.isEmpty()) {
+            getLogger()
+                    .lifecycle(
+                            "Gave the copied world the game's own generators for {} (the game test world is flat in "
+                                    + "every dimension, which the game opens only after a backup prompt)",
+                            madeStable);
+        }
         Files.createDirectories(runDirectory.resolve("mods"));
         // A fresh game directory shows the first-launch accessibility screen, which blocks Quick Play.
         Files.writeString(
