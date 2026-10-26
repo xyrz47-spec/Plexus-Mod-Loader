@@ -1,36 +1,42 @@
-# poly-game-v26_2
+# poly-game-v26_2 — Minecraft 26.2 Game Implementation Layer
 
-## 이 모듈이 하는 일
-Minecraft 26.2의 게임 계층입니다(ADR-0010). Native API 선언을 실제 게임 객체로 만들고, 변환 규칙이 호출하는 훅을 제공합니다.
+`poly-game-v26_2`는 Minecraft 26.2 버전에 직접 바인딩되어, `poly-game-api`의 Native API 선언을 실제 마인크래프트 게임 엔진 객체로 인스턴스화하고 바이트코드 훅(Hook)과 커스텀 렌더링 UI를 실행하는 게임 레이어 모듈입니다.
 
-## 무엇을 소유하는가
-- `GameLayer26_2`(진입점), `LayerState`
-- `HostPayloadHooks`: 호스트 로더와 다른 로더의 커스텀 페이로드가 한 연결에 있을 때, 호스트 자기 페이로드를 호스트 코덱으로 쓰고(`poly:custom_payload_encoding`) 호스트의 채널 검사가 다른 로더의 페이로드를 건너뛰게 하며, 호스트의 묶음 패킷 걸러내기가 뺀 다른 로더의 페이로드를 제자리에 되돌립니다(NeoForge 호스트 규칙, ADR-0026 40·41).
-- `BuiltInRegistryFreeze`: 내장 레지스트리를 두 번째로 얼릴 때, 다른 로더가 이미 얼린 레지스트리의 태그 묶기를 건너뜁니다(`poly:builtin_registries_refreeze`, ADR-0026 38).
-- `GameHooks`(공통 훅), `InteractionHooks`(상호작용 이벤트와 취소 가능한 블록 이벤트), `LifecycleHooks`(서버·월드·리스폰·엔티티 생명주기 이벤트), `client.ClientHooks`(클라이언트 전용 훅)
-- `content`(`PolyBlock`, `PolyItem`, `ContentInstaller`, `ModCreativeTabs`), `GameTags`, `client.CreativeTabPaging`, `commands`, `Networking`, `ModPacks`, `GeneratedDataPack`, `gametest`
-- `Views`: 게임 객체를 API 뷰로 바꿉니다.
-- `client.TitleScreenModCounts`: 타이틀 화면 왼쪽 아래, 버전 글자 위에 로더별로 로드한 모드 수(`ModCountLines`)를 그립니다. 글자는 게임의 현재 언어에서 먼저 찾고(리소스 팩이 바꿀 수 있음), 없으면 Poly 모드 로더의 언어 파일(`poly-version-adapter-api`의 `assets/poly/lang/<언어>.json`)에서 찾습니다. Forge가 그 자리를 그릴 때는 `GameLayer26_2.brandingLines()`로 줄만 넘깁니다.
+---
 
-## 무엇을 하지 않는가
-- 변환 규칙을 선언하지 않습니다. 규칙은 `poly-version-adapter-v26_2`의 `Minecraft26_2Adapter`에 있습니다.
-- 선언을 검증하지 않습니다. 검증은 `poly-runtime-impl`이 합니다.
+## 1. 주요 역할 및 구성 요소
 
-## 의존성
-- `poly-version-adapter-api`(그리고 그것이 노출하는 공개 API)
-- slf4j
-- Minecraft 26.2 클라이언트 jar와 라이브러리. `compileOnly`로만, `poly.minecraft-compile` 플러그인이 붙입니다.
+### 1) Native API 객체 인스턴스화
+- `ContentInstaller`: 모드가 선언한 `PolyBlock`, `PolyItem`을 마인크래프트 원본 레지스트리(`BuiltInRegistries`)에 직접 등록.
+- `Views`: 마인크래프트 바닐라 `ServerLevel`, `Entity`, `ServerPlayer` 객체를 안전한 `WorldView`, `PlayerView` 불변 인터페이스로 래핑.
+- `commands.CommandRegistration`: 바닐라 Brigadier 커맨드 디스패처에 플랫폼 중립적 커맨드 트리 등록.
 
-## 로딩
-- 이 jar는 Poly 모드 로더 클래스 경로에 있지만, 클래스는 **게임 클래스로더**가 정의합니다(`GameClassLoader.GAME_LAYER_PREFIX`).
-- 부모 로더의 코드는 이 패키지의 클래스를 직접 참조하면 안 됩니다.
-- `client` 하위 패키지는 클라이언트 측 규칙에서만 호출되므로, 전용 서버에서는 로드되지 않습니다.
+### 2) 인게임 훅 (Runtime Hooks)
+- `LifecycleHooks`: 서버 틱, 레벨 로드/언로드, 엔티티 스폰 및 플레이어 리스폰 이벤트 가로채기.
+- `InteractionHooks`: 블록 파괴, 아이템 사용, 엔티티 우클릭 상호작용 콜백 처리.
+- `HostPayloadHooks`: Forge/NeoForge와 Fabric의 커스텀 네트워크 페이로드가 단일 네트워크 채널에서 충돌하지 않도록 디코딩 및 라우팅 조율.
 
-## 빌드·테스트
+### 3) 커스텀 로딩 오버레이 (`PolyLoadingOverlay`)
+- 마인크래프트 26.2 부팅 및 리소스 로드 시 타 로더(Forge early progress 등)의 로딩 UI를 대체하는 다크 테마(`#0E131F`) 커스텀 오버레이.
+- 로더별(`Poly`, `Fabric`, `Forge`, `NeoForge`, `Quilt`) 실시간 로드 모드 수 뱃지 렌더링.
+- 마인크래프트 표준 글리프(`Component.literal`, `ChatFormatting`) 렌더링을 적용하여 폰트 깨짐 없이 선명하게 표시.
+
+---
+
+## 2. 클래스로더 분리 원칙
+
+- 이 모듈의 클래스들은 컴파일 시 Minecraft 26.2 바닐라 코드에 의존하지만, **게임 클래스로더(`GameClassLoader`)**에 의해서만 로드됩니다.
+- 부트스트랩 클래스로더나 런타임 코어 모듈이 이 모듈의 클래스를 직접 정적으로 참조할 수 없으며, 버전 어댑터 계약을 통해서만 호출됩니다.
+- 클라이언트 하위 패키지(`client.*`)는 서버 환경에서 참조되지 않도록 분리되어 있습니다.
+
+---
+
+## 3. 검증 및 테스트 (Gradle Tasks)
+
 ```powershell
-.\gradlew.bat :poly-game-v26_2:check   # BuiltInRulesTest: 내장 변환 규칙을 실제 26.2 클래스에 양쪽(클라이언트·서버)으로 적용하고 훅 시그니처 확인
-.\gradlew.bat :poly-bootstrap:nativeApiGameTests :poly-bootstrap:clientWorldReloadTest
-```
+# 변환 규칙 무결성 검증 (BuiltInRulesTest)
+.\gradlew.bat :poly-game-v26_2:check
 
-## 알려진 제한
-ADR-0010의 "실험에서 확인한 제약"을 보세요.
+# 26.2 게임 런타임 네이티브 API 통합 테스트
+.\gradlew.bat :poly-bootstrap:nativeApiGameTests
+```

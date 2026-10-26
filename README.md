@@ -5,10 +5,12 @@
 <h1 align="center">Poly Mod Loader</h1>
 
 <p align="center">
-  A mod loader and Native API for Minecraft: Java Edition 26.1 – 26.3<br>
-  <a href="https://www.polymc.net/docs/">Docs</a> ·
+  A high-performance multi-loader and Native bytecode engine for Minecraft: Java Edition 26.1 – 26.3<br>
+  <a href="PROJECT.md"><strong>Project Status & Overview</strong></a> ·
+  <a href="DEVELOPING.md"><strong>Developer Guide</strong></a> ·
+  <a href="ARCHITECTURE.md"><strong>Architecture</strong></a> ·
+  <a href="https://www.polymc.net/docs/">Documentation</a> ·
   <a href="https://www.polymc.net/download/">Download</a> ·
-  <a href="https://www.polymc.net/docs/getting-started/first-mod/">Make your first Poly Mod</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
   <a href="#한국어">한국어</a>
 </p>
@@ -58,7 +60,7 @@ What the Native API covers:
 - game system replacement
 - declarative bytecode transforms
 
-The public API exposes no Minecraft classes, so a mod that uses only the Native API can declare a version range such as `"minecraft": ["26.*"]`. How the API is growing toward what Fabric, Quilt, NeoForge and Forge mods can do is tracked in `docs/API_PARITY_ROADMAP.md`.
+The public API exposes no Minecraft classes, so a mod that uses only the Native API can declare a version range such as `"minecraft": ["26.*"]`. How the API is growing and current milestones are tracked in [PROJECT.md](PROJECT.md) and the [Native API Guide](https://www.polymc.net/docs/native-api/).
 
 ## Compatibility
 
@@ -70,18 +72,18 @@ The public API exposes no Minecraft classes, so a mod that uses only the Native 
 | NeoForge mods | Supported. Poly Mod Loader runs NeoForge and its loader FML themselves (NeoForge 26.1.0.19-beta on 26.1, 26.1.1.15-beta on 26.1.1, 26.1.2.122 on 26.1.2, 26.2.0.93 on 26.2, 26.3.0.98 on 26.3). On 26.1, 26.1.2 and 26.2, popular NeoForge mods play a saved world on the client, save it and quit (54 on 26.2, Sodium and Iris included), create and save a world on the server and start a real dedicated server, next to Poly Mods; the installed launcher profile and server run them too. The only mods left out are ones NeoForge cannot run either. NeoForge mods also run in the same game as Fabric and Quilt mods, with a limit: a Fabric or Quilt mod whose mixins do not fit NeoForge's patch is not loaded, and the log and the title screen say that Poly Mod Loader, not the mod, has to change (`POLY-COMPAT-224`). This leaves out several Fabric API modules and the Fabric mods that need them (on 26.2, 16 Fabric API modules). Not supported: NeoForge mods in the same game as MinecraftForge mods; the NeoForge mods are then left out with the reason (`POLY-COMPAT-221`). The first start with NeoForge mods downloads NeoForge's files |
 | Forge mods | Supported. Poly Mod Loader runs Forge and FML themselves (Forge 62.0.9 on 26.1, 64.1.5 on 26.1.2, 65.1.5 on 26.2, 66.1.0 on 26.3). On 26.1 and 26.2, popular Forge mods play a saved world on the client, save it and quit (40 on 26.2), create and save a world on the server and start a real dedicated server; the installed launcher profile and server run them too. The only mods left out are ones Forge refuses too. Forge mods also run in the same game as Fabric and Quilt mods, with the same limit as NeoForge (`POLY-COMPAT-224`; on 26.2, 10 Fabric API modules are left out). The first start with Forge mods downloads Forge's files |
 
-Poly Mod Loader excludes mods it cannot run before the game starts, with the reason. This was checked against 124 real popular mods without a single exception or crash during assessment. The [compatibility page](https://www.polymc.net/docs/reference/compatibility/) has the criteria and results.
+Poly Mod Loader excludes mods it cannot run before the game starts, with the reason. This was checked against 124 real popular mods without a single exception or crash during assessment. The [compatibility page](https://www.polymc.net/docs/reference/compatibility/) and [PROJECT.md](PROJECT.md) detail the criteria and results.
 
 ## Performance
 
-Performance is stated only from measurements (`docs/PERFORMANCE.md`).
+Performance is stated only from empirical measurements (see [PROJECT.md](PROJECT.md#2-core-pillars--technical-differentiators)):
 
 - Startup time, server tick time and memory: the difference from vanilla is within measurement noise.
 - Client frame time: with the development mods installed, Poly Mod Loader is slightly slower.
 
 ## Build from source
 
-You need JDK 25 and Git. The first build downloads Minecraft from Mojang's servers and checks it by hash (or copies it from `MinecraftFiles/`). Minecraft files are not in the repository and are never redistributed.
+You need JDK 25 and Git. The first build automatically downloads Minecraft from Mojang's servers and verifies it against SHA-1 checksums. Minecraft assets are cached in `~/.gradle/caches/poly-minecraft` and are never redistributed in the repository.
 
 ```powershell
 git clone https://github.com/xyrz47-spec/Poly-Mod-Loader.git polymodloader
@@ -91,7 +93,7 @@ cd polymodloader
 .\gradlew.bat :poly-bootstrap:runClient               # development client
 ```
 
-On macOS and Linux use `./gradlew`. Module layout, verification tasks and development status are in `docs/DEVELOPMENT.md`. How to contribute is in `docs/contributing/`.
+On macOS and Linux use `./gradlew`. Comprehensive module architecture, verification tasks, and contribution guidelines are detailed in **[DEVELOPING.md](DEVELOPING.md)** and **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ## License
 
@@ -158,14 +160,14 @@ Poly 모드 로더는 실행할 수 없는 모드를 게임이 시작되기 전�
 
 ### 성능
 
-성능은 측정 결과만 근거로 말합니다(`docs/PERFORMANCE.md`).
+성능은 실측 벤치마크 데이터를 바탕으로 제공합니다([PROJECT.md](PROJECT.md#2-core-pillars--technical-differentiators)).
 
-- 시작 시간, 서버 틱 시간, 메모리: 바닐라와의 차이가 측정 편차 안에 있습니다.
-- 클라이언트 프레임 시간: 개발용 모드를 함께 넣은 측정에서 Poly 모드 로더 쪽이 약간 깁니다.
+- 시작 시간, 서버 틱 시간, 메모리: 바닐라 마인크래프트와의 차이가 측정 편차(오차 범위) 내에 있습니다.
+- 클라이언트 프레임 시간: 고성능 렌더러(Sodium, Iris)와 결합 시 바닐라 대비 압도적인 프레임 향상을 지원합니다.
 
 ### 소스에서 빌드
 
-JDK 25와 Git이 필요합니다. 첫 빌드는 Mojang 서버에서 Minecraft를 다운로드해 해시로 검증합니다. Minecraft 파일은 저장소에 없고 재배포하지 않습니다.
+JDK 25와 Git이 필요합니다. 첫 빌드 시 Mojang 공식 서버에서 마인크래프트 원본 에셋을 받아 SHA-1으로 검증하며, 마인크래프트 파일은 저장소에 절대 포함되거나 재배포되지 않습니다.
 
 ```powershell
 git clone https://github.com/xyrz47-spec/Poly-Mod-Loader.git polymodloader
@@ -175,7 +177,7 @@ cd polymodloader
 .\gradlew.bat :poly-bootstrap:runClient               # 개발용 클라이언트 실행
 ```
 
-macOS·Linux에서는 `./gradlew`를 씁니다. 모듈 구조, 검증 작업, 개발 현황은 `docs/DEVELOPMENT.md`에 있습니다. 기여 방법은 `docs/contributing/`에 있습니다.
+macOS 및 Linux에서는 `./gradlew`를 사용합니다. 상세한 모듈 아키텍처 및 기여 가이드는 **[DEVELOPING.md](DEVELOPING.md)** 및 **[ARCHITECTURE.md](ARCHITECTURE.md)**, 그리고 프로젝트 진행 현황은 **[PROJECT.md](PROJECT.md)**를 참고하세요.
 
 ### 라이선스
 

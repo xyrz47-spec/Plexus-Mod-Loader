@@ -1,32 +1,61 @@
-# poly-transform-engine
+# poly-transform-engine — High-Performance ASM Bytecode Transformation Engine
 
-## 이 모듈이 하는 일
-게임 시작 전에 변환 규칙을 실제 바이트코드와 대조해 계획을 확정하고, 클래스를 로드할 때 그 계획을 적용합니다.
+`poly-transform-engine`는 `poly-transform-api`에 정의된 선언적 변환 규칙을 바탕으로, 실제 마인크래프트 클래스 바이트코드를 파싱·검증·변환하고 디스크에 캐싱하는 고성능 ASM 기반 엔진입니다.
 
-## 무엇을 소유하는가
-`dev.polymodloader.internal.transform.engine`(`ClassTransformPlanner`, `TransformPlan`, `ClassTransformExecutor`, `TransformReportEntry`, `TransformCache`, `TransformCacheKey`, `DirectoryTransformCache`)
+---
 
-## 무엇을 하지 않는가
-클래스로더를 만들지 않습니다. 어떤 클래스를 변환할지도 결정하지 않습니다(규칙은 어댑터가 제공).
+## 1. 2단계 변환 아키텍처 (Two-Phase Transformation)
 
-## 의존성
-`poly-transform-api`(api), ASM 9.11.1(asm, asm-tree, asm-util)
+```
+[Transform Rules] ---> [ Phase 1: Planning (ClassTransformPlanner) ]
+                             │  - ID 중복 및 순서 의존성 검증
+                             │  - 타겟 클래스 / 메서드 디스크립터 검증
+                             │  - 사전조건(Precondition) 대조
+                             ▼
+                        [ TransformPlan ]
+                             │
+                             ▼
+[Class Bytes]    ---> [ Phase 2: Execution (ClassTransformExecutor) ]
+                             │  - Call-site 리다이렉트
+                             │  - 반환 훅 & 시작 훅 주입
+                             │  - Access Widener (public/final 해제)
+                             │  - CheckClassAdapter 무결성 검증
+                             ▼
+                      [ Transformed Class Bytes ] ---> [ DirectoryTransformCache ]
+```
 
-## 주요 진입점
-`new ClassTransformPlanner().plan(rules, gameVersion, side, classBytes)` → `new ClassTransformExecutor(plan, dumpDir, listener).transform(name, bytes)`
+### 1) 사전 계획 단계 (`ClassTransformPlanner`)
+- 게임 시작 전, 등록된 모든 변환 규칙을 실제 원본 클래스 바이트코드와 대조합니다.
+- 중복 ID 검사 → 지원 버전 및 사이드 검사 → 타겟 메서드 존재 여부 → 결합 가능성을 사전 확인하여 확정된 변환 계획(`TransformPlan`)을 수립합니다.
 
-## 빌드·테스트
+### 2) 실행 및 검증 단계 (`ClassTransformExecutor`)
+- 클래스가 클래스로더에 의해 실제로 로드되는 순간, 사전 수립된 `TransformPlan`에 따라 ASM 9.11 트리를 조작합니다.
+- 조작 직후 ASM의 `CheckClassAdapter`를 통과시켜 유효하지 않은 바이트코드가 생성되는 것을 원천 차단합니다.
+- 디버깅을 위해 `-Dpoly.transformDumpDir` 설정 시 변환 전/후 `.class` 파일을 디스크에 자동 덤프합니다.
+
+### 3) 디스크 캐싱 (`DirectoryTransformCache`)
+- 게임 jar의 SHA-256 해시, 등록된 규칙 목록, 엔진 버전을 결합하여 캐시 키(`TransformCacheKey`)를 생성합니다.
+- 이미 변환된 클래스는 캐시 디렉터리(`~/.gradle` 또는 로컬 캐시)에서 즉시 읽어 들여 2회차 부팅 속도를 극대화합니다 (LRU 캐시 관리).
+
+---
+
+## 2. 주요 클래스
+
+| 클래스 | 역할 |
+| :--- | :--- |
+| `dev.polymodloader.internal.transform.engine.ClassTransformPlanner` | 변환 규칙 검증 및 통합 실행 계획(`TransformPlan`) 생성 |
+| `dev.polymodloader.internal.transform.engine.ClassTransformExecutor` | ASM 9.11 기반 실제 클래스 바이트코드 조작 및 검증 |
+| `dev.polymodloader.internal.transform.engine.DirectoryTransformCache` | 변환된 바이트코드 디스크 캐시 및 LRU 만료 처리 |
+
+---
+
+## 3. 검증 및 테스트 (Gradle Tasks)
+
 ```powershell
 .\gradlew.bat :poly-transform-engine:check
 ```
 
-- `ClassTransformPlannerTest` 13개: 정상 변환, 정적 훅 호출로 교체, descriptor 불일치, 클래스 누락, 사전조건 불일치, 충돌, 중복 ID, 버전 불일치, 다른 측(side), ABORT 정책, 계획 후 바이트 변경, 덤프
-- `HookActionsTest` 7개: 시작·반환 훅을 javac 컴파일 클래스에 적용해 실행
-- `CallSiteAndAccessTest` 11개: call-site 변경, 같은 메서드 규칙의 순서·거부, 접근 확대, 캐시 키
-- `TransformCacheTest` 10개: 적중, 무효화, 손상 감지, 크기 상한
-
-## 대표 흐름
-계획 단계에서는 ID 중복 → 버전 → 같은 메서드 규칙의 순서·결합 가능성 → 클래스 존재 → name+descriptor → 사전조건 순으로 검사하고 통과한 규칙만 승인합니다. 접근 확대는 버전과 대상 존재를 검사합니다. 클래스를 로드할 때는 사전조건을 원본 메서드에서 다시 확인하고, 메서드마다 호출 바꾸기 → 반환 훅 → 시작 훅(역순) 순으로 적용한 뒤 접근 확대를 적용합니다. 그다음 `CheckClassAdapter`로 검증하고 전후 SHA-256을 보고합니다.
-
-## 알려진 제한
-프레임을 다시 계산하지 않으므로, 스택 모양을 바꾸는 동작을 추가할 때는 ADR-0004의 결정을 다시 검토해야 합니다. 캐시는 크기 상한(기본 256 MiB)을 넘으면 가장 오래 쓰지 않은 항목부터 지웁니다(ADR-0013).
+- **`ClassTransformPlannerTest`**: 정상 변환, 정적 훅 교체, 디스크립터 불일치, ABORT 정책, 중복 ID, 버전 필터링 등 13종 테스트.
+- **`HookActionsTest`**: 실제 javac로 컴파일된 클래스에 시작/반환 훅을 주입하고 직접 호출하여 스택 무결성 검증.
+- **`CallSiteAndAccessTest`**: 접근 제어자 확장(`AccessWidening`) 및 Call-site 리다이렉트 순서 검증.
+- **`TransformCacheTest`**: 캐시 적중, 무효화, 데이터 손상 감지 및 최대 용량 제한(256 MiB) 처리 검증.

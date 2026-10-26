@@ -1,35 +1,71 @@
-# poly-runtime-impl
+# poly-runtime-impl — Core Loading Pipeline & Runtime Coordinator
 
-## 이 모듈이 하는 일
-Poly 모드 로더 로딩 파이프라인을 실행합니다. 순서는 부트스트랩 → 검색·분류 → 메타데이터 검증 → 의존성 해석 → 변환 계획 → 게임 클래스로더 → 엔트리포인트 → 게임 `main`입니다.
+`poly-runtime-impl`는 Poly Mod Loader의 핵심 두뇌 역할을 수행하며, 모드 탐색부터 의존성 해석, 크로스 로더 충돌 분석, 클래스로더 구성 및 게임 실행까지의 **전체 8단계 로딩 파이프라인**을 관장하는 모듈입니다.
 
-## 무엇을 소유하는가
-`dev.polymodloader.runtime`(`PolyRuntime`, `LaunchConfiguration`, `LaunchedGame`)와 하위 패키지 `.discovery`, `.dependency`, `.compat`(`CrossLoaderModResolver` 로더를 넘는 의존성 판정, `ModLinkVerifier` 시작 전 바이트코드 링크 검사, `CrossLoaderLoadOrder` 엔트리포인트 순서, `HostBuildMatcher` 호스트 로더가 실행하는 같은 모드의 다른 빌드 찾기), `.classloading`(`GameClassLoader`), `.lifecycle`, `.diagnostics`
+---
 
-## 무엇을 하지 않는가
-JVM 진입점과 시스템 속성 해석(그것은 `poly-bootstrap`), 버전별 지식(그것은 어댑터)은 다루지 않습니다.
+## 1. 8단계 런타임 생명주기 파이프라인
 
-## 의존성
-`poly-lifecycle-api`, `poly-version-adapter-api`(api); `poly-mod-metadata`, `poly-transform-engine`, slf4j-api, gson
+```
+1. [Launch Config]       -> CLI 인수, JVM 속성, 모드 폴더 경로 확정
+          │
+          ▼
+2. [Mod Discovery]       -> mods/ 디렉터리 내 jar 및 중첩(Nested) jar 탐색
+          │
+          ▼
+3. [Metadata Parsing]    -> poly, fabric, quilt, forge, neoforge 메타데이터 파싱
+          │
+          ▼
+4. [Dependency Solver]   -> 버전 제약식, 필수 종속성, 순환 참조 검증
+          │
+          ▼
+5. [Cross-Loader Compat] -> HostPatchCheck (호스트 패치 충돌 및 누락 메서드 검사)
+          │
+          ▼
+6. [Transform Planning]  -> ASM 바이트코드 변환 계획 및 디스크 캐시 생성
+          │
+          ▼
+7. [GameClassLoader]     -> TransformingClassLoader 및 FML/Fabric 브릿지 초기화
+          │
+          ▼
+8. [Entrypoints & Launch]-> 로더별 진입점(Pre-launch, Main 등) 순차 실행 후 게임 진입
+```
 
-## 주요 진입점
-`new PolyRuntime().launch(LaunchConfiguration, String[] gameArgs)`
+---
 
-## 빌드·테스트
+## 2. 주요 패키지 및 컴포넌트
+
+| 패키지 | 핵심 클래스 | 역할 |
+| :--- | :--- | :--- |
+| `dev.polymodloader.runtime` | `PolyRuntime`, `LaunchConfiguration` | 런타임 부팅 오케스트레이션 및 상태 관리 |
+| `.discovery` | `ModDiscoverer`, `ModFileScanner` | 디렉터리 내 모드 jar 및 중첩 jar 재귀 탐색 |
+| `.dependency` | `ModDependencyResolver`, `VersionGraph` | 모드 버전 제약식 해석 및 로드 우선순위 정렬 |
+| `.compat` | `HostPatchCheck`, `CrossLoaderModResolver` | Forge/NeoForge 패치와 Fabric Mixin 간 충돌 사전 진단 |
+| `.classloading` | `GameClassLoader`, `PackageHider` | 단일 게임 클래스로더 관리 및 미사용 로더 API 은닉 |
+| `.lifecycle` | `LoadedModCounter`, `ShutdownCoordinator` | 실시간 로더별 모드 수 집계 및 JVM 안전 종료 처리 |
+
+---
+
+## 3. 핵심 기술 특성
+
+### 1) 미사용 로더 API 격리 (`hideFromParent`)
+모드팩에 Fabric 모드가 전혀 없고 Forge 모드만 존재하는 경우, 클래스패스에 잔존하는 `net.fabricmc.api.*` 클래스 때문에 멀티로더용 모드가 잘못된 로더 환경으로 오판하는 것을 방지합니다. Poly는 활성 모드가 없는 로더의 브릿지 패키지를 `GameClassLoader` 상에서 선별적으로 마스킹합니다.
+
+### 2) 실시간 로더별 모드 수 집계 (`LoadedModCounter`)
+게임 로딩 및 타이틀 화면, 그리고 커스텀 로딩 화면(`PolyLoadingOverlay`)에 정확한 모드 수를 전달하기 위해 각 로더별(`Poly`, `Fabric`, `Forge`, `NeoForge`, `Quilt`) 실질 구동 모드 수를 중복 없이 실시간 계산합니다.
+
+### 3) 사전 링크 검증 (`ModLinkVerifier`)
+로드 대상 모드들의 상수 풀(Constant Pool)을 조사하여 마인크래프트 또는 상위 라이브러리에 누락된 메서드나 필드를 참조하는 치명적 모드를 부팅 전에 찾아내어 크래시를 미연에 방지합니다.
+
+---
+
+## 4. 검증 및 테스트 (Gradle Tasks)
+
 ```powershell
 .\gradlew.bat :poly-runtime-impl:check
 ```
 
-`ModDependencyResolverTest` 12개, `CrossLoaderModResolverTest` 8개, `ModLinkVerifierTest` 7개, `CrossLoaderLoadOrderTest` 3개, `ModFileScannerTest` 3개, `ShutdownCoordinatorTest` 4개, `PolyRuntimeTest` 9개 등. `PolyRuntimeTest`는 합성 게임 jar와 모드 jar로 전체 파이프라인을 검증합니다.
-
-## 대표 흐름
-`docs/ARCHITECTURE.md`의 "실행 흐름"을 참고하세요. 단계마다 `[Poly 모드 로더] Phase …` 로그를 남깁니다.
-
-의존성 해석 뒤 `LoadedModCounter`가 로더별로 로드한 모드 수를 셉니다(`Loaded mods per loader: N Poly, N Fabric, N Quilt, N Forge` 로그). 규칙: 실제로 로드하는 모드만, 모드 ID마다 한 번 셉니다. 플레이어가 설치한 모드와 그 모드가 묶어 온 모드(중첩 jar)를 모두 세고, Poly 모드 로더 자신과 `minecraft`·`java`·`fabricloader`·`quilt_loader`·`forge`는 세지 않습니다. Quilt 모드는 Quilt 브리지가 로드하는 모드로, Fabric 모드와 따로 셉니다(ADR-0027). Forge 모드는 호스트(`GameHost.modIds()`)가 FML로 로드하는 모드입니다. 이 값은 `GameLayerContext.modCounts()`로 게임 계층에 가고, 타이틀 화면에 나옵니다.
-
-호스트 로더가 있으면 `GameHost.transformRules()`의 규칙도 어댑터 규칙과 함께 계획하고, 게임 계층의 `brandingLines()`를 `GameHost.addBrandingLines`로 넘깁니다. 호스트가 대상을 패치해서 맞지 않는 Poly 모드 로더의 선택 규칙(`DISABLE_RULE`)은 경고 대신 INFO로 "patched the target of Poly Mod Loader's optional rule …; that rule is off"를 남깁니다.
-
-게임 클래스로더를 만든 뒤, 모드를 하나도 실행하지 않는 브리지의 `runtimePackages()`(Poly 모드 로더 클래스 경로의 Fabric Loader·Quilt Loader API)를 `GameClassLoader.hideFromParent`로 게임·모드 코드에서 숨깁니다. 모드를 실행하는 브리지도 가진 접두사는 남깁니다. 그 로더가 실제로 없는 실행(NeoForge·Forge만)에서 여러 로더용 라이브러리가 클래스 존재로 로더를 잘못 알아내지 않게 하기 위함입니다(ADR-0026 27번, "Loader APIs of bridges without mods are not visible to game and mod code" 로그).
-
-## 알려진 제한
-시스템 등록·교체와 런타임 모니터링은 아직 없습니다. 종료 단계는 JVM 종료 훅으로만 연결됩니다. 다른 로더의 모드는 엔트리포인트만 쓰는 Fabric 모드만 로드합니다. 링크 검사는 상수 풀의 참조만 보며, 리플렉션으로 찾는 클래스와 실제 실행 경로는 분석하지 않습니다.
+- `ModDependencyResolverTest`: 복합 종속성 트리, 순환 의존성, 선택적 의존성 검증 12종.
+- `CrossLoaderModResolverTest`: Forge + Fabric 모드 공존 시의 ID 매핑 및 브릿지 중복 해소 검증.
+- `ModLinkVerifierTest`: 클래스 바이트코드 링크 무결성 검증 7종.
+- `PolyRuntimeTest`: 합성 jar를 사용하여 1~8단계 전체 파이프라인의 엔드투엔드 부팅 검증.
