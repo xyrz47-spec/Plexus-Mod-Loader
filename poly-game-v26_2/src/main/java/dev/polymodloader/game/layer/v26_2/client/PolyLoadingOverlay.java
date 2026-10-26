@@ -4,15 +4,16 @@ import dev.polymodloader.game.layer.v26_2.LayerState;
 import dev.polymodloader.game.version.layer.GameLayerContext;
 import dev.polymodloader.game.version.layer.LoadedModCounts;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.LoadingOverlay;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraft.util.Mth;
 import org.slf4j.Logger;
@@ -138,9 +139,18 @@ public final class PolyLoadingOverlay {
 
         if (font != null) {
             // 2. Brand logo & title
-            graphics.centeredText(font, "\u00A7l\u00A7eP  O  L  Y", width / 2, centerY - 45, (a << 24) | 0xFFFFFF);
             graphics.centeredText(
-                    font, "\u00A77Next-Gen Unified Mod Loader", width / 2, centerY - 28, (a << 24) | 0x94A3B8);
+                    font,
+                    Component.literal("P  O  L  Y").withStyle(ChatFormatting.BOLD, ChatFormatting.GOLD),
+                    width / 2,
+                    centerY - 45,
+                    (a << 24) | 0xFFFFFF);
+            graphics.centeredText(
+                    font,
+                    Component.literal("Next-Gen Unified Mod Loader").withStyle(ChatFormatting.GRAY),
+                    width / 2,
+                    centerY - 28,
+                    (a << 24) | 0x94A3B8);
         }
 
         // 3. Progress bar
@@ -159,23 +169,69 @@ public final class PolyLoadingOverlay {
 
         if (font != null) {
             int pct = (int) (currentProgress * 100);
-            graphics.centeredText(font, "\u00A78" + pct + "%", width / 2, barY + 10, (a << 24) | 0x64748B);
+            graphics.centeredText(
+                    font,
+                    Component.literal(pct + "%").withStyle(ChatFormatting.DARK_GRAY),
+                    width / 2,
+                    barY + 10,
+                    (a << 24) | 0x64748B);
 
             // 4. Poly Mod Count Overlay
             LoadedModCounts counts =
                     LayerState.context().map(GameLayerContext::modCounts).orElse(LoadedModCounts.NONE);
-            List<String> badges = new ArrayList<>();
-            if (counts.fabricMods() > 0) badges.add("\u00A7aFabric: \u00A7f" + counts.fabricMods());
-            if (counts.forgeMods() > 0) badges.add("\u00A76Forge: \u00A7f" + counts.forgeMods());
-            if (counts.neoForgeMods() > 0) badges.add("\u00A7cNeoForge: \u00A7f" + counts.neoForgeMods());
-            if (counts.quiltMods() > 0) badges.add("\u00A7dQuilt: \u00A7f" + counts.quiltMods());
-            if (counts.polyMods() > 0) badges.add("\u00A7bPoly: \u00A7f" + counts.polyMods());
+            MutableComponent modSummary = Component.empty();
+            boolean hasBadges = false;
+            if (counts.fabricMods() > 0) {
+                modSummary
+                        .append(Component.literal("Fabric: ").withStyle(ChatFormatting.GREEN))
+                        .append(Component.literal(String.valueOf(counts.fabricMods()))
+                                .withStyle(ChatFormatting.WHITE));
+                hasBadges = true;
+            }
+            if (counts.forgeMods() > 0) {
+                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
+                modSummary
+                        .append(Component.literal("Forge: ").withStyle(ChatFormatting.GOLD))
+                        .append(Component.literal(String.valueOf(counts.forgeMods()))
+                                .withStyle(ChatFormatting.WHITE));
+                hasBadges = true;
+            }
+            if (counts.neoForgeMods() > 0) {
+                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
+                modSummary
+                        .append(Component.literal("NeoForge: ").withStyle(ChatFormatting.RED))
+                        .append(Component.literal(String.valueOf(counts.neoForgeMods()))
+                                .withStyle(ChatFormatting.WHITE));
+                hasBadges = true;
+            }
+            if (counts.quiltMods() > 0) {
+                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
+                modSummary
+                        .append(Component.literal("Quilt: ").withStyle(ChatFormatting.LIGHT_PURPLE))
+                        .append(Component.literal(String.valueOf(counts.quiltMods()))
+                                .withStyle(ChatFormatting.WHITE));
+                hasBadges = true;
+            }
+            if (counts.polyMods() > 0) {
+                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
+                modSummary
+                        .append(Component.literal("Poly: ").withStyle(ChatFormatting.AQUA))
+                        .append(Component.literal(String.valueOf(counts.polyMods()))
+                                .withStyle(ChatFormatting.WHITE));
+                hasBadges = true;
+            }
 
-            String modSummary = badges.isEmpty()
-                    ? "\u00A78Poly Mod Loader active"
-                    : "\u00A77Active Mods:  " + String.join("  \u00A78|  ", badges);
+            MutableComponent displaySummary = Component.empty();
+            if (!hasBadges) {
+                displaySummary.append(
+                        Component.literal("Poly Mod Loader active").withStyle(ChatFormatting.DARK_GRAY));
+            } else {
+                displaySummary
+                        .append(Component.literal("Active Mods:  ").withStyle(ChatFormatting.GRAY))
+                        .append(modSummary);
+            }
 
-            int strW = font.width(modSummary);
+            int strW = font.width(displaySummary);
             int boxPadding = 10;
             int boxX = (width - strW) / 2 - boxPadding;
             int boxY = height - 42;
@@ -184,12 +240,13 @@ public final class PolyLoadingOverlay {
 
             graphics.fill(boxX, boxY, boxX + boxW, boxY + boxH, ((int) (a * 0.75f) << 24) | 0x111827);
             graphics.fill(boxX, boxY, boxX + boxW, boxY + 1, ((int) (a * 0.5f) << 24) | 0x374151);
-            graphics.centeredText(font, modSummary, width / 2, boxY + 6, (a << 24) | 0xFFFFFF);
+            graphics.centeredText(font, displaySummary, width / 2, boxY + 6, (a << 24) | 0xFFFFFF);
 
             if (counts.hostIncompatibleMods() > 0) {
                 graphics.centeredText(
                         font,
-                        "\u00A7e\u26A0 " + counts.hostIncompatibleMods() + " mod(s) isolated for compatibility",
+                        Component.literal("[!] " + counts.hostIncompatibleMods() + " mod(s) isolated for compatibility")
+                                .withStyle(ChatFormatting.YELLOW),
                         width / 2,
                         boxY - 14,
                         (a << 24) | 0xFBBF24);

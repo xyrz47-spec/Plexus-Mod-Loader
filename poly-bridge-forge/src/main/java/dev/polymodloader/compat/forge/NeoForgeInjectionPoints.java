@@ -120,6 +120,32 @@ final class NeoForgeInjectionPoints {
                         "net/minecraft/world/entity/LivingEntity",
                         "checkFallDamage",
                         "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/core/particles/BlockParticleOption;",
-                        "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/particles/BlockParticleOption;"));
+                        "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/particles/BlockParticleOption;"),
+                // fabric-screen-api-v1: Gui.extractRenderState under NeoForge
+                new InjectionPointReplacement(
+                        "net/minecraft/client/gui/Gui",
+                        "extractRenderState",
+                        "Lnet/minecraft/client/gui/Gui;extractRenderState(Lnet/minecraft/client/DeltaTracker;ZZ)V",
+                        "Lnet/neoforged/neoforge/client/gui/NeoForgeClientHooks;extractRenderState(Lnet/minecraft/client/gui/Gui;Lnet/minecraft/client/DeltaTracker;ZZ)V"),
+                // fabric-menu-api-v1: ServerPlayer.openMenu under NeoForge (IPlayerExtension delegation)
+                new InjectionPointReplacement(
+                        "net/minecraft/server/level/ServerPlayer",
+                        "openMenu",
+                        "Lnet/minecraft/server/level/ServerPlayer;openMenu(Lnet/minecraft/world/MenuProvider;)Ljava/util/OptionalInt;",
+                        "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
+                        InjectionPointReplacement.Placement.SAME_PLACE),
+                // fabric-data-attachment-api-v1: ClientPacketListener payload handling under NeoForge
+                new InjectionPointReplacement(
+                        "net/minecraft/client/multiplayer/ClientPacketListener",
+                        "handleCustomPayload",
+                        "Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;type()Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload$Type;",
+                        "handleCustomPayload(Lnet/minecraft/network/protocol/common/ClientboundCustomPayloadPacket;)V",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // fabric-model-loading-api-v1 / client rendering: ModelManager constructor hook
+                new InjectionPointReplacement(
+                        "net/minecraft/client/resources/model/ModelManager",
+                        "<init>",
+                        "Lnet/minecraft/client/color/block/BlockColors;createDefault()Lnet/minecraft/client/color/block/BlockColors;",
+                        "Lnet/neoforged/neoforge/client/model/data/ModelDataMap$Builder;build()Lnet/neoforged/neoforge/client/model/data/ModelDataMap;"));
     }
 }

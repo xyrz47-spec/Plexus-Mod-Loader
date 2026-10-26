@@ -304,6 +304,24 @@ class ForgeInjectionPointsTest {
                 "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/particles/BlockParticleOption;",
                 checkFall.replacement());
         assertEquals(Placement.SAME_PLACE, checkFall.placement());
+
+        InjectionPointReplacement extractGui = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/client/gui/Gui")
+                        && p.method().equals("extractRenderState"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/neoforged/neoforge/client/gui/NeoForgeClientHooks;extractRenderState(Lnet/minecraft/client/gui/Gui;Lnet/minecraft/client/DeltaTracker;ZZ)V",
+                extractGui.replacement());
+
+        InjectionPointReplacement openMenu = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/server/level/ServerPlayer")
+                        && p.method().equals("openMenu"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
+                openMenu.replacement());
     }
 
     /**
