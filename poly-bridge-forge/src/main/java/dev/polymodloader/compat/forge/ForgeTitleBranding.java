@@ -89,7 +89,8 @@ public final class ForgeTitleBranding {
 
     /**
      * Replaces the patched title screen's call to {@code BrandingControl.forEachLine(includeMinecraft, reverse, line)}:
-     * calls it, then {@code line} with Poly Mod Loader's lines, bottom one first, at the indexes after Forge's.
+     * calls it with Forge's mod counts stripped out, then {@code line} with Poly Mod Loader's lines, bottom one first,
+     * at the indexes after Forge's.
      *
      * @throws IllegalStateException when Forge's {@code BrandingControl.forEachLine} cannot be found from the title
      *     screen's class loader, which the unchanged call would have failed on as well
@@ -97,8 +98,11 @@ public final class ForgeTitleBranding {
     public static void forEachLine(boolean includeMinecraft, boolean reverse, ObjIntConsumer<String> line) {
         int[] next = {0};
         ObjIntConsumer<String> forgeLine = (text, index) -> {
-            line.accept(text, index);
-            next[0] = Math.max(next[0], index + 1);
+            String stripped = stripModCounts(text);
+            if (!stripped.isEmpty()) {
+                line.accept(stripped, next[0]);
+                next[0]++;
+            }
         };
         try {
             forgeForEachLine(line).invokeExact(includeMinecraft, reverse, forgeLine);
@@ -108,6 +112,20 @@ public final class ForgeTitleBranding {
             throw new IllegalStateException("Forge's BrandingControl.forEachLine failed", e);
         }
         drawAbove(lines.get(), next[0], line);
+    }
+
+    /** Strips Forge's mod counts (e.g. "(5 mods loaded)", ", 50 mods", or "5 mods loaded, 5 mods active") from branding lines. */
+    static String stripModCounts(String text) {
+        if (text == null) {
+            return "";
+        }
+        String cleaned = text.replaceAll("\\s*\\(\\d+\\s+mods?\\s+loaded\\)", "")
+                .replaceAll(",\\s*\\d+\\s+mods?", "")
+                .trim();
+        if (cleaned.matches("(?i).*\\b\\d+\\s+mods?\\s+(loaded|active).*")) {
+            return "";
+        }
+        return cleaned;
     }
 
     /** Hands {@code line} the lines (top to bottom) at the indexes from {@code firstIndex} up, the bottom one first. */

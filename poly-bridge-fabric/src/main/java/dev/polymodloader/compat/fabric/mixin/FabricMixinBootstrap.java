@@ -1,9 +1,11 @@
 package dev.polymodloader.compat.fabric.mixin;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
+import dev.polymodloader.api.runtime.GameSide;
 import dev.polymodloader.compat.bridge.BridgeClassTransformer;
 import dev.polymodloader.compat.bridge.BridgeLaunchContext;
 import dev.polymodloader.compat.bridge.GameClassBytes;
+import dev.polymodloader.compat.bridge.HostedLaunch;
 import dev.polymodloader.compat.bridge.SharedMixinConfig;
 import dev.polymodloader.compat.fabric.loader.FabricFamilyMod;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -75,7 +78,9 @@ public final class FabricMixinBootstrap {
      * @param fabricLoaderVersion the Fabric Loader version Poly Mod Loader stands in for
      * @param mixinExtrasVersion the MixinExtras version on Poly Mod Loader's class path, for the log
      * @throws IllegalStateException when two mods use the same configuration name, a configuration cannot be
-     *     read, or Mixin fails to start; the message names the configuration and the mod
+     *     read, or Mixin fails to start; the message names the configuration and the mod. On a host's patched game also
+     *     ({@code POLY-COMPAT-225}) when a loaded mod's mixin cannot work as written there, which {@link
+     *     #incompatibleOnHost} should have found before the launch
      */
     public static Optional<BridgeClassTransformer> start(
             BridgeLaunchContext context,
@@ -96,26 +101,31 @@ public final class FabricMixinBootstrap {
                 modJars.put(mod.modId(), mod.jar());
             }
         }
-        HostPatchAdjustments adjustments = hostPatchAdjustments(context, configToMod, modJars, classes);
-        for (HostPatchAdjustments.Finding finding : adjustments.findings()) {
-            String mixin = finding.mixin().substring(finding.mixin().lastIndexOf('/') + 1);
-            if (finding.limited()) {
-                LOGGER.warn(
-                        "[Poly Mod Loader] {} [limited] Fabric mod {} ({}, {}): {}",
-                        finding.code(),
-                        finding.modId(),
-                        finding.config(),
-                        mixin,
-                        finding.reason());
-            } else {
-                LOGGER.info(
-                        "[Poly Mod Loader] {} Fabric mod {} ({}, {}): {}",
-                        finding.code(),
-                        finding.modId(),
-                        finding.config(),
-                        mixin,
-                        finding.reason());
+        HostPatchAdjustments adjustments =
+                hostPatchAdjustments(context.host(), context.side(), configToMod, modJars, classes);
+        if (adjustments.hasIncompatible()) {
+            // The check before the launch read the host's jars; this one reads the game class loader. A mod that
+            // passed there and fails here must not run with part of it left out (ADR-0030).
+            List<String> lines = new ArrayList<>();
+            for (HostPatchAdjustments.Finding finding : adjustments.findings()) {
+                if (finding.incompatible()) {
+                    lines.add(finding.modId() + " (" + simpleName(finding.mixin()) + "): " + finding.reason());
+                }
             }
+            throw new IllegalStateException("POLY-COMPAT-225 Poly Mod Loader cannot run these Fabric mods' mixins"
+                    + " as written on the game as " + context.host().hostName() + " patches it, and its check"
+                    + " before the launch did not foresee it. This is a limitation of Poly Mod Loader, not a bug in"
+                    + " these mods: report it to Poly Mod Loader, not to the mods' authors. Remove these mods to play: "
+                    + String.join("; ", lines));
+        }
+        for (HostPatchAdjustments.Finding finding : adjustments.findings()) {
+            LOGGER.info(
+                    "[Poly Mod Loader] {} Fabric mod {} ({}, {}): {}",
+                    finding.code(),
+                    finding.modId(),
+                    finding.config(),
+                    simpleName(finding.mixin()),
+                    finding.reason());
         }
         GameClassBytes mixinClasses = adjustments == HostPatchAdjustments.NONE
                 ? classes
@@ -130,8 +140,8 @@ public final class FabricMixinBootstrap {
                         return classes.isDefined(className);
                     }
                 };
-        MixinLaunch launch = MixinLaunch.begin(
-                mixinClasses, adjustments::config, context.gameClassLoader(), context.side(), fabricLoaderVersion);
+        MixinLaunch launch =
+                MixinLaunch.begin(mixinClasses, context.gameClassLoader(), context.side(), fabricLoaderVersion);
         System.setProperty("mixin.bootstrapService", PolyMixinServiceBootstrap.class.getName());
         System.setProperty("mixin.service", PolyMixinService.class.getName());
         if (context.host().isHosted() && System.getProperty(INITIALISER_MODE) == null) {
@@ -149,7 +159,7 @@ public final class FabricMixinBootstrap {
         }
         MixinBootstrap.init();
         if (context.host().isHosted()) {
-            // What HostPatchAdjustments could not foresee on a host's patched game is reported and skipped.
+            // What HostPatchAdjustments could not foresee on a host's patched game is reported as Poly Mod Loader's.
             HostedMixinErrors.handle(configToMod.keySet(), context.host().hostName());
             Mixins.registerErrorHandlerClass(HostedMixinErrors.class.getName());
         }
@@ -205,7 +215,65 @@ public final class FabricMixinBootstrap {
                 fabricMods,
                 quiltMods == 0 ? "" : " and " + quiltMods + " Quilt mod(s)",
                 context.side());
-        return Optional.of(new MixinClassTransformer(launch.transformer, name, adjustments::runtime));
+        return Optional.of(new MixinClassTransformer(
+                launch.transformer, name, context.host().isHosted()));
+    }
+
+    /**
+     * Before the runtime decides which mods load, on a game a host loader patched (ADR-0030): the mods among {@code
+     * mods} whose mixins cannot work as written on {@code patched}, the host's classes, each with why (one line per
+     * mixin, {@link HostPatchAdjustments.Finding#incompatible()}). The runtime does not load them. Mods of other loaders
+     * are ignored. Every copy is checked, as the dependency check may choose any of them: the copies of one mod ID (an
+     * installed jar and the copies other mods nest, in different versions) are checked in turns, one copy of each ID
+     * per turn, because one check holds one mod per ID and one mod per configuration name.
+     *
+     * @param mods the candidate mods, before dependency resolution
+     * @return per mod jar, the reasons; empty without a host or when every mod's mixins work
+     */
+    public static Map<Path, List<String>> incompatibleOnHost(
+            HostedLaunch host, GameSide side, List<BridgeLaunchContext.LoadedMod> mods, GameClassBytes patched) {
+        if (!host.isHosted()) {
+            return Map.of();
+        }
+        // Nested copies with the same content share one extracted jar, so a jar is checked once.
+        List<FabricFamilyMod> remaining = new ArrayList<>();
+        Set<Path> jars = new HashSet<>();
+        for (BridgeLaunchContext.LoadedMod loaded : mods) {
+            if (jars.add(loaded.jar())) {
+                FabricFamilyMod.read(loaded).ifPresent(remaining::add);
+            }
+        }
+        Map<Path, List<String>> reasons = new LinkedHashMap<>();
+        while (!remaining.isEmpty()) {
+            Map<String, String> configToMod = new LinkedHashMap<>();
+            Map<String, Path> modJars = new HashMap<>();
+            List<FabricFamilyMod> later = new ArrayList<>();
+            for (FabricFamilyMod mod : remaining) {
+                List<String> configs = mod.mixinConfigs().stream()
+                        .filter(entry -> entry.appliesTo(side))
+                        .map(MixinConfigEntry::config)
+                        .toList();
+                if (modJars.containsKey(mod.modId()) || configs.stream().anyMatch(configToMod::containsKey)) {
+                    later.add(mod);
+                    continue;
+                }
+                modJars.put(mod.modId(), mod.mod().jar());
+                configs.forEach(config -> configToMod.put(config, mod.modId()));
+            }
+            HostPatchAdjustments adjustments = hostPatchAdjustments(host, side, configToMod, modJars, patched);
+            for (HostPatchAdjustments.Finding finding : adjustments.findings()) {
+                if (finding.incompatible()) {
+                    reasons.computeIfAbsent(modJars.get(finding.modId()), jar -> new ArrayList<>())
+                            .add(simpleName(finding.mixin()) + ": " + finding.reason());
+                }
+            }
+            remaining = later;
+        }
+        return reasons;
+    }
+
+    private static String simpleName(String internalName) {
+        return internalName.substring(internalName.lastIndexOf('/') + 1);
     }
 
     /**
@@ -376,17 +444,18 @@ public final class FabricMixinBootstrap {
 
     /** The adjustments of the Fabric mods' mixins for the host's patched game, or none without a host. */
     private static HostPatchAdjustments hostPatchAdjustments(
-            BridgeLaunchContext context,
+            HostedLaunch host,
+            GameSide side,
             Map<String, String> configToMod,
             Map<String, Path> modJars,
             GameClassBytes classes) {
-        if (!context.host().isHosted()) {
+        if (!host.isHosted()) {
             return HostPatchAdjustments.NONE;
         }
-        try (JarFile vanilla = new JarFile(context.host().vanillaGameJar().toFile())) {
+        try (JarFile vanilla = new JarFile(host.vanillaGameJar().toFile())) {
             return HostPatchAdjustments.plan(
-                    context.host(),
-                    context.side(),
+                    host,
+                    side,
                     configToMod,
                     modJars,
                     name -> {
@@ -402,8 +471,7 @@ public final class FabricMixinBootstrap {
                     },
                     classes);
         } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read the vanilla game jar " + context.host().vanillaGameJar(), e);
+            throw new UncheckedIOException("Failed to read the vanilla game jar " + host.vanillaGameJar(), e);
         }
     }
 

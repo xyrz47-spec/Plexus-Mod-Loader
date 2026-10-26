@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-import net.minecraftforge.internal.BrandingControl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
@@ -55,8 +54,8 @@ class ForgeTitleBrandingTest {
 
         assertEquals(
                 List.of(
-                        new Drawn(BrandingControl.LINES.get(0), 0),
-                        new Drawn(BrandingControl.LINES.get(1), 1),
+                        new Drawn("Minecraft 26.2", 0),
+                        new Drawn("Forge 65.1.5", 1),
                         new Drawn("Forge mods: 3", 2),
                         new Drawn("Fabric mods: 14", 3),
                         new Drawn("Poly mods: 2", 4)),
@@ -70,8 +69,7 @@ class ForgeTitleBrandingTest {
 
         ForgeTitleBranding.forEachLine(true, true, (text, index) -> drawn.add(new Drawn(text, index)));
 
-        assertEquals(
-                List.of(new Drawn(BrandingControl.LINES.get(0), 0), new Drawn(BrandingControl.LINES.get(1), 1)), drawn);
+        assertEquals(List.of(new Drawn("Minecraft 26.2", 0), new Drawn("Forge 65.1.5", 1)), drawn);
     }
 
     @Test

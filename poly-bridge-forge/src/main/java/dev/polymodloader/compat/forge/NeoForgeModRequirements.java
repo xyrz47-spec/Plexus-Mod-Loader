@@ -227,7 +227,7 @@ final class NeoForgeModRequirements {
                             id,
                             version,
                             toml.displayNames().getOrDefault(id, id),
-                            List.of(),
+                            toml.providedIds().getOrDefault(id, List.of()),
                             jar,
                             null,
                             null,
@@ -241,7 +241,7 @@ final class NeoForgeModRequirements {
                             mod.modId(),
                             mod.version(),
                             mod.displayName(),
-                            List.of(),
+                            mod.providedIds(),
                             jar,
                             jar,
                             mod.entry(),
@@ -263,7 +263,7 @@ final class NeoForgeModRequirements {
     record Dependency(String modId, String type, String versionRange, String side) {}
 
     /** A mod of a jar nested in another (the entry JarJar's {@code metadata.json} names), which FML installs with it. */
-    record NestedMod(String modId, String version, String displayName, String entry) {}
+    record NestedMod(String modId, String version, String displayName, List<String> providedIds, String entry) {}
 
     /** What FML reads from a jar's {@code neoforge.mods.toml}, and the mods of the jars nested in it. */
     record ModsToml(
@@ -271,6 +271,7 @@ final class NeoForgeModRequirements {
             String loaderVersion,
             Map<String, String> versions,
             Map<String, String> displayNames,
+            Map<String, List<String>> providedIds,
             List<Dependency> dependencies,
             List<NestedMod> nestedMods) {
 
@@ -302,7 +303,11 @@ final class NeoForgeModRequirements {
                         nestedToml
                                 .versions()
                                 .forEach((id, version) -> nestedMods.add(new NestedMod(
-                                        id, version, nestedToml.displayNames().getOrDefault(id, id), inner.getName())));
+                                        id,
+                                        version,
+                                        nestedToml.displayNames().getOrDefault(id, id),
+                                        nestedToml.providedIds().getOrDefault(id, List.of()),
+                                        inner.getName())));
                     }
                 }
                 return new ModsToml(
@@ -310,6 +315,7 @@ final class NeoForgeModRequirements {
                         toml.loaderVersion(),
                         toml.versions(),
                         toml.displayNames(),
+                        toml.providedIds(),
                         toml.dependencies(),
                         List.copyOf(nestedMods));
             }
@@ -351,7 +357,7 @@ final class NeoForgeModRequirements {
                     return parse(new String(jar.readAllBytes(), StandardCharsets.UTF_8), jarVersion);
                 }
             }
-            return new ModsToml("", "", Map.of(), Map.of(), List.of(), List.of());
+            return new ModsToml("", "", Map.of(), Map.of(), Map.of(), List.of(), List.of());
         }
 
         private static String jarVersion(Manifest manifest) {
@@ -405,11 +411,44 @@ final class NeoForgeModRequirements {
                     }
                 }
             }
+            Map<String, List<String>> providedIds = new LinkedHashMap<>();
+            if (toml.get("modproperties") instanceof TomlTable properties) {
+                for (String owner : properties.keySet()) {
+                    if (properties.get(List.of(owner)) instanceof TomlTable ownerTable) {
+                        Object provides = ownerTable.get("fabric:provides");
+                        List<String> ids = new ArrayList<>();
+                        if (provides instanceof String single) {
+                            ids.add(single);
+                        } else if (provides instanceof TomlArray array) {
+                            for (int i = 0; i < array.size(); i++) {
+                                if (array.get(i) instanceof String str) {
+                                    ids.add(str);
+                                }
+                            }
+                        }
+                        if (!ids.isEmpty()) {
+                            providedIds.put(owner, new ArrayList<>(ids));
+                        }
+                    }
+                }
+            }
+            for (String id : versions.keySet()) {
+                if (id.contains("_")) {
+                    String hyphenated = id.replace('_', '-');
+                    List<String> current = providedIds.computeIfAbsent(id, k -> new ArrayList<>());
+                    if (!current.contains(hyphenated)) {
+                        current.add(hyphenated);
+                    }
+                }
+            }
+            Map<String, List<String>> immutableProvided = new LinkedHashMap<>();
+            providedIds.forEach((k, v) -> immutableProvided.put(k, List.copyOf(v)));
             return new ModsToml(
                     toml.get("modLoader") instanceof String loader ? loader : JAVA_LANGUAGE,
                     toml.get("loaderVersion") instanceof String range ? range : "",
                     versions,
                     displayNames,
+                    immutableProvided,
                     dependencies,
                     List.of());
         }

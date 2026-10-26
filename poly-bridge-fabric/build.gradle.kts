@@ -26,6 +26,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.slf4j.api)
     compileOnly(libs.fabric.loader) { isTransitive = false }
+    compileOnly(libs.guava)
+    testImplementation(libs.guava)
     fabricLoaderJar(libs.fabric.loader)
     quiltLoaderJar(libs.quilt.loader)
     // Mixin (FabricMC fork, MIT) and MixinExtras (MIT) at the versions Fabric Loader 0.19.5 ships, on Poly Mod Loader's

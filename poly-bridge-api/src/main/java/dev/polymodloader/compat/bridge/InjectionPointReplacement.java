@@ -37,7 +37,16 @@ public record InjectionPointReplacement(
          * with {@code method}'s parameters and locals at that call (Forge's {@code ServerPlayerGameMode.removeBlock},
          * which calls {@code Block.destroy} only when it removed the block).
          */
-        AFTER_TRUE_RESULT
+        AFTER_TRUE_RESULT,
+        /**
+         * {@code replacement} is the name and descriptor ({@code name(descriptor)}) of another method of {@code
+         * targetClass} into which the host's patch moved {@code method}'s body, including {@code replaced} (NeoForge's
+         * {@code ServerConfigurationPacketListenerImpl.runConfiguration()V} and {@code
+         * Language.parseTranslations(BiConsumer, BiConsumer, String)V}). An injection into {@code method} at {@code
+         * replaced} whose handler takes no target method parameters (or where {@code replacement} has the same
+         * descriptor) moves to {@code replacement}.
+         */
+        IN_METHOD
     }
 
     /** A replacement at the same place ({@link Placement#SAME_PLACE}). */

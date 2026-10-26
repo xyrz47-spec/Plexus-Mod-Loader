@@ -3,5 +3,6 @@
   "poly.title.mod_count.fabric": "Fabric mods: %s",
   "poly.title.mod_count.quilt": "Quilt mods: %s",
   "poly.title.mod_count.forge": "Forge mods: %s",
-  "poly.title.mod_count.neoforge": "NeoForge mods: %s"
+  "poly.title.mod_count.neoforge": "NeoForge mods: %s",
+  "poly.title.mod_count.host_incompatible": "Not loaded, Poly Mod Loader can't run them yet: %s"
 }

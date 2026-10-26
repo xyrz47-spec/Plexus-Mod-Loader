@@ -3,5 +3,6 @@
   "poly.title.mod_count.fabric": "Fabric 모드: %s개",
   "poly.title.mod_count.quilt": "Quilt 모드: %s개",
   "poly.title.mod_count.forge": "Forge 모드: %s개",
-  "poly.title.mod_count.neoforge": "NeoForge 모드: %s개"
+  "poly.title.mod_count.neoforge": "NeoForge 모드: %s개",
+  "poly.title.mod_count.host_incompatible": "Poly Mod Loader가 아직 실행하지 못해 빠진 모드: %s개"
 }

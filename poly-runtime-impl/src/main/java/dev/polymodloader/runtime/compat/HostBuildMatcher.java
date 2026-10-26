@@ -82,7 +82,7 @@ public final class HostBuildMatcher {
          * build) have each loader's own API, which the left-out build's users call.
          */
         public boolean sameCode() {
-            return classes > 0 && sharedClasses * 2 >= classes;
+            return (classes > 0 && sharedClasses * 2 >= classes) || (classes == 0 && evidence != Evidence.SAME_CLASSES);
         }
 
         /**

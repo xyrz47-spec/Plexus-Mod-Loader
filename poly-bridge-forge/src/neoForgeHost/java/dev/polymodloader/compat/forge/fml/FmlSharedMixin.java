@@ -41,6 +41,9 @@ final class FmlSharedMixin {
     /** The class every MixinExtras jar has; Poly Mod Loader's class path has it when Fabric's Mixin is shared. */
     static final String MIXIN_EXTRAS = "com/llamalad7/mixinextras/MixinExtrasBootstrap.class";
 
+    /** The class Forgified Fabric Loader has; Poly Mod Loader provides FabricLoader on its own class path. */
+    static final String FABRIC_LOADER = "net/fabricmc/loader/api/FabricLoader.class";
+
     /** The loader name of the configurations, for logs ({@link SharedMixinConfig#loaderName()}). */
     static final String LOADER = "NeoForge";
 
@@ -48,26 +51,32 @@ final class FmlSharedMixin {
 
     /**
      * {@code content} without the MixinExtras game libraries (NeoForge's own {@code mixinextras-neoforge}, or a newer
-     * copy FML selected from a mod's JarJar), when Poly Mod Loader's class path has MixinExtras. MixinExtras then comes
-     * from there for every mod: Fabric's Mixin runs its injectors there and defines the classes it generates ({@code
-     * LocalRef} implementations), which game classes must find under the same package, and a MixinExtras module would
-     * hold that package in the game class loader (as {@code MixinExtrasStub} avoids under Forge, ADR-0021 G8).
+     * copy FML selected from a mod's JarJar), when Poly Mod Loader's class path has MixinExtras, and without
+     * {@code forgified-fabric-loader} which shadows Poly Mod Loader's {@code FabricLoader}.
      *
      * @param leftOut gets the names of the modules left out
      */
     static List<JarContentsModule> withoutMixinExtras(
             List<JarContentsModule> content, Consumer<String> leftOut, Consumer<String> log) {
-        if (FmlSharedMixin.class.getClassLoader().getResource(MIXIN_EXTRAS) == null) {
+        boolean hasMixinExtras = FmlSharedMixin.class.getClassLoader().getResource(MIXIN_EXTRAS) != null;
+        boolean hasFabricLoader = FmlSharedMixin.class.getClassLoader().getResource(FABRIC_LOADER) != null;
+        if (!hasMixinExtras && !hasFabricLoader) {
             return content;
         }
         List<JarContentsModule> kept = new ArrayList<>();
         for (JarContentsModule module : content) {
-            if (module.contents().containsFile(MIXIN_EXTRAS)) {
+            if (hasMixinExtras && module.contents().containsFile(MIXIN_EXTRAS)) {
                 leftOut.accept(module.moduleName());
                 log.accept("FML's game library " + module.moduleName() + " ("
                         + module.contents().getPrimaryPath().getFileName()
                         + ") is left out of the game layer: NeoForge's mods use the MixinExtras of the Mixin that Fabric"
                         + " mods share (ADR-0026 30)");
+            } else if (hasFabricLoader && module.contents().containsFile(FABRIC_LOADER)) {
+                leftOut.accept(module.moduleName());
+                log.accept("FML's game library " + module.moduleName() + " ("
+                        + module.contents().getPrimaryPath().getFileName()
+                        + ") is left out of the game layer: NeoForge's mods use Poly Mod Loader's Fabric Loader"
+                        + " implementation");
             } else {
                 kept.add(module);
             }
@@ -154,7 +163,9 @@ final class FmlSharedMixin {
         containers.addAll(mods.getGameLibraries());
         Set<String> seen = new HashSet<>(owners.keySet());
         for (IModFile container : containers) {
-            if (mixinExtrasLeftOut && container.getContents().containsFile(MIXIN_EXTRAS)) {
+            if (mixinExtrasLeftOut
+                    && (container.getContents().containsFile(MIXIN_EXTRAS)
+                            || container.getContents().containsFile(FABRIC_LOADER))) {
                 continue;
             }
             for (String name : manifestConfigs(container.getContents().getManifest())) {

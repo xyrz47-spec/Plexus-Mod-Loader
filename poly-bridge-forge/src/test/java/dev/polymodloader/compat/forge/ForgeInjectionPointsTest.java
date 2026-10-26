@@ -49,6 +49,261 @@ class ForgeInjectionPointsTest {
         assertEquals("destroyBlock", after.method());
         assertEquals("L" + GAME_MODE + ";removeBlock(Lnet/minecraft/core/BlockPos;Z)Z", after.replacement());
         assertEquals(Placement.AFTER_TRUE_RESULT, after.placement());
+
+        InjectionPointReplacement language = point(points, "Map;copyOf(");
+        assertEquals("net/minecraft/locale/Language", language.targetClass());
+        assertEquals("loadDefault", language.method());
+        assertEquals(
+                "Lnet/minecraftforge/server/LanguageHook;captureLanguageMap(Ljava/util/Map;)V", language.replacement());
+        assertEquals(Placement.SAME_PLACE, language.placement());
+
+        InjectionPointReplacement useOn = point(points, "Item;useOn(");
+        assertEquals("net/minecraft/world/item/ItemStack", useOn.targetClass());
+        assertEquals("useOn", useOn.method());
+        assertEquals(
+                "lambda$useOn$0(Lnet/minecraft/world/item/context/UseOnContext;Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;",
+                useOn.replacement());
+        assertEquals(Placement.IN_METHOD, useOn.placement());
+
+        InjectionPointReplacement bedOrientation = point(points, "BedBlock;getBedOrientation(");
+        assertEquals("net/minecraft/world/entity/LivingEntity", bedOrientation.targetClass());
+        assertEquals("getBedOrientation", bedOrientation.method());
+        assertEquals(
+                "Lnet/minecraft/world/level/block/state/BlockState;getBedDirection(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;",
+                bedOrientation.replacement());
+        assertEquals(Placement.SAME_PLACE, bedOrientation.placement());
+
+        InjectionPointReplacement setOccupied = point(points, "Level;setBlock(");
+        assertEquals("net/minecraft/world/entity/LivingEntity", setOccupied.targetClass());
+        assertEquals("lambda$stopSleeping$0", setOccupied.method());
+        assertEquals(
+                "Lnet/minecraft/world/level/block/state/BlockState;setBedOccupied(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;Z)V",
+                setOccupied.replacement());
+        assertEquals(Placement.SAME_PLACE, setOccupied.placement());
+
+        InjectionPointReplacement saveStable = point(points, "DataProvider;saveStable(");
+        assertEquals("net/minecraft/data/tags/TagsProvider", saveStable.targetClass());
+        assertEquals("lambda$run$5", saveStable.method());
+        assertEquals("lambda$run$6", saveStable.replacement());
+        assertEquals(Placement.IN_METHOD, saveStable.placement());
+
+        InjectionPointReplacement tagFileInit = point(points, "TagFile;<init>(");
+        assertEquals("net/minecraft/data/tags/TagsProvider", tagFileInit.targetClass());
+        assertEquals("lambda$run$5", tagFileInit.method());
+        assertEquals(
+                "lambda$run$6:Lnet/minecraft/tags/TagFile;<init>(Ljava/util/List;ZLjava/util/List;)V",
+                tagFileInit.replacement());
+        assertEquals(Placement.IN_METHOD, tagFileInit.placement());
+
+        InjectionPointReplacement updateSwimming = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/Entity")
+                        && p.method().equals("updateSwimming")
+                        && p.replaced().contains("isInWater"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("Lnet/minecraft/world/entity/Entity;isInWaterOrSwimmable()Z", updateSwimming.replacement());
+        assertEquals(Placement.SAME_PLACE, updateSwimming.placement());
+
+        InjectionPointReplacement isVisuallyCrawling = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/Entity")
+                        && p.method().equals("isVisuallyCrawling")
+                        && p.replaced().contains("isInWater"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("Lnet/minecraft/world/entity/Entity;isInWaterOrSwimmable()Z", isVisuallyCrawling.replacement());
+        assertEquals(Placement.SAME_PLACE, isVisuallyCrawling.placement());
+
+        InjectionPointReplacement travelInFluid = point(points, "LivingEntity;travelInLava(");
+        assertEquals("net/minecraft/world/entity/LivingEntity", travelInFluid.targetClass());
+        assertEquals("travelInFluid", travelInFluid.method());
+        assertEquals(
+                "travelInFluid(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/level/material/FluidState;)V",
+                travelInFluid.replacement());
+        assertEquals(Placement.IN_METHOD, travelInFluid.placement());
+
+        InjectionPointReplacement checkInWater = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat")
+                        && p.method().equals("checkInWater"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;canBoatInFluid(Lnet/minecraft/world/level/material/FluidState;)Z",
+                checkInWater.replacement());
+        assertEquals(Placement.SAME_PLACE, checkInWater.placement());
+
+        InjectionPointReplacement isUnderwater = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat")
+                        && p.method().equals("isUnderwater"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;canBoatInFluid(Lnet/minecraft/world/level/material/FluidState;)Z",
+                isUnderwater.replacement());
+        assertEquals(Placement.SAME_PLACE, isUnderwater.placement());
+
+        InjectionPointReplacement standingSwimming = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/Entity")
+                        && p.method().equals("updateSwimming")
+                        && p.replaced().contains("FluidState;is("))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("Lnet/minecraft/world/entity/Entity;canStartSwimming()Z", standingSwimming.replacement());
+        assertEquals(Placement.SAME_PLACE, standingSwimming.placement());
+
+        InjectionPointReplacement customDrowning = point(points, "LivingEntity;isEyeInFluid(");
+        assertEquals("net/minecraft/world/entity/LivingEntity", customDrowning.targetClass());
+        assertEquals("baseTick", customDrowning.method());
+        assertEquals(
+                "Lnet/minecraftforge/common/ForgeHooks;onLivingBreathe(Lnet/minecraft/world/entity/LivingEntity;II)V",
+                customDrowning.replacement());
+        assertEquals(Placement.SAME_PLACE, customDrowning.placement());
+
+        InjectionPointReplacement jumpInFluid = point(points, "LivingEntity;jumpInLiquid(");
+        assertEquals("net/minecraft/world/entity/LivingEntity", jumpInFluid.targetClass());
+        assertEquals("aiStep", jumpInFluid.method());
+        assertEquals(
+                "Lnet/minecraft/world/entity/LivingEntity;jumpInFluid(Lnet/minecraftforge/fluids/FluidType;)V",
+                jumpInFluid.replacement());
+        assertEquals(Placement.SAME_PLACE, jumpInFluid.placement());
+
+        InjectionPointReplacement furnaceFuel = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity")
+                        && p.method().equals("consumeFuel"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                furnaceFuel.replacement());
+        assertEquals(Placement.SAME_PLACE, furnaceFuel.placement());
+
+        InjectionPointReplacement brewingRemainder = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/level/block/entity/BrewingStandBlockEntity")
+                        && p.method().equals("doBrew"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                brewingRemainder.replacement());
+        assertEquals(Placement.SAME_PLACE, brewingRemainder.placement());
+
+        InjectionPointReplacement craftingItem = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/item/crafting/CraftingRecipe")
+                        && p.replaced().contains("ItemStack;getItem()"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                craftingItem.replacement());
+        assertEquals(Placement.SAME_PLACE, craftingItem.placement());
+
+        InjectionPointReplacement craftingRemainder = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/item/crafting/CraftingRecipe")
+                        && p.replaced().contains("Item;getCraftingRemainder()"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                craftingRemainder.replacement());
+        assertEquals(Placement.SAME_PLACE, craftingRemainder.placement());
+
+        InjectionPointReplacement enchantmentCheck = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/item/enchantment/EnchantmentHelper")
+                        && p.method().equals("lambda$getAvailableEnchantmentResults$0"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/world/item/ItemStack;canApplyAtEnchantingTable(Lnet/minecraft/core/Holder;)Z",
+                enchantmentCheck.replacement());
+        assertEquals(Placement.SAME_PLACE, enchantmentCheck.placement());
+
+        InjectionPointReplacement dynamicRegistries = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/data/registries/RegistryPatchGenerator")
+                        && p.method().equals("lambda$createLookup$0"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "Lnet/minecraft/resources/RegistryDataLoader;getWorldGenAndDimensionStream()Ljava/util/stream/Stream;",
+                dynamicRegistries.replacement());
+        assertEquals(Placement.SAME_PLACE, dynamicRegistries.placement());
+    }
+
+    @Test
+    void neoForgePointsFollowLanguageAndConfigurationPatches() {
+        List<InjectionPointReplacement> points = NeoForgeInjectionPoints.all();
+
+        InjectionPointReplacement loadDefault = point(points, "Map;copyOf(");
+        assertEquals("net/minecraft/locale/Language", loadDefault.targetClass());
+        assertEquals("loadDefault", loadDefault.method());
+        assertEquals(
+                "Lnet/neoforged/neoforge/server/LanguageHook;captureLanguageMap(Ljava/util/Map;Ljava/util/Map;)V",
+                loadDefault.replacement());
+        assertEquals(Placement.SAME_PLACE, loadDefault.placement());
+
+        InjectionPointReplacement parseTranslations = point(points, "Class;getResourceAsStream(");
+        assertEquals("net/minecraft/locale/Language", parseTranslations.targetClass());
+        assertEquals("parseTranslations", parseTranslations.method());
+        assertEquals(
+                "parseTranslations(Ljava/util/function/BiConsumer;Ljava/util/function/BiConsumer;Ljava/lang/String;)V",
+                parseTranslations.replacement());
+        assertEquals(Placement.IN_METHOD, parseTranslations.placement());
+
+        InjectionPointReplacement startConfiguration = point(points, "SynchronizeRegistriesTask;<init>(");
+        assertEquals(
+                "net/minecraft/server/network/ServerConfigurationPacketListenerImpl", startConfiguration.targetClass());
+        assertEquals("startConfiguration", startConfiguration.method());
+        assertEquals("runConfiguration()V", startConfiguration.replacement());
+        assertEquals(Placement.IN_METHOD, startConfiguration.placement());
+
+        InjectionPointReplacement useOn = point(points, "Item;useOn(");
+        assertEquals("net/minecraft/world/item/ItemStack", useOn.targetClass());
+        assertEquals("useOn", useOn.method());
+        assertEquals(
+                "lambda$useOn$0(Lnet/minecraft/world/item/context/UseOnContext;Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;",
+                useOn.replacement());
+        assertEquals(Placement.IN_METHOD, useOn.placement());
+
+        InjectionPointReplacement destroyBlock = point(points, "Block;destroy(");
+        assertEquals(GAME_MODE, destroyBlock.targetClass());
+        assertEquals("destroyBlock", destroyBlock.method());
+        assertEquals(
+                "L" + GAME_MODE + ";removeBlock(Lnet/minecraft/core/BlockPos;"
+                        + "Lnet/minecraft/world/level/block/state/BlockState;ZLnet/minecraft/world/item/ItemStack;)Z",
+                destroyBlock.replacement());
+        assertEquals(Placement.AFTER_TRUE_RESULT, destroyBlock.placement());
+
+        InjectionPointReplacement canGlide = point(points, "EquipmentSlot;VALUES:");
+        assertEquals("net/minecraft/world/entity/LivingEntity", canGlide.targetClass());
+        assertEquals("canGlide", canGlide.method());
+        assertEquals("canGlide(Z)Z", canGlide.replacement());
+        assertEquals(Placement.IN_METHOD, canGlide.placement());
+
+        InjectionPointReplacement canBeAffected = point(points, "canBeAffected(");
+        assertEquals("net/minecraft/world/entity/LivingEntity", canBeAffected.targetClass());
+        assertEquals("forceAddEffect", canBeAffected.method());
+        assertEquals(
+                "Lnet/neoforged/neoforge/common/CommonHooks;canMobEffectBeApplied(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
+                canBeAffected.replacement());
+        assertEquals(Placement.SAME_PLACE, canBeAffected.placement());
+
+        InjectionPointReplacement spawnSprint = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/Entity")
+                        && p.method().equals("spawnSprintParticle"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/particles/BlockParticleOption;",
+                spawnSprint.replacement());
+        assertEquals(Placement.SAME_PLACE, spawnSprint.placement());
+
+        InjectionPointReplacement checkFall = points.stream()
+                .filter(p -> p.targetClass().equals("net/minecraft/world/entity/LivingEntity")
+                        && p.method().equals("checkFallDamage"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/particles/BlockParticleOption;",
+                checkFall.replacement());
+        assertEquals(Placement.SAME_PLACE, checkFall.placement());
     }
 
     /**
@@ -62,6 +317,9 @@ class ForgeInjectionPointsTest {
         try (JarFile jar = new JarFile(
                 Path.of(System.getProperty("poly.forgePatchedClient")).toFile())) {
             for (InjectionPointReplacement point : ForgeInjectionPoints.all()) {
+                if (point.placement() == Placement.IN_METHOD) {
+                    continue;
+                }
                 ClassNode target = read(jar, point.targetClass()).orElseThrow();
                 MethodNode method = target.methods.stream()
                         .filter(candidate -> candidate.name.equals(point.method()))

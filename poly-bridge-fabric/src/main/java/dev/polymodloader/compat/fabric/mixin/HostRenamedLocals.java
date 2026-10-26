@@ -27,12 +27,12 @@ import java.util.Set;
 
 /**
  * Locals a Fabric mixin captures by name ({@code @Local(name = ...)} of MixinExtras) that the host loader's patch
- * renamed (ADR-0021 G8). Mixin finds a local by name only when its type is the handler parameter's own, and under a
- * host every injector is optional, so such an injection would silently not run. When the patched method has, in the
+ * renamed (ADR-0021 G8). Mixin finds a local by name only when its type is the handler parameter's own, so such an
+ * injection would fail on the patched game. When the patched method has, in the
  * vanilla local's slot, one local under another name whose type is the parameter's or a subtype of it (Forge's {@code
  * LinkedHashSet builder} for vanilla's {@code SequencedSet values} in {@code TagLoader.tryBuildTag}), the {@code @Local}
  * takes that name and the parameter that type ({@code POLY-COMPAT-212}); the handler's code keeps working, as the new
- * type is assignable to the old one. Otherwise the injection is reported as not running ({@code POLY-COMPAT-138}).
+ * type is assignable to the old one. Otherwise the mod is incompatible ({@code POLY-COMPAT-224}, ADR-0030).
  */
 final class HostRenamedLocals {
 
@@ -99,7 +99,7 @@ final class HostRenamedLocals {
                                     String where = where(handler, injector.get(), targetName, selector);
                                     Rename rename = outcome.get().rename();
                                     if (rename == null) {
-                                        findings.add(new Finding(
+                                        findings.add(Finding.incompatible(
                                                 modId,
                                                 config,
                                                 mixinName,

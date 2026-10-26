@@ -37,7 +37,10 @@ import java.util.jar.JarOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Fabric mixins against a host's patched classes: moved, optional and left-out mixins (ADR-0021 G8). */
+/**
+ * Fabric mixins against a host's patched classes (ADR-0021 G8, ADR-0030): mixins moved to the patch, which work as
+ * written, and mixins that cannot work as written, which make their mod incompatible ({@code POLY-COMPAT-224}).
+ */
 class HostPatchAdjustmentsTest {
 
     private static final ClassDesc TARGET = ClassDesc.of("t.Target");
@@ -48,7 +51,7 @@ class HostPatchAdjustmentsTest {
     Path directory;
 
     @Test
-    void injectionsAreMovedOrMadeOptionalAndMixinsUsingRemovedMembersAreLeftOut() throws Exception {
+    void injectionsAreMovedAndMixinsThatCannotWorkAsWrittenAreIncompatible() throws Exception {
         // Vanilla calls old() and moved() and has the field gone; the host's patch calls replacement() instead of
         // moved(), drops old() and the field.
         byte[] vanilla = target(true);
@@ -71,14 +74,24 @@ class HostPatchAdjustmentsTest {
                 classes(patched));
 
         assertEquals(3, adjustments.findings().size(), adjustments.findings().toString());
+        assertTrue(adjustments.hasIncompatible());
         assertTrue(adjustments.findings().stream()
-                .anyMatch(finding -> finding.leftOut() && finding.mixin().equals("m/AccessorMixin")));
-        String config = new String(
-                adjustments
-                        .config(CONFIG, CONFIG_TEXT.getBytes(StandardCharsets.UTF_8))
-                        .orElseThrow(),
-                StandardCharsets.UTF_8);
-        assertTrue(config.contains("InjectMixin") && !config.contains("AccessorMixin"), config);
+                .anyMatch(finding -> finding.leftOut()
+                        && finding.incompatible()
+                        && finding.code().equals("POLY-COMPAT-224")
+                        && finding.mixin().equals("m/AccessorMixin")));
+        assertTrue(
+                adjustments.findings().stream()
+                        .anyMatch(finding -> finding.incompatible()
+                                && finding.reason().contains("old()V")
+                                && finding.reason().endsWith("this injection does not run")),
+                adjustments.findings().toString());
+        assertTrue(
+                adjustments.findings().stream()
+                        .anyMatch(finding -> !finding.incompatible()
+                                && finding.code().equals("POLY-COMPAT-226")
+                                && finding.reason().contains("replacement()V")),
+                adjustments.findings().toString());
 
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.InjectMixin", injectMixin()));
         String annotations = applied.methods().stream()
@@ -88,7 +101,8 @@ class HostPatchAdjustmentsTest {
                 .map(Annotation::toString)
                 .toList()
                 .toString();
-        assertTrue(annotations.contains("require"), annotations);
+        // The injectors keep the mod's own settings: Poly Mod Loader no longer makes them optional.
+        assertFalse(annotations.contains("require"), annotations);
         assertTrue(annotations.contains("Lt/Target;replacement()V"), annotations);
         assertFalse(annotations.contains("Lt/Target;moved()V"), annotations);
     }
@@ -116,6 +130,8 @@ class HostPatchAdjustmentsTest {
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertFalse(adjustments.findings().getFirst().leftOut());
+        assertFalse(adjustments.hasIncompatible(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-226", adjustments.findings().getFirst().code());
         assertTrue(
                 adjustments.findings().getFirst().reason().contains("runs with the patched parameters"),
                 adjustments.findings().toString());
@@ -129,7 +145,7 @@ class HostPatchAdjustmentsTest {
         assertFalse(annotationsOf(original).contains("Inject"), annotationsOf(original));
         assertTrue(
                 annotationsOf(bridge).contains("Inject")
-                        && annotationsOf(bridge).contains("require"),
+                        && !annotationsOf(bridge).contains("require"),
                 annotationsOf(bridge));
         String calls = bridge.code().orElseThrow().elementList().stream()
                 .filter(element -> element instanceof InvokeInstruction)
@@ -139,9 +155,9 @@ class HostPatchAdjustmentsTest {
         assertTrue(calls.contains("onExtract") && calls.contains(handlerType.descriptorString()), calls);
     }
 
-    /** A parameter the patch changed rather than added: the injection cannot run, so only it is taken out. */
+    /** A parameter the patch changed rather than added: the injection cannot run, so the mod is incompatible. */
     @Test
-    void anInjectionWhoseParametersThePatchChangedIsTakenOut() throws Exception {
+    void anInjectionWhoseParametersThePatchChangedMakesTheModIncompatible() throws Exception {
         byte[] vanilla = extractTarget(MethodTypeDesc.of(CD_void, CD_String, CD_float));
         byte[] patched = extractTarget(MethodTypeDesc.of(CD_void, CD_String, CD_int));
         MethodTypeDesc handlerType = MethodTypeDesc.of(CD_void, CD_String, CD_float, CALLBACK_INFO);
@@ -156,12 +172,12 @@ class HostPatchAdjustmentsTest {
                 classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
-        assertTrue(
-                adjustments.findings().getFirst().reason().contains("does not run"),
-                adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertTrue(finding.incompatible() && finding.code().equals("POLY-COMPAT-224"), finding.toString());
+        assertTrue(finding.reason().contains("does not run"), finding.toString());
+        // Nothing is taken out of the mixin: the mod is not loaded at all.
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.ExtractMixin", extractMixin(handlerType)));
-        assertEquals(1, applied.methods().size());
-        assertFalse(annotationsOf(method(applied, "onExtract", handlerType)).contains("Inject"));
+        assertTrue(annotationsOf(method(applied, "onExtract", handlerType)).contains("Inject"));
     }
 
     /**
@@ -181,12 +197,10 @@ class HostPatchAdjustmentsTest {
         assertEquals(2, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(
                 adjustments.findings().stream()
-                        .allMatch(finding ->
-                                !finding.leftOut() && finding.code().equals("POLY-COMPAT-212") && !finding.limited()),
+                        .allMatch(finding -> !finding.leftOut()
+                                && finding.code().equals("POLY-COMPAT-212")
+                                && !finding.incompatible()),
                 adjustments.findings().toString());
-        assertTrue(adjustments
-                .config(MEMBER_CONFIG, MEMBER_CONFIG_TEXT.getBytes(StandardCharsets.UTF_8))
-                .isEmpty());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", accessorInterface()));
         assertEquals(
                 List.of("getServer"),
@@ -197,10 +211,10 @@ class HostPatchAdjustmentsTest {
 
     /**
      * The same name and descriptor, but the host's method is not that accessor. With {@code @Overwrite} required by
-     * the configuration, Mixin would fail the mixin: it is left out.
+     * the configuration, Mixin would fail the whole mixin: the mod is incompatible.
      */
     @Test
-    void anAccessorThePatchAddedWithOtherCodeLeavesTheMixinOutWhenOverwritesNeedAnnotations() throws Exception {
+    void anAccessorThePatchAddedWithOtherCodeFailsTheMixinWhenOverwritesNeedAnnotations() throws Exception {
         byte[] vanilla = memberTarget(false, CD_String);
         byte[] patched = memberTarget(true, CD_String, false);
         String configText =
@@ -211,22 +225,18 @@ class HostPatchAdjustmentsTest {
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(
-                adjustments.findings().getFirst().leftOut(),
+                adjustments.findings().getFirst().leftOut()
+                        && adjustments.findings().getFirst().incompatible(),
                 adjustments.findings().toString());
-        String config = new String(
-                adjustments
-                        .config(MEMBER_CONFIG, configText.getBytes(StandardCharsets.UTF_8))
-                        .orElseThrow(),
-                StandardCharsets.UTF_8);
-        assertFalse(config.contains("MemberAccessor"), config);
     }
 
     /**
-     * Without that requirement Mixin replaces the host's method with the accessor, as it did before (architectury's
-     * {@code LiquidBlockAccessor.getFluid()} over Forge's {@code LiquidBlock.getFluid()}); that is only reported.
+     * Without that requirement Mixin would replace the host's method with the accessor (architectury's {@code
+     * LiquidBlockAccessor.getFluid()} over Forge's {@code LiquidBlock.getFluid()}), and the host's code calling it would
+     * get the accessor's result: the mod is incompatible, and Poly Mod Loader does not run it that way.
      */
     @Test
-    void anAccessorThePatchAddedWithOtherCodeIsReportedWhenMixinMayOverwrite() throws Exception {
+    void anAccessorThePatchAddedWithOtherCodeMakesTheModIncompatible() throws Exception {
         byte[] vanilla = memberTarget(false, CD_String);
         byte[] patched = memberTarget(true, CD_String, false);
         Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", accessorInterface()));
@@ -237,62 +247,28 @@ class HostPatchAdjustmentsTest {
                 .filter(finding -> finding.reason().contains("getConnection"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError(adjustments.findings().toString()));
-        assertEquals("POLY-COMPAT-213", getConnection.code());
-        assertTrue(getConnection.limited() && !getConnection.leftOut(), getConnection.toString());
-        assertTrue(adjustments
-                .config(MEMBER_CONFIG, MEMBER_CONFIG_TEXT.getBytes(StandardCharsets.UTF_8))
-                .isEmpty());
-        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", accessorInterface()));
-        assertTrue(applied.methods().stream().anyMatch(m -> m.methodName().equalsString("getConnection")));
+        assertEquals("POLY-COMPAT-224", getConnection.code());
+        assertTrue(getConnection.incompatible() && !getConnection.leftOut(), getConnection.toString());
     }
 
     /**
      * The host's patch changed the type of the field an {@code @Accessor} reads (Forge turns {@code
      * AttributeSupplier$Builder.builder} from an {@code ImmutableMap.Builder} into a {@code Map}). No accessor of the
-     * old type exists; the rest of the mixin applies, so the target still implements the interface, and a call to that
-     * accessor throws an error that names the change instead of a {@code ClassCastException} at the mod's cast.
+     * old type can work on that game: the mod is incompatible.
      */
     @Test
-    void anAccessorWhoseFieldTypeThePatchChangedThrowsADiagnosticWhenCalled() throws Exception {
+    void anAccessorWhoseFieldTypeThePatchChangedMakesTheModIncompatible() throws Exception {
         byte[] vanilla = memberTarget(false, CD_List);
         byte[] patched = memberTarget(false, CD_Map);
-        byte[] accessor = fieldAccessorInterface();
-        Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", accessor));
+        Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", fieldAccessorInterface()));
 
         HostPatchAdjustments adjustments = plan(jar, vanilla, patched);
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
         assertFalse(finding.leftOut());
-        assertTrue(finding.limited() && finding.code().equals("POLY-COMPAT-138"), finding.toString());
-        assertTrue(
-                finding.reason().contains("Ljava/util/Map;") && finding.reason().contains("POLY-COMPAT-214"),
-                finding.reason());
-        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", accessor));
-        assertEquals(
-                List.of("getServer"),
-                applied.methods().stream()
-                        .map(m -> m.methodName().stringValue())
-                        .toList());
-
-        // As the game loads it, the interface answers that accessor with the diagnostic.
-        byte[] runtime = adjustments.runtime("m.MemberAccessor", accessor);
-        Class<?> type = new ByteClassLoader(Map.of("m.MemberAccessor", runtime, "m.Implementation", implementation()))
-                .loadClass("m.Implementation");
-        Object instance = type.getConstructor().newInstance();
-        var error = org.junit.jupiter.api.Assertions.assertThrows(
-                java.lang.reflect.InvocationTargetException.class,
-                () -> type.getInterfaces()[0].getMethod("getBuilder").invoke(instance));
-        assertTrue(
-                error.getCause() instanceof UnsupportedOperationException,
-                error.getCause().toString());
-        assertTrue(
-                error.getCause().getMessage().contains("POLY-COMPAT-214"),
-                error.getCause().getMessage());
-        assertTrue(
-                error.getCause().getMessage().contains("example"),
-                error.getCause().getMessage());
-        assertEquals(accessor, adjustments.runtime("m.Other", accessor));
+        assertTrue(finding.incompatible() && finding.code().equals("POLY-COMPAT-224"), finding.toString());
+        assertTrue(finding.reason().contains("Ljava/util/Map;"), finding.reason());
     }
 
     /**
@@ -311,7 +287,7 @@ class HostPatchAdjustmentsTest {
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertEquals("POLY-COMPAT-212", adjustments.findings().getFirst().code());
-        assertFalse(adjustments.findings().getFirst().limited());
+        assertFalse(adjustments.findings().getFirst().incompatible());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", mixin));
         assertTrue(
                 applied.methods().stream().noneMatch(m -> m.methodName().equalsString("describe")),
@@ -319,40 +295,44 @@ class HostPatchAdjustmentsTest {
         assertTrue(applied.methods().stream().anyMatch(m -> m.methodName().equalsString("helper")));
     }
 
+    @Test
+    void anUnmodifiableCollectionGetterThePatchAddedIsLeftToThePatchedMethod() throws Exception {
+        byte[] vanilla = memberTarget(false, CD_List);
+        byte[] patched = memberTarget(true, CD_List);
+        byte[] mixin = unmodifiableGetterMixin();
+        Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", mixin));
+
+        HostPatchAdjustments adjustments = plan(jar, vanilla, patched);
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-212", adjustments.findings().getFirst().code());
+        assertFalse(adjustments.findings().getFirst().incompatible());
+        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", mixin));
+        assertTrue(
+                applied.methods().stream().noneMatch(m -> m.methodName().equalsString("getConnection")),
+                applied.methods().toString());
+    }
+
     /**
      * A method a Fabric mixin adds that the host's patch added with other code (Fabric's tag API and Forge both add
-     * {@code TagFile.remove()}, each for its own list): the mixin's method gets its own name, and the calls in the mod's
-     * mixins follow it, so both the host's and the mod's method keep working.
+     * {@code TagFile.remove()}, each for its own list): one class cannot hold both, so the mod is incompatible. Poly Mod
+     * Loader does not rename the mixin's method, which would leave other callers reaching the host's.
      */
     @Test
-    void aMethodThePatchAddedWithOtherCodeIsRenamedAndTheModsCallsFollowIt() throws Exception {
+    void aMethodThePatchAddedWithOtherCodeMakesTheModIncompatible() throws Exception {
         byte[] vanilla = memberTarget(false, CD_String);
         byte[] patched = memberTarget(true, CD_String);
         byte[] mixin = addingMixin(false);
-        byte[] caller = callerMixin();
-        Path jar = jar(Map.of(
-                MEMBER_CONFIG,
-                "{\"package\":\"m\",\"mixins\":[\"MemberAccessor\",\"Caller\"]}",
-                "m/MemberAccessor.class",
-                mixin,
-                "m/Caller.class",
-                caller));
+        Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", mixin));
 
         HostPatchAdjustments adjustments = plan(jar, vanilla, patched);
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
-        assertEquals("POLY-COMPAT-213", finding.code());
-        assertTrue(finding.limited() && !finding.leftOut(), finding.toString());
-        String renamed = "poly$MemberAccessor$describe";
-        assertTrue(finding.reason().contains(renamed), finding.reason());
-        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", mixin));
-        assertTrue(applied.methods().stream().anyMatch(m -> m.methodName().equalsString(renamed)));
-        assertTrue(applied.methods().stream().noneMatch(m -> m.methodName().equalsString("describe")));
-        // The mixin's own call and the other mixin's call (on the target class and through a method reference).
-        assertEquals(List.of(renamed), calls(applied, "helper"));
-        ClassModel appliedCaller = ClassFile.of().parse(adjustments.apply("m.Caller", caller));
-        assertEquals(List.of(renamed, renamed), calls(appliedCaller, "call"));
+        assertEquals("POLY-COMPAT-224", finding.code());
+        assertTrue(finding.incompatible() && !finding.leftOut(), finding.toString());
+        assertTrue(finding.reason().contains("describe"), finding.reason());
+        org.junit.jupiter.api.Assertions.assertArrayEquals(mixin, adjustments.apply("m.MemberAccessor", mixin));
     }
 
     /**
@@ -374,7 +354,7 @@ class HostPatchAdjustmentsTest {
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
         assertEquals("POLY-COMPAT-212", finding.code(), finding.toString());
-        assertFalse(finding.limited() || finding.leftOut(), finding.toString());
+        assertFalse(finding.incompatible() || finding.leftOut(), finding.toString());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", mixin));
         MethodModel handler = applied.methods().stream()
                 .filter(method -> method.methodName().equalsString("onRun"))
@@ -390,7 +370,7 @@ class HostPatchAdjustmentsTest {
         assertTrue(parameters.contains("constant=builder") && !parameters.contains("constant=values"), parameters);
     }
 
-    /** No local of a usable type where the vanilla one was: the injection cannot run, which is now reported. */
+    /** No local of a usable type where the vanilla one was: the injection cannot run, so the mod is incompatible. */
     @Test
     void aLocalThePatchRemovedIsReported() throws Exception {
         byte[] vanilla = localTarget("values", CD_Collection);
@@ -402,8 +382,10 @@ class HostPatchAdjustmentsTest {
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
-        assertEquals("POLY-COMPAT-138", finding.code());
-        assertTrue(finding.limited() && !finding.leftOut() && finding.reason().contains("values"), finding.toString());
+        assertEquals("POLY-COMPAT-224", finding.code());
+        assertTrue(
+                finding.incompatible() && !finding.leftOut() && finding.reason().contains("values"),
+                finding.toString());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", mixin));
         assertTrue(applied.methods().stream()
                 .anyMatch(method -> method.methodType()
@@ -508,14 +490,377 @@ class HostPatchAdjustmentsTest {
     private static final ClassDesc CD_Map = ClassDesc.of("java.util.Map");
     private static final MethodTypeDesc DESCRIBE = MethodTypeDesc.of(CD_String, CD_String);
 
+    @Test
+    void anAccessorOfAttributeSupplierBuilderIsAdaptedViaBridge() throws Exception {
+        ClassDesc target = ClassDesc.of("net.minecraft.world.entity.ai.attributes.AttributeSupplier$Builder");
+        ClassDesc immutableMapBuilder = ClassDesc.of("com.google.common.collect.ImmutableMap$Builder");
+        byte[] vanilla = ClassFile.of().build(target, builder -> {
+            builder.withField("builder", immutableMapBuilder, ClassFile.ACC_PRIVATE);
+        });
+        byte[] patched = ClassFile.of().build(target, builder -> {
+            builder.withField("builder", CD_Map, ClassFile.ACC_PRIVATE);
+        });
+        byte[] mixin = ClassFile.of()
+                .build(
+                        ClassDesc.of("net.fabricmc.fabric.mixin.object.builder.AttributeSupplierBuilderAccessor"),
+                        builder -> {
+                            builder.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_INTERFACE | ClassFile.ACC_ABSTRACT);
+                            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation(target)));
+                            builder.withMethod(
+                                    "getBuilder",
+                                    MethodTypeDesc.of(immutableMapBuilder),
+                                    ClassFile.ACC_PUBLIC | ClassFile.ACC_ABSTRACT,
+                                    method ->
+                                            method.with(RuntimeVisibleAnnotationsAttribute.of(generator("Accessor"))));
+                        });
+        String configText = """
+                {"required": true, "package": "net.fabricmc.fabric.mixin.object.builder", "compatibilityLevel": "JAVA_25", "mixins": ["AttributeSupplierBuilderAccessor"]}
+                """;
+        Path jar = jar(Map.of(
+                MEMBER_CONFIG,
+                configText,
+                "net/fabricmc/fabric/mixin/object/builder/AttributeSupplierBuilderAccessor.class",
+                mixin));
+
+        HostPatchAdjustments adjustments = plan(target, jar, vanilla, patched);
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertEquals("POLY-COMPAT-212", finding.code());
+        assertFalse(finding.incompatible());
+        assertTrue(finding.reason().contains("AttributeBuilderBridge"), finding.reason());
+    }
+
+    @Test
+    void bedSleepEventsInLivingEntityMixinAreAdaptedViaWrapOperation() throws Exception {
+        ClassDesc livingEntity = ClassDesc.of("net.minecraft.world.entity.LivingEntity");
+        ClassDesc bedBlock = ClassDesc.of("net.minecraft.world.level.block.BedBlock");
+        ClassDesc blockState = ClassDesc.of("net.minecraft.world.level.block.state.BlockState");
+        ClassDesc direction = ClassDesc.of("net.minecraft.core.Direction");
+        ClassDesc blockGetter = ClassDesc.of("net.minecraft.world.level.BlockGetter");
+        ClassDesc levelReader = ClassDesc.of("net.minecraft.world.level.LevelReader");
+        ClassDesc blockPos = ClassDesc.of("net.minecraft.core.BlockPos");
+        ClassDesc level = ClassDesc.of("net.minecraft.world.level.Level");
+
+        byte[] vanilla = ClassFile.of().build(livingEntity, builder -> {
+            builder.withMethod("getBedOrientation", MethodTypeDesc.of(direction), ClassFile.ACC_PUBLIC, method -> {
+                method.withCode(code -> {
+                    code.aconst_null();
+                    code.aconst_null();
+                    code.invokestatic(
+                            bedBlock, "getBedOrientation", MethodTypeDesc.of(direction, blockGetter, blockPos));
+                    code.areturn();
+                });
+            });
+            builder.withMethod(
+                    "lambda$stopSleeping$0", MethodTypeDesc.of(CD_void, blockPos), ClassFile.ACC_PRIVATE, method -> {
+                        method.withCode(code -> {
+                            code.aconst_null();
+                            code.aconst_null();
+                            code.aconst_null();
+                            code.iconst_0();
+                            code.invokevirtual(
+                                    level, "setBlock", MethodTypeDesc.of(CD_boolean, blockPos, blockState, CD_int));
+                            code.pop();
+                            code.return_();
+                        });
+                    });
+        });
+
+        byte[] patched = ClassFile.of().build(livingEntity, builder -> {
+            builder.withMethod("getBedOrientation", MethodTypeDesc.of(direction), ClassFile.ACC_PUBLIC, method -> {
+                method.withCode(code -> {
+                    code.aconst_null();
+                    code.aconst_null();
+                    code.aconst_null();
+                    code.invokevirtual(
+                            blockState, "getBedDirection", MethodTypeDesc.of(direction, levelReader, blockPos));
+                    code.areturn();
+                });
+            });
+            builder.withMethod(
+                    "lambda$stopSleeping$0", MethodTypeDesc.of(CD_void, blockPos), ClassFile.ACC_PRIVATE, method -> {
+                        method.withCode(code -> {
+                            code.aconst_null();
+                            code.aconst_null();
+                            code.aconst_null();
+                            code.aconst_null();
+                            code.iconst_0();
+                            code.invokevirtual(
+                                    blockState,
+                                    "setBedOccupied",
+                                    MethodTypeDesc.of(CD_void, level, blockPos, livingEntity, CD_boolean));
+                            code.return_();
+                        });
+                    });
+        });
+
+        Annotation wrapAnnotation = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("getBedOrientation"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(
+                                AnnotationValue.ofAnnotation(
+                                        Annotation.of(
+                                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                                AnnotationElement.ofString("value", "INVOKE"),
+                                                AnnotationElement.ofString(
+                                                        "target",
+                                                        "Lnet/minecraft/world/level/block/BedBlock;getBedOrientation(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;"))))));
+
+        Annotation redirectAnnotation = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Redirect;"),
+                AnnotationElement.of(
+                        "method", AnnotationValue.ofArray(AnnotationValue.ofString("lambda$stopSleeping$0"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(
+                                AnnotationValue.ofAnnotation(
+                                        Annotation.of(
+                                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                                AnnotationElement.ofString("value", "INVOKE"),
+                                                AnnotationElement.ofString(
+                                                        "target",
+                                                        "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))))));
+
+        ClassDesc mixinDesc = ClassDesc.of("net.fabricmc.fabric.mixin.entity.event.LivingEntityMixin");
+        byte[] mixinBytes = ClassFile.of().build(mixinDesc, builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation(livingEntity)));
+            builder.withMethod(
+                    "onGetSleepingDirection",
+                    MethodTypeDesc.of(direction, blockGetter, blockPos, OPERATION),
+                    ClassFile.ACC_PRIVATE,
+                    method -> {
+                        method.with(RuntimeVisibleAnnotationsAttribute.of(wrapAnnotation));
+                        method.withCode(code -> {
+                            code.aconst_null();
+                            code.areturn();
+                        });
+                    });
+            builder.withMethod(
+                    "setOccupiedState",
+                    MethodTypeDesc.of(CD_boolean, level, blockPos, blockState, CD_int),
+                    ClassFile.ACC_PRIVATE,
+                    method -> {
+                        method.with(RuntimeVisibleAnnotationsAttribute.of(redirectAnnotation));
+                        method.withCode(code -> {
+                            code.iconst_1();
+                            code.ireturn();
+                        });
+                    });
+        });
+
+        String configText = """
+                {"required": true, "package": "net.fabricmc.fabric.mixin.entity.event", "compatibilityLevel": "JAVA_25", "mixins": ["LivingEntityMixin"]}
+                """;
+        Path jar = jar(Map.of(
+                MEMBER_CONFIG,
+                configText,
+                "net/fabricmc/fabric/mixin/entity/event/LivingEntityMixin.class",
+                mixinBytes));
+
+        HostedLaunch host = new HostedLaunch(
+                "MinecraftForge 26.2-65.1.5",
+                List.of(),
+                List.of(
+                        new InjectionPointReplacement(
+                                "net/minecraft/world/entity/LivingEntity",
+                                "getBedOrientation",
+                                "Lnet/minecraft/world/level/block/BedBlock;getBedOrientation(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;",
+                                "Lnet/minecraft/world/level/block/state/BlockState;getBedDirection(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;"),
+                        new InjectionPointReplacement(
+                                "net/minecraft/world/entity/LivingEntity",
+                                "lambda$stopSleeping$0",
+                                "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z",
+                                "Lnet/minecraft/world/level/block/state/BlockState;setBedOccupied(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;Z)V")),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(MEMBER_CONFIG, "fabric-entity-events-v1"),
+                Map.of("fabric-entity-events-v1", jar),
+                name -> name.equals("net/minecraft/world/entity/LivingEntity")
+                        ? Optional.of(vanilla)
+                        : Optional.empty(),
+                new GameClassBytes() {
+                    @Override
+                    public Optional<byte[]> classBytes(String className) {
+                        return className.replace('.', '/').equals("net/minecraft/world/entity/LivingEntity")
+                                ? Optional.of(patched)
+                                : Optional.empty();
+                    }
+
+                    @Override
+                    public boolean isDefined(String className) {
+                        return className.replace('.', '/').equals("net/minecraft/world/entity/LivingEntity");
+                    }
+                });
+
+        assertEquals(2, adjustments.findings().size(), adjustments.findings().toString());
+        for (HostPatchAdjustments.Finding finding : adjustments.findings()) {
+            assertEquals("POLY-COMPAT-226", finding.code());
+            assertFalse(finding.incompatible());
+            assertTrue(finding.reason().contains("@WrapOperation bridge"), finding.reason());
+        }
+
+        byte[] applied = adjustments.apply("net.fabricmc.fabric.mixin.entity.event.LivingEntityMixin", mixinBytes);
+        ClassModel appliedModel = ClassFile.of().parse(applied);
+        List<String> methodNames = appliedModel.methods().stream()
+                .map(m -> m.methodName().stringValue())
+                .toList();
+        assertTrue(methodNames.contains("poly$hostCall$onGetSleepingDirection"), methodNames.toString());
+        assertTrue(methodNames.contains("poly$hostCall$setOccupiedState"), methodNames.toString());
+    }
+
+    @Test
+    void fluidInteractionsAreAdaptedViaWrapOperation() throws Exception {
+        ClassDesc boatDesc = ClassDesc.of("net.minecraft.world.entity.vehicle.boat.AbstractBoat");
+        ClassDesc fluidStateDesc = ClassDesc.of("net.minecraft.world.level.material.FluidState");
+        ClassDesc tagKeyDesc = ClassDesc.of("net.minecraft.tags.TagKey");
+
+        byte[] boatVanilla = ClassFile.of().build(boatDesc, builder -> {
+            builder.withMethod("checkInWater", MethodTypeDesc.of(CD_boolean), ClassFile.ACC_PUBLIC, method -> {
+                method.withCode(code -> {
+                    code.aconst_null();
+                    code.aconst_null();
+                    code.invokevirtual(fluidStateDesc, "is", MethodTypeDesc.of(CD_boolean, tagKeyDesc));
+                    code.ireturn();
+                });
+            });
+        });
+
+        byte[] boatPatched = ClassFile.of().build(boatDesc, builder -> {
+            builder.withMethod("checkInWater", MethodTypeDesc.of(CD_boolean), ClassFile.ACC_PUBLIC, method -> {
+                method.withCode(code -> {
+                    code.aconst_null();
+                    code.aconst_null();
+                    code.invokevirtual(boatDesc, "canBoatInFluid", MethodTypeDesc.of(CD_boolean, fluidStateDesc));
+                    code.ireturn();
+                });
+            });
+        });
+
+        Annotation wrapAnnotation = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("checkInWater"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(
+                                AnnotationValue.ofAnnotation(
+                                        Annotation.of(
+                                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                                AnnotationElement.ofString("value", "INVOKE"),
+                                                AnnotationElement.ofString(
+                                                        "target",
+                                                        "Lnet/minecraft/world/level/material/FluidState;is(Lnet/minecraft/tags/TagKey;)Z"))))));
+
+        ClassDesc mixinDesc = ClassDesc.of("net.fabricmc.fabric.mixin.content.registry.fluid.AbstractBoatMixin");
+        byte[] mixinBytes = ClassFile.of().build(mixinDesc, builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation(boatDesc)));
+            builder.withMethod(
+                    "customFluidSupport",
+                    MethodTypeDesc.of(CD_boolean, fluidStateDesc, tagKeyDesc, OPERATION),
+                    ClassFile.ACC_PRIVATE,
+                    method -> {
+                        method.with(RuntimeVisibleAnnotationsAttribute.of(wrapAnnotation));
+                        method.withCode(code -> {
+                            code.iconst_1();
+                            code.ireturn();
+                        });
+                    });
+        });
+
+        String configText = """
+                {"required": true, "package": "net.fabricmc.fabric.mixin.content.registry.fluid", "compatibilityLevel": "JAVA_25", "mixins": ["AbstractBoatMixin"]}
+                """;
+        Path jar = jar(Map.of(
+                MEMBER_CONFIG,
+                configText,
+                "net/fabricmc/fabric/mixin/content/registry/fluid/AbstractBoatMixin.class",
+                mixinBytes));
+
+        HostedLaunch host = new HostedLaunch(
+                "MinecraftForge 26.2-65.1.5",
+                List.of(),
+                List.of(
+                        new InjectionPointReplacement(
+                                "net/minecraft/world/entity/vehicle/boat/AbstractBoat",
+                                "checkInWater",
+                                "Lnet/minecraft/world/level/material/FluidState;is(Lnet/minecraft/tags/TagKey;)Z",
+                                "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;canBoatInFluid(Lnet/minecraft/world/level/material/FluidState;)Z")),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(MEMBER_CONFIG, "fabric-content-registries-v0"),
+                Map.of("fabric-content-registries-v0", jar),
+                name -> name.equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat")
+                        ? Optional.of(boatVanilla)
+                        : Optional.empty(),
+                new GameClassBytes() {
+                    @Override
+                    public Optional<byte[]> classBytes(String className) {
+                        return className
+                                        .replace('.', '/')
+                                        .equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat")
+                                ? Optional.of(boatPatched)
+                                : Optional.empty();
+                    }
+
+                    @Override
+                    public boolean isDefined(String className) {
+                        return className
+                                .replace('.', '/')
+                                .equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat");
+                    }
+                });
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().get(0);
+        assertEquals("POLY-COMPAT-226", finding.code());
+        assertFalse(finding.incompatible());
+        assertTrue(finding.reason().contains("@WrapOperation bridge"), finding.reason());
+
+        byte[] applied =
+                adjustments.apply("net.fabricmc.fabric.mixin.content.registry.fluid.AbstractBoatMixin", mixinBytes);
+        ClassModel appliedModel = ClassFile.of().parse(applied);
+        List<String> methodNames = appliedModel.methods().stream()
+                .map(m -> m.methodName().stringValue())
+                .toList();
+        assertTrue(methodNames.contains("poly$hostCall$customFluidSupport"), methodNames.toString());
+    }
+
     private HostPatchAdjustments plan(Path jar, byte[] vanilla, byte[] patched) {
+        return plan("t/Target", jar, vanilla, patched);
+    }
+
+    private HostPatchAdjustments plan(ClassDesc target, Path jar, byte[] vanilla, byte[] patched) {
+        String desc = target.descriptorString();
+        return plan(desc.substring(1, desc.length() - 1), jar, vanilla, patched);
+    }
+
+    private HostPatchAdjustments plan(String targetName, Path jar, byte[] vanilla, byte[] patched) {
+        String internal = targetName.replace('.', '/');
         return HostPatchAdjustments.plan(
                 new HostedLaunch("Host 1", List.of(), List.of(), directory),
                 GameSide.DEDICATED_SERVER,
                 Map.of(MEMBER_CONFIG, "example"),
                 Map.of("example", jar),
-                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
-                classes(patched));
+                name -> name.equals(internal) ? Optional.of(vanilla) : Optional.empty(),
+                new GameClassBytes() {
+                    @Override
+                    public Optional<byte[]> classBytes(String className) {
+                        return className.replace('.', '/').equals(internal) ? Optional.of(patched) : Optional.empty();
+                    }
+
+                    @Override
+                    public boolean isDefined(String className) {
+                        return false;
+                    }
+                });
     }
 
     /**
@@ -803,9 +1148,9 @@ class HostPatchAdjustmentsTest {
         });
     }
 
-    /** A handler parameter whose type the patched method has twice cannot be placed: that injection is taken out. */
+    /** A handler parameter whose type the patched method has twice cannot be placed: the mod is incompatible. */
     @Test
-    void anInjectionWhoseReorderedParametersAreAmbiguousIsTakenOut() throws Exception {
+    void anInjectionWhoseReorderedParametersAreAmbiguousMakesTheModIncompatible() throws Exception {
         byte[] vanilla = extractTarget(MethodTypeDesc.of(CD_void, CD_String, CD_float));
         byte[] patched = extractTarget(MethodTypeDesc.of(CD_void, CD_float, CD_String, CD_String));
         MethodTypeDesc handlerType = MethodTypeDesc.of(CD_void, CD_String, CD_float, CALLBACK_INFO);
@@ -820,7 +1165,8 @@ class HostPatchAdjustmentsTest {
                 classes(patched));
 
         assertTrue(
-                adjustments.findings().getFirst().reason().contains("does not run"),
+                adjustments.findings().getFirst().reason().contains("does not run")
+                        && adjustments.findings().getFirst().incompatible(),
                 adjustments.findings().toString());
     }
 
@@ -897,7 +1243,7 @@ class HostPatchAdjustmentsTest {
                 annotations.contains("WrapOperation")
                         && annotations.contains("run(Ljava/lang/String;)Z")
                         && annotations.contains("Lt/Target;helper(Ljava/lang/String;)Z")
-                        && annotations.contains("require"),
+                        && !annotations.contains("require"),
                 annotations);
         String parameterAnnotations = bridge.findAttribute(
                         java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
@@ -931,7 +1277,8 @@ class HostPatchAdjustmentsTest {
                 classes(helperTarget(false)));
 
         assertTrue(
-                adjustments.findings().getFirst().reason().contains("does not run"),
+                adjustments.findings().getFirst().reason().contains("does not run")
+                        && adjustments.findings().getFirst().incompatible(),
                 adjustments.findings().toString());
         ClassModel model = ClassFile.of().parse(adjustments.apply("m.HelperMixin", mixin));
         assertEquals(1, model.methods().size());
@@ -973,6 +1320,8 @@ class HostPatchAdjustmentsTest {
                 classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertFalse(adjustments.hasIncompatible(), adjustments.findings().toString());
+        assertFalse(adjustments.findings().getFirst().incompatible());
         String reason = adjustments.findings().getFirst().reason();
         assertTrue(reason.contains("remainder()Ljava/lang/String;") && reason.contains("h/HostApi"), reason);
         byte[] applied = adjustments.apply("m.StackMixin", mixin);
@@ -984,6 +1333,41 @@ class HostPatchAdjustmentsTest {
                 .toList()
                 .toString();
         assertTrue(calls.contains("INVOKESPECIAL") && calls.contains("h/HostApi.remainder"), calls);
+    }
+
+    @Test
+    void anIncompatibleDefaultMethodConflictMakesModIncompatible() throws Exception {
+        MethodTypeDesc custom = MethodTypeDesc.of(CD_String);
+        byte[] hostApi = defaultInterface("h.HostApi", "customAction", custom);
+        byte[] modApi = defaultInterface("m.ModApi", "customAction", custom);
+        byte[] patched =
+                ClassFile.of().build(TARGET, builder -> builder.withInterfaceSymbols(ClassDesc.of("h.HostApi")));
+        byte[] vanilla = ClassFile.of().build(TARGET, builder -> {});
+        byte[] mixin = ClassFile.of().build(ClassDesc.of("m.StackMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withInterfaceSymbols(ClassDesc.of("m.ModApi"));
+        });
+        Path jar = jar(Map.of(
+                CONFIG,
+                "{\"package\":\"m\",\"mixins\":[\"StackMixin\"]}",
+                "m/StackMixin.class",
+                mixin,
+                "m/ModApi.class",
+                modApi));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertTrue(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+        assertTrue(adjustments.hasIncompatible());
     }
 
     /** No conflict when the class itself has the method: nothing is added. */
@@ -1143,26 +1527,6 @@ class HostPatchAdjustmentsTest {
         });
     }
 
-    /** A class implementing {@code m.MemberAccessor} with {@code getServer} only, as the target is after Mixin. */
-    private static byte[] implementation() {
-        return ClassFile.of().build(ClassDesc.of("m.Implementation"), builder -> {
-            builder.withFlags(ClassFile.ACC_PUBLIC);
-            builder.withInterfaceSymbols(ClassDesc.of("m.MemberAccessor"));
-            builder.withMethodBody(
-                    "<init>",
-                    MethodTypeDesc.of(CD_void),
-                    ClassFile.ACC_PUBLIC,
-                    code -> code.aload(0)
-                            .invokespecial(ClassDesc.of("java.lang.Object"), "<init>", MethodTypeDesc.of(CD_void))
-                            .return_());
-            builder.withMethodBody(
-                    "getServer",
-                    MethodTypeDesc.of(CD_int),
-                    ClassFile.ACC_PUBLIC,
-                    code -> code.iconst_0().ireturn());
-        });
-    }
-
     /**
      * A mixin that adds {@code describe(String)}: with {@code sameCode} the host's code (through the mixin's own class,
      * as javac writes calls to shadowed methods), else returning the argument without the call; and {@code helper},
@@ -1195,73 +1559,21 @@ class HostPatchAdjustmentsTest {
         });
     }
 
-    /** Another mixin of the mod: calls {@code t.Target.describe} directly and through a method reference. */
-    private static byte[] callerMixin() {
-        return ClassFile.of().build(ClassDesc.of("m.Caller"), builder -> {
-            builder.with(RuntimeInvisibleAnnotationsAttribute.of(Annotation.of(
-                    ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/Mixin;"),
-                    AnnotationElement.of(
-                            "value", AnnotationValue.ofArray(AnnotationValue.ofClass(ClassDesc.of("t.Other")))))));
-            builder.withMethodBody(
-                    "call",
-                    MethodTypeDesc.of(CD_String, TARGET),
-                    ClassFile.ACC_PRIVATE | ClassFile.ACC_STATIC,
-                    code -> code.aload(0)
-                            .ldc("x")
-                            .invokevirtual(TARGET, "describe", DESCRIBE)
-                            .pop()
-                            .ldc(java.lang.constant.MethodHandleDesc.ofMethod(
-                                    java.lang.constant.DirectMethodHandleDesc.Kind.VIRTUAL,
-                                    TARGET,
-                                    "describe",
-                                    DESCRIBE))
-                            .pop()
-                            .ldc("done")
-                            .areturn());
+    private static byte[] unmodifiableGetterMixin() {
+        ClassDesc self = ClassDesc.of("m.MemberAccessor");
+        return ClassFile.of().build(self, builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withField("connection", CD_List, ClassFile.ACC_PRIVATE);
+            builder.withMethodBody("getConnection", MethodTypeDesc.of(CD_List), ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0)
+                        .getfield(self, "connection", CD_List)
+                        .invokestatic(
+                                ClassDesc.of("java.util.Collections"),
+                                "unmodifiableList",
+                                MethodTypeDesc.of(CD_List, CD_List))
+                        .areturn();
+            });
         });
-    }
-
-    /**
-     * The names of the target's or mixin's methods {@code method} calls, or refers to through a method handle
-     * constant.
-     */
-    private static List<String> calls(ClassModel model, String method) {
-        return model.methods().stream()
-                .filter(candidate -> candidate.methodName().equalsString(method))
-                .flatMap(candidate -> candidate.code().orElseThrow().elementList().stream())
-                .flatMap(element -> {
-                    if (element instanceof InvokeInstruction call
-                            && List.of("t/Target", "m/MemberAccessor")
-                                    .contains(call.owner().asInternalName())) {
-                        return java.util.stream.Stream.of(call.name().stringValue());
-                    }
-                    if (element instanceof java.lang.classfile.instruction.ConstantInstruction constant
-                            && constant.constantValue() instanceof java.lang.constant.DirectMethodHandleDesc handle) {
-                        return java.util.stream.Stream.of(handle.methodName());
-                    }
-                    return java.util.stream.Stream.empty();
-                })
-                .toList();
-    }
-
-    /** Defines the given classes from bytes, everything else from the test's own loader. */
-    private static final class ByteClassLoader extends ClassLoader {
-
-        private final Map<String, byte[]> classes;
-
-        ByteClassLoader(Map<String, byte[]> classes) {
-            super(HostPatchAdjustmentsTest.class.getClassLoader());
-            this.classes = classes;
-        }
-
-        @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
-            byte[] bytes = classes.get(name);
-            if (bytes == null) {
-                throw new ClassNotFoundException(name);
-            }
-            return defineClass(name, bytes, 0, bytes.length);
-        }
     }
 
     /**
@@ -1396,11 +1708,11 @@ class HostPatchAdjustmentsTest {
      * ADR-0026 39: Fabric API's {@code GuiRendererMixin} adds {@code GuiRendererExtensions} to {@code GuiRenderer} and is
      * left out under NeoForge (its {@code @Shadow} field is not in NeoForge's {@code GuiRenderer}), while {@code
      * GameRendererMixin.guiRendererReady} casts the game's {@code GuiRenderer} to that interface: the client stopped with
-     * a {@code ClassCastException} ({@code corpusFabricNeoForgeClient}). An injection that uses an interface a left-out
-     * mixin adds, or a left-out accessor mixin, must not run.
+     * a {@code ClassCastException} ({@code corpusFabricNeoForgeClient}). An injection that uses an interface a mixin
+     * that cannot apply adds, or such an accessor mixin, cannot work either.
      */
     @Test
-    void anInjectionUsingTheInterfaceOfALeftOutMixinDoesNotRun() throws Exception {
+    void anInjectionUsingTheInterfaceOfAMixinThatCannotApplyIsIncompatible() throws Exception {
         byte[] vanilla = target(true);
         byte[] patched = target(false);
         Path jar = jar(Map.of(
@@ -1423,6 +1735,11 @@ class HostPatchAdjustmentsTest {
                 name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
                 classes(patched));
 
+        assertTrue(
+                adjustments.findings().stream()
+                        .filter(finding -> finding.mixin().equals("m/UserMixin"))
+                        .allMatch(HostPatchAdjustments.Finding::incompatible),
+                adjustments.findings().toString());
         List<String> userFindings = adjustments.findings().stream()
                 .filter(finding -> finding.mixin().equals("m/UserMixin"))
                 .map(HostPatchAdjustments.Finding::reason)
@@ -1439,13 +1756,6 @@ class HostPatchAdjustmentsTest {
                 userFindings.stream()
                         .anyMatch(reason -> reason.contains("useAccessor") && reason.contains("m/GoneAccessor")),
                 userFindings.toString());
-
-        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.UserMixin", userMixin()));
-        MethodTypeDesc handler = MethodTypeDesc.of(CD_void, CALLBACK_INFO);
-        assertFalse(annotationsOf(method(applied, "ready", handler)).contains("Inject"));
-        assertFalse(annotationsOf(method(applied, "useAccessor", handler)).contains("Inject"));
-        assertTrue(annotationsOf(method(applied, "other", handler)).contains("Inject"));
-        assertTrue(annotationsOf(method(applied, "guarded", handler)).contains("Inject"));
     }
 
     private static final ClassDesc SNIPPET = ClassDesc.of("t.Snippet");
@@ -1455,10 +1765,10 @@ class HostPatchAdjustmentsTest {
      * {@code buildSnippet} ({@code @WrapOperation} at {@code NEW}, no constructor descriptor); NeoForge's patch gives the
      * constructor one more parameter. Mixin then rejects the handler's signature, and with it every other mixin on the
      * class (Iris's {@code PipelineBuilderMixin}, whose interface Iris's {@code RenderPipeline} mixin casts to). The
-     * wrap is taken out instead.
+     * mod is incompatible.
      */
     @Test
-    void aWrapOfAConstructorCallThePatchGaveOtherParametersDoesNotRun() throws Exception {
+    void aWrapOfAConstructorCallThePatchGaveOtherParametersMakesTheModIncompatible() throws Exception {
         byte[] vanilla = snippetTarget(MethodTypeDesc.of(CD_void, CD_String));
         byte[] patched = snippetTarget(MethodTypeDesc.of(CD_void, CD_String, CD_int));
         String configText = "{\"package\":\"m\",\"client\":[\"WrapNewMixin\"]}";
@@ -1475,9 +1785,600 @@ class HostPatchAdjustmentsTest {
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         String reason = adjustments.findings().getFirst().reason();
         assertTrue(reason.contains("(Ljava/lang/String;I)V") && reason.endsWith("this injection does not run"), reason);
-        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.WrapNewMixin", wrapNewMixin()));
-        assertFalse(annotationsOf(method(applied, "wrapSnippet", MethodTypeDesc.of(SNIPPET, CD_String, OPERATION)))
-                .contains("WrapOperation"));
+        assertTrue(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+    }
+
+    /**
+     * An injection inside a slice whose boundary the patch removed finds nothing in the patched method (Fabric API's
+     * {@code LevelChunkMixin.onRemoveBlockEntity} next to Forge): the mod is incompatible, found before the launch.
+     */
+    @Test
+    void anInjectionInASliceWhoseBoundaryThePatchRemovedMakesTheModIncompatible() throws Exception {
+        ClassDesc at = ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;");
+        Annotation inject = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Inject;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("run"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(
+                                Annotation.of(at, AnnotationElement.ofString("value", "TAIL"))))),
+                AnnotationElement.of(
+                        "slice",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Slice;"),
+                                AnnotationElement.of(
+                                        "from",
+                                        AnnotationValue.ofAnnotation(Annotation.of(
+                                                at,
+                                                AnnotationElement.ofString("value", "INVOKE"),
+                                                AnnotationElement.ofString("target", "Lt/Target;old()V")))))))));
+        byte[] mixin = mixin("m.SliceMixin", List.of(new Handler("inSlice", inject)));
+        Path jar = jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"SliceMixin\"]}", "m/SliceMixin.class", mixin));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(target(true)) : Optional.empty(),
+                classes(target(false)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertTrue(
+                finding.incompatible()
+                        && finding.reason().contains("slice")
+                        && finding.reason().contains("old()V"),
+                finding.toString());
+    }
+
+    /**
+     * The slice's boundary is still there, but the patch moved the injection point before it, out of the slice (Fabric
+     * API's {@code LevelChunkMixin.onRemoveBlockEntity}: Forge's {@code getBlockEntity} removes the entry before {@code
+     * createBlockEntity}). Mixin finds nothing in the slice, so the mod is incompatible.
+     */
+    @Test
+    void anInjectionPointThePatchMovedOutOfItsSliceMakesTheModIncompatible() throws Exception {
+        ClassDesc at = ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;");
+        Annotation redirect = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Redirect;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("run"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                at,
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", "Lt/Target;moved()V")))),
+                AnnotationElement.of(
+                        "slice",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Slice;"),
+                                AnnotationElement.of(
+                                        "from",
+                                        AnnotationValue.ofAnnotation(Annotation.of(
+                                                at,
+                                                AnnotationElement.ofString("value", "INVOKE"),
+                                                AnnotationElement.ofString("target", "Lt/Target;old()V"))))))));
+        byte[] mixin = mixin("m.SliceMixin", List.of(new Handler("inSlice", redirect)));
+        Path jar = jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"SliceMixin\"]}", "m/SliceMixin.class", mixin));
+        // Vanilla calls old() and then moved(); the patch calls moved() first.
+        byte[] vanilla = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "run",
+                                MethodTypeDesc.of(CD_void),
+                                0,
+                                code -> code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
+                                        .invokestatic(TARGET, "moved", MethodTypeDesc.of(CD_void))
+                                        .return_()));
+        byte[] patched = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "run",
+                                MethodTypeDesc.of(CD_void),
+                                0,
+                                code -> code.invokestatic(TARGET, "moved", MethodTypeDesc.of(CD_void))
+                                        .invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
+                                        .return_()));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertTrue(
+                finding.incompatible() && finding.reason().contains("inside the injection's slice"),
+                finding.toString());
+        // In the same order as vanilla nothing is reported.
+        assertTrue(HostPatchAdjustments.plan(
+                        new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                        GameSide.DEDICATED_SERVER,
+                        Map.of(CONFIG, "example"),
+                        Map.of("example", jar),
+                        name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                        classes(vanilla))
+                .findings()
+                .isEmpty());
+    }
+
+    /**
+     * Without a descriptor Mixin injects into the first method of that name only. NeoForge's {@code
+     * BaseContainerBlockEntity.setItem(int, ItemStack)} calls its new {@code setItem(int, ItemStack, boolean)}, which
+     * holds the call All Stacks Infinite redirects: the call is still in the class, but not in the method Mixin picks.
+     */
+    @Test
+    void aCallThePatchMovedIntoANewOverloadIsNotWhereANameOnlySelectorLooks() throws Exception {
+        Annotation redirect = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Redirect;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("setItem"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", "Lt/Target;old()V")))));
+        byte[] mixin = mixin("m.OverloadMixin", List.of(new Handler("limit", redirect)));
+        Path jar = jar(
+                Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"OverloadMixin\"]}", "m/OverloadMixin.class", mixin));
+        MethodTypeDesc one = MethodTypeDesc.of(CD_void, CD_int);
+        MethodTypeDesc two = MethodTypeDesc.of(CD_void, CD_int, CD_boolean);
+        byte[] vanilla = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "setItem",
+                                one,
+                                0,
+                                code -> code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
+                                        .return_()));
+        byte[] patched = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                        "setItem",
+                                        one,
+                                        0,
+                                        code -> code.aload(0)
+                                                .iload(1)
+                                                .iconst_1()
+                                                .invokevirtual(TARGET, "setItem", two)
+                                                .return_())
+                                .withMethodBody(
+                                        "setItem",
+                                        two,
+                                        0,
+                                        code -> code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
+                                                .return_()));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertTrue(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+    }
+
+    @Test
+    void aSlicedCallOnAReceiverFieldMovedBeforeTheOtherReceiverFieldRetargetsTheSlice() throws Exception {
+        ClassDesc mapDesc = ClassDesc.of("java.util.Map");
+        MethodTypeDesc removeDesc = MethodTypeDesc.of(CD_Object, CD_Object);
+        MethodTypeDesc getDesc = MethodTypeDesc.of(CD_Object, CD_Object);
+        ClassDesc at = ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;");
+        Annotation redirect = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Redirect;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("get"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                at,
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString(
+                                        "target", "Ljava/util/Map;remove(Ljava/lang/Object;)Ljava/lang/Object;")))),
+                AnnotationElement.of(
+                        "slice",
+                        AnnotationValue.ofAnnotation(
+                                Annotation.of(
+                                        ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Slice;"),
+                                        AnnotationElement.of(
+                                                "from",
+                                                AnnotationValue.ofAnnotation(
+                                                        Annotation.of(
+                                                                at,
+                                                                AnnotationElement.ofString("value", "INVOKE"),
+                                                                AnnotationElement.ofString(
+                                                                        "target",
+                                                                        "Lt/Target;create(Ljava/lang/Object;)Ljava/lang/Object;"))))))));
+        byte[] mixin = ClassFile.of().build(ClassDesc.of("m.ChunkSliceMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withMethod(
+                    "onRemove", MethodTypeDesc.of(CD_Object, mapDesc, CD_Object), ClassFile.ACC_PRIVATE, method -> {
+                        method.with(RuntimeVisibleAnnotationsAttribute.of(redirect));
+                        method.withCode(code -> code.aconst_null().areturn());
+                    });
+        });
+        Path jar = jar(Map.of(
+                CONFIG, "{\"package\":\"m\",\"mixins\":[\"ChunkSliceMixin\"]}", "m/ChunkSliceMixin.class", mixin));
+        byte[] vanilla = ClassFile.of().build(TARGET, builder -> {
+            builder.withField("pending", mapDesc, 0);
+            builder.withField("entities", mapDesc, 0);
+            builder.withMethodBody("get", getDesc, 0, code -> {
+                code.aload(0)
+                        .getfield(TARGET, "pending", mapDesc)
+                        .aload(1)
+                        .invokeinterface(mapDesc, "remove", removeDesc)
+                        .pop()
+                        .aload(0)
+                        .aload(1)
+                        .invokevirtual(TARGET, "create", getDesc)
+                        .pop()
+                        .aload(0)
+                        .getfield(TARGET, "entities", mapDesc)
+                        .aload(1)
+                        .invokeinterface(mapDesc, "remove", removeDesc)
+                        .areturn();
+            });
+        });
+        byte[] patched = ClassFile.of().build(TARGET, builder -> {
+            builder.withField("pending", mapDesc, 0);
+            builder.withField("entities", mapDesc, 0);
+            builder.withMethodBody("get", getDesc, 0, code -> {
+                code.aload(0)
+                        .getfield(TARGET, "entities", mapDesc)
+                        .aload(1)
+                        .invokeinterface(mapDesc, "remove", removeDesc)
+                        .pop()
+                        .aload(0)
+                        .getfield(TARGET, "pending", mapDesc)
+                        .aload(1)
+                        .invokeinterface(mapDesc, "remove", removeDesc)
+                        .pop()
+                        .aload(0)
+                        .aload(1)
+                        .invokevirtual(TARGET, "create", getDesc)
+                        .areturn();
+            });
+        });
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertFalse(finding.incompatible(), finding.toString());
+        assertEquals("POLY-COMPAT-226", finding.code());
+
+        ClassModel rewritten = ClassFile.of().parse(adjustments.apply("m.ChunkSliceMixin", mixin));
+        MethodModel handler = rewritten.methods().stream()
+                .filter(method -> method.methodName().equalsString("onRemove"))
+                .findFirst()
+                .orElseThrow();
+        String annotations = annotationsOf(handler);
+        assertTrue(annotations.contains("Lt/Target;pending:Ljava/util/Map;"), annotations);
+        assertFalse(annotations.contains("Lt/Target;create("), annotations);
+    }
+
+    @Test
+    void aCallTheHostMovedToAnotherMethodRetargetsTheMethodSelector() throws Exception {
+        Annotation redirect = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Redirect;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("setItem(I)V"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", "Lt/Target;old()V")))));
+        byte[] mixin = mixin("m.OverloadMixin", List.of(new Handler("limit", redirect)));
+        Path jar = jar(
+                Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"OverloadMixin\"]}", "m/OverloadMixin.class", mixin));
+        MethodTypeDesc one = MethodTypeDesc.of(CD_void, CD_int);
+        MethodTypeDesc two = MethodTypeDesc.of(CD_void, CD_int, CD_boolean);
+        byte[] vanilla = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "setItem",
+                                one,
+                                0,
+                                code -> code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
+                                        .return_()));
+        byte[] patched = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                        "setItem",
+                                        one,
+                                        0,
+                                        code -> code.aload(0)
+                                                .iload(1)
+                                                .iconst_1()
+                                                .invokevirtual(TARGET, "setItem", two)
+                                                .return_())
+                                .withMethodBody(
+                                        "setItem",
+                                        two,
+                                        0,
+                                        code -> code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
+                                                .return_()));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch(
+                        "Host 1",
+                        List.of(),
+                        List.of(new InjectionPointReplacement(
+                                "t/Target",
+                                "setItem",
+                                "Lt/Target;old()V",
+                                "setItem(IZ)V",
+                                InjectionPointReplacement.Placement.IN_METHOD)),
+                        directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertFalse(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+
+        ClassModel rewritten = ClassFile.of().parse(adjustments.apply("m.OverloadMixin", mixin));
+        MethodModel handler = rewritten.methods().stream()
+                .filter(method -> method.methodName().equalsString("limit"))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(annotationsOf(handler).contains("setItem(IZ)V"), annotationsOf(handler));
+    }
+
+    @Test
+    void aCallMovedToAnotherMethodWithReplacedTargetRetargetsBothMethodAndPoint() throws Exception {
+        Annotation modifyArg = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/ModifyArg;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("lambda$run$5"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", "Lt/Target;init(Ljava/util/List;Z)V")))));
+        byte[] mixin = mixin("m.TagsMixin", List.of(new Handler("addReplaced", modifyArg)));
+        Path jar = jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"TagsMixin\"]}", "m/TagsMixin.class", mixin));
+        MethodTypeDesc two = MethodTypeDesc.of(CD_void, ClassDesc.of("java.util.List"), CD_boolean);
+        MethodTypeDesc three =
+                MethodTypeDesc.of(CD_void, ClassDesc.of("java.util.List"), CD_boolean, ClassDesc.of("java.util.List"));
+        byte[] vanilla = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "lambda$run$5",
+                                MethodTypeDesc.of(CD_void),
+                                0,
+                                code -> code.aconst_null()
+                                        .iconst_0()
+                                        .invokestatic(TARGET, "init", two)
+                                        .return_()));
+        byte[] patched = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                        "lambda$run$5",
+                                        MethodTypeDesc.of(CD_void),
+                                        0,
+                                        java.lang.classfile.CodeBuilder::return_)
+                                .withMethodBody(
+                                        "lambda$run$6",
+                                        MethodTypeDesc.of(CD_void),
+                                        0,
+                                        code -> code.aconst_null()
+                                                .iconst_0()
+                                                .aconst_null()
+                                                .invokestatic(TARGET, "init", three)
+                                                .return_()));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch(
+                        "Host 1",
+                        List.of(),
+                        List.of(new InjectionPointReplacement(
+                                "t/Target",
+                                "lambda$run$5",
+                                "Lt/Target;init(Ljava/util/List;Z)V",
+                                "lambda$run$6:Lt/Target;init(Ljava/util/List;ZLjava/util/List;)V",
+                                InjectionPointReplacement.Placement.IN_METHOD)),
+                        directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertFalse(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+
+        ClassModel rewritten = ClassFile.of().parse(adjustments.apply("m.TagsMixin", mixin));
+        MethodModel handler = rewritten.methods().stream()
+                .filter(method -> method.methodName().equalsString("addReplaced"))
+                .findFirst()
+                .orElseThrow();
+        String annotations = annotationsOf(handler);
+        assertTrue(annotations.contains("lambda$run$6"), annotations);
+        assertTrue(annotations.contains("Lt/Target;init(Ljava/util/List;ZLjava/util/List;)V"), annotations);
+    }
+
+    @Test
+    void aUnaryRedirectWhoseCallTheHostReplacedWithAVoidCaptureBridgesThroughModifyArg() throws Exception {
+        ClassDesc mapDesc = ClassDesc.of("java.util.Map");
+        MethodTypeDesc copyDesc = MethodTypeDesc.of(mapDesc, mapDesc);
+        MethodTypeDesc captureDesc = MethodTypeDesc.of(CD_void, mapDesc, mapDesc);
+        Annotation redirect = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Redirect;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("loadDefault"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString(
+                                        "target", "Ljava/util/Map;copyOf(Ljava/util/Map;)Ljava/util/Map;")))));
+        byte[] mixin = ClassFile.of().build(ClassDesc.of("m.LanguageRedirectMixin"), builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC);
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withMethod("create", copyDesc, ClassFile.ACC_PRIVATE | ClassFile.ACC_STATIC, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(redirect));
+                method.withCode(code -> code.aload(0)
+                        .ldc("mod.key")
+                        .ldc("Mod Value")
+                        .invokeinterface(mapDesc, "put", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))
+                        .pop()
+                        .aload(0)
+                        .invokestatic(mapDesc, "copyOf", copyDesc, true)
+                        .areturn());
+            });
+        });
+        Path jar = jar(Map.of(
+                CONFIG,
+                "{\"package\":\"m\",\"mixins\":[\"LanguageRedirectMixin\"]}",
+                "m/LanguageRedirectMixin.class",
+                mixin));
+        byte[] vanilla = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "loadDefault",
+                                MethodTypeDesc.of(CD_void),
+                                ClassFile.ACC_STATIC,
+                                code -> code.aconst_null()
+                                        .invokestatic(mapDesc, "copyOf", copyDesc, true)
+                                        .pop()
+                                        .return_()));
+        byte[] patched = ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "loadDefault",
+                                MethodTypeDesc.of(CD_void),
+                                ClassFile.ACC_STATIC,
+                                code -> code.aconst_null()
+                                        .aconst_null()
+                                        .invokestatic(TARGET, "capture", captureDesc)
+                                        .return_()));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch(
+                        "Host 1",
+                        List.of(),
+                        List.of(new InjectionPointReplacement(
+                                "t/Target",
+                                "loadDefault",
+                                "Ljava/util/Map;copyOf(Ljava/util/Map;)Ljava/util/Map;",
+                                "Lt/Target;capture(Ljava/util/Map;Ljava/util/Map;)V",
+                                InjectionPointReplacement.Placement.SAME_PLACE)),
+                        directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertFalse(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+
+        byte[] transformed = adjustments.apply("m.LanguageRedirectMixin", mixin);
+        ClassModel rewritten = ClassFile.of().parse(transformed);
+        MethodModel original = rewritten.methods().stream()
+                .filter(method -> method.methodName().equalsString("create"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("[]", annotationsOf(original));
+        MethodModel bridge = rewritten.methods().stream()
+                .filter(method -> method.methodName().equalsString("poly$hostRedirect$create"))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(annotationsOf(bridge).contains("ModifyArg"), annotationsOf(bridge));
+        assertTrue(
+                annotationsOf(bridge).contains("Lt/Target;capture(Ljava/util/Map;Ljava/util/Map;)V"),
+                annotationsOf(bridge));
+
+        Class<?> loaded = new ClassLoader(getClass().getClassLoader()) {
+            Class<?> define(byte[] bytes) {
+                return defineClass("m.LanguageRedirectMixin", bytes, 0, bytes.length);
+            }
+        }.define(transformed);
+        java.lang.reflect.Method bridgeMethod = loaded.getDeclaredMethod("poly$hostRedirect$create", Map.class);
+        bridgeMethod.setAccessible(true);
+        Map<String, String> mutable = new java.util.HashMap<>();
+        Object returned = bridgeMethod.invoke(null, mutable);
+        assertTrue(mutable == returned);
+        assertEquals("Mod Value", mutable.get("mod.key"));
+    }
+
+    /**
+     * {@code NEW} with a constructor descriptor matches only that constructor: when the patch calls another one, the
+     * injection finds nothing (Fabric API's {@code EntityMixin.modifyBlockStateParticleOption} next to NeoForge).
+     */
+    @Test
+    void anInjectionAtANewOfAConstructorThePatchNoLongerCallsMakesTheModIncompatible() throws Exception {
+        byte[] vanilla = snippetTarget(MethodTypeDesc.of(CD_void, CD_String));
+        byte[] patched = snippetTarget(MethodTypeDesc.of(CD_void, CD_String, CD_int));
+        Annotation modify = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("buildSnippet"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "NEW"),
+                                AnnotationElement.ofString("target", "(Ljava/lang/String;)Lt/Snippet;"))))));
+        byte[] mixin = mixin("m.NewMixin", List.of(new Handler("modifySnippet", modify)));
+        Path jar = jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"NewMixin\"]}", "m/NewMixin.class", mixin));
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                classes(patched));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertTrue(
+                adjustments.findings().getFirst().incompatible(),
+                adjustments.findings().toString());
+        // The same constructor in both: nothing to report.
+        assertTrue(HostPatchAdjustments.plan(
+                        new HostedLaunch("Host 1", List.of(), List.of(), directory),
+                        GameSide.DEDICATED_SERVER,
+                        Map.of(CONFIG, "example"),
+                        Map.of("example", jar),
+                        name -> name.equals("t/Target") ? Optional.of(vanilla) : Optional.empty(),
+                        classes(vanilla))
+                .findings()
+                .isEmpty());
     }
 
     private static byte[] snippetTarget(MethodTypeDesc constructor) {
@@ -1657,7 +2558,7 @@ class HostPatchAdjustmentsTest {
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
         assertEquals("POLY-COMPAT-222", finding.code());
-        assertFalse(finding.limited());
+        assertFalse(finding.incompatible());
         assertEquals("m/CommonMixin", finding.mixin());
         assertTrue(finding.reason().contains("t/Game") && finding.reason().contains("onHandle"), finding.reason());
 
@@ -1815,9 +2716,13 @@ class HostPatchAdjustmentsTest {
     }
 
     private static Annotation mixinAnnotation() {
+        return mixinAnnotation(TARGET);
+    }
+
+    private static Annotation mixinAnnotation(ClassDesc target) {
         return Annotation.of(
                 ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/Mixin;"),
-                AnnotationElement.of("value", AnnotationValue.ofArray(AnnotationValue.ofClass(TARGET))));
+                AnnotationElement.of("value", AnnotationValue.ofArray(AnnotationValue.ofClass(target))));
     }
 
     private static GameClassBytes classes(byte[] patched) {

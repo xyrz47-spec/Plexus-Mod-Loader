@@ -7,10 +7,8 @@
 package dev.polymodloader.compat.fabric.mixin;
 
 import dev.polymodloader.api.runtime.GameSide;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
@@ -202,18 +200,7 @@ public final class PolyMixinService
 
     @Override
     public InputStream getResourceAsStream(String name) {
-        MixinLaunch launch = MixinLaunch.current();
-        InputStream input = launch.gameClassLoader.getResourceAsStream(name);
-        if (input == null || !name.endsWith(".json")) {
-            return input;
-        }
-        // A configuration without the mixins Poly Mod Loader left out (HostPatchAdjustments).
-        try (InputStream original = input) {
-            byte[] bytes = original.readAllBytes();
-            return new ByteArrayInputStream(launch.configs.apply(name, bytes).orElse(bytes));
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to read the Mixin resource " + name, e);
-        }
+        return MixinLaunch.current().gameClassLoader.getResourceAsStream(name);
     }
 
     @Override

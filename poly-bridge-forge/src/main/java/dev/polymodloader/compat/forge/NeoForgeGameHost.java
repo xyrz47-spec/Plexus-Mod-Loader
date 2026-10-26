@@ -6,6 +6,7 @@ import dev.polymodloader.compat.bridge.BridgeLaunchContext;
 import dev.polymodloader.compat.bridge.GameClassBytes;
 import dev.polymodloader.compat.bridge.GameHost;
 import dev.polymodloader.compat.bridge.GameModuleLayers;
+import dev.polymodloader.compat.bridge.InjectionPointReplacement;
 import dev.polymodloader.compat.bridge.SharedMixinConfig;
 import dev.polymodloader.internal.transform.TransformRuleDefinition;
 import java.io.IOException;
@@ -524,6 +525,12 @@ final class NeoForgeGameHost implements GameHost {
         return launch == null ? List.of() : launch.sharedMixinConfigs();
     }
 
+    /** Where NeoForge's patch moved vanilla calls that Fabric mods inject at ({@link NeoForgeInjectionPoints}). */
+    @Override
+    public List<InjectionPointReplacement> injectionPointReplacements() {
+        return NeoForgeInjectionPoints.all();
+    }
+
     /**
      * Other loaders' mods initialize with NeoForge's registries open, as NeoForge's mods register during its {@code
      * RegisterEvent} ({@link NeoForgeRegistryOpening}).
@@ -605,6 +612,9 @@ final class NeoForgeGameHost implements GameHost {
         if (launch == null) {
             throw new IllegalStateException("NeoForge was not prepared");
         }
+        System.setProperty("neoforge.earlyprogresswindow", "false");
+        System.setProperty("fml.earlyprogresswindow", "false");
+        System.setProperty("forge.forceDisplay", "false");
         launch.launch(mainClass(request.launchTarget()));
     }
 

@@ -15,6 +15,7 @@ import dev.polymodloader.compat.bridge.BridgedInterfaceInjection;
 import dev.polymodloader.compat.bridge.CompatibilityFinding;
 import dev.polymodloader.compat.bridge.CompatibilityStatus;
 import dev.polymodloader.compat.bridge.GameClassBytes;
+import dev.polymodloader.compat.bridge.HostedLaunch;
 import dev.polymodloader.compat.bridge.ModJarContents;
 import dev.polymodloader.compat.bridge.ModLoaderBridge;
 import dev.polymodloader.compat.fabric.loader.FabricFamilyMod;
@@ -140,6 +141,16 @@ public final class FabricBridge implements ModLoaderBridge {
     }
 
     /**
+     * The Fabric and Quilt mods whose mixins cannot work as written on the host's patched game (ADR-0030): Quilt mods
+     * share Fabric's Mixin (ADR-0027), so this bridge checks both.
+     */
+    @Override
+    public Map<java.nio.file.Path, List<String>> hostIncompatibilities(
+            GameSide side, HostedLaunch host, List<BridgeLaunchContext.LoadedMod> mods, GameClassBytes patched) {
+        return FabricMixinBootstrap.incompatibleOnHost(host, side, mods, patched);
+    }
+
+    /**
      * The Fabric class stage (ADR-0020), installed when a Fabric or Quilt mod loads (ADR-0027): environment stripping
      * and the loaded mods' interface injections, as Fabric Loader's own transformer does, then Mixin when a loaded mod
      * has a Mixin configuration for this side.
@@ -173,7 +184,7 @@ public final class FabricBridge implements ModLoaderBridge {
         Optional<HostInterfaceDefaults> hostDefaults = context.host().isHosted()
                 ? Optional.of(new HostInterfaceDefaults(classes, FabricBridge::reportHostDefault))
                 : Optional.empty();
-        return Optional.of(new FabricClassTransformer(stripper, injector, extender, mixin, hostDefaults));
+        return Optional.of(new FabricClassTransformer(classes, stripper, injector, extender, mixin, hostDefaults));
     }
 
     private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Poly Mod Loader");

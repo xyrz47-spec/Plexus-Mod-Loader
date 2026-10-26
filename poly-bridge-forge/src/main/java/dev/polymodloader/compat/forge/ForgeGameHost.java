@@ -375,6 +375,8 @@ final class ForgeGameHost implements GameHost {
         if (launch == null) {
             throw new IllegalStateException("Forge was not prepared");
         }
+        System.setProperty("fml.earlyprogresswindow", "false");
+        System.setProperty("forge.forceDisplay", "false");
         launch.launch();
     }
 

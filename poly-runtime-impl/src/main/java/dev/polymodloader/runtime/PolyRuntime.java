@@ -30,6 +30,7 @@ import dev.polymodloader.runtime.compat.CrossLoaderLoadOrder;
 import dev.polymodloader.runtime.compat.CrossLoaderModResolver;
 import dev.polymodloader.runtime.compat.ForeignAccessWidenings;
 import dev.polymodloader.runtime.compat.HostBuildMatcher;
+import dev.polymodloader.runtime.compat.HostPatchCheck;
 import dev.polymodloader.runtime.compat.ModLinkVerifier;
 import dev.polymodloader.runtime.dependency.DependencyProblem;
 import dev.polymodloader.runtime.dependency.ModDependencyResolver;
@@ -64,7 +65,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -79,6 +82,7 @@ import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,6 +226,19 @@ public final class PolyRuntime {
         if (host.isPresent()) {
             assessedForeignMods =
                     withoutHostMods(host.get(), assessedForeignMods, blockedFiles, hostStandIns, hostAliases);
+            // Mods whose code does not fit the host's patch are not loaded, rather than run with parts left out
+            // (ADR-0030); the dependency check below then leaves out the mods that need them.
+            List<Path> patchedJars = new ArrayList<>();
+            patchedJars.add(host.get().gameJar());
+            patchedJars.addAll(host.get().classBytesJars());
+            patchedJars.addAll(host.get().resourceJars());
+            assessedForeignMods = HostPatchCheck.apply(
+                    configuration.side(),
+                    hostedLaunch(host.get(), configuration.gameJar()),
+                    patchedJars.stream().distinct().toList(),
+                    PolyRuntime.class.getClassLoader(),
+                    foreignMods.bridges(),
+                    assessedForeignMods);
         }
         for (NestedJarExtractor.NestedFile file : nestedJars.otherFiles()) {
             blockedFiles.add(new StartupReport.BlockedFile(
@@ -264,11 +281,23 @@ public final class PolyRuntime {
         CrossLoaderModResolver.Result foreignResolution;
         // Mods that need a left-out build link against the host's build that stands in for it (ADR-0026 37).
         List<Path> linkSources = new ArrayList<>(modJars.values());
-        host.ifPresent(found -> found.mods().stream()
-                .filter(mod -> hostAliases.containsKey(mod.modId()) && mod.nestedEntry() == null)
-                .map(BridgeLaunchContext.LoadedMod::jar)
-                .distinct()
-                .forEach(linkSources::add));
+        if (host.isPresent()) {
+            Path nestedHostDir = configuration.reportDirectory().resolve("nested-host-jars");
+            for (BridgeLaunchContext.LoadedMod mod : host.get().mods()) {
+                if (hostAliases.containsKey(mod.modId()) || !mod.providedIds().isEmpty()) {
+                    if (mod.nestedEntry() == null) {
+                        if (mod.jar() != null && !linkSources.contains(mod.jar())) {
+                            linkSources.add(mod.jar());
+                        }
+                    } else if (mod.jar() != null) {
+                        Path extracted = extractNestedHostJar(nestedHostDir, mod.jar(), mod.nestedEntry());
+                        if (extracted != null && !linkSources.contains(extracted)) {
+                            linkSources.add(extracted);
+                        }
+                    }
+                }
+            }
+        }
         try (ModLinkVerifier linkVerifier = new ModLinkVerifier(
                 List.of(configuration.gameJar()), PolyRuntime.class.getClassLoader(), configuration.side())) {
             linkVerifier.absentOnThisSide(assessedForeignMods.stream()
@@ -354,16 +383,38 @@ public final class PolyRuntime {
                         .map(BridgeLaunchContext.LoadedMod::modId)
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
+        // Mods left out because Poly Mod Loader cannot run them on the host's patched game (ADR-0030): said once more,
+        // together, and counted on the title screen, so that the player does not take them for broken mods.
+        List<String> hostIncompatible = foreignResolution.mods().stream()
+                .filter(mod -> mod.assessment().blockingCodes().contains(HostPatchCheck.CODE))
+                .map(mod -> mod.assessment().modId())
+                .distinct()
+                .toList();
+        if (!hostIncompatible.isEmpty()) {
+            LOGGER.warn(
+                    "[Poly Mod Loader] {} {} mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on"
+                            + " the game as {} patches it: {}. Mods that need them are not loaded either"
+                            + " (POLY-COMPAT-114). This is a limitation of Poly Mod Loader, not a bug in these mods:"
+                            + " report it to Poly Mod Loader, not to their authors. Each mod's reasons are listed above",
+                    HostPatchCheck.CODE,
+                    hostIncompatible.size(),
+                    host.map(GameHost::name).orElse("the host"),
+                    String.join(", ", hostIncompatible));
+        }
         LoadedModCounts modCounts = LoadedModCounter.count(
-                resolution.loadOrder().stream().map(mod -> mod.id().value()).toList(),
-                bridgedMods.stream()
-                        .collect(Collectors.groupingBy(
-                                mod -> mod.bridge().loaderName(),
-                                Collectors.mapping(mod -> mod.assessment().modId(), Collectors.toList()))),
-                host.map(GameHost::modIds).orElse(Set.of()).stream()
-                        .filter(id -> !hostNeoForgeModIds.contains(id))
-                        .toList(),
-                hostNeoForgeModIds);
+                        resolution.loadOrder().stream()
+                                .map(mod -> mod.id().value())
+                                .toList(),
+                        bridgedMods.stream()
+                                .collect(Collectors.groupingBy(
+                                        mod -> mod.bridge().loaderName(),
+                                        Collectors.mapping(
+                                                mod -> mod.assessment().modId(), Collectors.toList()))),
+                        host.map(GameHost::modIds).orElse(Set.of()).stream()
+                                .filter(id -> !hostNeoForgeModIds.contains(id))
+                                .toList(),
+                        hostNeoForgeModIds)
+                .withHostIncompatibleMods(hostIncompatible.size());
         LOGGER.info(
                 "[Poly Mod Loader] Loaded mods per loader: {} Poly, {} Fabric, {} Quilt, {} Forge, {} NeoForge",
                 modCounts.polyMods(),
@@ -558,13 +609,7 @@ public final class PolyRuntime {
                 gameClassLoader,
                 everyMod,
                 () -> adapter.gameInstance().orElse(null),
-                host.map(found -> new HostedLaunch(
-                                found.name(),
-                                found.sharedMixinConfigs(),
-                                found.injectionPointReplacements(),
-                                configuration.gameJar(),
-                                found.sharesMixin()))
-                        .orElse(HostedLaunch.NONE));
+                host.map(found -> hostedLaunch(found, configuration.gameJar())).orElse(HostedLaunch.NONE));
         prepareBridges(foreignMods, bridgeContext, gameClassLoader);
         // The host defines its loader's layers (Forge's mods) before code that runs before the game: a Mixin shared
         // with the host's mods finds their configurations' classes there.
@@ -1015,6 +1060,20 @@ public final class PolyRuntime {
             Map<String, Set<String>> aliases) {
         HostBuildMatcher matcher = new HostBuildMatcher(host.mods());
         Set<String> hostIds = host.modIds();
+        for (BridgeLaunchContext.LoadedMod hostMod : host.mods()) {
+            standIns.putIfAbsent(hostMod.modId(), hostMod.version());
+            for (String provided : hostMod.providedIds()) {
+                standIns.putIfAbsent(provided, hostMod.version());
+                aliases.computeIfAbsent(hostMod.modId(), key -> new LinkedHashSet<>())
+                        .add(provided);
+            }
+            String hyphenated = hostMod.modId().replace('_', '-');
+            if (!hyphenated.equals(hostMod.modId())) {
+                standIns.putIfAbsent(hyphenated, hostMod.version());
+                aliases.computeIfAbsent(hostMod.modId(), key -> new LinkedHashSet<>())
+                        .add(hyphenated);
+            }
+        }
         List<ForeignModResolver.ForeignMod> kept = new ArrayList<>();
         for (ForeignModResolver.ForeignMod mod : mods) {
             String modId = mod.assessment().modId();
@@ -1106,6 +1165,41 @@ public final class PolyRuntime {
     }
 
     /**
+     * Extracts {@code entryName} from {@code containerJar} into {@code destinationDir} if not already extracted,
+     * so it can be verified as a link source jar (ADR-0026 37).
+     */
+    private static Path extractNestedHostJar(Path destinationDir, Path containerJar, String entryName) {
+        try {
+            String cleanEntry = entryName.startsWith("/") ? entryName.substring(1) : entryName;
+            Path target = destinationDir.resolve(cleanEntry);
+            Path parent = target.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            try (ZipFile zip = new ZipFile(containerJar.toFile())) {
+                ZipEntry entry = zip.getEntry(entryName);
+                if (entry == null) {
+                    LOGGER.warn("[Poly Mod Loader] Entry {} not found in host jar {}", entryName, containerJar);
+                    return null;
+                }
+                if (!Files.exists(target) || (entry.getSize() >= 0 && Files.size(target) != entry.getSize())) {
+                    try (InputStream in = zip.getInputStream(entry)) {
+                        Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+                return target;
+            }
+        } catch (IOException e) {
+            LOGGER.warn(
+                    "[Poly Mod Loader] Could not extract nested host jar {} from {}: {}",
+                    entryName,
+                    containerJar,
+                    e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * A Fabric-family mod (Fabric or Quilt, which share Fabric's Mixin and entrypoint machinery, ADR-0027) no other
      * loader could run instead.
      */
@@ -1173,6 +1267,16 @@ public final class PolyRuntime {
             gameClassLoader.installBridgeTransformer(transformer);
             LOGGER.info("[Poly Mod Loader] {} transforms classes with {}", host.name(), transformer.name());
         });
+    }
+
+    /** What the bridges learn about {@code host}, which patched {@code vanillaGameJar}. */
+    private static HostedLaunch hostedLaunch(GameHost host, Path vanillaGameJar) {
+        return new HostedLaunch(
+                host.name(),
+                host.sharedMixinConfigs(),
+                host.injectionPointReplacements(),
+                vanillaGameJar,
+                host.sharesMixin());
     }
 
     private static BridgeLaunchContext.LoadedMod loadedMod(

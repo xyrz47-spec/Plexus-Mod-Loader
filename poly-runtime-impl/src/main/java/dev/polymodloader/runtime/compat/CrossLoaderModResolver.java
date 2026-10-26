@@ -350,6 +350,11 @@ public final class CrossLoaderModResolver {
                             index, "the Poly Mod '" + id + "' " + nativeVersions.get(id) + " is used instead"));
                     continue;
                 }
+                if (hostBuilds.containsKey(id)) {
+                    nested.forEach(index -> replaced.putIfAbsent(
+                            index, "the host build '" + id + "' " + hostBuilds.get(id) + " is used instead"));
+                    continue;
+                }
                 // A library the bridge itself provides on Poly Mod Loader's class path (Fabric's MixinExtras): the
                 // game class loader never defines a mod's copy of its classes, so the copy cannot be used.
                 for (int index : nested) {

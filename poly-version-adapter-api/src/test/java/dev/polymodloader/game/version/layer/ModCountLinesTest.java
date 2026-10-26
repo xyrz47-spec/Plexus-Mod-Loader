@@ -45,7 +45,8 @@ class ModCountLinesTest {
                             ModCountLines.FABRIC_KEY,
                             ModCountLines.QUILT_KEY,
                             ModCountLines.FORGE_KEY,
-                            ModCountLines.NEOFORGE_KEY),
+                            ModCountLines.NEOFORGE_KEY,
+                            ModCountLines.HOST_INCOMPATIBLE_KEY),
                     List.copyOf(bundled(language).keySet()),
                     language);
         }
@@ -64,6 +65,22 @@ class ModCountLinesTest {
                 List.of("Poly mods: 1", "NeoForge mods: 4"),
                 ModCountLines.lines(new LoadedModCounts(1, 0, 0, 0, 4), english::get));
         assertEquals(List.of(), ModCountLines.lines(LoadedModCounts.NONE, english::get));
+    }
+
+    /** Mods left out for the host's patch are shown last, so the player sees they are missing (ADR-0030). */
+    @Test
+    void modsLeftOutForTheHostsPatchHaveTheirOwnLine() throws IOException {
+        LoadedModCounts counts = new LoadedModCounts(0, 3, 0, 0, 40).withHostIncompatibleMods(12);
+
+        assertEquals(
+                List.of("Fabric mods: 3", "NeoForge mods: 40", "Not loaded, Poly Mod Loader can't run them yet: 12"),
+                ModCountLines.lines(counts, bundled("en_us")::get));
+        assertEquals(
+                List.of("Fabric 모드: 3개", "NeoForge 모드: 40개", "Poly Mod Loader가 아직 실행하지 못해 빠진 모드: 12개"),
+                ModCountLines.lines(counts, bundled("ko_kr")::get));
+        assertEquals(
+                List.of("Not loaded, Poly Mod Loader can't run them yet: 1"),
+                ModCountLines.lines(LoadedModCounts.NONE.withHostIncompatibleMods(1), key -> null));
     }
 
     @Test

@@ -3,9 +3,7 @@ package dev.polymodloader.compat.fabric.mixin;
 import dev.polymodloader.api.runtime.GameSide;
 import dev.polymodloader.compat.bridge.GameClassBytes;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 
 /**
@@ -20,9 +18,6 @@ final class MixinLaunch {
     private static volatile MixinLaunch current;
 
     final GameClassBytes classes;
-    /** Mixin configuration resources Poly Mod Loader changed (by name, the original bytes), or empty for the original. */
-    final BiFunction<String, byte[], Optional<byte[]>> configs;
-
     final ClassLoader gameClassLoader;
     final GameSide side;
     final String fabricLoaderVersion;
@@ -33,13 +28,8 @@ final class MixinLaunch {
     volatile IMixinTransformer transformer;
 
     private MixinLaunch(
-            GameClassBytes classes,
-            BiFunction<String, byte[], Optional<byte[]>> configs,
-            ClassLoader gameClassLoader,
-            GameSide side,
-            String fabricLoaderVersion) {
+            GameClassBytes classes, ClassLoader gameClassLoader, GameSide side, String fabricLoaderVersion) {
         this.classes = classes;
-        this.configs = configs;
         this.gameClassLoader = gameClassLoader;
         this.side = side;
         this.fabricLoaderVersion = fabricLoaderVersion;
@@ -51,16 +41,12 @@ final class MixinLaunch {
      * @throws IllegalStateException when Mixin was already started in this JVM
      */
     static synchronized MixinLaunch begin(
-            GameClassBytes classes,
-            BiFunction<String, byte[], Optional<byte[]>> configs,
-            ClassLoader gameClassLoader,
-            GameSide side,
-            String fabricLoaderVersion) {
+            GameClassBytes classes, ClassLoader gameClassLoader, GameSide side, String fabricLoaderVersion) {
         if (current != null) {
             throw new IllegalStateException(
                     "Mixin was already started in this Java process; it keeps global state and can start only once");
         }
-        current = new MixinLaunch(classes, configs, gameClassLoader, side, fabricLoaderVersion);
+        current = new MixinLaunch(classes, gameClassLoader, side, fabricLoaderVersion);
         return current;
     }
 

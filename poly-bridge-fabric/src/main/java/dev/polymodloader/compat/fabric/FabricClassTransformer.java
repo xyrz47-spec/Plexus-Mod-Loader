@@ -3,6 +3,14 @@ package dev.polymodloader.compat.fabric;
 import dev.polymodloader.compat.bridge.BridgeClassTransformer;
 import dev.polymodloader.compat.bridge.GameClassBytes;
 import dev.polymodloader.compat.fabric.mixin.HostInterfaceDefaults;
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
+import java.lang.classfile.constantpool.ClassEntry;
+import java.lang.constant.ClassDesc;
+import java.lang.constant.MethodTypeDesc;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,6 +22,7 @@ import java.util.Optional;
  */
 final class FabricClassTransformer implements BridgeClassTransformer {
 
+    private final GameClassBytes classes;
     private final EnvironmentStripper stripper;
     private final InterfaceInjector injector;
     private final EnumExtender extender;
@@ -26,15 +35,17 @@ final class FabricClassTransformer implements BridgeClassTransformer {
             InterfaceInjector injector,
             EnumExtender extender,
             Optional<BridgeClassTransformer> mixin) {
-        this(stripper, injector, extender, mixin, Optional.empty());
+        this(null, stripper, injector, extender, mixin, Optional.empty());
     }
 
     FabricClassTransformer(
+            GameClassBytes classes,
             EnvironmentStripper stripper,
             InterfaceInjector injector,
             EnumExtender extender,
             Optional<BridgeClassTransformer> mixin,
             Optional<HostInterfaceDefaults> hostDefaults) {
+        this.classes = classes;
         this.stripper = stripper;
         this.injector = injector;
         this.extender = extender;
@@ -57,7 +68,7 @@ final class FabricClassTransformer implements BridgeClassTransformer {
 
     @Override
     public byte[] transform(String className, byte[] bytes) {
-        byte[] prepared = preMixin(stripper, injector, extender, className, bytes);
+        byte[] prepared = preMixin(classes, stripper, injector, extender, className, bytes);
         byte[] transformed = mixin.isPresent() ? mixin.get().transform(className, prepared) : prepared;
         return hostDefaults.isPresent() ? hostDefaults.get().apply(className, bytes, transformed) : transformed;
     }
@@ -68,12 +79,59 @@ final class FabricClassTransformer implements BridgeClassTransformer {
     }
 
     private static byte[] preMixin(
+            GameClassBytes classes,
             EnvironmentStripper stripper,
             InterfaceInjector injector,
             EnumExtender extender,
             String className,
             byte[] bytes) {
-        return extender.apply(className, injector.apply(className, stripper.apply(className, bytes)));
+        byte[] prepared = extender.apply(className, injector.apply(className, stripper.apply(className, bytes)));
+        return adaptHostTargetClass(classes, className, prepared);
+    }
+
+    private static byte[] adaptHostTargetClass(GameClassBytes classes, String className, byte[] bytes) {
+        if (!className.equals("net.minecraft.world.entity.ai.attributes.AttributeSupplier$Builder")
+                && !className.equals("net/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder")) {
+            return bytes;
+        }
+        if (classes == null
+                || (classes.classBytes("net.fabricmc.fabric.mixin.object.builder.AttributeSupplierBuilderAccessor")
+                                .isEmpty()
+                        && classes.classBytes(
+                                        "net/fabricmc/fabric/mixin/object/builder/AttributeSupplierBuilderAccessor")
+                                .isEmpty())) {
+            return bytes;
+        }
+        ClassFile classFile = ClassFile.of();
+        ClassModel model = classFile.parse(bytes);
+        boolean hasGetBuilder = model.methods().stream()
+                .anyMatch(m -> m.methodName().equalsString("getBuilder")
+                        && m.methodType().equalsString("()Lcom/google/common/collect/ImmutableMap$Builder;"));
+        if (hasGetBuilder) {
+            return bytes;
+        }
+        ClassDesc accessorInterface =
+                ClassDesc.of("net.fabricmc.fabric.mixin.object.builder.AttributeSupplierBuilderAccessor");
+        ClassDesc targetClass = ClassDesc.of("net.minecraft.world.entity.ai.attributes.AttributeSupplier$Builder");
+        ClassDesc mapDesc = ClassDesc.of("java.util.Map");
+        ClassDesc immutableMapBuilderDesc = ClassDesc.of("com.google.common.collect.ImmutableMap$Builder");
+        ClassDesc bridgeClass = ClassDesc.of("dev.polymodloader.compat.fabric.mixin.AttributeBuilderBridge");
+
+        List<ClassDesc> allInterfaces = new ArrayList<>(
+                model.interfaces().stream().map(ClassEntry::asSymbol).toList());
+        if (!allInterfaces.contains(accessorInterface)) {
+            allInterfaces.add(accessorInterface);
+        }
+        return classFile.transformClass(model, ClassTransform.endHandler(builder -> {
+            builder.withInterfaceSymbols(allInterfaces);
+            builder.withMethodBody(
+                    "getBuilder", MethodTypeDesc.of(immutableMapBuilderDesc), ClassFile.ACC_PUBLIC, code -> {
+                        code.aload(0);
+                        code.getfield(targetClass, "builder", mapDesc);
+                        code.invokestatic(bridgeClass, "wrap", MethodTypeDesc.of(immutableMapBuilderDesc, mapDesc));
+                        code.areturn();
+                    });
+        }));
     }
 
     /**
@@ -86,7 +144,7 @@ final class FabricClassTransformer implements BridgeClassTransformer {
             @Override
             public Optional<byte[]> classBytes(String className) {
                 return classes.classBytes(className)
-                        .map(bytes -> preMixin(stripper, injector, extender, className, bytes));
+                        .map(bytes -> preMixin(classes, stripper, injector, extender, className, bytes));
             }
 
             @Override

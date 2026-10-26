@@ -47,6 +47,144 @@ final class ForgeInjectionPoints {
                         "Lnet/minecraft/world/level/block/Block;destroy(Lnet/minecraft/world/level/LevelAccessor;"
                                 + "Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V",
                         "L" + GAME_MODE + ";removeBlock(Lnet/minecraft/core/BlockPos;Z)Z",
-                        InjectionPointReplacement.Placement.AFTER_TRUE_RESULT));
+                        InjectionPointReplacement.Placement.AFTER_TRUE_RESULT),
+                // ItemStack.useOn: vanilla calls Item.useOn(UseOnContext) where Fabric API's ItemStackMixin wraps the
+                // call for ItemEvents.USE_ON. Forge moves the vanilla call into lambda$useOn$0.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/item/ItemStack",
+                        "useOn",
+                        "Lnet/minecraft/world/item/Item;useOn(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;",
+                        "lambda$useOn$0(Lnet/minecraft/world/item/context/UseOnContext;Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // Language.loadDefault: vanilla calls Map.copyOf(map) after loading the default translations, where
+                // Fabric API's LanguageMixin.create loads Fabric mods' server translations into map. Forge replaces
+                // Map.copyOf(map) with LanguageHook.captureLanguageMap(map) and keeps map mutable.
+                new InjectionPointReplacement(
+                        "net/minecraft/locale/Language",
+                        "loadDefault",
+                        "Ljava/util/Map;copyOf(Ljava/util/Map;)Ljava/util/Map;",
+                        "Lnet/minecraftforge/server/LanguageHook;captureLanguageMap(Ljava/util/Map;)V"),
+                // LivingEntity.getBedOrientation: vanilla calls BedBlock.getBedOrientation(BlockGetter, BlockPos).
+                // Forge replaces it with BlockState.getBedDirection(LevelReader, BlockPos) for custom beds.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "getBedOrientation",
+                        "Lnet/minecraft/world/level/block/BedBlock;getBedOrientation(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;",
+                        "Lnet/minecraft/world/level/block/state/BlockState;getBedDirection(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;"),
+                // LivingEntity.lambda$stopSleeping$0: vanilla calls Level.setBlock to clear OCCUPIED.
+                // Forge replaces it with BlockState.setBedOccupied for custom beds.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "lambda$stopSleeping$0",
+                        "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z",
+                        "Lnet/minecraft/world/level/block/state/BlockState;setBedOccupied(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;Z)V"),
+                // TagsProvider.lambda$run$5: vanilla saves stable JSON via DataProvider.saveStable.
+                // Forge moves this tag-saving lambda to lambda$run$6.
+                new InjectionPointReplacement(
+                        "net/minecraft/data/tags/TagsProvider",
+                        "lambda$run$5",
+                        "Lnet/minecraft/data/DataProvider;saveStable(Lnet/minecraft/data/CachedOutput;Lnet/minecraft/core/HolderLookup$Provider;Lcom/mojang/serialization/Codec;Ljava/lang/Object;Ljava/nio/file/Path;)Ljava/util/concurrent/CompletableFuture;",
+                        "lambda$run$6",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // TagsProvider.lambda$run$5: vanilla creates TagFile with (List, boolean).
+                // Forge moves this to lambda$run$6 and widens TagFile.<init> to (List, boolean, List).
+                new InjectionPointReplacement(
+                        "net/minecraft/data/tags/TagsProvider",
+                        "lambda$run$5",
+                        "Lnet/minecraft/tags/TagFile;<init>(Ljava/util/List;Z)V",
+                        "lambda$run$6:Lnet/minecraft/tags/TagFile;<init>(Ljava/util/List;ZLjava/util/List;)V",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // Entity.updateSwimming: vanilla checks Entity.isInWater(). Forge widens to isInWaterOrSwimmable().
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/Entity",
+                        "updateSwimming",
+                        "Lnet/minecraft/world/entity/Entity;isInWater()Z",
+                        "Lnet/minecraft/world/entity/Entity;isInWaterOrSwimmable()Z"),
+                // Entity.isVisuallyCrawling: vanilla checks Entity.isInWater(). Forge widens to isInWaterOrSwimmable().
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/Entity",
+                        "isVisuallyCrawling",
+                        "Lnet/minecraft/world/entity/Entity;isInWater()Z",
+                        "Lnet/minecraft/world/entity/Entity;isInWaterOrSwimmable()Z"),
+                // LivingEntity.travelInFluid: vanilla calls travelInLava directly. Forge moves it to
+                // travelInFluid(Vec3, FluidState).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "travelInFluid",
+                        "Lnet/minecraft/world/entity/LivingEntity;travelInLava(Lnet/minecraft/world/phys/Vec3;DZD)V",
+                        "travelInFluid(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/level/material/FluidState;)V",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // AbstractBoat.checkInWater & isUnderwater: vanilla checks FluidState.is(TagKey). Forge calls
+                // canBoatInFluid(FluidState).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/vehicle/boat/AbstractBoat",
+                        "checkInWater",
+                        "Lnet/minecraft/world/level/material/FluidState;is(Lnet/minecraft/tags/TagKey;)Z",
+                        "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;canBoatInFluid(Lnet/minecraft/world/level/material/FluidState;)Z"),
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/vehicle/boat/AbstractBoat",
+                        "isUnderwater",
+                        "Lnet/minecraft/world/level/material/FluidState;is(Lnet/minecraft/tags/TagKey;)Z",
+                        "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;canBoatInFluid(Lnet/minecraft/world/level/material/FluidState;)Z"),
+                // Entity.updateSwimming: vanilla checks standing FluidState.is(TagKey). Forge calls canStartSwimming().
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/Entity",
+                        "updateSwimming",
+                        "Lnet/minecraft/world/level/material/FluidState;is(Lnet/minecraft/tags/TagKey;)Z",
+                        "Lnet/minecraft/world/entity/Entity;canStartSwimming()Z"),
+                // LivingEntity.baseTick: vanilla checks LivingEntity.isEyeInFluid(TagKey). Forge calls
+                // ForgeHooks.onLivingBreathe.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "baseTick",
+                        "Lnet/minecraft/world/entity/LivingEntity;isEyeInFluid(Lnet/minecraft/tags/TagKey;)Z",
+                        "Lnet/minecraftforge/common/ForgeHooks;onLivingBreathe(Lnet/minecraft/world/entity/LivingEntity;II)V"),
+                // LivingEntity.aiStep: vanilla calls LivingEntity.jumpInLiquid(TagKey). Forge calls
+                // jumpInFluid(FluidType).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "aiStep",
+                        "Lnet/minecraft/world/entity/LivingEntity;jumpInLiquid(Lnet/minecraft/tags/TagKey;)V",
+                        "Lnet/minecraft/world/entity/LivingEntity;jumpInFluid(Lnet/minecraftforge/fluids/FluidType;)V"),
+                // AbstractFurnaceBlockEntity.consumeFuel: vanilla calls Item.getCraftingRemainder(). Forge calls
+                // ItemStack.getCraftingRemainder().
+                new InjectionPointReplacement(
+                        "net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity",
+                        "consumeFuel",
+                        "Lnet/minecraft/world/item/Item;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                        "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;"),
+                // BrewingStandBlockEntity.doBrew: vanilla calls Item.getCraftingRemainder(). Forge calls
+                // ItemStack.getCraftingRemainder().
+                new InjectionPointReplacement(
+                        "net/minecraft/world/level/block/entity/BrewingStandBlockEntity",
+                        "doBrew",
+                        "Lnet/minecraft/world/item/Item;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                        "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;"),
+                // CraftingRecipe.defaultCraftingReminder: vanilla calls ItemStack.getItem() and
+                // Item.getCraftingRemainder(). Forge calls ItemStack.getCraftingRemainder().
+                new InjectionPointReplacement(
+                        "net/minecraft/world/item/crafting/CraftingRecipe",
+                        "defaultCraftingReminder",
+                        "Lnet/minecraft/world/item/ItemStack;getItem()Lnet/minecraft/world/item/Item;",
+                        "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;"),
+                new InjectionPointReplacement(
+                        "net/minecraft/world/item/crafting/CraftingRecipe",
+                        "defaultCraftingReminder",
+                        "Lnet/minecraft/world/item/Item;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;",
+                        "Lnet/minecraft/world/item/ItemStack;getCraftingRemainder()Lnet/minecraft/world/item/ItemStackTemplate;"),
+                // EnchantmentHelper.lambda$getAvailableEnchantmentResults$0: vanilla calls
+                // Enchantment.isPrimaryItem(ItemStack). Forge calls ItemStack.canApplyAtEnchantingTable(Holder).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/item/enchantment/EnchantmentHelper",
+                        "lambda$getAvailableEnchantmentResults$0",
+                        "Lnet/minecraft/world/item/enchantment/Enchantment;isPrimaryItem(Lnet/minecraft/world/item/ItemStack;)Z",
+                        "Lnet/minecraft/world/item/ItemStack;canApplyAtEnchantingTable(Lnet/minecraft/core/Holder;)Z"),
+                // RegistryPatchGenerator.lambda$createLookup$0: vanilla reads RegistryDataLoader.WORLDGEN_REGISTRIES.
+                // Forge calls RegistryDataLoader.getWorldGenAndDimensionStream().
+                new InjectionPointReplacement(
+                        "net/minecraft/data/registries/RegistryPatchGenerator",
+                        "lambda$createLookup$0",
+                        "Lnet/minecraft/resources/RegistryDataLoader;WORLDGEN_REGISTRIES:Ljava/util/List;",
+                        "Lnet/minecraft/resources/RegistryDataLoader;getWorldGenAndDimensionStream()Ljava/util/stream/Stream;"));
     }
 }

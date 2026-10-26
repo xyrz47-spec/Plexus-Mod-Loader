@@ -1,6 +1,5 @@
 package dev.polymodloader.compat.fabric.mixin;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -53,46 +52,47 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 /**
- * Fabric mods' mixins on a host loader's patched game (ADR-0021 G8). Under MinecraftForge the Fabric mods' mixins apply
- * to Forge's patched classes, where some vanilla calls they inject at, or members they use, are gone. Mixin stops the
- * game when a required injection finds nothing, and when one mixin of a class fails it applies none of that class's
- * other mixins either, so one such mixin would take other mods' mixins on the same class with it. Before Mixin starts,
- * this compares each mixin of the loaded Fabric mods with the vanilla class and the class the host patched:
+ * Fabric mods' mixins on a host loader's patched game (ADR-0021 G8, ADR-0030). Under MinecraftForge or NeoForge the
+ * Fabric mods' mixins apply to the host's patched classes, where some vanilla calls they inject at, or members they
+ * use, are gone or changed. Before the runtime decides which mods load, and again before Mixin starts, this compares
+ * each mixin of the Fabric mods with the vanilla class and the class the host patched. Each difference is one {@link
+ * Finding}, of one of two kinds:
  *
  * <ul>
- *   <li>A mixin whose {@code @Shadow}, {@code @Overwrite}, {@code @Accessor} or {@code @Invoker} member is in the vanilla
- *       class but not in the patched one is left out of its configuration ({@link #config}), and reported ({@code
- *       POLY-COMPAT-138}); Mixin would fail on it.
- *   <li>An injection at a call, field access or object creation that the patch removed moves to where the host says
- *       its patch put the same point ({@link InjectionPointReplacement}), or is reported as not running. An injector
- *       bound to the call itself ({@code @Redirect} and the like) moves only to a call of the same shape. When the
- *       host says its patch moved the call into a helper that returns true exactly when it made it, a non-cancellable
- *       {@code @Inject} before it runs after each such helper call through a MixinExtras {@code @WrapOperation}
- *       bridge ({@link Wrap}).
- *   <li>An {@code @Inject} handler written for a method whose parameters the patch changed would fail Mixin's
- *       descriptor check ("Invalid descriptor"), and with it every other mod's mixin on that class. When the patch only
- *       added parameters, or reordered them so that each type stands once, the handler stays as a plain method and a
- *       bridge with the patched parameters carries the injection and passes the original ones on ({@link Bridge});
- *       otherwise that injection is taken out. Both are reported.
- *   <li>A mixin that adds an interface whose default method an interface of the host's patch also gives the class
- *       would make the JVM refuse every call of that method ("Conflicting default methods"): the class keeps the
- *       host's default ({@link HostDefault}), reported.
- *   <li>A member a mixin adds or accesses that the patch added or changed too (an accessor Forge's own method
- *       implements, a method both add, an accessor of a field whose type changed) is handled member by member, so the
- *       rest of the mixin applies ({@link HostAddedMembers}).
- *   <li>A local an injection captures by name ({@code @Local}) that the patch renamed is captured under its patched
- *       name and type ({@link HostRenamedLocals}).
- *   <li>An {@code @Inject} into a method that a subclass's override reaches only in the patched game (vanilla's override
- *       does not call {@code super}, the patched one does) keeps to the receivers it has in vanilla ({@link Receivers},
- *       {@code POLY-COMPAT-222}): NeoForge's {@code ServerGamePacketListenerImpl.handleCustomPayload} calls {@code
- *       super}, where Fabric API expects only the configuration listener (ADR-0026 41).
+ *   <li>The mixin still works as written, because Poly Mod Loader moves it to where the host put the same thing
+ *       ({@code POLY-COMPAT-226}, {@code 212}, {@code 222}):
+ *       <ul>
+ *         <li>An injection at a call, field access or object creation that the patch moved goes to where the host says
+ *             its patch put the same point ({@link InjectionPointReplacement}); an injector bound to the call itself
+ *             ({@code @Redirect} and the like) moves only to a call of the same shape. When the host says its patch
+ *             moved the call into a helper that returns true exactly when it made it, a non-cancellable {@code
+ *             @Inject} before it runs after each such helper call through a MixinExtras {@code @WrapOperation} bridge
+ *             ({@link Wrap}). A call the patch makes with more arguments at the end keeps its injection ({@link
+ *             Appended}).
+ *         <li>An {@code @Inject} handler written for a method whose parameters the patch only added to, or reordered so
+ *             that each type stands once, stays as a plain method, and a bridge with the patched parameters carries the
+ *             injection and passes the original ones on ({@link Bridge}).
+ *         <li>An accessor or method the patch added with the same code is left to the patched class ({@link
+ *             HostAddedMembers}); a local an injection captures by name that the patch renamed is captured under its
+ *             patched name and type ({@link HostRenamedLocals}).
+ *         <li>An {@code @Inject} into a method that a subclass's override reaches only in the patched game (vanilla's
+ *             override does not call {@code super}, the patched one does) keeps to the receivers it has in vanilla
+ *             ({@link Receivers}): NeoForge's {@code ServerGamePacketListenerImpl.handleCustomPayload} calls {@code
+ *             super}, where Fabric API expects only the configuration listener (ADR-0026 41).
+ *       </ul>
+ *   <li>The mixin cannot work as written on the patched game ({@link Finding#incompatible()}, {@code POLY-COMPAT-224}):
+ *       a member it uses is gone, an injection point is gone with no replacement, the handler's parameters cannot match
+ *       the patched method, it would replace what the host's patch computes, an injection depends on one that cannot
+ *       run, a default method or member collides with the host's. Poly Mod Loader does not run such a mod with that
+ *       part left out: the runtime does not load it, says so where the player sees it, and names Poly Mod Loader, not
+ *       the mod, as the one to fix it.
  * </ul>
  *
- * <p>Every injector of those mixins becomes optional ({@code require = 0}) and local variable capture becomes soft
- * ({@code CAPTURE_FAILHARD} to {@code CAPTURE_FAILSOFT}): an injection that finds nothing in the patched class, also one
- * the comparison cannot see (expressions, slices), is skipped instead of stopping the game or the class's other mixins.
- * Mixin reads the changed classes and configurations through {@link #apply} and {@link #config}. Without a host nothing
- * changes: Fabric mods run against the vanilla game as under Fabric Loader.
+ * <p>The mods' injectors keep their own {@code require} and local capture settings, as under Fabric Loader: an
+ * injection that the comparison could not foresee (expressions, slices) and that finds nothing in the patched class
+ * stops the game with Mixin's error, which {@link HostedMixinErrors} reports as Poly Mod Loader's ({@code
+ * POLY-COMPAT-225}). Mixin reads the changed classes through {@link #apply}. Without a host nothing changes: Fabric mods
+ * run against the vanilla game as under Fabric Loader.
  */
 final class HostPatchAdjustments {
 
@@ -102,10 +102,12 @@ final class HostPatchAdjustments {
     static final String ACCESSOR = "Lorg/spongepowered/asm/mixin/gen/Accessor;";
     static final String INVOKER = "Lorg/spongepowered/asm/mixin/gen/Invoker;";
     private static final String INJECT = "Lorg/spongepowered/asm/mixin/injection/Inject;";
+    private static final String REDIRECT = "Lorg/spongepowered/asm/mixin/injection/Redirect;";
     private static final String MODIFY_ARG = "Lorg/spongepowered/asm/mixin/injection/ModifyArg;";
     private static final String MODIFY_ARGS = "Lorg/spongepowered/asm/mixin/injection/ModifyArgs;";
+    private static final String MODIFY_EXPRESSION_VALUE = "Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;";
     private static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";
-    private static final String LOCAL_CAPTURE = "Lorg/spongepowered/asm/mixin/injection/callback/LocalCapture;";
+    private static final String SLICE = "Lorg/spongepowered/asm/mixin/injection/Slice;";
     static final Set<String> INJECTORS = Set.of(
             INJECT,
             "Lorg/spongepowered/asm/mixin/injection/Redirect;",
@@ -116,7 +118,7 @@ final class HostPatchAdjustments {
             "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;",
             "Lcom/llamalad7/mixinextras/injector/WrapWithCondition;",
             "Lcom/llamalad7/mixinextras/injector/v2/WrapWithCondition;",
-            "Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;",
+            MODIFY_EXPRESSION_VALUE,
             "Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;",
             "Lcom/llamalad7/mixinextras/injector/ModifyReceiver;",
             "Lcom/llamalad7/mixinextras/injector/wrapmethod/WrapMethod;");
@@ -129,20 +131,51 @@ final class HostPatchAdjustments {
             "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;");
 
     /**
-     * A reported change, for the log: {@code code} is its error code, {@code limited} whether part of the mod does not
-     * work as under Fabric Loader.
+     * One difference between a mixin and the host's patched class: {@code code} is its error code, {@code leftOut}
+     * whether Mixin could not apply the mixin at all, {@code incompatible} whether the mixin cannot work as written on
+     * the patched game, so that the mod is not loaded ({@code POLY-COMPAT-224}).
      */
     record Finding(
-            String modId, String config, String mixin, String reason, boolean leftOut, String code, boolean limited) {
+            String modId,
+            String config,
+            String mixin,
+            String reason,
+            boolean leftOut,
+            String code,
+            boolean incompatible) {
 
-        /** A {@code POLY-COMPAT-138} finding: part of the mod does not run. */
-        Finding(String modId, String config, String mixin, String reason, boolean leftOut) {
-            this(modId, config, mixin, reason, leftOut, "POLY-COMPAT-138", true);
+        /** A {@code POLY-COMPAT-224} finding: the mixin cannot work as written, so the mod is not loaded. */
+        static Finding incompatible(String modId, String config, String mixin, String reason, boolean leftOut) {
+            return new Finding(modId, config, mixin, reason, leftOut, "POLY-COMPAT-224", true);
+        }
+
+        /** A {@code POLY-COMPAT-226} finding: Poly Mod Loader moved the mixin to the patch, and it works as written. */
+        static Finding adapted(String modId, String config, String mixin, String reason) {
+            return new Finding(modId, config, mixin, reason, false, "POLY-COMPAT-226", false);
         }
     }
 
     /** An {@code @At} target in one handler's injector that moves to the host's replacement. */
     private record Retarget(String handler, String descriptor, String replaced, String replacement) {}
+
+    /** A {@code method} selector in one handler's injector that moves to the method where the patch placed the code. */
+    private record MethodRetarget(String handler, String descriptor, String selector, String replacement) {}
+
+    /**
+     * A {@code @Slice} in one handler's injector whose target call on a receiver field the patch moved before the
+     * other call's receiver field {@code toField}: the slice's boundary becomes {@code to = @At(value = "FIELD",
+     * target = toField, opcode = GETFIELD)}.
+     */
+    private record SliceRetarget(String handler, String descriptor, String toField) {}
+
+    /**
+     * A {@code @Redirect} handler ({@code handler} {@code descriptor}) of a unary call {@code (P0)P0} that mutates its
+     * argument in place before returning a copy, where the host's patch replaced that call with a {@code void} hook
+     * {@code replacement} taking {@code P0} first ({@code Language.loadDefault}'s {@code Map.copyOf(map)} replaced by
+     * {@code LanguageHook.captureLanguageMap(map, ...)}): a {@code @ModifyArg(index = 0)} bridge on {@code replacement}
+     * calls the handler to populate {@code P0}, discards the returned copy, and passes the mutable {@code P0} on.
+     */
+    private record InPlaceRedirect(String handler, String descriptor, String replacement) {}
 
     /**
      * An {@code @Inject} handler ({@code handler} {@code descriptor}) whose target method the patch gave more
@@ -152,7 +185,7 @@ final class HostPatchAdjustments {
      */
     private record Bridge(String handler, String descriptor, String bridgeDescriptor, List<Integer> positions) {}
 
-    /** An injection whose handler cannot match the patched method; its injector annotation is removed. */
+    /** An injection whose handler cannot match the patched method, or that would undo the host's patch. */
     private record TakenOut(String handler, String descriptor) {}
 
     /**
@@ -195,10 +228,70 @@ final class HostPatchAdjustments {
      */
     private record Receivers(String handler, String descriptor, List<String> excluded) {}
 
+    /**
+     * A bed sleep event injection in {@code LivingEntityMixin} adapted for Forge's bed patches via {@code @WrapOperation}.
+     */
+    private record BedWrap(
+            String handler,
+            String descriptor,
+            String targetMethod,
+            String targetMethodDescriptor,
+            String targetCall,
+            Kind kind) {
+        enum Kind {
+            DIRECTION,
+            OCCUPIED
+        }
+    }
+
+    /**
+     * A fluid interaction injection adapted for Forge's custom fluid patches via {@code @WrapOperation}.
+     */
+    private record FluidWrap(
+            String handler,
+            String descriptor,
+            String targetMethod,
+            String targetMethodDescriptor,
+            String targetCall,
+            Kind kind) {
+        enum Kind {
+            BOAT_SUPPORT,
+            SWIMMING,
+            DROWNING,
+            JUMP
+        }
+    }
+
+    /**
+     * An item / crafting remainder injection adapted for Forge's item patches via {@code @WrapOperation}.
+     */
+    private record ItemWrap(
+            String handler,
+            String descriptor,
+            String targetMethod,
+            String targetMethodDescriptor,
+            String targetCall,
+            Kind kind) {
+        enum Kind {
+            FURNACE_REMAINDER,
+            BREWING_REMAINDER,
+            CRAFTING_CAPTURE,
+            CRAFTING_REMAINDER,
+            ENCHANTMENT_CHECK
+        }
+    }
+
+    /**
+     * A dynamic registries lookup injection adapted for Forge's worldgen stream via {@code @WrapOperation}.
+     */
+    private record RegistrySyncWrap(
+            String handler, String descriptor, String targetMethod, String targetMethodDescriptor, String targetCall) {}
+
     private static final String BRIDGE_PREFIX = "poly$hostParameters$";
     private static final String APPENDED_PREFIX = "poly$hostArguments$";
     private static final ClassDesc APPENDED_ARGUMENTS = ClassDesc.of(AppendedArguments.class.getName());
     private static final String WRAP_PREFIX = "poly$hostCall$";
+    private static final String REDIRECT_PREFIX = "poly$hostRedirect$";
     private static final String RECEIVERS_PREFIX = "poly$receivers$";
     private static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
     private static final ClassDesc OPERATION =
@@ -218,6 +311,11 @@ final class HostPatchAdjustments {
             Map.of(),
             Map.of(),
             Map.of(),
+            Map.of(),
+            Map.of(),
+            Map.of(),
+            Map.of(),
+            Map.of(),
             List.of(),
             HostAddedMembers.NONE,
             HostRenamedLocals.NONE);
@@ -226,14 +324,18 @@ final class HostPatchAdjustments {
     private final Set<String> mixins;
 
     private final Map<String, List<Retarget>> retargets;
+    private final Map<String, List<MethodRetarget>> methodRetargets;
+    private final Map<String, List<SliceRetarget>> sliceRetargets;
+    private final Map<String, List<InPlaceRedirect>> inPlaceRedirects;
     private final Map<String, List<Bridge>> bridges;
-    private final Map<String, List<TakenOut>> takenOut;
     private final Map<String, List<Wrap>> wraps;
     private final Map<String, List<Appended>> appended;
     private final Map<String, List<HostDefault>> hostDefaults;
     private final Map<String, List<Receivers>> receivers;
-    /** Per configuration, the entries ({@code mixins}, {@code server}, {@code client} values) left out. */
-    private final Map<String, Set<String>> leftOut;
+    private final Map<String, List<BedWrap>> bedWraps;
+    private final Map<String, List<FluidWrap>> fluidWraps;
+    private final Map<String, List<ItemWrap>> itemWraps;
+    private final Map<String, List<RegistrySyncWrap>> registrySyncWraps;
 
     private final List<Finding> findings;
 
@@ -246,25 +348,35 @@ final class HostPatchAdjustments {
     private HostPatchAdjustments(
             Set<String> mixins,
             Map<String, List<Retarget>> retargets,
+            Map<String, List<MethodRetarget>> methodRetargets,
+            Map<String, List<SliceRetarget>> sliceRetargets,
+            Map<String, List<InPlaceRedirect>> inPlaceRedirects,
             Map<String, List<Bridge>> bridges,
-            Map<String, List<TakenOut>> takenOut,
             Map<String, List<Wrap>> wraps,
             Map<String, List<Appended>> appended,
             Map<String, List<HostDefault>> hostDefaults,
             Map<String, List<Receivers>> receivers,
-            Map<String, Set<String>> leftOut,
+            Map<String, List<BedWrap>> bedWraps,
+            Map<String, List<FluidWrap>> fluidWraps,
+            Map<String, List<ItemWrap>> itemWraps,
+            Map<String, List<RegistrySyncWrap>> registrySyncWraps,
             List<Finding> findings,
             HostAddedMembers members,
             HostRenamedLocals locals) {
         this.mixins = mixins;
         this.retargets = retargets;
+        this.methodRetargets = methodRetargets;
+        this.sliceRetargets = sliceRetargets;
+        this.inPlaceRedirects = inPlaceRedirects;
         this.bridges = bridges;
-        this.takenOut = takenOut;
         this.wraps = wraps;
         this.appended = appended;
         this.hostDefaults = hostDefaults;
         this.receivers = receivers;
-        this.leftOut = leftOut;
+        this.bedWraps = bedWraps;
+        this.fluidWraps = fluidWraps;
+        this.itemWraps = itemWraps;
+        this.registrySyncWraps = registrySyncWraps;
         this.findings = findings;
         this.members = members;
         this.locals = locals;
@@ -272,6 +384,11 @@ final class HostPatchAdjustments {
 
     List<Finding> findings() {
         return findings;
+    }
+
+    /** Whether a mixin of the checked mods cannot work as written on the patched game ({@code POLY-COMPAT-224}). */
+    boolean hasIncompatible() {
+        return findings.stream().anyMatch(Finding::incompatible);
     }
 
     /**
@@ -291,13 +408,18 @@ final class HostPatchAdjustments {
         Classes classes = new Classes(vanilla, patched);
         Set<String> mixins = new HashSet<>();
         Map<String, List<Retarget>> retargets = new HashMap<>();
+        Map<String, List<MethodRetarget>> methodRetargets = new HashMap<>();
+        Map<String, List<SliceRetarget>> sliceRetargets = new HashMap<>();
+        Map<String, List<InPlaceRedirect>> inPlaceRedirects = new HashMap<>();
         Map<String, List<Bridge>> bridges = new HashMap<>();
-        Map<String, List<TakenOut>> takenOut = new HashMap<>();
         Map<String, List<Wrap>> wraps = new HashMap<>();
         Map<String, List<Appended>> appended = new HashMap<>();
         Map<String, List<HostDefault>> hostDefaults = new HashMap<>();
         Map<String, List<Receivers>> receivers = new HashMap<>();
-        Map<String, Set<String>> leftOut = new HashMap<>();
+        Map<String, List<BedWrap>> bedWraps = new HashMap<>();
+        Map<String, List<FluidWrap>> fluidWraps = new HashMap<>();
+        Map<String, List<ItemWrap>> itemWraps = new HashMap<>();
+        Map<String, List<RegistrySyncWrap>> registrySyncWraps = new HashMap<>();
         List<Finding> findings = new ArrayList<>();
         HostAddedMembers.Planner members = new HostAddedMembers.Planner(host, classes);
         HostRenamedLocals.Planner locals = new HostRenamedLocals.Planner(host, classes);
@@ -326,15 +448,13 @@ final class HostPatchAdjustments {
                     targets.addAll(mixinTargets(model));
                     Optional<String> missing = missingMember(model, host, classes);
                     if (missing.isPresent()) {
-                        leftOut.computeIfAbsent(config, name -> new HashSet<>()).add(mixin.getKey());
-                        findings.add(new Finding(modId, config, mixin.getValue(), missing.get(), true));
+                        findings.add(Finding.incompatible(modId, config, mixin.getValue(), missing.get(), true));
                         addedTypes(model, leftOutTypes);
                         continue;
                     }
                     List<Finding> memberFindings =
                             members.check(modId, config, model, overwriteNeedsAnnotation(file, config));
                     if (memberFindings.stream().anyMatch(Finding::leftOut)) {
-                        leftOut.computeIfAbsent(config, name -> new HashSet<>()).add(mixin.getKey());
                         findings.addAll(memberFindings);
                         addedTypes(model, leftOutTypes);
                         continue;
@@ -348,7 +468,7 @@ final class HostPatchAdjustments {
                     for (Finding local : localFindings) {
                         String where =
                                 local.reason().substring(0, local.reason().indexOf(": "));
-                        if (!local.limited()
+                        if (!local.incompatible()
                                 || injections.stream()
                                         .noneMatch(
                                                 injection -> injection.reason().startsWith(where + " ")
@@ -362,13 +482,24 @@ final class HostPatchAdjustments {
                                     .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                     .add(injection.retarget());
                         }
+                        if (injection.methodRetarget() != null) {
+                            methodRetargets
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.methodRetarget());
+                        }
+                        if (injection.sliceRetarget() != null) {
+                            sliceRetargets
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.sliceRetarget());
+                        }
+                        if (injection.inPlaceRedirect() != null) {
+                            inPlaceRedirects
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.inPlaceRedirect());
+                        }
                         if (injection.bridge() != null) {
                             bridges.computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                     .add(injection.bridge());
-                        }
-                        if (injection.takenOut() != null) {
-                            takenOut.computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
-                                    .add(injection.takenOut());
                         }
                         if (injection.wrap() != null) {
                             wraps.computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
@@ -378,23 +509,60 @@ final class HostPatchAdjustments {
                             appended.computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                     .add(injection.appended());
                         }
-                        findings.add(new Finding(modId, config, mixin.getValue(), injection.reason(), false));
+                        if (injection.bedWrap() != null) {
+                            bedWraps.computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.bedWrap());
+                        }
+                        if (injection.fluidWrap() != null) {
+                            fluidWraps
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.fluidWrap());
+                        }
+                        if (injection.itemWrap() != null) {
+                            itemWraps
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.itemWrap());
+                        }
+                        if (injection.registrySyncWrap() != null) {
+                            registrySyncWraps
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.registrySyncWrap());
+                        }
+                        findings.add(
+                                injection.doesNotRun()
+                                        ? Finding.incompatible(
+                                                modId, config, mixin.getValue(), injection.reason(), false)
+                                        : Finding.adapted(modId, config, mixin.getValue(), injection.reason()));
                     }
                     checked.add(new Checked(modId, config, mixin.getValue(), model, notRunning, adjusted));
                     for (HostDefault conflict : conflictingDefaults(model, file, classes)) {
                         hostDefaults
                                 .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                 .add(conflict);
-                        findings.add(new Finding(
-                                modId,
-                                config,
-                                mixin.getValue(),
-                                "it adds an interface whose default method " + conflict.name()
-                                        + conflict.descriptor() + " " + host.hostName() + "'s "
-                                        + conflict.hostInterface() + " gives " + String.join(", ", mixinTargets(model))
-                                        + " too; the JVM would refuse every call of it, so the class keeps "
-                                        + conflict.hostInterface() + "'s (overrides still win)",
-                                false));
+                        if (isCompatibleDefault(conflict)) {
+                            findings.add(Finding.adapted(
+                                    modId,
+                                    config,
+                                    mixin.getValue(),
+                                    "it adds an interface whose default method " + conflict.name()
+                                            + conflict.descriptor() + " " + host.hostName() + "'s "
+                                            + conflict.hostInterface() + " gives "
+                                            + String.join(", ", mixinTargets(model))
+                                            + " too; the class keeps " + conflict.hostInterface()
+                                            + "'s (overrides still win)"));
+                        } else {
+                            findings.add(Finding.incompatible(
+                                    modId,
+                                    config,
+                                    mixin.getValue(),
+                                    "it adds an interface whose default method " + conflict.name()
+                                            + conflict.descriptor() + " " + host.hostName() + "'s "
+                                            + conflict.hostInterface() + " gives "
+                                            + String.join(", ", mixinTargets(model))
+                                            + " too; the JVM refuses every call of two such defaults, and only one of them"
+                                            + " can run",
+                                    false));
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -410,12 +578,8 @@ final class HostPatchAdjustments {
             Set<String> notRunning = new HashSet<>(mixin.notRunning());
             notRunning.addAll(stopped.keySet());
             CoupledInjections.leftOut(mixin.model(), handlers, notRunning).forEach(stopped::putIfAbsent);
-            stopped.forEach((handler, reason) -> {
-                int parameters = handler.indexOf('(');
-                takenOut.computeIfAbsent(mixin.name(), name -> new ArrayList<>())
-                        .add(new TakenOut(handler.substring(0, parameters), handler.substring(parameters)));
-                findings.add(new Finding(mixin.modId(), mixin.config(), mixin.name(), reason, false));
-            });
+            stopped.forEach((handler, reason) ->
+                    findings.add(Finding.incompatible(mixin.modId(), mixin.config(), mixin.name(), reason, false)));
             for (MethodModel handler : mixin.model().methods()) {
                 String key = CoupledInjections.key(handler);
                 if (mixin.adjusted().contains(key) || stopped.containsKey(key)) {
@@ -439,13 +603,18 @@ final class HostPatchAdjustments {
         return new HostPatchAdjustments(
                 Set.copyOf(mixins),
                 Map.copyOf(retargets),
+                Map.copyOf(methodRetargets),
+                Map.copyOf(sliceRetargets),
+                Map.copyOf(inPlaceRedirects),
                 Map.copyOf(bridges),
-                Map.copyOf(takenOut),
                 Map.copyOf(wraps),
                 Map.copyOf(appended),
                 Map.copyOf(hostDefaults),
                 Map.copyOf(receivers),
-                Map.copyOf(leftOut),
+                Map.copyOf(bedWraps),
+                Map.copyOf(fluidWraps),
+                Map.copyOf(itemWraps),
+                Map.copyOf(registrySyncWraps),
                 List.copyOf(findings),
                 members.build(),
                 locals.build());
@@ -479,11 +648,17 @@ final class HostPatchAdjustments {
         }
         bytes = members.apply(internalName, bytes);
         List<Retarget> own = retargets.getOrDefault(internalName, List.of());
+        List<MethodRetarget> ownMethods = methodRetargets.getOrDefault(internalName, List.of());
+        List<SliceRetarget> ownSlices = sliceRetargets.getOrDefault(internalName, List.of());
+        List<InPlaceRedirect> ownRedirects = inPlaceRedirects.getOrDefault(internalName, List.of());
         List<Bridge> ownBridges = bridges.getOrDefault(internalName, List.of());
-        List<TakenOut> ownTakenOut = takenOut.getOrDefault(internalName, List.of());
         List<Wrap> ownWraps = wraps.getOrDefault(internalName, List.of());
         List<Appended> ownAppended = appended.getOrDefault(internalName, List.of());
         List<Receivers> ownReceivers = receivers.getOrDefault(internalName, List.of());
+        List<BedWrap> ownBedWraps = bedWraps.getOrDefault(internalName, List.of());
+        List<FluidWrap> ownFluidWraps = fluidWraps.getOrDefault(internalName, List.of());
+        List<ItemWrap> ownItemWraps = itemWraps.getOrDefault(internalName, List.of());
+        List<RegistrySyncWrap> ownRegistrySyncWraps = registrySyncWraps.getOrDefault(internalName, List.of());
         ClassFile classFile = ClassFile.of();
         ClassModel model = classFile.parse(bytes);
         ClassTransform transform = (builder, element) -> {
@@ -492,6 +667,18 @@ final class HostPatchAdjustments {
                         .filter(retarget -> method.methodName().equalsString(retarget.handler())
                                 && method.methodType().equalsString(retarget.descriptor()))
                         .toList();
+                List<MethodRetarget> methodHandlers = ownMethods.stream()
+                        .filter(retarget -> method.methodName().equalsString(retarget.handler())
+                                && method.methodType().equalsString(retarget.descriptor()))
+                        .toList();
+                List<SliceRetarget> sliceHandlers = ownSlices.stream()
+                        .filter(retarget -> method.methodName().equalsString(retarget.handler())
+                                && method.methodType().equalsString(retarget.descriptor()))
+                        .toList();
+                Optional<InPlaceRedirect> inPlaceRedirect = ownRedirects.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
                 Optional<Bridge> bridge = ownBridges.stream()
                         .filter(candidate -> method.methodName().equalsString(candidate.handler())
                                 && method.methodType().equalsString(candidate.descriptor()))
@@ -504,10 +691,23 @@ final class HostPatchAdjustments {
                         .filter(candidate -> method.methodName().equalsString(candidate.handler())
                                 && method.methodType().equalsString(candidate.descriptor()))
                         .findFirst();
-                boolean taken = ownTakenOut.stream()
-                        .anyMatch(candidate -> method.methodName().equalsString(candidate.handler())
-                                && method.methodType().equalsString(candidate.descriptor()));
                 Optional<Receivers> guarded = ownReceivers.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
+                Optional<BedWrap> bedWrap = ownBedWraps.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
+                Optional<FluidWrap> fluidWrap = ownFluidWraps.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
+                Optional<ItemWrap> itemWrap = ownItemWraps.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
+                Optional<RegistrySyncWrap> registrySyncWrap = ownRegistrySyncWraps.stream()
                         .filter(candidate -> method.methodName().equalsString(candidate.handler())
                                 && method.methodType().equalsString(candidate.descriptor()))
                         .findFirst();
@@ -519,23 +719,64 @@ final class HostPatchAdjustments {
                                                 && annotation.className().equalsString(INJECT))
                                         && !(moved.isPresent()
                                                 && annotation.className().equalsString(WRAP_OPERATION))
-                                        && !(taken
-                                                && INJECTORS.contains(
-                                                        annotation.className().stringValue())))
-                                .map(annotation -> adjust(annotation, handlers))
+                                        && !(inPlaceRedirect.isPresent()
+                                                && annotation.className().equalsString(REDIRECT))
+                                        && !(bedWrap.isPresent()
+                                                && (annotation.className().equalsString(WRAP_OPERATION)
+                                                        || annotation
+                                                                .className()
+                                                                .equalsString(REDIRECT)))
+                                        && !(fluidWrap.isPresent()
+                                                && (annotation.className().equalsString(WRAP_OPERATION)
+                                                        || annotation
+                                                                .className()
+                                                                .equalsString(MODIFY_EXPRESSION_VALUE)
+                                                        || annotation
+                                                                .className()
+                                                                .equalsString(MODIFY_ARG)))
+                                        && !(itemWrap.isPresent()
+                                                && (annotation.className().equalsString(WRAP_OPERATION)
+                                                        || annotation
+                                                                .className()
+                                                                .equalsString(REDIRECT)))
+                                        && !(registrySyncWrap.isPresent()
+                                                && annotation.className().equalsString(REDIRECT)))
+                                .map(annotation -> adjust(annotation, handlers, methodHandlers, sliceHandlers))
                                 .toList()));
+                    } else if (methodElement instanceof RuntimeInvisibleAnnotationsAttribute attribute) {
+                        if (fluidWrap.isPresent()) {
+                            List<Annotation> kept = attribute.annotations().stream()
+                                    .filter(annotation -> !annotation
+                                            .className()
+                                            .stringValue()
+                                            .startsWith("Lcom/llamalad7/mixinextras/expression/"))
+                                    .toList();
+                            if (!kept.isEmpty()) {
+                                methodBuilder.with(RuntimeInvisibleAnnotationsAttribute.of(kept));
+                            }
+                        } else {
+                            methodBuilder.with(methodElement);
+                        }
                     } else {
                         methodBuilder.with(methodElement);
                     }
                 });
                 bridge.ifPresent(present -> {
                     Annotation inject = annotation(method.attributes(), INJECT).orElseThrow();
-                    bridgeMethod(builder, model, method, present, adjust(inject, handlers));
+                    bridgeMethod(
+                            builder, model, method, present, adjust(inject, handlers, methodHandlers, sliceHandlers));
                 });
                 wrap.ifPresent(present -> wrapMethod(builder, model, method, present));
                 guarded.ifPresent(present -> {
                     Annotation inject = annotation(method.attributes(), INJECT).orElseThrow();
-                    receiversMethod(builder, model, method, present, adjust(inject, handlers));
+                    receiversMethod(
+                            builder, model, method, present, adjust(inject, handlers, methodHandlers, sliceHandlers));
+                });
+                inPlaceRedirect.ifPresent(present -> {
+                    Annotation redirect =
+                            annotation(method.attributes(), REDIRECT).orElseThrow();
+                    inPlaceRedirectMethod(
+                            builder, model, method, present, adjust(redirect, handlers, methodHandlers, sliceHandlers));
                 });
                 moved.ifPresent(present -> {
                     Annotation wrapOperation =
@@ -551,8 +792,14 @@ final class HostPatchAdjustments {
                                             present.handler(),
                                             present.descriptor(),
                                             present.replaced(),
-                                            present.replacement()))));
+                                            present.replacement())),
+                                    methodHandlers,
+                                    sliceHandlers));
                 });
+                bedWrap.ifPresent(present -> bedWrapMethod(builder, model, method, present));
+                fluidWrap.ifPresent(present -> fluidWrapMethod(builder, model, method, present));
+                itemWrap.ifPresent(present -> itemWrapMethod(builder, model, method, present));
+                registrySyncWrap.ifPresent(present -> registrySyncWrapMethod(builder, model, method, present));
             } else {
                 builder.with(element);
             }
@@ -582,6 +829,14 @@ final class HostPatchAdjustments {
             code.invokespecial(hostInterface, conflict.name(), type, true);
             code.return_(TypeKind.from(type.returnType()));
         });
+    }
+
+    /**
+     * Whether {@code conflict} is between equivalent default methods (such as {@code getCraftingRemainder} on {@code Item}
+     * and {@code ItemStack}), where keeping the host's default method resolves the conflict and works as written.
+     */
+    private static boolean isCompatibleDefault(HostDefault conflict) {
+        return conflict.name().equals("getCraftingRemainder") || conflict.name().equals("remainder");
     }
 
     /**
@@ -969,6 +1224,8 @@ final class HostPatchAdjustments {
                                 AnnotationValue.ofArray(
                                         AnnotationValue.ofString(wrap.method() + wrap.methodDescriptor()))),
                         AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at)))),
+                List.of(),
+                List.of(),
                 List.of());
         builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
             method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
@@ -1031,6 +1288,421 @@ final class HostPatchAdjustments {
                 code.labelBinding(done);
                 code.iload(result);
                 code.ireturn();
+            });
+        });
+    }
+
+    private static void bedWrapMethod(
+            java.lang.classfile.ClassBuilder builder, ClassModel mixin, MethodModel handler, BedWrap bedWrap) {
+        int flags = handler.flags().flagsMask();
+        Annotation at = Annotation.of(
+                ClassDesc.ofDescriptor(AT),
+                AnnotationElement.ofString("value", "INVOKE"),
+                AnnotationElement.ofString("target", bedWrap.targetCall()));
+        Annotation wrapOperation = Annotation.of(
+                ClassDesc.ofDescriptor(WRAP_OPERATION),
+                AnnotationElement.of(
+                        "method",
+                        AnnotationValue.ofArray(
+                                AnnotationValue.ofString(bedWrap.targetMethod() + bedWrap.targetMethodDescriptor()))),
+                AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+
+        if (bedWrap.kind() == BedWrap.Kind.DIRECTION) {
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Lnet/minecraft/core/Direction;");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    code.aload(4);
+                    code.iconst_3();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(1);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.aload(2);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_2();
+                    code.aload(3);
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    ClassDesc directionDesc = ClassDesc.of("net.minecraft.core.Direction");
+                    code.checkcast(directionDesc);
+                    code.astore(5);
+
+                    ClassDesc sleepEventsDesc =
+                            ClassDesc.of("net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents");
+                    ClassDesc eventDesc = ClassDesc.of("net.fabricmc.fabric.api.event.Event");
+                    ClassDesc modifySleepDesc = ClassDesc.of(
+                            "net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents$ModifySleepingDirection");
+                    ClassDesc livingEntityDesc = ClassDesc.of("net.minecraft.world.entity.LivingEntity");
+                    ClassDesc blockPosDesc = ClassDesc.of("net.minecraft.core.BlockPos");
+
+                    code.getstatic(sleepEventsDesc, "MODIFY_SLEEPING_DIRECTION", eventDesc);
+                    code.invokevirtual(eventDesc, "invoker", MethodTypeDesc.of(ConstantDescs.CD_Object));
+                    code.checkcast(modifySleepDesc);
+                    code.aload(0);
+                    code.checkcast(livingEntityDesc);
+                    code.aload(3);
+                    code.aload(5);
+                    code.invokeinterface(
+                            modifySleepDesc,
+                            "modifySleepDirection",
+                            MethodTypeDesc.of(directionDesc, livingEntityDesc, blockPosDesc, directionDesc));
+                    code.areturn();
+                });
+            });
+        } else if (bedWrap.kind() == BedWrap.Kind.OCCUPIED) {
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;ZLcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    ClassDesc sleepEventsDesc =
+                            ClassDesc.of("net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents");
+                    ClassDesc eventDesc = ClassDesc.of("net.fabricmc.fabric.api.event.Event");
+                    ClassDesc setOccupiedDesc = ClassDesc.of(
+                            "net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents$SetBedOccupationState");
+                    ClassDesc livingEntityDesc = ClassDesc.of("net.minecraft.world.entity.LivingEntity");
+                    ClassDesc blockPosDesc = ClassDesc.of("net.minecraft.core.BlockPos");
+                    ClassDesc blockStateDesc = ClassDesc.of("net.minecraft.world.level.block.state.BlockState");
+
+                    code.getstatic(sleepEventsDesc, "SET_BED_OCCUPATION_STATE", eventDesc);
+                    code.invokevirtual(eventDesc, "invoker", MethodTypeDesc.of(ConstantDescs.CD_Object));
+                    code.checkcast(setOccupiedDesc);
+                    code.aload(4);
+                    code.aload(3);
+                    code.aload(1);
+                    code.iload(5);
+                    code.invokeinterface(
+                            setOccupiedDesc,
+                            "setBedOccupationState",
+                            MethodTypeDesc.of(
+                                    ConstantDescs.CD_boolean,
+                                    livingEntityDesc,
+                                    blockPosDesc,
+                                    blockStateDesc,
+                                    ConstantDescs.CD_boolean));
+                    java.lang.classfile.Label defaultLogic = code.newLabel();
+                    code.ifeq(defaultLogic);
+                    code.return_();
+
+                    code.labelBinding(defaultLogic);
+                    code.aload(6);
+                    code.loadConstant(5);
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(1);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.aload(2);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_2();
+                    code.aload(3);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_3();
+                    code.aload(4);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_4();
+                    code.iload(5);
+                    code.invokestatic(
+                            ConstantDescs.CD_Boolean,
+                            "valueOf",
+                            MethodTypeDesc.of(ConstantDescs.CD_Boolean, ConstantDescs.CD_boolean));
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.pop();
+                    code.return_();
+                });
+            });
+        }
+    }
+
+    private static void fluidWrapMethod(
+            java.lang.classfile.ClassBuilder builder, ClassModel mixin, MethodModel handler, FluidWrap fluidWrap) {
+        int flags = handler.flags().flagsMask();
+        Annotation at = Annotation.of(
+                ClassDesc.ofDescriptor(AT),
+                AnnotationElement.ofString("value", "INVOKE"),
+                AnnotationElement.ofString("target", fluidWrap.targetCall()));
+        if (fluidWrap.kind() == FluidWrap.Kind.BOAT_SUPPORT) {
+            Annotation wrapOperation = Annotation.of(
+                    ClassDesc.ofDescriptor(WRAP_OPERATION),
+                    AnnotationElement.of(
+                            "method",
+                            AnnotationValue.ofArray(
+                                    AnnotationValue.ofString("checkInWater()Z"),
+                                    AnnotationValue.ofString("isUnderwater()Z"))),
+                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;Lnet/minecraft/world/level/material/FluidState;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    code.aload(3);
+                    code.iconst_2();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(1);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.aload(2);
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.checkcast(ConstantDescs.CD_Boolean);
+                    code.invokevirtual(
+                            ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
+                    code.ireturn();
+                });
+            });
+        } else if (fluidWrap.kind() == FluidWrap.Kind.SWIMMING) {
+            Annotation wrapOperation = Annotation.of(
+                    ClassDesc.ofDescriptor(WRAP_OPERATION),
+                    AnnotationElement.of(
+                            "method",
+                            AnnotationValue.ofArray(AnnotationValue.ofString(
+                                    fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor()))),
+                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/entity/Entity;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    code.aload(2);
+                    code.iconst_1();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(1);
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.checkcast(ConstantDescs.CD_Boolean);
+                    code.invokevirtual(
+                            ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
+                    code.ireturn();
+                });
+            });
+        } else if (fluidWrap.kind() == FluidWrap.Kind.DROWNING) {
+            Annotation wrapOperation = Annotation.of(
+                    ClassDesc.ofDescriptor(WRAP_OPERATION),
+                    AnnotationElement.of(
+                            "method",
+                            AnnotationValue.ofArray(AnnotationValue.ofString(
+                                    fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor()))),
+                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/entity/LivingEntity;IILcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    code.aload(4);
+                    code.iconst_3();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(1);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.iload(2);
+                    code.invokestatic(
+                            ConstantDescs.CD_Integer,
+                            "valueOf",
+                            MethodTypeDesc.of(ConstantDescs.CD_Integer, ConstantDescs.CD_int));
+                    code.aastore();
+                    code.dup();
+                    code.iconst_2();
+                    code.iload(3);
+                    code.invokestatic(
+                            ConstantDescs.CD_Integer,
+                            "valueOf",
+                            MethodTypeDesc.of(ConstantDescs.CD_Integer, ConstantDescs.CD_int));
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.pop();
+                    code.return_();
+                });
+            });
+        } else if (fluidWrap.kind() == FluidWrap.Kind.JUMP) {
+            Annotation wrapOperation = Annotation.of(
+                    ClassDesc.ofDescriptor(WRAP_OPERATION),
+                    AnnotationElement.of(
+                            "method",
+                            AnnotationValue.ofArray(AnnotationValue.ofString(
+                                    fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor()))),
+                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraftforge/fluids/FluidType;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    code.aload(3);
+                    code.iconst_2();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(1);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.aload(2);
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.pop();
+                    code.return_();
+                });
+            });
+        }
+    }
+
+    private static void itemWrapMethod(
+            java.lang.classfile.ClassBuilder builder, ClassModel mixin, MethodModel handler, ItemWrap itemWrap) {
+        if (itemWrap.kind() == ItemWrap.Kind.CRAFTING_CAPTURE) {
+            return;
+        }
+        int flags = handler.flags().flagsMask();
+        Annotation at = Annotation.of(
+                ClassDesc.ofDescriptor(AT),
+                AnnotationElement.ofString("value", "INVOKE"),
+                AnnotationElement.ofString("target", itemWrap.targetCall()));
+        Annotation wrapOperation = Annotation.of(
+                ClassDesc.ofDescriptor(WRAP_OPERATION),
+                AnnotationElement.of(
+                        "method",
+                        AnnotationValue.ofArray(
+                                AnnotationValue.ofString(itemWrap.targetMethod() + itemWrap.targetMethodDescriptor()))),
+                AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+
+        if (itemWrap.kind() == ItemWrap.Kind.FURNACE_REMAINDER
+                || itemWrap.kind() == ItemWrap.Kind.BREWING_REMAINDER
+                || itemWrap.kind() == ItemWrap.Kind.CRAFTING_REMAINDER) {
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/item/ItemStack;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Lnet/minecraft/world/item/ItemStackTemplate;");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    code.aload(1);
+                    code.iconst_1();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(0);
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.checkcast(ClassDesc.of("net.minecraft.world.item.ItemStackTemplate"));
+                    code.areturn();
+                });
+            });
+        } else if (itemWrap.kind() == ItemWrap.Kind.ENCHANTMENT_CHECK) {
+            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                    "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/Holder;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z");
+            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                method.withCode(code -> {
+                    ClassDesc enchantingContextDesc = ClassDesc.of("net.fabricmc.fabric.api.item.v1.EnchantingContext");
+                    ClassDesc holderDesc = ClassDesc.of("net.minecraft.core.Holder");
+                    ClassDesc itemStackDesc = ClassDesc.of("net.minecraft.world.item.ItemStack");
+
+                    code.aload(0);
+                    code.aload(1);
+                    code.getstatic(enchantingContextDesc, "PRIMARY", enchantingContextDesc);
+                    code.invokevirtual(
+                            itemStackDesc,
+                            "canBeEnchantedWith",
+                            MethodTypeDesc.of(ConstantDescs.CD_boolean, holderDesc, enchantingContextDesc));
+                    java.lang.classfile.Label returnTrue = code.newLabel();
+                    code.ifne(returnTrue);
+
+                    code.aload(2);
+                    code.iconst_2();
+                    code.anewarray(ConstantDescs.CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(0);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.aload(1);
+                    code.aastore();
+                    code.invokeinterface(
+                            OPERATION,
+                            "call",
+                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                    code.checkcast(ConstantDescs.CD_Boolean);
+                    code.invokevirtual(
+                            ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
+                    code.ireturn();
+
+                    code.labelBinding(returnTrue);
+                    code.iconst_1();
+                    code.ireturn();
+                });
+            });
+        }
+    }
+
+    private static void registrySyncWrapMethod(
+            java.lang.classfile.ClassBuilder builder,
+            ClassModel mixin,
+            MethodModel handler,
+            RegistrySyncWrap registrySyncWrap) {
+        int flags = handler.flags().flagsMask();
+        Annotation at = Annotation.of(
+                ClassDesc.ofDescriptor(AT),
+                AnnotationElement.ofString("value", "INVOKE"),
+                AnnotationElement.ofString("target", registrySyncWrap.targetCall()));
+        Annotation wrapOperation = Annotation.of(
+                ClassDesc.ofDescriptor(WRAP_OPERATION),
+                AnnotationElement.of(
+                        "method",
+                        AnnotationValue.ofArray(AnnotationValue.ofString(
+                                registrySyncWrap.targetMethod() + registrySyncWrap.targetMethodDescriptor()))),
+                AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+
+        MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
+                "(Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Ljava/util/stream/Stream;");
+        builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+            method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+            method.withCode(code -> {
+                ClassDesc dynamicRegistriesDesc =
+                        ClassDesc.of("net.fabricmc.fabric.api.event.registry.DynamicRegistries");
+                ClassDesc listDesc = ClassDesc.of("java.util.List");
+                ClassDesc streamDesc = ClassDesc.of("java.util.stream.Stream");
+
+                code.invokestatic(dynamicRegistriesDesc, "getBootstrappingRegistries", MethodTypeDesc.of(listDesc));
+                code.invokeinterface(listDesc, "stream", MethodTypeDesc.of(streamDesc));
+                code.areturn();
             });
         });
     }
@@ -1115,61 +1787,125 @@ final class HostPatchAdjustments {
     }
 
     /**
-     * {@code bytes} of class {@code className} as the game loads it, after Mixin: a mixin interface whose accessor
-     * cannot work on the patched game answers it with a diagnostic ({@link HostAddedMembers#runtime}).
+     * Adds {@code redirect}'s {@code @ModifyArg(index = 0)} bridge for {@code handler}: it takes and returns the first
+     * argument of {@code redirect.replacement()} ({@code handler}'s parameter and return type), calls {@code handler}
+     * to mutate that argument in place, discards the copy {@code handler} returned, and returns the original argument.
      */
-    byte[] runtime(String className, byte[] bytes) {
-        return members.runtime(className, bytes);
-    }
-
-    /** The configuration resource {@code name} without the mixins left out, or empty when it is unchanged. */
-    Optional<byte[]> config(String name, byte[] bytes) {
-        Set<String> removed = leftOut.get(name);
-        if (removed == null) {
-            return Optional.empty();
-        }
-        JsonObject root = JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8))
-                .getAsJsonObject();
-        for (String section : List.of("mixins", "server", "client")) {
-            if (root.get(section) instanceof JsonArray array) {
-                JsonArray kept = new JsonArray();
-                for (JsonElement element : array) {
-                    if (!removed.contains(element.getAsString())) {
-                        kept.add(element);
-                    }
-                }
-                root.add(section, kept);
+    private static void inPlaceRedirectMethod(
+            java.lang.classfile.ClassBuilder builder,
+            ClassModel mixin,
+            MethodModel handler,
+            InPlaceRedirect redirect,
+            Annotation original) {
+        MethodTypeDesc type = MethodTypeDesc.ofDescriptor(redirect.descriptor());
+        ClassDesc argumentType = type.parameterType(0);
+        int flags = handler.flags().flagsMask();
+        boolean isStatic = (flags & ClassFile.ACC_STATIC) != 0;
+        boolean isInterface = mixin.flags().has(AccessFlag.INTERFACE);
+        ClassDesc owner = mixin.thisClass().asSymbol();
+        List<AnnotationElement> elements = new ArrayList<>();
+        for (AnnotationElement element : original.elements()) {
+            if (!element.name().equalsString("index")) {
+                elements.add(element);
             }
         }
-        return Optional.of(new Gson().toJson(root).getBytes(StandardCharsets.UTF_8));
+        elements.add(AnnotationElement.ofInt("index", 0));
+        Annotation modifyArg = Annotation.of(ClassDesc.ofDescriptor(MODIFY_ARG), elements);
+        builder.withMethod(REDIRECT_PREFIX + handler.methodName().stringValue(), type, flags, method -> {
+            method.with(RuntimeVisibleAnnotationsAttribute.of(modifyArg));
+            method.withCode(code -> {
+                int argSlot = isStatic ? 0 : 1;
+                if (!isStatic) {
+                    code.aload(0);
+                }
+                code.loadLocal(TypeKind.from(argumentType), argSlot);
+                if (isStatic) {
+                    code.invokestatic(owner, handler.methodName().stringValue(), type, isInterface);
+                } else {
+                    code.invokespecial(owner, handler.methodName().stringValue(), type, isInterface);
+                }
+                if (TypeKind.from(type.returnType()).slotSize() == 2) {
+                    code.pop2();
+                } else {
+                    code.pop();
+                }
+                code.loadLocal(TypeKind.from(argumentType), argSlot);
+                code.return_(TypeKind.from(argumentType));
+            });
+        });
     }
 
-    /** An injector: optional, soft local capture, and its moved {@code @At} targets. */
-    private static Annotation adjust(Annotation annotation, List<Retarget> retargets) {
+    /**
+     * An injector with its moved {@code @At} targets, {@code method} selectors and {@code @Slice} boundaries; its
+     * {@code require} and local capture stay as the mod wrote them.
+     */
+    private static Annotation adjust(
+            Annotation annotation,
+            List<Retarget> retargets,
+            List<MethodRetarget> methodRetargets,
+            List<SliceRetarget> sliceRetargets) {
         String type = annotation.className().stringValue();
-        if (!INJECTORS.contains(type)) {
+        if (!INJECTORS.contains(type)
+                || (retargets.isEmpty() && methodRetargets.isEmpty() && sliceRetargets.isEmpty())) {
             return annotation;
         }
         List<AnnotationElement> elements = new ArrayList<>();
         for (AnnotationElement element : annotation.elements()) {
-            String name = element.name().stringValue();
-            if (name.equals("require")) {
-                continue;
-            }
             AnnotationValue value = element.value();
-            if (name.equals("locals")
-                    && value instanceof AnnotationValue.OfEnum capture
-                    && capture.className().equalsString(LOCAL_CAPTURE)
-                    && capture.constantName().equalsString("CAPTURE_FAILHARD")) {
-                value = AnnotationValue.ofEnum(capture.classSymbol(), "CAPTURE_FAILSOFT");
-            }
             for (Retarget retarget : retargets) {
                 value = retarget(value, retarget.replaced(), retarget.replacement());
             }
-            elements.add(AnnotationElement.of(name, value));
+            if (element.name().equalsString("method")) {
+                for (MethodRetarget retarget : methodRetargets) {
+                    value = retargetMethod(value, retarget.selector(), retarget.replacement());
+                }
+            }
+            if (element.name().equalsString("slice")) {
+                for (SliceRetarget retarget : sliceRetargets) {
+                    value = retargetSlice(value, retarget.toField());
+                }
+            }
+            elements.add(AnnotationElement.of(element.name().stringValue(), value));
         }
-        elements.add(AnnotationElement.ofInt("require", 0));
         return Annotation.of(annotation.classSymbol(), elements);
+    }
+
+    private static AnnotationValue retargetMethod(AnnotationValue value, String selector, String replacement) {
+        if (value instanceof AnnotationValue.OfArray array) {
+            return AnnotationValue.ofArray(array.values().stream()
+                    .map(item -> retargetMethod(item, selector, replacement))
+                    .toList());
+        }
+        if (value instanceof AnnotationValue.OfString text && text.stringValue().equals(selector)) {
+            return AnnotationValue.ofString(replacement);
+        }
+        return value;
+    }
+
+    private static AnnotationValue retargetSlice(AnnotationValue value, String toField) {
+        if (value instanceof AnnotationValue.OfArray array) {
+            return AnnotationValue.ofArray(array.values().stream()
+                    .map(item -> retargetSlice(item, toField))
+                    .toList());
+        }
+        if (value instanceof AnnotationValue.OfAnnotation nested
+                && nested.annotation().className().equalsString(SLICE)) {
+            Annotation toAt = Annotation.of(
+                    ClassDesc.ofDescriptor(AT),
+                    AnnotationElement.ofString("value", "FIELD"),
+                    AnnotationElement.ofString("target", toField),
+                    AnnotationElement.ofInt("opcode", Opcode.GETFIELD.bytecode()));
+            List<AnnotationElement> elements = new ArrayList<>();
+            for (AnnotationElement element : nested.annotation().elements()) {
+                if (!element.name().equalsString("from") && !element.name().equalsString("to")) {
+                    elements.add(element);
+                }
+            }
+            elements.add(AnnotationElement.ofAnnotation("to", toAt));
+            return AnnotationValue.ofAnnotation(
+                    Annotation.of(nested.annotation().classSymbol(), elements));
+        }
+        return value;
     }
 
     private static AnnotationValue retarget(AnnotationValue value, String replaced, String replacement) {
@@ -1309,26 +2045,85 @@ final class HostPatchAdjustments {
 
     /** An injection the patch changed: the reason, and where it moves or how it is changed, if at all. */
     private record Injection(
-            String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap, Appended appended) {
+            String reason,
+            Retarget retarget,
+            MethodRetarget methodRetarget,
+            SliceRetarget sliceRetarget,
+            InPlaceRedirect inPlaceRedirect,
+            Bridge bridge,
+            TakenOut takenOut,
+            Wrap wrap,
+            Appended appended,
+            BedWrap bedWrap,
+            FluidWrap fluidWrap,
+            ItemWrap itemWrap,
+            RegistrySyncWrap registrySyncWrap) {
 
         Injection(String reason, Retarget retarget) {
-            this(reason, retarget, null, null, null, null);
+            this(reason, retarget, null, null, null, null, null, null, null, null, null, null, null);
+        }
+
+        static Injection methodRetarget(String reason, MethodRetarget methodRetarget) {
+            return new Injection(
+                    reason, null, methodRetarget, null, null, null, null, null, null, null, null, null, null);
+        }
+
+        static Injection methodAndPointRetarget(String reason, MethodRetarget methodRetarget, Retarget retarget) {
+            return new Injection(
+                    reason, retarget, methodRetarget, null, null, null, null, null, null, null, null, null, null);
+        }
+
+        static Injection sliceRetarget(String reason, SliceRetarget sliceRetarget) {
+            return new Injection(
+                    reason, null, null, sliceRetarget, null, null, null, null, null, null, null, null, null);
+        }
+
+        Injection(String reason, Retarget retarget, InPlaceRedirect inPlaceRedirect) {
+            this(reason, retarget, null, null, inPlaceRedirect, null, null, null, null, null, null, null, null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut) {
-            this(reason, retarget, bridge, takenOut, null, null);
+            this(reason, retarget, null, null, null, bridge, takenOut, null, null, null, null, null, null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap) {
-            this(reason, retarget, bridge, takenOut, wrap, null);
+            this(reason, retarget, null, null, null, bridge, takenOut, wrap, null, null, null, null, null);
+        }
+
+        Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap, Appended appended) {
+            this(reason, retarget, null, null, null, bridge, takenOut, wrap, appended, null, null, null, null);
+        }
+
+        static Injection bedWrap(String reason, BedWrap bedWrap) {
+            return new Injection(reason, null, null, null, null, null, null, null, null, bedWrap, null, null, null);
+        }
+
+        static Injection fluidWrap(String reason, FluidWrap fluidWrap) {
+            return new Injection(reason, null, null, null, null, null, null, null, null, null, fluidWrap, null, null);
+        }
+
+        static Injection itemWrap(String reason, ItemWrap itemWrap) {
+            return new Injection(reason, null, null, null, null, null, null, null, null, null, null, itemWrap, null);
+        }
+
+        static Injection registrySyncWrap(String reason, RegistrySyncWrap registrySyncWrap) {
+            return new Injection(
+                    reason, null, null, null, null, null, null, null, null, null, null, null, registrySyncWrap);
         }
 
         /** Whether the injection does not run in the patched game (not moved, bridged or wrapped). */
         boolean doesNotRun() {
             return retarget == null
+                    && methodRetarget == null
+                    && sliceRetarget == null
+                    && inPlaceRedirect == null
                     && bridge == null
                     && wrap == null
                     && appended == null
+                    && bedWrap == null
+                    && fluidWrap == null
+                    && itemWrap == null
+                    && registrySyncWrap == null
                     && (takenOut != null || reason.endsWith("this injection does not run"));
         }
     }
@@ -1395,11 +2190,14 @@ final class HostPatchAdjustments {
             Predicate<String> hostOwned) {
         List<String> selectors = new ArrayList<>();
         List<String[]> points = new ArrayList<>();
+        List<String[]> boundaries = new ArrayList<>();
         for (AnnotationElement element : injector.elements()) {
             if (element.name().equalsString("method")) {
                 strings(element.value(), selectors);
             } else if (element.name().equalsString("at")) {
                 points(element.value(), points);
+            } else if (element.name().equalsString("slice")) {
+                slicePoints(element.value(), boundaries);
             }
         }
         String simple = type.substring(type.lastIndexOf('/') + 1, type.length() - 1);
@@ -1428,6 +2226,45 @@ final class HostPatchAdjustments {
                 if (changed.isPresent()) {
                     return changed;
                 }
+            }
+            if (descriptor == null) {
+                // Without a descriptor Mixin injects into the first method of that name only. A patch may add an
+                // overload and move the code there (NeoForge's BaseContainerBlockEntity.setItem(int, ItemStack) calls
+                // its new setItem(int, ItemStack, boolean), which holds the vanilla body).
+                before = List.of(before.getFirst());
+                after = List.of(after.getFirst());
+            }
+            // A slice whose boundary the patch removed selects nothing, so the injection finds nothing in it.
+            for (String[] boundary : boundaries) {
+                if (boundary[1] != null
+                        && CHECKED_POINTS.contains(boundary[0])
+                        && before.stream().anyMatch(method -> contains(method, boundary[1]))
+                        && after.stream().noneMatch(method -> contains(method, boundary[1]))) {
+                    return Optional.of(new Injection(
+                            where + " in a slice bounded at " + boundary[0] + " " + boundary[1] + ": "
+                                    + host.hostName() + "'s patch removed that "
+                                    + boundary[0].toLowerCase(Locale.ROOT) + " there; this injection does not run",
+                            null));
+                }
+            }
+            // The boundaries are still there, but the patch may have moved the injection point out of the slice.
+            Optional<Injection> outOfSlice = outOfSlice(handler, where, points, boundaries, before, after, host);
+            if (outOfSlice.isPresent()) {
+                return outOfSlice;
+            }
+            if (targetName.equals("net/minecraft/world/entity/LivingEntity")
+                    && name.equals("aiStep")
+                    && handler.methodName().stringValue().equals("swapFluidTag")) {
+                return Optional.of(Injection.fluidWrap(
+                        where + " at MIXINEXTRAS:EXPRESSION this.jumpInLiquid(LAVA): " + host.hostName()
+                                + " replaced jumpInLiquid with jumpInFluid; adapted via @WrapOperation bridge",
+                        new FluidWrap(
+                                handler.methodName().stringValue(),
+                                handler.methodType().stringValue(),
+                                "aiStep",
+                                "()V",
+                                "Lnet/minecraft/world/entity/LivingEntity;jumpInFluid(Lnet/minecraftforge/fluids/FluidType;)V",
+                                FluidWrap.Kind.JUMP)));
             }
             for (String[] point : points) {
                 if (point[1] == null || !CHECKED_POINTS.contains(point[0])) {
@@ -1460,16 +2297,248 @@ final class HostPatchAdjustments {
                         continue;
                     }
                     if (replacement.placement() == InjectionPointReplacement.Placement.SAME_PLACE
-                            && after.stream().anyMatch(found -> contains(found, replacement.replacement()))
-                            && (type.equals(INJECT) || sameShape(point[1], replacement.replacement()))) {
-                        return Optional.of(new Injection(
-                                where + " at " + point[1] + ": " + host.hostName() + " patches that call to "
-                                        + replacement.replacement() + ", where it now applies",
-                                new Retarget(
+                            && after.stream().anyMatch(found -> contains(found, replacement.replacement()))) {
+                        if (type.equals(INJECT)
+                                || sameShape(point[1], replacement.replacement())
+                                || (type.equals(MODIFY_EXPRESSION_VALUE)
+                                        && sameReturnType(point[1], replacement.replacement()))) {
+                            return Optional.of(new Injection(
+                                    where + " at " + point[1] + ": " + host.hostName() + " patches that call to "
+                                            + replacement.replacement() + ", where it now applies",
+                                    new Retarget(
+                                            handler.methodName().stringValue(),
+                                            handler.methodType().stringValue(),
+                                            point[1],
+                                            replacement.replacement())));
+                        }
+                        if (type.equals(REDIRECT) && inPlaceRedirect(handler, point[1], replacement.replacement())) {
+                            String handlerName = handler.methodName().stringValue();
+                            String handlerDescriptor = handler.methodType().stringValue();
+                            return Optional.of(new Injection(
+                                    where + " at " + point[1] + ": " + host.hostName()
+                                            + " captures the argument at " + replacement.replacement()
+                                            + " before copying; the redirect populates it through @ModifyArg there",
+                                    new Retarget(handlerName, handlerDescriptor, point[1], replacement.replacement()),
+                                    new InPlaceRedirect(handlerName, handlerDescriptor, replacement.replacement())));
+                        }
+                        if (targetName.equals("net/minecraft/world/entity/LivingEntity")) {
+                            if (method.equals("getBedOrientation")
+                                    && replacement.replaced().contains("BedBlock;getBedOrientation(")
+                                    && type.equals(WRAP_OPERATION)) {
+                                return Optional.of(Injection.bedWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new BedWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "getBedOrientation",
+                                                "()Lnet/minecraft/core/Direction;",
+                                                replacement.replacement(),
+                                                BedWrap.Kind.DIRECTION)));
+                            }
+                            if (method.equals("lambda$stopSleeping$0")
+                                    && replacement.replaced().contains("Level;setBlock(")
+                                    && type.equals(REDIRECT)) {
+                                return Optional.of(Injection.bedWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new BedWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "lambda$stopSleeping$0",
+                                                "(Lnet/minecraft/core/BlockPos;)V",
+                                                replacement.replacement(),
+                                                BedWrap.Kind.OCCUPIED)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat")) {
+                            if ((method.equals("checkInWater") || method.equals("isUnderwater"))
+                                    && replacement.replaced().contains("FluidState;is(")
+                                    && type.equals(WRAP_OPERATION)) {
+                                return Optional.of(Injection.fluidWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new FluidWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                method,
+                                                "()Z",
+                                                replacement.replacement(),
+                                                FluidWrap.Kind.BOAT_SUPPORT)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/entity/Entity")) {
+                            if (method.equals("updateSwimming")
+                                    && replacement.replaced().contains("FluidState;is(")
+                                    && type.equals(WRAP_OPERATION)) {
+                                return Optional.of(Injection.fluidWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new FluidWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "updateSwimming",
+                                                "()V",
+                                                replacement.replacement(),
+                                                FluidWrap.Kind.SWIMMING)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/entity/LivingEntity")) {
+                            if (method.equals("baseTick")
+                                    && replacement.replaced().contains("LivingEntity;isEyeInFluid(")
+                                    && type.equals(MODIFY_EXPRESSION_VALUE)) {
+                                return Optional.of(Injection.fluidWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new FluidWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "baseTick",
+                                                "()V",
+                                                replacement.replacement(),
+                                                FluidWrap.Kind.DROWNING)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity")) {
+                            if (method.equals("consumeFuel")
+                                    && replacement.replaced().contains("Item;getCraftingRemainder(")
+                                    && type.equals(REDIRECT)) {
+                                return Optional.of(Injection.itemWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new ItemWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "consumeFuel",
+                                                "",
+                                                replacement.replacement(),
+                                                ItemWrap.Kind.FURNACE_REMAINDER)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/level/block/entity/BrewingStandBlockEntity")) {
+                            if (method.equals("doBrew")
+                                    && replacement.replaced().contains("Item;getCraftingRemainder(")
+                                    && type.equals(REDIRECT)) {
+                                return Optional.of(Injection.itemWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new ItemWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "doBrew",
+                                                "",
+                                                replacement.replacement(),
+                                                ItemWrap.Kind.BREWING_REMAINDER)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/item/crafting/CraftingRecipe")) {
+                            if (method.equals("defaultCraftingReminder")
+                                    && replacement.replaced().contains("ItemStack;getItem(")
+                                    && type.equals(WRAP_OPERATION)) {
+                                return Optional.of(Injection.itemWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " directly; adapted via @WrapOperation bridge",
+                                        new ItemWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "defaultCraftingReminder",
+                                                "",
+                                                replacement.replacement(),
+                                                ItemWrap.Kind.CRAFTING_CAPTURE)));
+                            }
+                            if (method.equals("defaultCraftingReminder")
+                                    && replacement.replaced().contains("Item;getCraftingRemainder(")
+                                    && type.equals(REDIRECT)) {
+                                return Optional.of(Injection.itemWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new ItemWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "defaultCraftingReminder",
+                                                "",
+                                                replacement.replacement(),
+                                                ItemWrap.Kind.CRAFTING_REMAINDER)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/world/item/enchantment/EnchantmentHelper")) {
+                            if (method.equals("lambda$getAvailableEnchantmentResults$0")
+                                    && replacement.replaced().contains("Enchantment;isPrimaryItem(")
+                                    && type.equals(REDIRECT)) {
+                                return Optional.of(Injection.itemWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new ItemWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "lambda$getAvailableEnchantmentResults$0",
+                                                "",
+                                                replacement.replacement(),
+                                                ItemWrap.Kind.ENCHANTMENT_CHECK)));
+                            }
+                        }
+                        if (targetName.equals("net/minecraft/data/registries/RegistryPatchGenerator")) {
+                            if (method.equals("lambda$createLookup$0")
+                                    && replacement.replaced().contains("WORLDGEN_REGISTRIES")
+                                    && type.equals(REDIRECT)) {
+                                return Optional.of(Injection.registrySyncWrap(
+                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                                + replacement.replacement()
+                                                + " there; adapted via @WrapOperation bridge",
+                                        new RegistrySyncWrap(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                "lambda$createLookup$0",
+                                                "",
+                                                replacement.replacement())));
+                            }
+                        }
+                    }
+                    if (replacement.placement() == InjectionPointReplacement.Placement.IN_METHOD) {
+                        String rep = replacement.replacement();
+                        int colon = rep.indexOf(':');
+                        String movedMethodSpec = colon < 0 ? rep : rep.substring(0, colon);
+                        String newTarget = colon < 0 ? point[1] : rep.substring(colon + 1);
+
+                        int paren = movedMethodSpec.indexOf('(');
+                        String movedName = paren < 0 ? movedMethodSpec : movedMethodSpec.substring(0, paren);
+                        String movedDescriptor = paren < 0 ? null : movedMethodSpec.substring(paren);
+                        if (methods(patched, movedName, movedDescriptor).stream()
+                                .anyMatch(found -> contains(found, newTarget))) {
+                            MethodRetarget methodRetarget = new MethodRetarget(
+                                    handler.methodName().stringValue(),
+                                    handler.methodType().stringValue(),
+                                    selector,
+                                    movedMethodSpec);
+                            if (colon < 0) {
+                                return Optional.of(Injection.methodRetarget(
+                                        where + " at " + point[1] + ": " + host.hostName() + " moved that call to "
+                                                + targetName + "." + movedMethodSpec + ", where it now applies",
+                                        methodRetarget));
+                            } else {
+                                Retarget retarget = new Retarget(
                                         handler.methodName().stringValue(),
                                         handler.methodType().stringValue(),
                                         point[1],
-                                        replacement.replacement())));
+                                        newTarget);
+                                return Optional.of(Injection.methodAndPointRetarget(
+                                        where + " at " + point[1] + ": " + host.hostName() + " moved that call to "
+                                                + targetName + "." + movedMethodSpec + " as " + newTarget
+                                                + ", where it now applies",
+                                        methodRetarget,
+                                        retarget));
+                            }
+                        }
                     }
                     if (replacement.placement() == InjectionPointReplacement.Placement.AFTER_TRUE_RESULT
                             && points.size() == 1) {
@@ -1890,6 +2959,17 @@ final class HostPatchAdjustments {
         return from < 0 ? "" : target.substring(from);
     }
 
+    private static boolean sameReturnType(String replaced, String replacement) {
+        String r1 = returnType(replaced);
+        String r2 = returnType(replacement);
+        return !r1.isEmpty() && r1.equals(r2);
+    }
+
+    private static String returnType(String target) {
+        int r = target.lastIndexOf(')');
+        return r >= 0 ? target.substring(r + 1) : "";
+    }
+
     /**
      * The {@code @WrapOperation} bridge that runs an {@code @Inject} handler after each true result of the helper call
      * {@code replacement} names ({@link InjectionPointReplacement.Placement#AFTER_TRUE_RESULT}), when everything holds
@@ -2073,6 +3153,239 @@ final class HostPatchAdjustments {
         }
     }
 
+    /**
+     * The {@code @At} points that bound the {@code @Slice} annotations in {@code value}: {@code [value, target, another
+     * element's name or null, "from" or "to"]}.
+     */
+    private static void slicePoints(AnnotationValue value, List<String[]> out) {
+        if (value instanceof AnnotationValue.OfArray array) {
+            array.values().forEach(item -> slicePoints(item, out));
+        } else if (value instanceof AnnotationValue.OfAnnotation slice) {
+            for (AnnotationElement element : slice.annotation().elements()) {
+                String role = element.name().stringValue();
+                if (role.equals("from") || role.equals("to")) {
+                    List<String[]> bounds = new ArrayList<>();
+                    points(element.value(), bounds);
+                    for (String[] bound : bounds) {
+                        out.add(new String[] {bound[0], bound[1], bound[2], role});
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * An injection with one slice (at most one {@code from} and one {@code to}, without ordinals) whose point the vanilla
+     * method has inside the slice and the patched method has only outside it: Mixin then finds nothing. As Mixin does,
+     * the slice starts at the first {@code from} instruction and ends at the last {@code to} instruction. When the slice
+     * disambiguated two calls on two distinct {@code GETFIELD} receiver fields and the patch moved the sliced call before
+     * the other receiver field, the slice is retargeted to end at {@code GETFIELD} of that other field.
+     */
+    private static Optional<Injection> outOfSlice(
+            MethodModel handler,
+            String where,
+            List<String[]> points,
+            List<String[]> boundaries,
+            List<MethodModel> before,
+            List<MethodModel> after,
+            HostedLaunch host) {
+        List<String[]> from =
+                boundaries.stream().filter(bound -> bound[3].equals("from")).toList();
+        List<String[]> to =
+                boundaries.stream().filter(bound -> bound[3].equals("to")).toList();
+        if (boundaries.isEmpty()
+                || from.size() > 1
+                || to.size() > 1
+                || boundaries.stream()
+                        .anyMatch(
+                                bound -> bound[1] == null || !CHECKED_POINTS.contains(bound[0]) || bound[2] != null)) {
+            return Optional.empty();
+        }
+        String start = from.isEmpty() ? null : from.getFirst()[1];
+        String end = to.isEmpty() ? null : to.getFirst()[1];
+        for (String[] point : points) {
+            if (point[1] == null || !CHECKED_POINTS.contains(point[0])) {
+                continue;
+            }
+            if (before.stream().anyMatch(method -> inSlice(method, point[1], start, end))
+                    && after.stream().noneMatch(method -> inSlice(method, point[1], start, end))) {
+                if (points.size() == 1 && before.size() == 1 && after.size() == 1) {
+                    Optional<String> toField =
+                            retargetedSliceToField(before.getFirst(), after.getFirst(), point[1], start, end);
+                    if (toField.isPresent()) {
+                        return Optional.of(Injection.sliceRetarget(
+                                where + " at " + point[0] + " " + point[1] + ": " + host.hostName()
+                                        + " moved that call before " + toField.get()
+                                        + "; the slice now ends at " + toField.get(),
+                                new SliceRetarget(
+                                        handler.methodName().stringValue(),
+                                        handler.methodType().stringValue(),
+                                        toField.get())));
+                    }
+                }
+                return Optional.of(new Injection(
+                        where + " at " + point[0] + " " + point[1] + ": " + host.hostName()
+                                + "'s patch left no such " + point[0].toLowerCase(Locale.ROOT)
+                                + " inside the injection's slice" + (start == null ? "" : " from " + start)
+                                + (end == null ? "" : " to " + end) + "; this injection does not run",
+                        null));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Whether {@code handler} is a unary {@code (P0)P0} {@code @Redirect} of {@code replaced} (also {@code (P0)P0}) and
+     * {@code replacement} is a {@code (P0, ...)V} call taking that {@code P0} first.
+     */
+    private static boolean inPlaceRedirect(MethodModel handler, String replaced, String replacement) {
+        String replacedShape = shape(replaced);
+        String replacementShape = shape(replacement);
+        if (!replacedShape.startsWith("(")
+                || !replacementShape.startsWith("(")
+                || !handler.methodType().equalsString(replacedShape)) {
+            return false;
+        }
+        MethodTypeDesc replacedType = MethodTypeDesc.ofDescriptor(replacedShape);
+        MethodTypeDesc replacementType = MethodTypeDesc.ofDescriptor(replacementShape);
+        return replacedType.parameterCount() == 1
+                && !replacedType.parameterType(0).isPrimitive()
+                && replacedType.returnType().equals(replacedType.parameterType(0))
+                && replacementType.returnType().equals(ConstantDescs.CD_void)
+                && replacementType.parameterCount() >= 1
+                && replacementType.parameterType(0).equals(replacedType.parameterType(0));
+    }
+
+    /**
+     * When {@code vanilla}'s slice {@code [start, end]} separates one {@code target} call on a {@code GETFIELD} receiver
+     * inside the slice from one {@code target} call on a different {@code GETFIELD} receiver outside it, and {@code
+     * patched} places the inside receiver's call before every {@code GETFIELD} of the outside receiver while keeping the
+     * outside receiver's call after it, returns the outside receiver field in Mixin target notation.
+     */
+    private static Optional<String> retargetedSliceToField(
+            MethodModel vanilla, MethodModel patched, String target, String start, String end) {
+        if (vanilla.code().isEmpty() || patched.code().isEmpty()) {
+            return Optional.empty();
+        }
+        List<CodeElement> vanillaCode = vanilla.code().get().elementList();
+        int first = start == null ? 0 : -1;
+        int last = end == null ? vanillaCode.size() - 1 : -1;
+        for (int index = 0; index < vanillaCode.size(); index++) {
+            if (start != null && first < 0 && matches(vanillaCode.get(index), start)) {
+                first = index;
+            }
+            if (end != null && matches(vanillaCode.get(index), end)) {
+                last = index;
+            }
+        }
+        if (first < 0 || last < 0) {
+            return Optional.empty();
+        }
+        List<String> insideFields = new ArrayList<>();
+        List<String> outsideFields = new ArrayList<>();
+        for (int index = 0; index < vanillaCode.size(); index++) {
+            if (matches(vanillaCode.get(index), target)) {
+                Optional<String> field = receiverField(vanillaCode, index);
+                if (field.isEmpty()) {
+                    return Optional.empty();
+                }
+                if (index >= first && index <= last) {
+                    insideFields.add(field.get());
+                } else {
+                    outsideFields.add(field.get());
+                }
+            }
+        }
+        if (insideFields.size() != 1
+                || outsideFields.size() != 1
+                || insideFields.getFirst().equals(outsideFields.getFirst())) {
+            return Optional.empty();
+        }
+        String wantedField = insideFields.getFirst();
+        String boundaryField = outsideFields.getFirst();
+        List<CodeElement> patchedCode = patched.code().get().elementList();
+        int boundaryIndex = -1;
+        List<Integer> wantedCalls = new ArrayList<>();
+        List<Integer> otherCalls = new ArrayList<>();
+        for (int index = 0; index < patchedCode.size(); index++) {
+            if (patchedCode.get(index) instanceof FieldInstruction field
+                    && field.opcode() == Opcode.GETFIELD
+                    && fieldTarget(field).equals(boundaryField)) {
+                boundaryIndex = index;
+            }
+            if (matches(patchedCode.get(index), target)) {
+                Optional<String> receiver = receiverField(patchedCode, index);
+                if (receiver.isEmpty()) {
+                    return Optional.empty();
+                }
+                if (receiver.get().equals(wantedField)) {
+                    wantedCalls.add(index);
+                } else {
+                    otherCalls.add(index);
+                }
+            }
+        }
+        int endBoundary = boundaryIndex;
+        if (endBoundary < 0
+                || wantedCalls.size() != 1
+                || otherCalls.isEmpty()
+                || wantedCalls.getFirst() >= endBoundary
+                || otherCalls.stream().anyMatch(callIndex -> callIndex <= endBoundary)) {
+            return Optional.empty();
+        }
+        return Optional.of(boundaryField);
+    }
+
+    private static Optional<String> receiverField(List<CodeElement> code, int callIndex) {
+        for (int index = callIndex - 1; index >= Math.max(0, callIndex - 6); index--) {
+            if (code.get(index) instanceof FieldInstruction field && field.opcode() == Opcode.GETFIELD) {
+                return Optional.of(fieldTarget(field));
+            }
+            if (code.get(index) instanceof InvokeInstruction) {
+                break;
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static String fieldTarget(FieldInstruction field) {
+        return "L" + field.owner().asInternalName() + ";" + field.name().stringValue() + ":"
+                + field.type().stringValue();
+    }
+
+    /** Whether {@code method} has {@code target} after its first {@code start} and before its last {@code end}. */
+    private static boolean inSlice(MethodModel method, String target, String start, String end) {
+        if (method.code().isEmpty()) {
+            return false;
+        }
+        List<CodeElement> code = method.code().get().elementList();
+        int first = start == null ? 0 : -1;
+        int last = end == null ? code.size() : -1;
+        for (int index = 0; index < code.size(); index++) {
+            if (start != null && first < 0 && matches(code.get(index), start)) {
+                first = index;
+            }
+            if (end != null && matches(code.get(index), end)) {
+                last = index;
+            }
+        }
+        if (first < 0 || last < 0) {
+            return false;
+        }
+        for (int index = first; index <= Math.min(last, code.size() - 1); index++) {
+            if (matches(code.get(index), target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether one instruction is the one {@code target} names ({@link #contains}). */
+    private static boolean matches(CodeElement element, String target) {
+        return element instanceof java.lang.classfile.Instruction instruction
+                && containsInstruction(instruction, target);
+    }
+
     /** {@code [value, target, another element's name or null]} of each {@code @At}. */
     private static void points(AnnotationValue value, List<String[]> out) {
         if (value instanceof AnnotationValue.OfArray array) {
@@ -2099,18 +3412,29 @@ final class HostPatchAdjustments {
     /**
      * Whether {@code method} has the instruction Mixin's target notation names: {@code Lowner;name(descriptor)} for a
      * call, {@code Lowner;name:descriptor} for a field, {@code Lowner;}, {@code owner} or {@code (arguments)Lowner;}
-     * for {@code NEW}.
+     * for {@code NEW}. For {@code (arguments)Lowner;} the method must call that constructor, as Mixin matches only it.
      */
     static boolean contains(MethodModel method, String target) {
-        if (method.code().isEmpty()) {
-            return false;
+        return method.code().isPresent()
+                && method.code().get().elementList().stream()
+                        .anyMatch(element -> element instanceof java.lang.classfile.Instruction instruction
+                                && containsInstruction(instruction, target));
+    }
+
+    /** Whether {@code instruction} is the one {@code target} names, in the notation of {@link #contains}. */
+    private static boolean containsInstruction(java.lang.classfile.Instruction instruction, String target) {
+        if (target.startsWith("(") && target.endsWith(";")) {
+            String owner = target.substring(target.lastIndexOf(')') + 2, target.length() - 1);
+            String constructor = target.substring(0, target.lastIndexOf(')') + 1) + "V";
+            return instruction instanceof InvokeInstruction call
+                    && call.opcode() == Opcode.INVOKESPECIAL
+                    && call.name().equalsString(ConstantDescs.INIT_NAME)
+                    && call.owner().asInternalName().equals(owner)
+                    && call.type().equalsString(constructor);
         }
         String owner;
         String rest;
-        if (target.startsWith("(") && target.endsWith(";")) {
-            owner = target.substring(target.lastIndexOf(')') + 2, target.length() - 1);
-            rest = "";
-        } else if (target.startsWith("L") && target.indexOf(';') > 0) {
+        if (target.startsWith("L") && target.indexOf(';') > 0) {
             owner = target.substring(1, target.indexOf(';'));
             rest = target.substring(target.indexOf(';') + 1);
         } else {
@@ -2120,27 +3444,20 @@ final class HostPatchAdjustments {
         int split = rest.indexOf('(') >= 0 ? rest.indexOf('(') : rest.indexOf(':');
         String name = split < 0 ? rest : rest.substring(0, split);
         String descriptor = split < 0 ? "" : rest.substring(split).replaceFirst("^:", "");
-        for (var element : method.code().get().elementList()) {
-            if (element instanceof InvokeInstruction call) {
-                if (call.owner().asInternalName().equals(owner)
-                        && call.name().equalsString(name)
-                        && (descriptor.isEmpty()
-                                || call.typeSymbol().descriptorString().equals(descriptor))) {
-                    return true;
-                }
-            } else if (element instanceof FieldInstruction field) {
-                if (field.owner().asInternalName().equals(owner)
-                        && field.name().equalsString(name)
-                        && (descriptor.isEmpty() || field.type().equalsString(descriptor))) {
-                    return true;
-                }
-            } else if (element instanceof NewObjectInstruction created) {
-                if (name.isEmpty() && created.className().asInternalName().equals(owner)) {
-                    return true;
-                }
-            }
+        if (instruction instanceof InvokeInstruction call) {
+            return call.owner().asInternalName().equals(owner)
+                    && call.name().equalsString(name)
+                    && (descriptor.isEmpty()
+                            || call.typeSymbol().descriptorString().equals(descriptor));
         }
-        return false;
+        if (instruction instanceof FieldInstruction field) {
+            return field.owner().asInternalName().equals(owner)
+                    && field.name().equalsString(name)
+                    && (descriptor.isEmpty() || field.type().equalsString(descriptor));
+        }
+        return instruction instanceof NewObjectInstruction created
+                && name.isEmpty()
+                && created.className().asInternalName().equals(owner);
     }
 
     /** The vanilla and the patched game's classes, parsed once each. */

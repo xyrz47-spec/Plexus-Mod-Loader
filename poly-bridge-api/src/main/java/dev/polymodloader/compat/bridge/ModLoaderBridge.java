@@ -93,6 +93,23 @@ public interface ModLoaderBridge {
     }
 
     /**
+     * Called once on a game a host loader patched (ADR-0021 G8, ADR-0030), after the bridges assessed the mods and
+     * before the runtime decides which of them load: the mods among {@code mods} whose code cannot work as written
+     * against the host's patched classes (Fabric's mixins), each with why. The runtime does not load them, nor the mods
+     * that need them, and tells the player that Poly Mod Loader, not the mod, has to change ({@code POLY-COMPAT-224}).
+     * A bridge never runs such a mod with the part that does not fit left out. The default finds none.
+     *
+     * @param mods every other loader's mod that was assessed as loadable so far, of any bridge (a bridge whose loader
+     *     shares its class transformation with another's, such as Quilt's with Fabric's, leaves them to that one)
+     * @param patched the classes of the host's patched game and its libraries, read from their jars
+     * @return per mod jar, the reasons, one line each; mods not in it have none
+     */
+    default Map<java.nio.file.Path, List<String>> hostIncompatibilities(
+            GameSide side, HostedLaunch host, List<BridgeLaunchContext.LoadedMod> mods, GameClassBytes patched) {
+        return Map.of();
+    }
+
+    /**
      * Called once, after Poly Mod Loader has decided which mods load and created the game class loader, and before
      * any entrypoint runs. A bridge that provides its loader's runtime API sets it up here.
      */

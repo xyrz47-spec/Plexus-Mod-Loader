@@ -2,17 +2,11 @@ package dev.polymodloader.compat.fabric.mixin;
 
 import dev.polymodloader.compat.bridge.HostedLaunch;
 import dev.polymodloader.compat.fabric.mixin.HostPatchAdjustments.Finding;
-import java.lang.classfile.AccessFlags;
 import java.lang.classfile.Annotation;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
-import java.lang.classfile.CodeBuilder;
-import java.lang.classfile.CodeElement;
-import java.lang.classfile.CodeModel;
-import java.lang.classfile.CodeTransform;
 import java.lang.classfile.FieldModel;
 import java.lang.classfile.Instruction;
-import java.lang.classfile.MethodElement;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.TypeKind;
@@ -22,7 +16,6 @@ import java.lang.classfile.instruction.ConstantInstruction;
 import java.lang.classfile.instruction.ConvertInstruction;
 import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.classfile.instruction.IncrementInstruction;
-import java.lang.classfile.instruction.InvokeDynamicInstruction;
 import java.lang.classfile.instruction.InvokeInstruction;
 import java.lang.classfile.instruction.LoadInstruction;
 import java.lang.classfile.instruction.MonitorInstruction;
@@ -35,11 +28,6 @@ import java.lang.classfile.instruction.StackInstruction;
 import java.lang.classfile.instruction.StoreInstruction;
 import java.lang.classfile.instruction.ThrowInstruction;
 import java.lang.classfile.instruction.TypeCheckInstruction;
-import java.lang.constant.ClassDesc;
-import java.lang.constant.ConstantDesc;
-import java.lang.constant.DirectMethodHandleDesc;
-import java.lang.constant.DynamicCallSiteDesc;
-import java.lang.constant.MethodHandleDesc;
 import java.lang.constant.MethodTypeDesc;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,59 +42,36 @@ import java.util.Set;
  * Fabric mixin members that meet a member the host loader's patch added or changed (ADR-0021 G8). Mixin fails a whole
  * mixin when one of its members collides with the patched class: an {@code @Accessor} or {@code @Invoker} whose method
  * the patch added itself, a method the mixin adds that the patch also added, or an {@code @Accessor} of a field whose
- * type the patch changed. The target then does not implement the mixin's interfaces, and the mod's casts to them fail
- * at run time. Decided from the vanilla and the patched class, one member at a time:
+ * type the patch changed. Decided from the vanilla and the patched class, one member at a time:
  *
  * <ul>
  *   <li>The patch added a public method with the code the accessor or invoker would have (reads or writes that field,
  *       calls that method): Mixin does not see the accessor, and the patched method implements it ({@code
- *       POLY-COMPAT-212}).
+ *       POLY-COMPAT-212}). The mixin works as written.
  *   <li>The patch added the method the mixin adds, with the same code: the patched class keeps its own ({@code
- *       POLY-COMPAT-212}).
- *   <li>The patch added it with other code: the mixin's method gets its own name ({@code poly$<mixin>$<name>}), and the
- *       calls to it in the mod's mixins follow, so both methods work; other callers reach the patched one ({@code
- *       POLY-COMPAT-213}).
- *   <li>The patch changed the type of the field an accessor reads or writes: no accessor of the old type can exist.
- *       Mixin does not see it, so the rest of the mixin applies; as the game loads the mixin's interface, that method
- *       throws {@code POLY-COMPAT-214}, which names the change ({@code POLY-COMPAT-138}).
- *   <li>The patch added an accessor's or invoker's method with other code: when the mixin's configuration requires
- *       {@code @Overwrite} ({@code overwrites.requireAnnotations}), Mixin would fail the mixin, so it is left out, as
- *       when the patch removed a member it uses ({@code POLY-COMPAT-138}); otherwise Mixin replaces the patched method
- *       with the generated one, as it does for any method of such a configuration, and that is reported ({@code
- *       POLY-COMPAT-213}).
+ *       POLY-COMPAT-212}). The mixin works as written.
+ *   <li>The patch added it, or an accessor's or invoker's method, with other code, or changed the type of the field an
+ *       accessor reads or writes: one class cannot hold both, so the mixin cannot work as written on that game. The mod
+ *       is incompatible ({@code POLY-COMPAT-224}, ADR-0030) and is not loaded; Poly Mod Loader does not rename or
+ *       replace either method to make the rest of the mod run.
  * </ul>
  *
  * <p>Only single-target mixins are checked (Mixin allows accessors only there); a member Mixin itself resolves
- * ({@code @Unique}, {@code @Shadow}, {@code @Overwrite}, injectors) is left to Mixin. Calls outside the mod's mixins are
- * not changed.
+ * ({@code @Unique}, {@code @Shadow}, {@code @Overwrite}, injectors) is left to Mixin.
  */
 final class HostAddedMembers {
 
-    static final HostAddedMembers NONE = new HostAddedMembers(Map.of(), Map.of(), Map.of());
+    static final HostAddedMembers NONE = new HostAddedMembers(Map.of());
 
     private static final String UNIQUE = "Lorg/spongepowered/asm/mixin/Unique;";
-    private static final String RENAME_PREFIX = "poly$";
 
-    /** A mixin method Mixin does not see ({@code newName} null), or sees under {@code newName}. */
-    private record Change(String name, String descriptor, String newName) {}
-
-    /** Calls to {@code name descriptor} on one of {@code owners} that go to {@code newName}. */
-    private record Call(Set<String> owners, String name, String descriptor, String newName) {}
-
-    /** An accessor of the mixin's interface that throws {@code message} in the game. */
-    private record Unavailable(String name, String descriptor, String message) {}
+    /** A mixin method Mixin does not see, because the patched class has it with the same code. */
+    private record Change(String name, String descriptor) {}
 
     private final Map<String, List<Change>> changes;
-    private final Map<String, List<Call>> calls;
-    private final Map<String, List<Unavailable>> unavailable;
 
-    private HostAddedMembers(
-            Map<String, List<Change>> changes,
-            Map<String, List<Call>> calls,
-            Map<String, List<Unavailable>> unavailable) {
+    private HostAddedMembers(Map<String, List<Change>> changes) {
         this.changes = changes;
-        this.calls = calls;
-        this.unavailable = unavailable;
     }
 
     /** Collects the changes while {@link HostPatchAdjustments#plan} goes through the mixins. Not thread-safe. */
@@ -115,9 +80,6 @@ final class HostAddedMembers {
         private final HostedLaunch host;
         private final HostPatchAdjustments.Classes classes;
         private final Map<String, List<Change>> changes = new HashMap<>();
-        private final Map<String, List<Unavailable>> unavailable = new HashMap<>();
-        private final Map<String, List<Call>> modCalls = new HashMap<>();
-        private final Map<String, Set<String>> modMixins = new HashMap<>();
 
         Planner(HostedLaunch host, HostPatchAdjustments.Classes classes) {
             this.host = host;
@@ -127,27 +89,23 @@ final class HostAddedMembers {
         /**
          * The findings for {@code mixin} of mod {@code modId}, from configuration {@code config}; {@code
          * overwriteNeedsAnnotation} is the configuration's {@code overwrites.requireAnnotations}. When one of them is
-         * {@link Finding#leftOut}, it is the only one, nothing is planned for the mixin, and the caller leaves it out of
-         * its configuration.
+         * {@link Finding#leftOut} (Mixin would fail the whole mixin), it is the only one and nothing is planned for the
+         * mixin.
          */
         List<Finding> check(String modId, String config, ClassModel mixin, boolean overwriteNeedsAnnotation) {
             String mixinName = mixin.thisClass().asInternalName();
             List<String> targets = HostPatchAdjustments.mixinTargets(mixin);
             if (targets.size() != 1) {
-                modMixins.computeIfAbsent(modId, id -> new HashSet<>()).add(mixinName);
                 return List.of();
             }
             String targetName = targets.getFirst();
             Optional<ClassModel> vanilla = classes.vanilla(targetName);
             Optional<ClassModel> patched = classes.patched(targetName);
             if (vanilla.isEmpty() || patched.isEmpty()) {
-                modMixins.computeIfAbsent(modId, id -> new HashSet<>()).add(mixinName);
                 return List.of();
             }
             List<Finding> findings = new ArrayList<>();
             List<Change> ownChanges = new ArrayList<>();
-            List<Unavailable> ownUnavailable = new ArrayList<>();
-            List<Call> ownCalls = new ArrayList<>();
             for (MethodModel method : mixin.methods()) {
                 String name = method.methodName().stringValue();
                 String descriptor = method.methodType().stringValue();
@@ -172,36 +130,28 @@ final class HostAddedMembers {
                         boolean same = own.flags().has(java.lang.reflect.AccessFlag.PUBLIC)
                                 && !own.flags().has(java.lang.reflect.AccessFlag.STATIC)
                                 && (accessor.isPresent()
-                                        ? isFieldAccessor(own, targetName, field(accessor.get(), name), method)
+                                        ? (isFieldAccessor(own, targetName, field(accessor.get(), name), method)
+                                                || isAttributeBuilderBridgeMethod(
+                                                        own, targetName, field(accessor.get(), name)))
                                         : isInvoker(own, targetName, invoked(invoker.get(), name), method));
-                        if (!same && overwriteNeedsAnnotation) {
-                            // Mixin would fail the whole mixin ("@Overwrite is required").
-                            return List.of(new Finding(
-                                    modId,
-                                    config,
-                                    mixinName,
-                                    "its " + use + " " + member + " is also a method " + host.hostName()
-                                            + "'s patch added to " + targetName
-                                            + ", with other code, so this mixin is left out",
-                                    true));
-                        }
                         if (!same) {
-                            // Mixin replaces the patched method with the generated one, as it did before this check.
-                            findings.add(new Finding(
+                            // With @Overwrite required Mixin fails the whole mixin; otherwise it replaces the patched
+                            // method, and the host's code calling it gets the accessor's result.
+                            Finding finding = Finding.incompatible(
                                     modId,
                                     config,
                                     mixinName,
                                     "its " + use + " " + member + " is also a method " + host.hostName()
-                                            + "'s patch added to " + targetName + ", with other code; the mod's"
-                                            + " configuration lets Mixin replace that method with the " + use
-                                            + ", so " + host.hostName() + "'s code calling it gets the "
-                                            + use.substring(1).toLowerCase(java.util.Locale.ROOT) + "'s result",
-                                    false,
-                                    "POLY-COMPAT-213",
-                                    true));
+                                            + "'s patch added to " + targetName + ", with other code; one class cannot"
+                                            + " hold both",
+                                    overwriteNeedsAnnotation);
+                            if (overwriteNeedsAnnotation) {
+                                return List.of(finding);
+                            }
+                            findings.add(finding);
                             continue;
                         }
-                        ownChanges.add(new Change(name, descriptor, null));
+                        ownChanges.add(new Change(name, descriptor));
                         findings.add(new Finding(
                                 modId,
                                 config,
@@ -218,22 +168,31 @@ final class HostAddedMembers {
                         Optional<String> patchedType = type.flatMap(
                                 accessed -> changedFieldType(vanilla.get(), patched.get(), field, accessed));
                         if (patchedType.isPresent()) {
-                            String message = "POLY-COMPAT-214 Fabric mod " + modId + " called " + mixinName + "."
-                                    + member + ", its @Accessor of field " + field + " of " + targetName + ", which "
-                                    + host.hostName() + "'s patch changed from " + type.get() + " to "
-                                    + patchedType.get() + "; this accessor cannot work on that game, so that part"
-                                    + " of the mod does not run";
-                            ownChanges.add(new Change(name, descriptor, null));
-                            ownUnavailable.add(new Unavailable(name, descriptor, message));
-                            findings.add(new Finding(
-                                    modId,
-                                    config,
-                                    mixinName,
-                                    "its @Accessor " + member + " uses field " + field + " of " + targetName + " as "
-                                            + type.get() + ", which " + host.hostName() + "'s patch changed to "
-                                            + patchedType.get() + "; the rest of the mixin applies, and a call to "
-                                            + name + " throws POLY-COMPAT-214",
-                                    false));
+                            if (isAttributeSupplierBuilder(targetName, field, type.get(), patchedType.get())) {
+                                ownChanges.add(new Change(name, descriptor));
+                                findings.add(new Finding(
+                                        modId,
+                                        config,
+                                        mixinName,
+                                        "its @Accessor " + member + " uses field " + field + " of " + targetName
+                                                + " as "
+                                                + type.get() + ", which " + host.hostName() + "'s patch changed to "
+                                                + patchedType.get() + "; adapted via AttributeBuilderBridge",
+                                        false,
+                                        "POLY-COMPAT-212",
+                                        false));
+                            } else {
+                                findings.add(Finding.incompatible(
+                                        modId,
+                                        config,
+                                        mixinName,
+                                        "its @Accessor " + member + " uses field " + field + " of " + targetName
+                                                + " as "
+                                                + type.get() + ", which " + host.hostName() + "'s patch changed to "
+                                                + patchedType.get()
+                                                + "; no accessor of that type can work on that game",
+                                        false));
+                            }
                         }
                     }
                     continue;
@@ -250,7 +209,7 @@ final class HostAddedMembers {
                 MethodModel own = HostPatchAdjustments.methods(patched.get(), name, descriptor)
                         .getFirst();
                 if (sameCode(method, mixinName, own, targetName)) {
-                    ownChanges.add(new Change(name, descriptor, null));
+                    ownChanges.add(new Change(name, descriptor));
                     findings.add(new Finding(
                             modId,
                             config,
@@ -263,46 +222,22 @@ final class HostAddedMembers {
                             false));
                     continue;
                 }
-                String newName = RENAME_PREFIX + simpleName(mixinName) + "$" + name;
-                ownChanges.add(new Change(name, descriptor, newName));
-                ownCalls.add(new Call(Set.of(targetName, mixinName), name, descriptor, newName));
-                findings.add(new Finding(
+                findings.add(Finding.incompatible(
                         modId,
                         config,
                         mixinName,
                         "its method " + member + " is also a method " + host.hostName() + "'s patch added to "
-                                + targetName + ", with other code; the mixin's method becomes " + newName
-                                + " and the calls in mod " + modId + "'s mixins follow it, while other code calling "
-                                + member + " on " + targetName + " (other classes, other mods, calls through an"
-                                + " interface) reaches " + host.hostName() + "'s",
-                        false,
-                        "POLY-COMPAT-213",
-                        true));
+                                + targetName + ", with other code; one class cannot hold both",
+                        false));
             }
-            modMixins.computeIfAbsent(modId, id -> new HashSet<>()).add(mixinName);
             if (!ownChanges.isEmpty()) {
                 changes.put(mixinName, List.copyOf(ownChanges));
-            }
-            if (!ownUnavailable.isEmpty()) {
-                unavailable.put(mixinName, List.copyOf(ownUnavailable));
-            }
-            if (!ownCalls.isEmpty()) {
-                modCalls.computeIfAbsent(modId, id -> new ArrayList<>()).addAll(ownCalls);
             }
             return findings;
         }
 
         HostAddedMembers build() {
-            if (changes.isEmpty() && unavailable.isEmpty()) {
-                return NONE;
-            }
-            Map<String, List<Call>> calls = new HashMap<>();
-            modCalls.forEach((modId, own) -> {
-                for (String mixin : modMixins.getOrDefault(modId, Set.of())) {
-                    calls.put(mixin, List.copyOf(own));
-                }
-            });
-            return new HostAddedMembers(Map.copyOf(changes), Map.copyOf(calls), Map.copyOf(unavailable));
+            return changes.isEmpty() ? NONE : new HostAddedMembers(Map.copyOf(changes));
         }
 
         /**
@@ -329,142 +264,22 @@ final class HostAddedMembers {
         }
     }
 
-    /** The mixin {@code mixin} as Mixin reads it: without its left-out methods, renamed ones and calls following. */
+    /** The mixin {@code mixin} as Mixin reads it: without the methods the patched class has with the same code. */
     byte[] apply(String mixin, byte[] bytes) {
         List<Change> own = changes.getOrDefault(mixin, List.of());
-        List<Call> ownCalls = calls.getOrDefault(mixin, List.of());
-        if (own.isEmpty() && ownCalls.isEmpty()) {
-            return bytes;
-        }
-        ClassFile classFile = ClassFile.of();
-        ClassModel model = classFile.parse(bytes);
-        CodeTransform rewrite = (code, element) -> rewrite(code, element, ownCalls);
-        return classFile.transformClass(model, (builder, element) -> {
-            if (!(element instanceof MethodModel method)) {
-                builder.with(element);
-                return;
-            }
-            Optional<Change> change = own.stream()
-                    .filter(candidate -> method.methodName().equalsString(candidate.name())
-                            && method.methodType().equalsString(candidate.descriptor()))
-                    .findFirst();
-            if (change.isPresent() && change.get().newName() == null) {
-                return;
-            }
-            String name = change.map(Change::newName).orElse(method.methodName().stringValue());
-            builder.withMethod(name, method.methodTypeSymbol(), method.flags().flagsMask(), methodBuilder -> {
-                for (MethodElement methodElement : method) {
-                    if (methodElement instanceof CodeModel code) {
-                        methodBuilder.transformCode(code, rewrite);
-                    } else {
-                        methodBuilder.with(methodElement);
-                    }
-                }
-            });
-        });
-    }
-
-    /**
-     * {@code bytes} of class {@code className} as the game loads it: a mixin interface whose accessor cannot work gets
-     * a body for it that throws {@code POLY-COMPAT-214}.
-     */
-    byte[] runtime(String className, byte[] bytes) {
-        List<Unavailable> own = unavailable.get(className.replace('.', '/'));
-        if (own == null || bytes == null) {
+        if (own.isEmpty()) {
             return bytes;
         }
         ClassFile classFile = ClassFile.of();
         return classFile.transformClass(classFile.parse(bytes), (builder, element) -> {
-            Optional<Unavailable> match = element instanceof MethodModel method
-                    ? own.stream()
-                            .filter(candidate -> method.methodName().equalsString(candidate.name())
-                                    && method.methodType().equalsString(candidate.descriptor()))
-                            .findFirst()
-                    : Optional.empty();
-            if (match.isEmpty()) {
-                builder.with(element);
+            if (element instanceof MethodModel method
+                    && own.stream()
+                            .anyMatch(candidate -> method.methodName().equalsString(candidate.name())
+                                    && method.methodType().equalsString(candidate.descriptor()))) {
                 return;
             }
-            MethodModel method = (MethodModel) element;
-            int flags = method.flags().flagsMask() & ~ClassFile.ACC_ABSTRACT;
-            ClassDesc error = ClassDesc.of("java.lang.UnsupportedOperationException");
-            builder.withMethod(method.methodName(), method.methodType(), flags, methodBuilder -> {
-                for (MethodElement methodElement : method) {
-                    if (!(methodElement instanceof CodeModel) && !(methodElement instanceof AccessFlags)) {
-                        methodBuilder.with(methodElement);
-                    }
-                }
-                methodBuilder.withCode(code -> code.new_(error)
-                        .dup()
-                        .ldc(match.get().message())
-                        .invokespecial(
-                                error,
-                                "<init>",
-                                MethodTypeDesc.of(
-                                        java.lang.constant.ConstantDescs.CD_void,
-                                        java.lang.constant.ConstantDescs.CD_String))
-                        .athrow());
-            });
+            builder.with(element);
         });
-    }
-
-    /** {@code element}, with a call, method handle constant or bootstrap argument in {@code calls} renamed. */
-    private static void rewrite(CodeBuilder code, CodeElement element, List<Call> calls) {
-        if (element instanceof InvokeInstruction call) {
-            for (Call candidate : calls) {
-                if (candidate.owners().contains(call.owner().asInternalName())
-                        && call.name().equalsString(candidate.name())
-                        && call.type().equalsString(candidate.descriptor())) {
-                    code.invoke(
-                            call.opcode(),
-                            call.owner().asSymbol(),
-                            candidate.newName(),
-                            call.typeSymbol(),
-                            call.isInterface());
-                    return;
-                }
-            }
-        } else if (element instanceof ConstantInstruction.LoadConstantInstruction constant
-                && constant.constantValue() instanceof DirectMethodHandleDesc handle) {
-            DirectMethodHandleDesc renamed = renamed(handle, calls);
-            if (renamed != handle) {
-                code.ldc(renamed);
-                return;
-            }
-        } else if (element instanceof InvokeDynamicInstruction dynamic) {
-            List<ConstantDesc> arguments = new ArrayList<>();
-            boolean changed = false;
-            for (ConstantDesc argument : dynamic.bootstrapArgs()) {
-                ConstantDesc renamed =
-                        argument instanceof DirectMethodHandleDesc handle ? renamed(handle, calls) : argument;
-                changed |= renamed != argument;
-                arguments.add(renamed);
-            }
-            if (changed) {
-                code.invokedynamic(DynamicCallSiteDesc.of(
-                        dynamic.bootstrapMethod(),
-                        dynamic.name().stringValue(),
-                        dynamic.typeSymbol(),
-                        arguments.toArray(ConstantDesc[]::new)));
-                return;
-            }
-        }
-        code.with(element);
-    }
-
-    private static DirectMethodHandleDesc renamed(DirectMethodHandleDesc handle, List<Call> calls) {
-        for (Call candidate : calls) {
-            if (candidate.owners().contains(handle.owner().descriptorString().replaceAll("^L|;$", ""))
-                    && handle.methodName().equals(candidate.name())
-                    && handle.lookupDescriptor().equals(candidate.descriptor())) {
-                return MethodHandleDesc.ofMethod(
-                        handle.kind(),
-                        handle.owner(),
-                        candidate.newName(),
-                        MethodTypeDesc.ofDescriptor(handle.lookupDescriptor()));
-            }
-        }
-        return handle;
     }
 
     /** Members Mixin itself places: shadows, overwrites, injectors, {@code @Unique} (renamed or dropped by Mixin). */
@@ -596,7 +411,7 @@ final class HostAddedMembers {
         List<Instruction> mixinCode = instructions(method);
         List<Instruction> ownCode = instructions(own);
         if (mixinCode.size() != ownCode.size()) {
-            return false;
+            return isEquivalentGetter(mixinCode, ownCode, mixinName, targetName);
         }
         for (int index = 0; index < mixinCode.size(); index++) {
             if (!sameInstruction(mixinCode.get(index), ownCode.get(index), mixinName, targetName)) {
@@ -664,6 +479,77 @@ final class HostAddedMembers {
         return (mixinOwner.equals(mixinName) ? targetName : mixinOwner).equals(ownOwner);
     }
 
+    private static boolean isEquivalentGetter(List<Instruction> a, List<Instruction> b, String aOwner, String bOwner) {
+        return isUnmodifiableCollectionGetter(a, b, aOwner, bOwner)
+                || isUnmodifiableCollectionGetter(b, a, bOwner, aOwner);
+    }
+
+    private static boolean isUnmodifiableCollectionGetter(
+            List<Instruction> wrapped, List<Instruction> direct, String wrappedOwner, String directOwner) {
+        if (wrapped.size() != 4 || direct.size() != 3) {
+            return false;
+        }
+        if (!(wrapped.get(0) instanceof LoadInstruction wl
+                && wl.slot() == 0
+                && direct.get(0) instanceof LoadInstruction dl
+                && dl.slot() == 0)) {
+            return false;
+        }
+        if (!(wrapped.get(1) instanceof FieldInstruction wf
+                && wf.opcode() == Opcode.GETFIELD
+                && direct.get(1) instanceof FieldInstruction df
+                && df.opcode() == Opcode.GETFIELD)) {
+            return false;
+        }
+        if (!sameInstruction(wf, df, wrappedOwner, directOwner)) {
+            return false;
+        }
+        if (!(wrapped.get(2) instanceof InvokeInstruction call && call.opcode() == Opcode.INVOKESTATIC)) {
+            return false;
+        }
+        String callOwner = call.owner().asInternalName();
+        String callName = call.name().stringValue();
+        boolean isUnmodifiableWrapper = (callOwner.equals("java/util/Collections")
+                        && (callName.equals("unmodifiableList")
+                                || callName.equals("unmodifiableSet")
+                                || callName.equals("unmodifiableMap")
+                                || callName.equals("unmodifiableCollection")))
+                || ((callOwner.equals("java/util/List")
+                                || callOwner.equals("java/util/Set")
+                                || callOwner.equals("java/util/Map"))
+                        && callName.equals("copyOf"));
+        if (!isUnmodifiableWrapper) {
+            return false;
+        }
+        return wrapped.get(3) instanceof ReturnInstruction && direct.get(2) instanceof ReturnInstruction;
+    }
+
+    private static boolean isAttributeSupplierBuilder(
+            String targetName, String field, String type, String patchedType) {
+        return (targetName.equals("net/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder")
+                        || targetName.endsWith("/AttributeSupplier$Builder")
+                        || targetName.equals("AttributeSupplier$Builder"))
+                && field.equals("builder")
+                && type.contains("ImmutableMap$Builder")
+                && patchedType.equals("Ljava/util/Map;");
+    }
+
+    private static boolean isAttributeBuilderBridgeMethod(MethodModel method, String targetName, String field) {
+        if (!targetName.endsWith("AttributeSupplier$Builder") || !field.equals("builder")) {
+            return false;
+        }
+        List<Instruction> code = instructions(method);
+        return code.size() == 4
+                && isThis(code.get(0))
+                && code.get(1) instanceof FieldInstruction get
+                && get.opcode() == Opcode.GETFIELD
+                && get.name().stringValue().equals(field)
+                && code.get(2) instanceof InvokeInstruction call
+                && call.name().stringValue().equals("wrap")
+                && call.owner().asInternalName().endsWith("AttributeBuilderBridge")
+                && code.get(3) instanceof ReturnInstruction;
+    }
+
     private static List<Instruction> instructions(MethodModel method) {
         return method.code()
                 .map(code -> code.elementList().stream()
@@ -671,9 +557,5 @@ final class HostAddedMembers {
                         .map(Instruction.class::cast)
                         .toList())
                 .orElse(List.of());
-    }
-
-    private static String simpleName(String internalName) {
-        return internalName.substring(internalName.lastIndexOf('/') + 1);
     }
 }

@@ -1,7 +1,6 @@
 package dev.polymodloader.compat.forge;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.polymodloader.api.runtime.GameSide;
@@ -53,8 +52,7 @@ class NeoForgeTitleBrandingTest {
 
         List<String> lines = NeoForgeTitleBranding.withModCounts(true, true, NEOFORGE_TOP_TO_BOTTOM.reversed());
 
-        assertEquals(
-                List.of("NeoForge 26.2.0.93, 50 mods", "Minecraft 26.2", "NeoForge mods: 40", "Poly mods: 2"), lines);
+        assertEquals(List.of("NeoForge 26.2.0.93", "Minecraft 26.2", "NeoForge mods: 40", "Poly mods: 2"), lines);
     }
 
     /** A caller that reads the list top to bottom (FancyMenu's own branding element) gets Poly Mod Loader's lines first. */
@@ -64,15 +62,16 @@ class NeoForgeTitleBrandingTest {
 
         List<String> lines = NeoForgeTitleBranding.withModCounts(true, false, NEOFORGE_TOP_TO_BOTTOM);
 
-        assertEquals(
-                List.of("Poly mods: 2", "NeoForge mods: 40", "Minecraft 26.2", "NeoForge 26.2.0.93, 50 mods"), lines);
+        assertEquals(List.of("Poly mods: 2", "NeoForge mods: 40", "Minecraft 26.2", "NeoForge 26.2.0.93"), lines);
     }
 
     @Test
-    void withoutLinesNeoForgesListIsReturnedAsItIs() {
+    void withoutLinesNeoForgesListIsReturnedWithoutModCounts() {
         NeoForgeTitleBranding.install(List::of, message -> {});
 
-        assertSame(NEOFORGE_TOP_TO_BOTTOM, NeoForgeTitleBranding.withModCounts(true, false, NEOFORGE_TOP_TO_BOTTOM));
+        assertEquals(
+                List.of("Minecraft 26.2", "NeoForge 26.2.0.93"),
+                NeoForgeTitleBranding.withModCounts(true, false, NEOFORGE_TOP_TO_BOTTOM));
     }
 
     /**

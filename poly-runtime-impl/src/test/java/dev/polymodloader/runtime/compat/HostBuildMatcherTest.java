@@ -169,4 +169,15 @@ class HostBuildMatcherTest {
                 Map.of("cloth-config", "1.0.0", "cloth-config2", "1.0.0"),
                 match.standIns("cloth-config", List.of("cloth-config2")));
     }
+
+    @Test
+    void zeroClassContainerJarsAreSameCodeWhenMatchedById() throws IOException {
+        Path host = jar("host.jar");
+        HostBuildMatcher matcher = new HostBuildMatcher(List.of(hostMod("fabric-api", host)));
+        HostBuildMatcher.Match match =
+                matcher.find("fabric-api", List.of(), jar("fabric.jar")).orElseThrow();
+
+        assertEquals(HostBuildMatcher.Evidence.SAME_ID, match.evidence());
+        assertTrue(match.sameCode());
+    }
 }

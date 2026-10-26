@@ -14,8 +14,9 @@ import java.util.regex.Pattern;
 /**
  * The lines the title screen shows above the game's version text: how many mods each loader loaded ({@link
  * LoadedModCounts}). One line per loader that loaded at least one mod, top to bottom Poly, Fabric, Quilt, Forge,
- * NeoForge;
- * nothing when no mod is loaded.
+ * NeoForge; then, when Poly Mod Loader left mods out because it cannot run them on the host loader's patched game
+ * ({@code POLY-COMPAT-224}, ADR-0030), a line that says so, so that a player who never reads the log sees that those
+ * mods are missing and that Poly Mod Loader, not the mods, has to change. Nothing when no mod is loaded or left out.
  *
  * <p>Each line is a translation key of Poly Mod Loader's own language files ({@code assets/poly/lang/<language>.json}
  * in this module, {@link #bundledLanguage}) whose text takes the count as its one argument ({@code %s}), as Minecraft's
@@ -38,6 +39,8 @@ public final class ModCountLines {
     public static final String FORGE_KEY = "poly.title.mod_count.forge";
     /** Key of the NeoForge mods line, {@code "NeoForge mods: %s"} in English. */
     public static final String NEOFORGE_KEY = "poly.title.mod_count.neoforge";
+    /** Key of the left-out mods line, {@code "Not loaded, Poly Mod Loader can't run them yet: %s"} in English. */
+    public static final String HOST_INCOMPATIBLE_KEY = "poly.title.mod_count.host_incompatible";
     /** The language whose file every other language falls back to, as Minecraft's own. */
     public static final String DEFAULT_LANGUAGE = "en_us";
 
@@ -51,12 +54,18 @@ public final class ModCountLines {
      * @param translations the text of a key in the language to show, or {@code null} when that language has none
      */
     public static List<String> lines(LoadedModCounts counts, Function<String, String> translations) {
-        List<String> lines = new ArrayList<>(5);
+        List<String> lines = new ArrayList<>(6);
         add(lines, POLY_KEY, "Poly mods: %s", counts.polyMods(), translations);
         add(lines, FABRIC_KEY, "Fabric mods: %s", counts.fabricMods(), translations);
         add(lines, QUILT_KEY, "Quilt mods: %s", counts.quiltMods(), translations);
         add(lines, FORGE_KEY, "Forge mods: %s", counts.forgeMods(), translations);
         add(lines, NEOFORGE_KEY, "NeoForge mods: %s", counts.neoForgeMods(), translations);
+        add(
+                lines,
+                HOST_INCOMPATIBLE_KEY,
+                "Not loaded, Poly Mod Loader can't run them yet: %s",
+                counts.hostIncompatibleMods(),
+                translations);
         return List.copyOf(lines);
     }
 

@@ -81,21 +81,42 @@ public final class NeoForgeTitleBranding {
      */
     public static List<String> withModCounts(boolean includeMinecraft, boolean reverse, List<String> brandings) {
         List<String> polyLines = lines.get();
-        if (polyLines.isEmpty()) {
-            return brandings;
+        List<String> cleanedBrandings = new ArrayList<>(brandings.size());
+        for (String b : brandings) {
+            String stripped = stripModCounts(b);
+            if (!stripped.isEmpty()) {
+                cleanedBrandings.add(stripped);
+            }
         }
-        List<String> all = new ArrayList<>(brandings.size() + polyLines.size());
+        if (polyLines.isEmpty()) {
+            return List.copyOf(cleanedBrandings);
+        }
+        List<String> all = new ArrayList<>(cleanedBrandings.size() + polyLines.size());
         if (reverse) {
-            all.addAll(brandings);
+            all.addAll(cleanedBrandings);
             all.addAll(polyLines.reversed());
         } else {
             all.addAll(polyLines);
-            all.addAll(brandings);
+            all.addAll(cleanedBrandings);
         }
         if (REPORTED.compareAndSet(false, true)) {
             log.accept("Title screen: " + polyLines.size() + " line(s) of mod counts drawn above NeoForge's branding: "
                     + String.join(" | ", polyLines));
         }
         return List.copyOf(all);
+    }
+
+    /** Strips NeoForge's mod counts from branding lines. */
+    static String stripModCounts(String text) {
+        if (text == null) {
+            return "";
+        }
+        String cleaned = text.replaceAll("\\s*\\(\\d+\\s+mods?\\s+loaded\\)", "")
+                .replaceAll(",\\s*\\d+\\s+mods?", "")
+                .trim();
+        if (cleaned.matches("(?i).*\\b\\d+\\s+mods?\\s+(loaded|active).*")) {
+            return "";
+        }
+        return cleaned;
     }
 }

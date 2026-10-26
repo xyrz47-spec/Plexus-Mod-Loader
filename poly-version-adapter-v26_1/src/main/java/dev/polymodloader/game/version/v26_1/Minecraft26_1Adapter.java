@@ -131,6 +131,7 @@ public final class Minecraft26_1Adapter implements GameVersionAdapter {
         rules.addAll(nativeApiRules());
         rules.addAll(modInitializationRules());
         rules.add(titleScreenModCountsRule());
+        rules.add(loadingOverlayRule());
         rules.add(builtInRegistriesRefreezeRule());
         rules.add(customPayloadEncodingRule());
         return List.copyOf(rules);
@@ -221,6 +222,27 @@ public final class Minecraft26_1Adapter implements GameVersionAdapter {
                         0,
                         "dev/polymodloader/game/layer/v26_1/client/TitleScreenModCounts",
                         "onVersionText"),
+                TransformFailurePolicy.DISABLE_RULE);
+    }
+
+    /**
+     * Poly's dedicated loading screen and mod count overlay on {@code LoadingOverlay.extractRenderState}.
+     * Replaces vanilla and third-party loader loading screens.
+     */
+    private static TransformRuleDefinition loadingOverlayRule() {
+        return new TransformRuleDefinition(
+                "poly:client_loading_overlay",
+                "poly",
+                GAME_VERSION,
+                CLIENT_ONLY,
+                new MethodTarget(
+                        "net/minecraft/client/gui/screens/LoadingOverlay",
+                        "extractRenderState",
+                        "(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V"),
+                new InvokeHookAtHead(
+                        "dev/polymodloader/game/layer/v26_1/client/PolyLoadingOverlay",
+                        "onExtractRenderState",
+                        HeadHookResult.CANCEL_IF_TRUE),
                 TransformFailurePolicy.DISABLE_RULE);
     }
 

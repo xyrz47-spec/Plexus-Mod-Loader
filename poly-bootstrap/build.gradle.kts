@@ -1201,26 +1201,30 @@ val corpusScenarios = listOf(
         dependsOn(modCorpus)
         classpath(forgeClassPath)
         expectedOutput.addAll(
-            // The corpus mods, the harness and the probe below.
-            corpusCounts("[Poly Mod Loader] Foreign mods: 91 loaded, 75 not loaded"),
+            // The corpus mods, the harness and the probe below. Fabric mods whose mixins do not fit Forge's patch are
+            // not loaded (ADR-0030), and with them the Fabric mods that need them.
+            corpusCounts("[Poly Mod Loader] Foreign mods: 42 loaded, 124 not loaded"),
+            corpusCounts(
+                "POLY-COMPAT-224 14 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it",
+                "mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge ",
+            ),
             "share Fabric's Mixin",
             "Forge mod loading, version ",
             // Fabric API features whose mixins meet members Forge's patch added or changed (test-mods/fabric-host-patch-probe).
-            // Forge's own getConnection() serves Fabric's accessor; the rest of that accessor mixin applies.
+            // Forge's own getConnection() serves Fabric's accessor; the rest of that accessor mixin applies (212).
             "[poly_host_patch_probe] fabric-networking-api-v1: ServerCommonPacketListenerImpl implements ServerCommonPacketListenerImplAccessor: true; getConnection() is the listener's connection: true; getServer() is the listener's server: true",
-            // Forge's "remove" and Fabric's "fabric:remove" both apply: of stone, dirt and sand only stone stays.
-            "[poly_host_patch_probe] fabric-tag-api-v1: tag poly_host_patch_probe:removals = [minecraft:stone]",
-            // Forge changed the field Fabric's accessor reads: the cast works and the call names the change.
-            "[poly_host_patch_probe] fabric-object-builder-api-v1: AttributeSupplier\$Builder implements AttributeSupplierBuilderAccessor: true; getBuilder() throws UnsupportedOperationException: POLY-COMPAT-214 Fabric mod fabric-object-builder-api-v1",
-            "[poly_host_patch_probe] fabric-data-generation-api-v1: Advancement\$Builder implements FabricAdvancementBuilder: true",
+            // Forge changed the field Fabric's attribute builder accessor reads: the module is not loaded.
+            "[poly_host_patch_probe] fabric-object-builder-api-v1: failed: java.lang.ClassNotFoundException",
             "All 1 required tests passed",
             worldsSavedLine,
         )
+        // Nothing runs half-applied: a mixin failure in the game would be one the check before the launch missed.
+        unexpectedOutput.addAll("POLY-COMPAT-225", "Critical injection failure")
     },
     // Fabric and NeoForge mods of the corpus in one instance (ADR-0026 30, 31): Fabric runs the Fabric mods, NeoForge's
     // FML the NeoForge mods and the jars built for both, and one Mixin (Fabric's) serves both, as Sinytra Connector
     // runs Fabric mods on NeoForge. Fabric mods register with NeoForge's registries open; Fabric mixins that meet
-    // NeoForge's patches are adjusted or reported (POLY-COMPAT-138, 212..214) as next to Forge.
+    // NeoForge's patches are moved to the patch (POLY-COMPAT-226, 212) or keep the mod out (224, ADR-0030) as next to Forge.
     scenarios.gameTest(
         "corpusFabricNeoForge",
         fabricCorpusBesideNeoForgeServer() + neoForgeServerCorpus() +
@@ -1272,7 +1276,9 @@ val corpusScenarios = listOf(
         expectedOutput.addAll(
             "Fabric or Quilt mod(s) run together; one Mixin serves both (ADR-0026 30)",
             "[fabric_network_probe] reached the configuration phase: true",
-            "[fabric_network_probe] the server registered Fabric channels: true",
+            // Fabric API's registry sync, which registers the fabric: channels, does not fit NeoForge's patch and is not
+            // loaded (POLY-COMPAT-224, ADR-0030).
+            "[fabric_network_probe] the server registered Fabric channels: false",
             "[fabric_network_probe] reached the play phase: true",
             "[fabric_network_probe] the server received Fabric echo \"hello\"",
             "[fabric_network_probe] the server answered Fabric's play payload: true",
@@ -1475,27 +1481,29 @@ val quiltCorpusScenarios = listOf(
         )
         if (minecraft == "26.2") {
             // The 26.2 Quilt corpus's Cloth Config is the Fabric build; NeoForge's build cloth_config runs instead and
-            // meets Better Shulker Boxes, which needs cloth-config (ADR-0026 37).
+            // stands in for it (ADR-0026 37). Better Shulker Boxes, which needs it, also needs Fabric API modules that
+            // do not fit NeoForge's patch, so it is not loaded (ADR-0030).
             expectedOutput.addAll(
                 "loads its own build of it as cloth_config (the same ID as NeoForge spells it)",
                 "mods that need cloth-config or cloth-config2 use NeoForge ",
-                "[BetterShulker] Initializing Fabric module for Minecraft 26.2",
+                "bettershulker 1.5.1 (better-shulker-boxes-quilt-1.5.1.jar): BLOCKED",
             )
         }
         unexpectedOutput.addAll(quiltCorpusUnexpected + "POLY-COMPAT-216")
         expectedFiles.add("universe/gametestworld/level.dat")
-        // As in corpusQuilt: Fabric API's resource loader turns the Quilt mods into data packs next to NeoForge's own
-        // mod data pack, and the saved world enables them.
+        // Fabric API's resource loader, which turns the Quilt mods into data packs (corpusQuilt), does not fit NeoForge's
+        // patch and is not loaded (POLY-COMPAT-224, ADR-0030), so most Quilt mods' data packs are not enabled (on 26.2
+        // all but mr_magic_items, 2026-10-25). The saved world still enables NeoForge's mod data.
         val world = runDirectory.file("universe/gametestworld/level.dat")
         doLast {
             val level = GZIPInputStream(world.get().asFile.inputStream()).use { it.readBytes() }
                 .toString(Charsets.ISO_8859_1)
-            val missing = (quiltDataPacks + "mod_data").filter { "\u0000${it.length.toChar()}$it" !in level }
-            if (missing.isNotEmpty()) {
-                throw GradleException("corpusQuiltNeoForge: the saved world does not enable the data packs of $missing")
+            fun enabled(pack: String) = "\u0000${pack.length.toChar()}$pack" in level
+            if (!enabled("mod_data")) {
+                throw GradleException("corpusQuiltNeoForge: the saved world does not enable NeoForge's mod data")
             }
-            println("corpusQuiltNeoForge: the saved world enables the data packs of ${quiltDataPacks.size} Quilt mod(s)"
-                + " and NeoForge's mod data")
+            println("corpusQuiltNeoForge: the saved world enables NeoForge's mod data and the data packs of " +
+                "${quiltDataPacks.filter(::enabled)} of the Quilt mods ${quiltDataPacks}")
         }
     },
     scenarios.gameTest("corpusQuiltForge", quiltCorpus(true) + gameTestCorpus("forge") + modJars(gameTestHarness)) {
@@ -1506,7 +1514,9 @@ val quiltCorpusScenarios = listOf(
         // mods; a jar built for Quilt and Forge runs as a Forge mod (G6), and the Quilt build of a mod whose Forge build
         // MinecraftForge loads is left out (139).
         expectedOutput.addAll(
-            corpusCounts("[Poly Mod Loader] Foreign mods: 124 loaded, 125 not loaded"),
+            // Fabric API modules whose mixins do not fit Forge's patch are not loaded, nor the mods that need them
+            // (ADR-0030).
+            corpusCounts("[Poly Mod Loader] Foreign mods: 35 loaded, 214 not loaded"),
             // FusionFix (Quilt) needs Fusion; Forge's build of Fusion, mostly the same classes, stands in for the Fabric
             // build it leaves out (ADR-0026 37).
             corpusCounts("mods that need fusion use MinecraftForge 26.2-65.1.5's build fusion 1.3.16", "share Fabric's Mixin"),
@@ -1515,7 +1525,7 @@ val quiltCorpusScenarios = listOf(
                 "MinecraftForge 26.2-65.1.5: 41 of 47 Forge mod file(s) meet their requirements; 6 left out",
                 "MinecraftForge $minecraft-",
             ),
-            corpusCounts("[Poly Mod Loader] Loaded mods per loader: 0 Poly, 51 Fabric, 73 Quilt, 42 Forge", "[Poly Mod Loader] Loaded mods per loader: "),
+            corpusCounts("[Poly Mod Loader] Loaded mods per loader: 0 Poly, 22 Fabric, 13 Quilt, 42 Forge", "[Poly Mod Loader] Loaded mods per loader: "),
             corpusCounts("b-side-1.0.jar is built for several loaders (QUILT and Forge); MinecraftForge runs it", "share Fabric's Mixin"),
             corpusCounts("POLY-COMPAT-139 Quilt mod voicechat (voicechat-quilt-2.6.25+26.2.jar) is NOT loaded: MinecraftForge 26.2-65.1.5 loads its own build of voicechat", "share Fabric's Mixin"),
             "share Fabric's Mixin",
@@ -1577,7 +1587,7 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.QuiltLoaderReferenceT
 // Real Fabric API (from the corpus) used by the fabric-api-events test mod: a fake player breaks blocks with
 // PlayerBlockBreakEvents listeners, recipes sit behind Fabric resource conditions, a crafting remainder is read through
 // the stack. The same lines without and with MinecraftForge, whose patch moved the code Fabric API hooks there
-// (ADR-0021 G8; POLY-COMPAT-138 lists what still does not run).
+// (ADR-0021 G8). Next to Forge the modules whose mixins do not fit Forge's patch are not loaded (ADR-0030).
 val fabricApiEvents = if (minecraft == "26.2") {
     val mods = files(corpusRoot.map { it.dir("fabric").asFileTree.matching { include("fabric-api-*.jar") } }) +
         modJars(":test-mods:fabric-api-events", gameTestHarness)
@@ -1609,8 +1619,13 @@ val fabricApiEvents = if (minecraft == "26.2") {
             dependsOn(modCorpus)
             classpath(forgeClassPath)
             systemProperty("poly.forge", "always")
-            description = "The same with MinecraftForge: Fabric API's mixins on Forge's patched classes (ADR-0021 G8)."
-            expectedOutput.addAll(lines + "Forge mod loading, version 65.1.5")
+            description = "Real Fabric API with MinecraftForge: all 6 modules adapted and loaded."
+            expectedOutput.addAll(lines)
+            expectedOutput.addAll(
+                "Fabric mod fabric_api_events 1.0.0 (fabric-api-events-",
+                "Forge mod loading, version 65.1.5",
+            )
+            unexpectedOutput.addAll("POLY-COMPAT-224", "POLY-COMPAT-225", "Critical injection failure")
         },
     )
 } else {
