@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.3 — 2026-10-26
+
+### Highlights
+
+- Loading screen text rendering glitch fix: resolved font rendering and character set corruption on the custom Poly loading overlay across Minecraft 26.1, 26.2, and 26.3 using standard Component literal formatting with ChatFormatting color codes.
+- Direct GitHub Issues routing for bug reports: error screens, crash handlers, and report documentation links now navigate directly to official GitHub Issues for immediate tracking and transparent issue resolution.
+- NeoForge Fabric API compatibility adaptations: added NeoForgeInjectionPoints to route injection point replacements for client screens, container menus, and data attachment hooks under NeoForge.
+
+### 주요 변경
+
+- 로딩 화면 텍스트 깨짐 현상 수정: Minecraft 26.1, 26.2, 26.3 커스텀 Poly 로딩 오버레이에서 발생하던 폰트 렌더링 및 문자 깨짐 오류를 표준 Component literal 및 ChatFormatting 색상 코드로 수정하여 깨짐 없이 선명하게 렌더링되도록 개선했습니다.
+- 오류 발생 시 GitHub Issues 바로 연결: 오류 발생 화면 및 버그 리포트 링크를 공식 GitHub Issues 페이지로 직접 연결하여 신속하고 투명하게 문제를 접수/추적할 수 있도록 개선했습니다.
+- NeoForge 환경 Fabric API 호환 적응점 확대: NeoForge 환경에서 클라이언트 화면, 컨테이너 메뉴, 데이터 어태치먼트 훅을 위한 주입점 대체 규칙(`NeoForgeInjectionPoints`)을 추가하여 호환성을 한층 더 강화했습니다.
+
+### Client and loader adaptations
+
+- Standardized text rendering in `PolyLoadingOverlay`: replaced manual glyph manipulation with Minecraft's built-in `Component.literal` and `ChatFormatting` pipeline across `poly-game-v26_1`, `poly-game-v26_2`, and `poly-game-v26_3`, eliminating character encoding artifacts and unmapped glyph square icons across diverse GPU backends and window sizes.
+- Streamlined crash report and error handling: routed error and feedback CTAs directly to `https://github.com/xyrz47-spec/Poly-Mod-Loader/issues/new`, providing user-friendly diagnostic issue reporting.
+- Added `NeoForgeInjectionPoints`: adapted client screen mixins, menu hooks, and data attachments for NeoForge host patches.
+
 ## 1.2.2 — 2026-10-26
 
 ### Highlights
