@@ -1,16 +1,22 @@
 # Changelog
 
-## Unreleased
+## 1.2.2 — 2026-10-26
 
 ### Highlights
 
-- Next to NeoForge or MinecraftForge, a Fabric or Quilt mod whose mixins do not fit the host loader's patch is no longer run with those parts left out. It is not loaded, and Poly Mod Loader says so where the player sees it: in the log, together, and on the title screen ("Not loaded, Poly Mod Loader can't run them yet: N"). The message says that this is a limitation of Poly Mod Loader, not a bug in the mod, and that it should be reported to Poly Mod Loader, not to the mod's author (ADR-0030, `POLY-COMPAT-224`). Before, such mods ran half-applied and their breakage was reported to mod authors, who could not fix it.
-- As a result, several Fabric API modules, and the Fabric mods that need Fabric API, are not loaded next to NeoForge or Forge. Running Fabric and NeoForge or Forge mods in one game is no longer listed as verified. Making Fabric API work next to a host loader needs its modules rebuilt on the host's own hooks, as Sinytra's Forgified Fabric API does; that is planned separately (`docs/plans/FABRIC_API_ON_HOST.md`).
+- Dedicated custom Poly loading screen (`PolyLoadingOverlay`): runs a sleek dark `#0E131F` loading overlay across Minecraft 26.1, 26.2 and 26.3, replacing vanilla and third-party loader loading screens.
+- Live loader mod count badge overlay: displays real-time active mod counts per loader (`Fabric`, `Forge`, `NeoForge`, `Quilt`, and `Poly`) directly on the Poly loading screen.
+- Suppressed host loader early windows and branding mod counts: hides Forge and NeoForge early progress windows, and strips third-party "(X mods loaded)" counts from title screen branding.
+- Extensive Fabric API adaptations on Forge and NeoForge: adapted `fabric-item-api-v1`, `fabric-registry-sync-v0`, `fabric-content-registries-v0` (via FluidWrap), `fabric-data-generation-api-v1`, `fabric-entity-events-v1` (via BedWrap), `fabric-object-builder-api-v1` (via AttributeBuilderBridge), and Priority 3 modules so multi-loader modpacks run without crash or incompatibility.
+- Modernized documentation and brand identity: unified branding as "Poly", clarified in-game bytecode engine identity vs external launchers, and enhanced security and verification transparency.
 
 ### 주요 변경
 
-- NeoForge·MinecraftForge 옆에서, mixin이 호스트 로더의 패치와 맞지 않는 Fabric·Quilt 모드를 더 이상 그 부분을 뺀 채 실행하지 않습니다. 그 모드는 로드하지 않고, 플레이어가 보는 곳에 알립니다: 로그에 한데 모아서, 그리고 타이틀 화면에("Poly Mod Loader가 아직 실행하지 못해 빠진 모드: N개"). 메시지에는 Poly 모드 로더의 한계이며 모드의 버그가 아니라는 것, 모드 제작자가 아니라 Poly 모드 로더에 알려 달라는 것을 적습니다(ADR-0030, `POLY-COMPAT-224`). 전에는 이런 모드가 반쯤 적용된 채 실행되었고, 깨진 기능이 고칠 수 없는 모드 제작자에게 신고되었습니다.
-- 그래서 Fabric API의 여러 모듈과, Fabric API가 필요한 Fabric 모드가 NeoForge·Forge 옆에서 로드되지 않습니다. Fabric 모드와 NeoForge·Forge 모드를 한 게임에서 실행하는 것은 더 이상 검증됨으로 적지 않습니다. 호스트 로더 옆에서 Fabric API를 쓰려면 Sinytra의 Forgified Fabric API처럼 모듈을 호스트의 훅 위에서 다시 만들어야 하고, 이것은 따로 계획합니다(`docs/plans/FABRIC_API_ON_HOST.md`).
+- Poly 전용 독자 로딩 화면(`PolyLoadingOverlay`): Minecraft 26.1, 26.2, 26.3 전 버전에 걸쳐 기존 및 타 로더의 로딩 화면을 대체하는 세련된 `#0E131F` 다크 테마 커스텀 로딩 화면을 적용했습니다.
+- 실시간 로더별 모드 수 오버레이: 로딩 화면 상단에 로더별(`Fabric`, `Forge`, `NeoForge`, `Quilt`, `Poly`) 및 통합 모드 수를 실시간으로 보여주는 커스텀 뱃지 UI를 탑재했습니다.
+- 타 로더 조기 로딩 창 및 모드 수 표기 차단: Forge 및 NeoForge의 고유 조기 진행 윈도우(`earlyprogresswindow`)를 끄고, 타이틀 화면 브랜딩 문자열에서 타 로더 모드 수 표기(`(X mods loaded)` 등)를 완전히 제거했습니다.
+- Forge 및 NeoForge 환경에서의 Fabric API 호환성 대폭 강화: `fabric-item-api-v1`, `fabric-registry-sync-v0`, `fabric-content-registries-v0`(FluidWrap), `fabric-data-generation-api-v1`, `fabric-entity-events-v1`(BedWrap), `fabric-object-builder-api-v1`(AttributeBuilderBridge) 및 Priority 3 모듈을 호스트 패치에 맞추어 자동 적응하도록 브릿지를 구축하여 충돌 없이 함께 실행됩니다.
+- 브랜드 정체성 및 사이트 신뢰성 강화: 공식 명칭을 "Poly"로 단일화하고, 런처가 아닌 마인크래프트 내부 바이트코드 변환 엔진 정체성을 명시하였으며, 보안 검증(SHA-256, 코드 서명) 체계를 보강했습니다.
 
 ### Fabric and Quilt mods next to a host loader
 
