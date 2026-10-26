@@ -229,24 +229,33 @@ val installerJarFiles = configurations.create("installerJar") {
 dependencies {
     installerJarFiles(project(mapOf("path" to ":poly-installer", "configuration" to "installerJarElements")))
 }
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask>("launcherProfileTest") {
-    group = "verification"
+// One installer launch scenario: every launcher profile task wires the installer jar, the client launch spec, the JDK
+// and the saved world of worldCreateSaveTest the same way; only the mods, the world name, the run folder and the
+// expected lines differ.
+fun launcherProfile(name: String, profileDirectory: String, configure: dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask.() -> Unit) {
+    tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask>(name) {
+        group = "verification"
+        val worldCreateSave = tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest")
+        dependsOn(worldCreateSave)
+        installerJar.set(layout.file(installerJarFiles.elements.map { it.single().asFile }))
+        launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
+            .flatMap { it.launchSpecFile })
+        javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+        sourceWorld.set(worldCreateSave.flatMap { it.runDirectory.dir("universe/gametestworld") })
+        runDirectory.set(layout.buildDirectory.dir(profileDirectory))
+        configure()
+    }
+}
+
+launcherProfile("launcherProfileTest", "poly/launcher-profile-$minecraft/minecraft") {
     description = "Installs Poly Mod Loader with the installer jar and starts the profile like the Minecraft Launcher (opens a window)."
-    val worldCreateSave = tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest")
-    dependsOn(worldCreateSave)
-    installerJar.set(layout.file(installerJarFiles.elements.map { it.single().asFile }))
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
-        .flatMap { it.launchSpecFile })
     // fabric-mixin: the installed profile must carry Mixin and MixinExtras, which only Fabric mods need (ADR-0020).
     // quilt-hello: a Quilt mod gets Quilt Loader's API, its Mixin and access wideners from the installed profile too
     // (Quilt full support Q8).
     modJars.from(modJars(
         ":examples:minimal-native-mod", ":examples:native-showcase-mod", ":test-mods:fabric-entrypoint-only",
         ":test-mods:fabric-mixin", ":test-mods:quilt-hello"))
-    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
-    sourceWorld.set(worldCreateSave.flatMap { it.runDirectory.dir("universe/gametestworld") })
     worldName.set("poly_profile")
-    runDirectory.set(layout.buildDirectory.dir("poly/launcher-profile-$minecraft/minecraft"))
     timeoutSeconds.set(180)
     expectedOutput.addAll(
         "[Poly Mod Loader] Phase GAME_LAUNCH: net.minecraft.client.main.Main",
@@ -1652,23 +1661,32 @@ providers.gradleProperty("modProbeDir").orNull?.let { folder ->
 // Diagnosis aid that opens a game window, not part of any check: the world clientWorldReloadTest opens, with the
 // fabric-mixin test mod and every jar of -PclientProbeDir=<folder> (real Fabric mods). Run it alone, after the
 // headless checks (AGENTS.md).
-providers.gradleProperty("clientProbeDir").orNull?.let { folder ->
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientModProbe") {
+// One client verification scenario: every windowed client task reloads the world saved by worldCreateSaveTest through
+// clientWorldReloadTest's launch spec, class path, JDK and transform cache; only the mods, the world name, the run
+// folder and the expected lines differ.
+fun clientWorldReload(name: String, configure: dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask.() -> Unit) {
+    tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>(name) {
         group = "verification"
-        description = "Opens the saved world in the client with real Fabric mods from -PclientProbeDir (opens a window)."
+        val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
         dependsOn("worldCreateSaveTest", "prepareMinecraftClient")
         launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-        // Through a Callable, as in corpusFabricClient below.
+        // Through a Callable: reload.map would open clientWorldReloadTest's window first.
         classpath.from(Callable { reload.get().classpath })
-        devModJars.from(modJars(":test-mods:fabric-mixin"))
-        devModJars.from(fileTree(folder) { include("*.jar") })
         javaLauncher.set(reload.flatMap { it.javaLauncher })
         sourceWorld.set(reload.flatMap { it.sourceWorld })
+        transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
+        configure()
+    }
+}
+
+providers.gradleProperty("clientProbeDir").orNull?.let { folder ->
+    clientWorldReload("clientModProbe") {
+        description = "Opens the saved world in the client with real Fabric mods from -PclientProbeDir (opens a window)."
+        devModJars.from(modJars(":test-mods:fabric-mixin"))
+        devModJars.from(fileTree(folder) { include("*.jar") })
         worldName.set("poly_fabric_probe")
         runDirectory.set(layout.buildDirectory.dir("poly/client-mod-probe"))
         timeoutSeconds.set(300)
-        transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
         expectedOutput.addAll(
             "[Poly Mod Loader] Phase GAME_LAUNCH: net.minecraft.client.main.Main",
             "foreign mod(s) are initialised when Minecraft reaches its mod initialization point",
@@ -1682,23 +1700,14 @@ providers.gradleProperty("clientProbeDir").orNull?.let { folder ->
 // MinecraftForge on the client (ADR-0021 G7; opens a window, run it alone after the headless checks): Forge's client
 // launch handler with the Forge test mods, and fabric-client-session, a Fabric mod that plays 200 ticks in the world
 // worldCreateSaveTest saved and then saves and quits, so Forge and Fabric mods also run together on the client.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("forgeClient") {
-    group = "verification"
+clientWorldReload("forgeClient") {
     description = "Opens the saved world in a MinecraftForge client with Forge test mods and a Fabric mod (opens a window)."
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    dependsOn("worldCreateSaveTest", "prepareMinecraftClient")
-    launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-    // Through a Callable: reload.map would open clientWorldReloadTest's window first.
-    classpath.from(Callable { reload.get().classpath })
     classpath.from(forgeClassPath)
     systemProperties.add("fabric_client_session.titleScreenshot=true")
     devModJars.from(modJars(":test-mods:forge-hello", ":test-mods:forge-at", ":test-mods:forge-mixin", ":test-mods:fabric-client-session"))
-    javaLauncher.set(reload.flatMap { it.javaLauncher })
-    sourceWorld.set(reload.flatMap { it.sourceWorld })
     worldName.set("poly_forge_client")
     runDirectory.set(layout.buildDirectory.dir("poly/forge-client-$minecraft"))
     timeoutSeconds.set(300)
-    transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
     expectedOutput.addAll(
         "[Poly Mod Loader] MinecraftForge 26.2-65.1.5 loads 3 Forge mod(s) itself on Poly Mod Loader's game class loader",
         "Forge mod loading, version 65.1.5",
@@ -1722,24 +1731,16 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
 // Fabric API's mixins on the same class with it, and the first frame failed with a ClassCastException
 // (LevelRendererExtensions). Opens a window; run it alone after the headless checks.
 if (minecraft == "26.2") {
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("forgeSodiumClient") {
-        group = "verification"
+    clientWorldReload("forgeSodiumClient") {
         description = "Opens the saved world in a MinecraftForge client with Sodium (Fabric) and Physics Mod (Forge) (opens a window)."
-        val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-        dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpus)
-        launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-        // Through a Callable: reload.map would open clientWorldReloadTest's window first.
-        classpath.from(Callable { reload.get().classpath })
+        dependsOn(modCorpus)
         classpath.from(forgeClassPath)
         devModJars.from(modJars(":test-mods:fabric-client-session"))
         devModJars.from(corpusRoot.map { it.dir("fabric").asFileTree.matching { include("sodium-fabric-*.jar") } })
         devModJars.from(corpusRoot.map { it.dir("forge").asFileTree.matching { include("physics-mod-*.jar") } })
-        javaLauncher.set(reload.flatMap { it.javaLauncher })
-        sourceWorld.set(reload.flatMap { it.sourceWorld })
         worldName.set("poly_forge_sodium")
         runDirectory.set(layout.buildDirectory.dir("poly/forge-sodium-client-$minecraft"))
         timeoutSeconds.set(400)
-        transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
         expectedOutput.addAll(
             "LevelExtractorMixin",
             "the injection runs with the patched parameters",
@@ -1756,15 +1757,10 @@ if (minecraft == "26.2") {
 // Sodium, 2026-10-23). fabric-client-session's physics probe does the breaking. Open a window; run them alone.
 if (minecraft == "26.2") {
     for ((name, withSodium) in listOf("physicsProbeClient" to false, "physicsProbeSodiumClient" to true)) {
-        tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>(name) {
-            group = "verification"
+        clientWorldReload(name) {
             description = "Physics Mod breaks a block and a zombie on a MinecraftForge client" +
                 (if (withSodium) " with Sodium" else "") + "; saves screenshots (opens a window)."
-            val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-            dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpus)
-            launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-            // Through a Callable: reload.map would open clientWorldReloadTest's window first.
-            classpath.from(Callable { reload.get().classpath })
+            dependsOn(modCorpus)
             classpath.from(forgeClassPath)
             devModJars.from(modJars(":test-mods:fabric-client-session"))
             devModJars.from(corpusRoot.map { it.dir("forge").asFileTree.matching { include("physics-mod-*.jar") } })
@@ -1772,12 +1768,9 @@ if (minecraft == "26.2") {
                 devModJars.from(corpusRoot.map { it.dir("fabric").asFileTree.matching { include("sodium-fabric-*.jar") } })
             }
             systemProperties.add("fabric_client_session.physicsProbe=true")
-            javaLauncher.set(reload.flatMap { it.javaLauncher })
-            sourceWorld.set(reload.flatMap { it.sourceWorld })
             worldName.set(if (withSodium) "poly_physics_sodium" else "poly_physics")
             runDirectory.set(layout.buildDirectory.dir("poly/$name-$minecraft"))
             timeoutSeconds.set(400)
-            transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
             expectedOutput.addAll(
                 "Forge mod loading, version 65.1.5",
                 "[fabric_client_session] physics probe: stone and a zombie at",
@@ -1791,13 +1784,9 @@ if (minecraft == "26.2") {
 
 // The real Forge mods of the corpus on a MinecraftForge client (ADR-0021 G7; opens a window, run it alone after the
 // headless checks), with fabric-client-session to play 200 ticks in the saved world and quit.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("corpusForgeClient") {
-    group = "verification"
+clientWorldReload("corpusForgeClient") {
     description = "Opens the saved world in a MinecraftForge client with every Forge mod of the real-mod corpus (opens a window)."
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpus)
-    launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-    classpath.from(Callable { reload.get().classpath })
+    dependsOn(modCorpus)
     classpath.from(forgeClassPath)
     devModJars.from(modJars(":test-mods:fabric-client-session"))
     // Crash Assistant starts its own crash-report program on the client, which outlives the game and keeps the run
@@ -1805,12 +1794,9 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
     devModJars.from(corpusRoot.map {
         it.dir("forge").asFileTree.matching { include("*.jar"); exclude("CrashAssistant-*.jar"); exclude(brokenUnderForge) }
     })
-    javaLauncher.set(reload.flatMap { it.javaLauncher })
-    sourceWorld.set(reload.flatMap { it.sourceWorld })
     worldName.set("poly_forge_corpus")
     runDirectory.set(layout.buildDirectory.dir("poly/corpus-forge-client-$minecraft"))
     timeoutSeconds.set(400)
-    transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
     expectedOutput.addAll(
         // The pinned Forge release of this Minecraft version (forge-releases.properties).
         "MinecraftForge $minecraft-",
@@ -1825,22 +1811,13 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
 // its early window, the NeoForge test mod, a Poly Mod, and neoforge-client-session, a NeoForge mod that plays 200 ticks in
 // the world worldCreateSaveTest saved, then saves, quits to the title screen and stops the client.
 if (minecraft == "26.2") {
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("neoForgeClient") {
-        group = "verification"
+    clientWorldReload("neoForgeClient") {
         description = "Opens the saved world in a NeoForge client with the NeoForge test mod and a Poly Mod (opens a window)."
-        val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-        dependsOn("worldCreateSaveTest", "prepareMinecraftClient")
-        launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-        // Through a Callable: reload.map would open clientWorldReloadTest's window first.
-        classpath.from(Callable { reload.get().classpath })
         javaAgents.from(polyAgentJar)
         devModJars.from(modJars(":test-mods:neoforge-hello", ":test-mods:neoforge-client-session", native, nativeLib))
-        javaLauncher.set(reload.flatMap { it.javaLauncher })
-        sourceWorld.set(reload.flatMap { it.sourceWorld })
         worldName.set("poly_neoforge_client")
         runDirectory.set(layout.buildDirectory.dir("poly/neoforge-client-$minecraft"))
         timeoutSeconds.set(300)
-        transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
         expectedOutput.addAll(
             "[Poly Mod Loader] NeoForge 26.2.0.93 loads 2 NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
             "[Poly Mod Loader] Loaded mods per loader: 2 Poly, 0 Fabric, 0 Quilt, 0 Forge, 2 NeoForge",
@@ -1965,13 +1942,9 @@ scenarios.gameTest(
 // The real NeoForge mods of the corpus on a NeoForge client (ADR-0026, N7; opens a window, run it alone after the headless
 // checks), with neoforge-client-session to play 200 ticks in the saved world and quit. The client-only mods that stop a
 // NeoForge server (Sodium, Iris, ImmediatelyFast, Zoomify, ...) run here.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("corpusNeoForgeClient") {
-    group = "verification"
+clientWorldReload("corpusNeoForgeClient") {
     description = "Opens the saved world in a NeoForge client with every NeoForge mod of the real-mod corpus (opens a window)."
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpus)
-    launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-    classpath.from(Callable { reload.get().classpath })
+    dependsOn(modCorpus)
     javaAgents.from(polyAgentJar)
     devModJars.from(modJars(":test-mods:neoforge-client-session", ":test-mods:neoforge-environment-probe"))
     devModJars.from(corpusRoot.map {
@@ -1979,12 +1952,9 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
             include("*.jar"); exclude(brokenUnderNeoForge); exclude(brokenOnNeoForgeClient)
         }
     })
-    javaLauncher.set(reload.flatMap { it.javaLauncher })
-    sourceWorld.set(reload.flatMap { it.sourceWorld })
     worldName.set("poly_neoforge_corpus")
     runDirectory.set(layout.buildDirectory.dir("poly/corpus-neoforge-client-$minecraft"))
     timeoutSeconds.set(400)
-    transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
     expectedOutput.addAll(
         "NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
         "[Poly Mod Loader] FML ",
@@ -2002,13 +1972,9 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
 // The corpus's Fabric and NeoForge mods in one NeoForge client (ADR-0026 30; opens a window, run it alone after the
 // headless checks, corpusFabricNeoForgeClientMixins first): one Mixin serves both, neoforge-client-session plays 200
 // ticks in the saved world and quits.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("corpusFabricNeoForgeClient") {
-    group = "verification"
+clientWorldReload("corpusFabricNeoForgeClient") {
     description = "Opens the saved world in a NeoForge client with every Fabric and NeoForge mod of the real-mod corpus (opens a window)."
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpus)
-    launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-    classpath.from(Callable { reload.get().classpath })
+    dependsOn(modCorpus)
     javaAgents.from(polyAgentJar)
     devModJars.from(modJars(":test-mods:neoforge-client-session"))
     devModJars.from(corpusRoot.map {
@@ -2019,12 +1985,9 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
             include("*.jar"); exclude(brokenUnderNeoForge); exclude(brokenOnNeoForgeClient)
         }
     })
-    javaLauncher.set(reload.flatMap { it.javaLauncher })
-    sourceWorld.set(reload.flatMap { it.sourceWorld })
     worldName.set("poly_fabric_neoforge_corpus")
     runDirectory.set(layout.buildDirectory.dir("poly/corpus-fabric-neoforge-client-$minecraft"))
     timeoutSeconds.set(500)
-    transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
     expectedOutput.addAll(
         "Fabric or Quilt mod(s) run together; one Mixin serves both (ADR-0026 30)",
         "share Fabric's Mixin",
@@ -2042,19 +2005,10 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
 // fabric-client-session, which plays 200 ticks in the saved world and then saves and quits (as forgeClient does in
 // development). On 26.2 the Forge mods are the Forge test mods, which are built against 26.2's Forge; on another
 // version they are the real Forge mods of that version's corpus, as corpusForgeClient runs them (Forge full support B6).
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask>("launcherProfileForgeTest") {
-    group = "verification"
+launcherProfile("launcherProfileForgeTest", "poly/launcher-profile-forge-$minecraft/minecraft") {
     description = "Installs Poly Mod Loader with the installer jar and starts the profile like the Minecraft Launcher with Forge mods (opens a window)."
-    val worldCreateSave = tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest")
-    dependsOn(worldCreateSave)
-    installerJar.set(layout.file(installerJarFiles.elements.map { it.single().asFile }))
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
-        .flatMap { it.launchSpecFile })
     modJars.from(modJars(":test-mods:fabric-client-session"))
-    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
-    sourceWorld.set(worldCreateSave.flatMap { it.runDirectory.dir("universe/gametestworld") })
     worldName.set("poly_profile_forge")
-    runDirectory.set(layout.buildDirectory.dir("poly/launcher-profile-forge-$minecraft/minecraft"))
     expectedOutput.add("[Poly Mod Loader] Added Forge's file systems to the JVM class path")
     if (minecraft == "26.2") {
         modJars.from(modJars(":test-mods:forge-hello", ":test-mods:forge-at", ":test-mods:forge-mixin"))
@@ -2092,19 +2046,10 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunch
 // neoforge-client-session, which plays 200 ticks in the saved world and then saves and quits. On 26.2 the NeoForge mods
 // are the NeoForge test mod; on another version they are the real NeoForge mods of that version's corpus, as
 // corpusNeoForgeClient runs them.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask>("launcherProfileNeoForgeTest") {
-    group = "verification"
+launcherProfile("launcherProfileNeoForgeTest", "poly/launcher-profile-neoforge-$minecraft/minecraft") {
     description = "Installs Poly Mod Loader with the installer jar and starts the profile like the Minecraft Launcher with NeoForge mods (opens a window)."
-    val worldCreateSave = tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest")
-    dependsOn(worldCreateSave)
-    installerJar.set(layout.file(installerJarFiles.elements.map { it.single().asFile }))
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
-        .flatMap { it.launchSpecFile })
     modJars.from(modJars(":test-mods:neoforge-client-session"))
-    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
-    sourceWorld.set(worldCreateSave.flatMap { it.runDirectory.dir("universe/gametestworld") })
     worldName.set("poly_profile_neoforge")
-    runDirectory.set(layout.buildDirectory.dir("poly/launcher-profile-neoforge-$minecraft/minecraft"))
     if (minecraft == "26.2") {
         modJars.from(modJars(":test-mods:neoforge-hello"))
         timeoutSeconds.set(300)
@@ -2134,26 +2079,18 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunch
 // headless checks, AGENTS.md): every Fabric mod of the corpus plus fabric-mixin, in the world worldCreateSaveTest
 // saved, up to joining it. Fabric's preLaunch, Mixin on client classes (Sodium, Iris, Lithium) and the client
 // initialisation point in the Minecraft constructor all run here.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("corpusFabricClient") {
-    group = "verification"
+clientWorldReload("corpusFabricClient") {
     description = "Opens the saved world in the client with every Fabric mod of the real-mod corpus (opens a window)."
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpus)
-    launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-    // Through a Callable: reload.map would open clientWorldReloadTest's window first.
-    classpath.from(Callable { reload.get().classpath })
+    dependsOn(modCorpus)
     // fabric-client-session plays 200 ticks in the world, then saves and quits as a player does.
     devModJars.from(modJars(":test-mods:fabric-mixin", ":test-mods:fabric-client-session"))
     devModJars.from(corpus("fabric"))
     // CustomSkinLoader's one jar for every loader sits in the corpus's forge folder; players put it in a Fabric
     // mods folder too, and it is the mod that needs Fabric Loader's launcher (FabricLauncherBase.addToClassPath).
     devModJars.from(corpusRoot.map { it.dir("forge").asFileTree.matching { include("CustomSkinLoader_Universal-*.jar") } })
-    javaLauncher.set(reload.flatMap { it.javaLauncher })
-    sourceWorld.set(reload.flatMap { it.sourceWorld })
     worldName.set("poly_fabric_corpus")
     runDirectory.set(layout.buildDirectory.dir("poly/corpus-fabric-client-$minecraft"))
     timeoutSeconds.set(300)
-    transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
     expectedOutput.addAll(
         "[Poly Mod Loader] Phase GAME_LAUNCH: net.minecraft.client.main.Main",
         corpusCounts("[Poly Mod Loader] Foreign mods: 140 loaded, 37 not loaded"),
@@ -2177,25 +2114,17 @@ tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask
 // The Quilt corpus on the client (Quilt full support Q6; opens a window, so it is not part of compatibilityCorpus; run it
 // alone after the headless checks, AGENTS.md): every jar of modCorpusQuilt plus quilt-hello, in the world
 // worldCreateSaveTest saved; 200 ticks in the world, save and quit, then the client stops.
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("corpusQuiltClient") {
-    group = "verification"
+clientWorldReload("corpusQuiltClient") {
     description = "Opens the saved world in the client with every mod of the Quilt mod corpus (opens a window)."
-    val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
-    dependsOn("worldCreateSaveTest", "prepareMinecraftClient", modCorpusQuilt)
-    launchSpecFile.set(reload.flatMap { it.launchSpecFile })
-    // Through a Callable: reload.map would open clientWorldReloadTest's window first.
-    classpath.from(Callable { reload.get().classpath })
+    dependsOn(modCorpusQuilt)
     devModJars.from(modJars(":test-mods:fabric-client-session", ":test-mods:quilt-hello"))
     devModJars.from(corpusRoot.map {
         it.dir("quilt").asFileTree.matching { include("*.jar"); exclude(brokenOnQuiltClient) }
     })
-    javaLauncher.set(reload.flatMap { it.javaLauncher })
-    sourceWorld.set(reload.flatMap { it.sourceWorld })
     worldName.set("poly_quilt_corpus")
     // One folder per Minecraft version, so each version's client log stays after the next version's run.
     runDirectory.set(layout.buildDirectory.dir("poly/corpus-quilt-client/$minecraft"))
     timeoutSeconds.set(300)
-    transformCacheDirectory.set(reload.flatMap { it.transformCacheDirectory })
     expectedOutput.addAll(
         "[Poly Mod Loader] Phase GAME_LAUNCH: net.minecraft.client.main.Main",
         "[Poly Mod Loader] Foreign mods: ",
@@ -2298,75 +2227,66 @@ tasks.register("compatibilityMatrix") {
 // Fabric mods (as corpusFabric runs them on the game test server) in the Poly Mod Loader variant. The vanilla variant runs no
 // mods, so the difference is what those mods cost through Poly Mod Loader, not Poly Mod Loader against Fabric Loader.
 val fabricBenchmarkMods = gameTestCorpus("fabric") + modJars(gameTestHarness)
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmarkFabric") {
-    group = "verification"
+// One benchmark comparison: the startup and tick benchmarks of every host loader wire the base task's launch spec, Poly
+// Mod Loader runtime, JDK, run count and transform cache the same way; only the mod set, the loader's own class path
+// wiring and the description differ.
+fun startupBenchmark(loader: String, mods: FileCollection, configure: dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask.() -> Unit) {
+    tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark$loader") {
+        group = "verification"
+        val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
+        launchSpecFile.set(base.flatMap { it.launchSpecFile })
+        // Through a Callable: base.map would make this task run the base benchmark too.
+        polyRuntime.from(Callable { base.get().polyRuntime })
+        devModJars.from(mods)
+        javaLauncher.set(base.flatMap { it.javaLauncher })
+        runs.convention(5)
+        workDirectory.set(layout.buildDirectory.dir("poly/startup-benchmark-${loader.lowercase()}"))
+        transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
+        configure()
+    }
+}
+
+fun tickBenchmark(loader: String, mods: FileCollection, configure: dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask.() -> Unit) {
+    tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark$loader") {
+        group = "verification"
+        val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
+        launchSpecFile.set(base.flatMap { it.launchSpecFile })
+        // Through a Callable: base.map would make this task run the base benchmark too.
+        polyRuntime.from(Callable { base.get().polyRuntime })
+        devModJars.from(mods)
+        probeAgent.from(tickProbe)
+        javaLauncher.set(base.flatMap { it.javaLauncher })
+        runs.convention(5)
+        holdTicks.convention(1200)
+        warmupTicks.convention(200)
+        providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
+        workDirectory.set(layout.buildDirectory.dir("poly/tick-benchmark-${loader.lowercase()}"))
+        transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
+        configure()
+    }
+}
+
+startupBenchmark("Fabric", fabricBenchmarkMods) {
     description = "Game test server startup-to-exit time: vanilla versus Poly Mod Loader with the corpus's Fabric mods."
     dependsOn(modCorpus)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
-    devModJars.from(fabricBenchmarkMods)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    workDirectory.set(layout.buildDirectory.dir("poly/startup-benchmark-fabric"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmarkFabric") {
-    group = "verification"
+tickBenchmark("Fabric", fabricBenchmarkMods) {
     description = "Server tick times, heap and GC: vanilla versus Poly Mod Loader with the corpus's Fabric mods."
     dependsOn(modCorpus)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
-    devModJars.from(fabricBenchmarkMods)
-    probeAgent.from(tickProbe)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    holdTicks.convention(1200)
-    warmupTicks.convention(200)
-    providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
-    workDirectory.set(layout.buildDirectory.dir("poly/tick-benchmark-fabric"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
 // The same comparisons with the corpus's Forge mods (Forge full support B7): MinecraftForge runs them on Poly Mod
 // Loader's side, with Forge's file systems on the class path as in the other Forge scenarios. Not a comparison with
 // Forge's own launcher.
 val forgeBenchmarkMods = gameTestCorpus("forge")
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmarkForge") {
-    group = "verification"
+startupBenchmark("Forge", forgeBenchmarkMods) {
     description = "Game test server startup-to-exit time: vanilla versus Poly Mod Loader with the corpus's Forge mods."
     dependsOn(modCorpus)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
     polyRuntime.from(forgeClassPath)
-    devModJars.from(forgeBenchmarkMods)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    workDirectory.set(layout.buildDirectory.dir("poly/startup-benchmark-forge"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmarkForge") {
-    group = "verification"
+tickBenchmark("Forge", forgeBenchmarkMods) {
     description = "Server tick times, heap and GC: vanilla versus Poly Mod Loader with the corpus's Forge mods."
     dependsOn(modCorpus)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
     polyRuntime.from(forgeClassPath)
-    devModJars.from(forgeBenchmarkMods)
-    probeAgent.from(tickProbe)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    holdTicks.convention(1200)
-    warmupTicks.convention(200)
-    providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
-    workDirectory.set(layout.buildDirectory.dir("poly/tick-benchmark-forge"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
 // The same comparisons with the corpus's NeoForge mods (NeoForge full support N12): NeoForge runs them on Poly Mod
 // Loader's side (with Poly Mod Loader's Java agent, as the launcher profile starts it, and the harness that ticks game
@@ -2377,39 +2297,15 @@ val neoForgeBenchmarkMods = files(corpusRoot.map {
         include("*.jar"); exclude(notOnNeoForgeServer); exclude(neoForgeClientClassesOnServer); exclude(brokenUnderNeoForge)
     }
 }) + modJars(":test-mods:neoforge-gametest-harness")
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmarkNeoForge") {
-    group = "verification"
+startupBenchmark("NeoForge", neoForgeBenchmarkMods) {
     description = "Game test server startup-to-exit time: vanilla versus Poly Mod Loader with the corpus's NeoForge mods."
     dependsOn(modCorpus)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
     polyJavaAgents.from(polyAgentJar)
-    devModJars.from(neoForgeBenchmarkMods)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    workDirectory.set(layout.buildDirectory.dir("poly/startup-benchmark-neoforge"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmarkNeoForge") {
-    group = "verification"
+tickBenchmark("NeoForge", neoForgeBenchmarkMods) {
     description = "Server tick times, heap and GC: vanilla versus Poly Mod Loader with the corpus's NeoForge mods."
     dependsOn(modCorpus)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
     polyJavaAgents.from(polyAgentJar)
-    devModJars.from(neoForgeBenchmarkMods)
-    probeAgent.from(tickProbe)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    holdTicks.convention(1200)
-    warmupTicks.convention(200)
-    providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
-    workDirectory.set(layout.buildDirectory.dir("poly/tick-benchmark-neoforge"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
 
 // The same comparisons with the Quilt corpus (Quilt full support Q11): the Quilt-only builds and the mods they require,
@@ -2428,37 +2324,13 @@ val quiltBenchmarkMods = files(corpusRoot.map {
         exclude("craftable-bucket-of-sulfur-cube-*.jar", "omni-*.jar")
     }
 }) + modJars(gameTestHarness)
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmarkQuilt") {
-    group = "verification"
+startupBenchmark("Quilt", quiltBenchmarkMods) {
     description = "Game test server startup-to-exit time: vanilla versus Poly Mod Loader with the Quilt mod corpus."
     dependsOn(modCorpusQuilt)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
-    devModJars.from(quiltBenchmarkMods)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    workDirectory.set(layout.buildDirectory.dir("poly/startup-benchmark-quilt"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmarkQuilt") {
-    group = "verification"
+tickBenchmark("Quilt", quiltBenchmarkMods) {
     description = "Server tick times, heap and GC: vanilla versus Poly Mod Loader with the Quilt mod corpus."
     dependsOn(modCorpusQuilt)
-    val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
-    launchSpecFile.set(base.flatMap { it.launchSpecFile })
-    // Through a Callable: base.map would make this task run the base benchmark too.
-    polyRuntime.from(Callable { base.get().polyRuntime })
-    devModJars.from(quiltBenchmarkMods)
-    probeAgent.from(tickProbe)
-    javaLauncher.set(base.flatMap { it.javaLauncher })
-    runs.convention(5)
-    holdTicks.convention(1200)
-    warmupTicks.convention(200)
-    providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
-    workDirectory.set(layout.buildDirectory.dir("poly/tick-benchmark-quilt"))
-    transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
 }
 
 // Poly Mod Loader against Sinytra Connector on real NeoForge (docs/PERFORMANCE.md, measurement 9): the same startup and
