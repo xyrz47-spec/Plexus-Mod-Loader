@@ -37,6 +37,10 @@ jobs:
         run: ./gradlew.bat -p build-logic check --stacktrace
       - name: Installer (.jar and .exe)
         run: ./gradlew.bat :poly-installer:installerDistributions --stacktrace
+      # The Gradle daemon keeps its cache lock files open, and setup-java cannot save a cache it cannot read.
+      - name: Stop Gradle
+        if: always()
+        run: ./gradlew.bat --stop
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v6
