@@ -53,4 +53,8 @@ Thumbs.db
 /tools/
 /poly-bootstrap/compat/
 /.run/
-/.github/
+# Only the public CI workflow is tracked; the rest of .github/ stays private.
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/ci.yml

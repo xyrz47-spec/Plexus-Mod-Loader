@@ -1,0 +1,52 @@
+# Runs the checks DEVELOPING.md asks for before a pull request: Spotless and every unit test, the build-logic
+# plugin's own tests, and the installer build.
+# The game tests (serverBootSmokeTest, worldCreateSaveTest, compatibilityMatrix, ...) need examples/ and
+# test-mods/, which the public repository leaves out (settings.gradle.kts), so they are not run here.
+# Windows, like the project's earlier CI: it is the platform the project is developed on, and the only one that
+# builds PolyModLoader-<version>.exe (cargo is preinstalled on the runner).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+      # Minecraft files are downloaded from Mojang and checked by hash; keep them between runs.
+      - uses: actions/cache@v6
+        with:
+          path: ~/.gradle/caches/poly-minecraft
+          key: poly-minecraft-${{ hashFiles('gradle/minecraft-versions.properties') }}
+      - name: Spotless and unit tests
+        run: ./gradlew.bat check --stacktrace
+      - name: build-logic tests
+        run: ./gradlew.bat -p build-logic check --stacktrace
+      - name: Installer (.jar and .exe)
+        run: ./gradlew.bat :poly-installer:installerDistributions --stacktrace
+      # The Gradle daemon keeps its cache lock files open, and setup-java cannot save a cache it cannot read.
+      - name: Stop Gradle
+        if: always()
+        run: ./gradlew.bat --stop
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          if-no-files-found: ignore
