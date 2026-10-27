@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Installer
+
+- The installer is `PolyModLoader-<version>.jar` only, on every platform (Java 17 or newer). The Windows `.exe` and its Rust launcher are gone, and releases attach the jar and `SHA256SUMS.txt`. Releases up to 1.2.3 keep their `.exe`.
+- 설치 프로그램은 모든 시스템에서 `PolyModLoader-<버전>.jar` 하나입니다(Java 17 이상). Windows `.exe`와 그 Rust 실행기를 없앴고, 릴리스에는 jar와 `SHA256SUMS.txt`만 올립니다. 1.2.3까지의 릴리스에 있는 `.exe`는 그대로 둡니다.
+
+### Build
+
+- `poly-bootstrap`'s verification tasks and the `HostPatchAdjustments` tests share their wiring through helpers (public pull request #3 by yjsjs0987, finished in #4). A duplicate `java.26.3` entry in `gradle/minecraft-versions.properties` is removed.
+
 ## 1.2.3 — 2026-10-26
 
 ### Highlights
