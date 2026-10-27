@@ -33,13 +33,12 @@ A **Poly Mod** is a mod made with the Native API that runs on Poly Mod Loader, t
 ## Install (players)
 
 1. Run the vanilla version you want (26.1, 26.1.1, 26.1.2, 26.2 or 26.3) once in the Minecraft Launcher, quit the game, and close the launcher.
-2. Download from the [download page](https://www.polymc.net/download/) (the files are the [GitHub releases](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)).
-   - Windows: `PolyModLoader-<version>.exe`. No separate Java install is needed; it uses the Java the launcher downloaded.
-   - macOS and Linux: `PolyModLoader-<version>.jar`. Run it with Java 17 or newer (`java -jar PolyModLoader-<version>.jar`).
-3. Click **Install**.
-4. Pick the **Poly Mod Loader <Minecraft version>** profile (for example **Poly Mod Loader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
+2. Download `PolyModLoader-<version>.jar` from the [download page](https://www.polymc.net/download/) (the files are the [GitHub releases](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)). The same jar runs on Windows, macOS and Linux.
+3. Open it with Java 17 or newer: double-click it, or run `java -jar PolyModLoader-<version>.jar`.
+4. Click **Install**.
+5. Pick the **Poly Mod Loader <Minecraft version>** profile (for example **Poly Mod Loader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
 
-The [install guide](https://www.polymc.net/docs/getting-started/install/) covers details and uninstalling. The installer is not code-signed, so Windows SmartScreen may warn about it.
+The [install guide](https://www.polymc.net/docs/getting-started/install/) covers details and uninstalling.
 
 ## Make mods
 
@@ -117,13 +116,12 @@ Poly 모드 로더는 Minecraft의 실행 기반은 그대로 두고, 그 위의
 ### 설치 (플레이어)
 
 1. Minecraft Launcher에서 쓰려는 바닐라 버전(26.1, 26.1.1, 26.1.2, 26.2, 26.3)을 한 번 실행한 뒤 런처를 닫습니다.
-2. [릴리스 페이지](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)에서 설치 파일을 다운로드합니다.
-   - Windows: `PolyModLoader-<버전>.exe`. Java를 따로 설치하지 않아도 됩니다. 런처에 들어 있는 Java를 사용합니다.
-   - macOS·Linux: `PolyModLoader-<버전>.jar`. Java 17 이상에서 실행합니다(`java -jar PolyModLoader-<버전>.jar`).
-3. **설치**를 누릅니다.
-4. 런처에서 **Poly 모드 로더 <Minecraft 버전>** 프로필(예: **Poly 모드 로더 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
+2. [릴리스 페이지](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)에서 `PolyModLoader-<버전>.jar`를 다운로드합니다. Windows, macOS, Linux 모두 같은 jar를 씁니다.
+3. Java 17 이상으로 엽니다. 더블클릭하거나 `java -jar PolyModLoader-<버전>.jar`로 실행합니다.
+4. **설치**를 누릅니다.
+5. 런처에서 **Poly 모드 로더 <Minecraft 버전>** 프로필(예: **Poly 모드 로더 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
 
-자세한 내용과 제거 방법은 [설치 안내](https://www.polymc.net/ko/docs/getting-started/install/)를 참고하세요. 설치 프로그램에 아직 코드 서명이 없어 Windows에서 SmartScreen 경고가 표시될 수 있습니다.
+자세한 내용과 제거 방법은 [설치 안내](https://www.polymc.net/ko/docs/getting-started/install/)를 참고하세요.
 
 ### 모드 만들기
 
@@ -163,7 +161,7 @@ Poly 모드 로더는 실행할 수 없는 모드를 게임이 시작되기 전�
 성능은 실측 벤치마크 데이터를 바탕으로 제공합니다([PROJECT.md](PROJECT.md#2-core-pillars--technical-differentiators)).
 
 - 시작 시간, 서버 틱 시간, 메모리: 바닐라 마인크래프트와의 차이가 측정 편차(오차 범위) 내에 있습니다.
-- 클라이언트 프레임 시간: 고성능 렌더러(Sodium, Iris)와 결합 시 바닐라 대비 압도적인 프레임 향상을 지원합니다.
+- 클라이언트 프레임 시간: 개발용 모드를 설치한 상태에서 Poly 모드 로더가 약간 느립니다.
 
 ### 소스에서 빌드
 

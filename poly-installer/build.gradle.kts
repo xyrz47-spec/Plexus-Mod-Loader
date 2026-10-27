@@ -7,7 +7,7 @@ plugins {
     id("poly.java-conventions")
 }
 
-description = "End-user installer: adds a Poly Mod Loader profile to the Minecraft Launcher (PolyModLoader-<version>.jar and .exe)."
+description = "End-user installer: adds a Poly Mod Loader profile to the Minecraft Launcher (PolyModLoader-<version>.jar)."
 
 // The installer runs outside the game, on whatever Java the user has; Java 17 is common enough.
 tasks.compileJava {
@@ -42,7 +42,6 @@ val providedByMinecraft = setOf(
 )
 val polyModLoaderVersion = version.toString()
 val polyGroup = group.toString()
-val isWindows = System.getProperty("os.name").startsWith("Windows")
 val supportedMinecraft = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).runnable()
 // poly-bootstrap carries an experimental version's adapter when the build runs it (ADR-0019); players never get it.
 val runsExperimental = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).let {
@@ -103,46 +102,11 @@ val installerJar = tasks.register<Jar>("installerJar") {
     }
 }
 
-// PolyModLoader-<version>.exe (Windows): a small native program with the installer jar inside. It runs the jar
-// with the Java runtime the Minecraft Launcher downloads (or JAVA_HOME / PATH), so players need no Java of
-// their own. Needs Rust (cargo) on the build machine; not part of `build`.
-val nativeDirectory = layout.projectDirectory.dir("native-windows")
-val cargoTarget = layout.buildDirectory.dir("cargo")
-val installerExe = tasks.register<Exec>("installerExe") {
-    group = "distribution"
-    description = "Builds the Windows installer PolyModLoader-<version>.exe (needs Rust)."
-    dependsOn(installerJar)
-    onlyIf("runs on Windows") { isWindows }
-    val jar = installerJar.flatMap { it.archiveFile }
-    inputs.file(jar)
-    inputs.dir(nativeDirectory)
-    outputs.dir(cargoTarget)
-    workingDir(nativeDirectory)
-    commandLine("cargo", "build", "--release", "--locked", "--target-dir", cargoTarget.get().asFile.absolutePath)
-    doFirst {
-        environment("POLY_INSTALLER_JAR", jar.get().asFile.absolutePath)
-        environment("POLY_VERSION", polyModLoaderVersion)
-    }
-}
-// Declares only its own file as output: build/distributions also holds the installer jar.
-val installerExeFile = layout.buildDirectory.file("distributions/PolyModLoader-$polyModLoaderVersion.exe")
-val installerExeCopy = tasks.register("installerExeDistribution") {
-    group = "distribution"
-    description = "Copies PolyModLoader-<version>.exe into build/distributions."
-    dependsOn(installerExe)
-    val source = cargoTarget.map { it.file("release/polymodloader-installer.exe") }
-    inputs.file(source)
-    outputs.file(installerExeFile)
-    doLast { source.get().asFile.copyTo(installerExeFile.get().asFile, overwrite = true) }
-}
-
+// The jar is the only download, on every platform.
 tasks.register("installerDistributions") {
     group = "distribution"
-    description = "Builds PolyModLoader-<version>.jar and, on Windows, PolyModLoader-<version>.exe."
+    description = "Builds PolyModLoader-<version>.jar."
     dependsOn(installerJar)
-    if (isWindows) {
-        dependsOn(installerExeCopy)
-    }
 }
 
 // Other projects (the launcher profile test) take the installer jar from here.
