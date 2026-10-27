@@ -38,11 +38,12 @@
 | 패키지 | 핵심 클래스 | 역할 |
 | :--- | :--- | :--- |
 | `dev.polymodloader.runtime` | `PolyRuntime`, `LaunchConfiguration` | 런타임 부팅 오케스트레이션 및 상태 관리 |
-| `.discovery` | `ModDiscoverer`, `ModFileScanner` | 디렉터리 내 모드 jar 및 중첩 jar 재귀 탐색 |
-| `.dependency` | `ModDependencyResolver`, `VersionGraph` | 모드 버전 제약식 해석 및 로드 우선순위 정렬 |
+| `dev.polymodloader.runtime` | `LoadedModCounter` | 실시간 로더별 모드 수 집계 |
+| `.discovery` | `ModFileScanner`, `NestedJarExtractor`, `ForeignModResolver` | 모드 폴더의 jar 탐색, 중첩 jar 추출, 로더 판별 |
+| `.dependency` | `ModDependencyResolver` | 모드 버전 제약식 해석 및 로드 우선순위 정렬 |
 | `.compat` | `HostPatchCheck`, `CrossLoaderModResolver` | Forge/NeoForge 패치와 Fabric Mixin 간 충돌 사전 진단 |
-| `.classloading` | `GameClassLoader`, `PackageHider` | 단일 게임 클래스로더 관리 및 미사용 로더 API 은닉 |
-| `.lifecycle` | `LoadedModCounter`, `ShutdownCoordinator` | 실시간 로더별 모드 수 집계 및 JVM 안전 종료 처리 |
+| `.classloading` | `GameClassLoader` | 단일 게임 클래스로더 관리 및 미사용 로더 API 은닉(`hideFromParent`) |
+| `.lifecycle` | `EntrypointInvoker`, `ShutdownCoordinator` | 엔트리포인트 호출 및 JVM 종료 시 종료 작업 실행 |
 
 ---
 
@@ -67,5 +68,5 @@
 
 - `ModDependencyResolverTest`: 복합 종속성 트리, 순환 의존성, 선택적 의존성 검증 12종.
 - `CrossLoaderModResolverTest`: Forge + Fabric 모드 공존 시의 ID 매핑 및 브릿지 중복 해소 검증.
-- `ModLinkVerifierTest`: 클래스 바이트코드 링크 무결성 검증 7종.
+- `ModLinkVerifierTest`: 클래스 바이트코드 링크 무결성 검증 14종.
 - `PolyRuntimeTest`: 합성 jar를 사용하여 1~8단계 전체 파이프라인의 엔드투엔드 부팅 검증.

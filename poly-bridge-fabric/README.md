@@ -59,6 +59,8 @@
 .\gradlew.bat :poly-bootstrap:corpusFabric
 ```
 
+`poly-bootstrap`의 작업들은 `test-mods/`(와 모드 묶음 목록 `poly-bootstrap/compat/`)가 필요해서, 이 공개 저장소에서는 실행되지 않습니다.
+
 ---
 
 ## 4. 제약 사항

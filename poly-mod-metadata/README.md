@@ -20,7 +20,7 @@ Gson 2.14.0(Minecraft 26.2와 같은 버전, ADR-0005)
 .\gradlew.bat :poly-mod-metadata:check
 ```
 
-`ModMetadataReaderTest` 14개, `VersionRangeTest` 18개
+`ModMetadataReaderTest` 19개, `VersionRangeTest` 18개
 
 ## 대표 흐름
 JSON을 파싱한 뒤 알 수 없는 필드를 경고하고, 필드별로 검증해 모든 문제를 모읍니다. 오류가 하나도 없을 때만 `ModMetadata`를 만듭니다.

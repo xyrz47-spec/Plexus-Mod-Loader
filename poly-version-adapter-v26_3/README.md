@@ -1,7 +1,7 @@
 # poly-version-adapter-v26_3
 
 ## 이 모듈이 하는 일
-Minecraft 26.3 전용 지식을 담습니다. 클라이언트/서버 진입점과 브랜드 변환 규칙 2개가 있습니다.
+Minecraft 26.3 전용 지식을 담습니다. 클라이언트/서버 진입점과 내장 변환 규칙(브랜드, 타이틀 화면 모드 수, 레지스트리·페이로드 처리, Native API 이벤트 훅 등 수십 개)이 있습니다.
 
 ## 무엇을 소유하는가
 `dev.polymodloader.game.version.v26_3.Minecraft26_3Adapter`와 `META-INF/services` 등록
@@ -33,11 +33,11 @@ Minecraft 26.3 전용 지식을 담습니다. 클라이언트/서버 진입점�
 
 ## 26.2와 다른 점
 
-1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). 현황은 `docs/plans/MINECRAFT_26_3.md`에 있습니다. `poly-version-adapter-v26_2`를 `newMinecraftVersion -Pexperimental=true`로 복사했습니다. 26.3 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음 하나입니다.
+1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). 현황은 `docs/plans/MINECRAFT_26_3.md`에 있습니다(`docs/`는 이 공개 저장소에 없습니다). `poly-version-adapter-v26_2`를 `newMinecraftVersion -Pexperimental=true`로 복사했습니다. 26.3 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음 하나입니다.
 
 - `poly:client_shader_uniforms`: `com.mojang.renderpearl.frontend.FrontendRenderPass.setPipeline(CompiledRenderPipeline)`(26.3의 `RenderPass`는 인터페이스이고 이 클래스가 유일한 구현)
 
 `BuiltInRulesTest`(게임 계층 모듈)가 모든 규칙을 26.3 jar에 적용해 봅니다. `gameVersions()`는 `26.3`뿐입니다. 핫픽스는 없습니다.
 
 ## 알려진 제한
-대상 jar SHA-1은 client `2dc72797…`, server bundler `823e2250…`입니다. 26.3 이상은 새 어댑터 모듈이 필요합니다.
+대상 jar SHA-1은 client `2dc72797…`, server bundler `823e2250…`입니다. 26.3보다 새 버전은 새 어댑터 모듈이 필요합니다.

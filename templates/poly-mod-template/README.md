@@ -60,4 +60,4 @@ IntelliJ IDEA에서는 폴더를 Gradle 프로젝트로 열고, `.run/runClient`
 
 `poly.mod.json`의 `"minecraft"`는 모드가 도는 버전입니다. Native API만 쓰면 `26.*`나 `>=26.2 <27`처럼 적어 새 버전에서도 다시 빌드하지 않고 쓸 수 있습니다. 특정 버전의 게임 코드에 기대는 모드는 `26.2`처럼 정확히 적습니다.
 
-사용할 수 있는 API는 웹사이트의 API 레퍼런스(`https://www.polymc.net/docs/api-reference/`)와 Poly 모드 로더 저장소의 `docs/API_CATALOG.md`에 있습니다. IDE는 공개 API 모듈의 JavaDoc jar를 Maven 저장소에서 함께 다운로드합니다. 모든 API는 아직 `PREVIEW`입니다.
+사용할 수 있는 API는 웹사이트의 API 레퍼런스(`https://www.polymc.net/docs/api-reference/`)에 있습니다(`docs/API_CATALOG.md`는 공개 저장소에 없습니다). IDE는 공개 API 모듈의 JavaDoc jar를 Maven 저장소에서 함께 다운로드합니다. 모든 API는 아직 `PREVIEW`입니다.

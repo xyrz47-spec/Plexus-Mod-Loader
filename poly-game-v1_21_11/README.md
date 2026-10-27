@@ -34,7 +34,7 @@ Minecraft 1.21.11의 게임 계층입니다(ADR-0010). Native API 선언을 실�
 
 **실험 버전입니다**(ADR-0019, `gradle/minecraft-versions.properties`의 `experimental`). 지원 버전이 아니므로 설치 프로그램·SDK에 들어가지 않습니다.
 
-`poly-game-v26_1`을 `newMinecraftVersion -Pexperimental=true`로 복사한 뒤 1.21.11에 맞게 고쳤습니다. 다시 매핑한 jar를 `javap`로 확인했습니다. 고친 곳은 `docs/plans/MINECRAFT_1_21.md`의 "1.21.11 서버 PoC"에 있습니다. 요약하면 다음과 같습니다.
+`poly-game-v26_1`을 `newMinecraftVersion -Pexperimental=true`로 복사한 뒤 1.21.11에 맞게 고쳤습니다. 다시 매핑한 jar를 `javap`로 확인했습니다. 고친 곳은 `docs/plans/MINECRAFT_1_21.md`의 "1.21.11 서버 PoC"에 있습니다(`docs/`는 이 공개 저장소에 없습니다). 요약하면 다음과 같습니다.
 
 - GUI는 `GuiGraphics`(`drawString`, `render`, 컨테이너 화면 `renderBg`)입니다.
 - 렌더 상태는 `net.minecraft.client.renderer.state` 패키지에 있습니다.
