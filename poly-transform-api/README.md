@@ -12,7 +12,7 @@
 2. **선언적 변환 규칙 (Declarative Rules):**
    - 모드와 버전 어댑터는 "어떤 클래스의 어떤 메서드에 어떤 훅을 거는가"를 불변 객체(`TransformRuleDefinition`)로 선언하며, 실제 바이트코드 조작은 `poly-transform-engine`이 전담합니다.
 3. **엄격한 실패 정책 (`TransformFailurePolicy`):**
-   - `ABORT`(변환 중단 및 게임 종료), `DISABLE_RULE`(해당 규칙만 비활성화), `IGNORE` 정책을 지원하여 안전한 실패(Fail-safe)를 지원합니다.
+   - `ABORT_STARTUP`(시작 중단), `DISABLE_RULE`(해당 규칙만 비활성화) 두 정책으로 안전한 실패(Fail-safe)를 지원합니다.
 
 ---
 
@@ -23,8 +23,10 @@
   - `InjectStaticCallAtHead`: 메서드 시작 지점에 정적 메서드 호출 주입
   - `InvokeHookAtHead`: 컨텍스트/인자를 포함한 시작 훅 호출
   - `InvokeHookBeforeReturn`: `RETURN` 직전 반환 훅 호출
+  - `InvokeHookAtCall`: 특정 호출의 바로 앞이나 뒤에서 훅을 부르고, 원래 호출은 그대로 둠
   - `RedirectCall`: 특정 메서드 호출 지점(Call site)을 대체 메서드로 리다이렉트
   - `ReplaceReturnedStringConstant`: 문자열 상수 반환값 치환
+  - `ReplaceConstantReturnWithStaticCall`: 상수만 반환하는 메서드를 정적 훅 호출 결과를 반환하도록 바꿈
 - **`AccessWidening`**: `public` 확장 및 `final` 제거를 선언하는 접근 제어자 확장 모델.
 
 ---

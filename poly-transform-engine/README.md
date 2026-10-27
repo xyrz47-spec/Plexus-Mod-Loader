@@ -34,8 +34,8 @@
 - 디버깅을 위해 `-Dpoly.transformDumpDir` 설정 시 변환 전/후 `.class` 파일을 디스크에 자동 덤프합니다.
 
 ### 3) 디스크 캐싱 (`DirectoryTransformCache`)
-- 게임 jar의 SHA-256 해시, 등록된 규칙 목록, 엔진 버전을 결합하여 캐시 키(`TransformCacheKey`)를 생성합니다.
-- 이미 변환된 클래스는 캐시 디렉터리(`~/.gradle` 또는 로컬 캐시)에서 즉시 읽어 들여 2회차 부팅 속도를 극대화합니다 (LRU 캐시 관리).
+- 엔진 지문, 클래스 이름, 원본 클래스 바이트, 적용할 규칙과 접근 확장을 SHA-256으로 묶어 클래스마다 캐시 키(`TransformCacheKey`)를 만듭니다.
+- 이미 변환된 클래스는 캐시 디렉터리(기본 `.poly/transform-cache`, `-Dpoly.transformCacheDir`로 변경, `none`이면 끔)에서 즉시 읽어 들여 2회차 부팅 속도를 높입니다. 기본 한도는 256 MiB이고, 넘으면 가장 오래 쓰지 않은 항목부터 지웁니다.
 
 ---
 

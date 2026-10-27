@@ -38,13 +38,17 @@ cd Poly-Mod-Loader
 | Task | Target / Action | Notes |
 | :--- | :--- | :--- |
 | `.\gradlew check` | Runs Spotless format checks and all unit test suites across all modules. | Mandatory before submitting any PR or commit. |
-| `.\gradlew spotlessApply` | Automatically formats all Java sources according to project style. | Uses 4 spaces, clean imports, Google Java Format standard. |
+| `.\gradlew spotlessApply` | Automatically formats all Java sources according to project style. | Uses palantir-java-format (4 spaces, 120 columns), removes unused imports. |
 | `.\gradlew :poly-installer:installerDistributions` | Builds `PolyModLoader-<version>.jar`, the only download for every platform. | Outputs to `poly-installer/build/distributions/`. |
 | `.\gradlew :poly-bootstrap:runClient` | Launches the Minecraft client in development mode with Poly active. | Minecraft 26.2 client with debug hooks. |
 | `.\gradlew :poly-bootstrap:runServer` | Launches the dedicated server in development mode. | Requires accepting `run/server/eula.txt`. |
 | `.\gradlew :poly-bootstrap:serverBootSmokeTest` | Headless smoke test: boots server, verifies Poly runtime initialization, stops. | Fast, CI-friendly check (no UI). |
 | `.\gradlew :poly-bootstrap:worldCreateSaveTest` | Creates a world, executes tick lifecycle, saves to disk, and exits cleanly. | Verifies save and data compatibility. |
 | `.\gradlew publishSdk` | Builds and publishes the Poly SDK to the local Maven cache (`.poly/sdk-maven`). | Used by mod developers targeting Native API. |
+
+`serverBootSmokeTest`, `worldCreateSaveTest` and the other game tests load the mods in `examples/` and `test-mods/`, which this public repository leaves out (`settings.gradle.kts`); here they stop with a message. `check`, `spotlessApply`, `installerDistributions`, `runClient`, `runServer` and `publishSdk` work without them.
+
+Every pull request and every push to `main` runs `.github/workflows/ci.yml` on GitHub Actions (Windows, JDK 25): `check`, `-p build-logic check` and `installerDistributions`.
 
 ---
 
@@ -55,23 +59,25 @@ Poly Mod Loader is structured as a decoupled multi-project build. Each module ha
 ```
 Poly-Mod-Loader
 ├── poly-bootstrap/                # JVM Entrypoint (PolyLauncherMain), dev launch tasks
-├── poly-runtime-api/              # Public runtime abstractions, GameHost, mod discovery interfaces
+├── poly-runtime-api/              # Shared API base: GameSide and the @ApiStability markers
 ├── poly-runtime-impl/             # Core runtime coordinator, mod loading pipeline, dependency solver
-├── poly-transform-api/            # Declarative bytecode transform rules (ASM 9.11 tree abstractions)
+├── poly-transform-api/            # Declarative bytecode transform rules (no ASM types exposed)
 ├── poly-transform-engine/         # ASM execution engine, pre-flight planner, bytecode cache
-├── poly-bridge-api/               # Cross-loader bridge SPI (ModLoaderBridge, ModDescription)
+├── poly-bridge-api/               # Cross-loader bridge SPI (ModLoaderBridge, GameHost)
 ├── poly-bridge-fabric/            # Fabric & Quilt loader emulation, unified Mixin 0.8.7 service
 ├── poly-bridge-forge/             # MinecraftForge & NeoForge FML virtualizer, patch retargeting
-├── poly-game-api/                 # Game lifecycle, client overlay, and version-agnostic game SPI
+├── poly-event-api/                # Native API: event keys, listener registration, server lifecycle events
+├── poly-game-api/                 # Native API: blocks, items, entities, commands, networking, client, game tests
+├── poly-game-v1_21_11/            # Minecraft 1.21.11 game layer (experimental, not supported)
 ├── poly-game-v26_1/               # Minecraft 26.1 / 26.1.1 / 26.1.2 game layer & custom loading overlay
 ├── poly-game-v26_2/               # Minecraft 26.2 game layer & custom loading overlay
 ├── poly-game-v26_3/               # Minecraft 26.3 game layer & SDL keycode adapters
-├── poly-version-adapter-api/      # Cross-version bytecode access contract
-├── poly-version-adapter-v26_*/    # Minecraft-version specific reflective/bytecode bindings
-├── poly-system-api/               # Native API: registries, blocks, items, commands, networking
-├── poly-system-registry/          # Native API: high-performance in-memory registry implementation
-├── poly-lifecycle-api/            # Mod lifecycle hooks (pre-init, init, post-init, server events)
-├── poly-mod-metadata/             # Parser for poly.mod.json, fabric.mod.json, mods.toml, quilt.mod.json
+├── poly-version-adapter-api/      # Version adapter and game layer contracts
+├── poly-version-adapter-v*/       # Per-version launch targets and built-in transform rules (26.1, 26.2, 26.3, 1.21.11)
+├── poly-system-api/               # Native API: replaceable systems (poly:game_brand)
+├── poly-system-registry/          # Built-in systems, replacement resolution and lookup
+├── poly-lifecycle-api/            # Mod entrypoints (common, client, server) and ModContext
+├── poly-mod-metadata/             # Parser and validator for poly.mod.json (Fabric, Quilt and FML metadata: the bridges)
 └── poly-installer/                # Cross-platform installer jar (Java Swing GUI and command line)
 ```
 
@@ -89,13 +95,13 @@ Poly-Mod-Loader
 - Never wrap injectors in silent failsoft try-catch blocks that could cause world corruption later.
 
 ### 3) Spotless Java Formatting
-All Java code is verified with Spotless:
+All Java code is formatted by palantir-java-format through Spotless (`check` fails on any difference):
 ```powershell
 .\gradlew.bat spotlessApply
 ```
 - No wildcard imports (`import java.util.*;` is forbidden).
 - 4 spaces indentation, Unix LF line endings.
-- All non-null contracts strictly documented or annotated with JetBrains `@Nullable` / `@NotNull`.
+- State in the JavaDoc when a value can be absent (an `Optional`, or `null` where the JavaDoc says so). JetBrains `@Nullable` / `@NotNull` appear only where Minecraft's own signatures carry them.
 
 ---
 

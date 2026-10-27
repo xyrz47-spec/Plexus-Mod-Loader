@@ -68,12 +68,12 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 | Component | Target / Scope | Status | Notes |
 | :--- | :--- | :---: | :--- |
 | **Supported Minecraft** | `26.1`, `26.1.1`, `26.1.2`, `26.2`, `26.3` | **Stable** | Java 25 required across all platforms. |
-| **Fabric Mod Support** | Fabric Loader 0.16.x / Mixin 0.8.7 | **Full** | 138+ popular Fabric mods verified concurrently on 26.2. |
+| **Fabric Mod Support** | Fabric Loader 0.19.5 API / Mixin 0.8.7 | **Full** | 138+ popular Fabric mods verified concurrently on 26.2. |
 | **Quilt Mod Support** | Quilt Loader 0.31.x / `quilt.mod.json` | **Full** | 114+ Quilt-only Modrinth mods verified. |
 | **Forge Mod Support** | MinecraftForge 62.0.9 ~ 66.1.0 | **Full** | Verified on client, dedicated server, and GameTest servers. |
 | **NeoForge Mod Support** | NeoForge 26.1.0 ~ 26.3.0 | **Full** | Runs via unified FML layer; runs alongside Fabric/Quilt. |
-| **Fabric API on Forge** | 6 Core Modules (`fabric-item-api-v1`, `fabric-registry-sync-v0`, `fabric-content-registries-v0`, etc.) | **Adapted** | Forge host patches automatically retargeted without crash. |
-| **NeoForge Injection Points** | Screen, Container Menu, Data Attachment | **Active (1.2.3)** | Initial injection point replacements merged in `NeoForgeInjectionPoints`. |
+| **Fabric API on Forge** | 6 Core Modules (`fabric-item-api-v1`, `fabric-registry-sync-v0`, `fabric-content-registries-v0`, etc.) | **Partial** | Injection points of these modules are retargeted to Forge's patch. The last corpus run on 26.2 (2026-10-25) still left out 10 Fabric API modules next to Forge; a new count is planned (Milestone A). |
+| **NeoForge Injection Points** | Screen, Container Menu, Data Attachment | **Unverified** | Entries added to `NeoForgeInjectionPoints` in 1.2.3, not yet checked against NeoForge's patched classes (Milestone A). |
 | **Custom Loading UI** | `PolyLoadingOverlay` | **Done** | Font corruption fix merged in 1.2.3; loader mod count overlay. |
 | **Bug Reporting Flow** | GitHub Issues Direct Route | **Done** | Exceptions & crash UI direct users to official issue tracker. |
 
@@ -89,7 +89,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 - **Rendering & Model Modules:** Adapt `fabric-renderer-api-v1`, `fabric-rendering-v1`, and `fabric-model-loading-api-v1` for client-side shaders and resource packs.
 
 ### Milestone B: Minecraft 26.3 Real-World Corpus Verification
-- Headless execution and world save/load verification on 26.3 across large corpus modpacks (`corpusFabric26_3`, `corpusForge26_3`, `corpusNeoForge26_3`).
+- Headless execution and world save/load verification on 26.3 across large corpus modpacks: `corpusFabric`, `corpusForge` and `corpusNeoForge` with `-PpolyMinecraft=26.3`, after building the 26.3 corpus list (`modCorpus -PmodCorpusRefresh`).
 - Hardening against 26.3-specific game changes (SDL keyboard handling, shader `#include`, data pack overlay formats).
 
 ### Milestone C: Technical Benchmarking

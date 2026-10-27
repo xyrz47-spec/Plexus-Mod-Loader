@@ -44,7 +44,7 @@ The [install guide](https://www.polymc.net/docs/getting-started/install/) covers
 
 Poly Mods are built with Java 25 and Gradle. One command creates a project, and game tests check it without opening the game.
 
-- [Make your first Poly Mod](https://www.polymc.net/docs/getting-started/first-mod/): build **Crystal Garden**, a mod with growing crystals, from scratch. The finished mod is in `examples/crystal-garden`.
+- [Make your first Poly Mod](https://www.polymc.net/docs/getting-started/first-mod/): build **Crystal Garden**, a mod with growing crystals, from scratch. The finished mod is `examples/crystal-garden`, which is not part of this public repository.
 - [Native API guide](https://www.polymc.net/docs/native-api/) and [API reference](https://www.polymc.net/docs/api-reference/)
 
 What the Native API covers:
@@ -127,7 +127,7 @@ Poly 모드 로더는 Minecraft의 실행 기반은 그대로 두고, 그 위의
 
 Poly 모드는 Java 25와 Gradle로 만듭니다. 명령 한 줄로 프로젝트를 만들고, 게임을 켜지 않고도 게임 테스트로 확인할 수 있습니다.
 
-- [첫 Poly 모드 만들기](https://www.polymc.net/ko/docs/getting-started/first-mod/): 자라는 크리스털 모드 **Crystal Garden**을 처음부터 만듭니다. 완성본은 `examples/crystal-garden`에 있습니다.
+- [첫 Poly 모드 만들기](https://www.polymc.net/ko/docs/getting-started/first-mod/): 자라는 크리스털 모드 **Crystal Garden**을 처음부터 만듭니다. 완성본은 `examples/crystal-garden`이며, 이 공개 저장소에는 들어 있지 않습니다.
 - [Native API 안내](https://www.polymc.net/ko/docs/native-api/)와 [API 레퍼런스](https://www.polymc.net/ko/docs/api-reference/)
 
 Native API로 할 수 있는 일:

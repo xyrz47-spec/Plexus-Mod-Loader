@@ -34,7 +34,7 @@ Minecraft 26.3의 게임 계층입니다(ADR-0010). Native API 선언을 실제 
 
 ## 26.2와 다른 점
 
-1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). `poly-game-v26_2`를 복사한 뒤 26.3에 맞게 고쳤습니다. 고친 곳과 이유는 `docs/plans/MINECRAFT_26_3.md`의 "진행 상황"에 있습니다. 요약하면 다음과 같습니다.
+1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). `poly-game-v26_2`를 복사한 뒤 26.3에 맞게 고쳤습니다. 고친 곳과 이유는 `docs/plans/MINECRAFT_26_3.md`의 "진행 상황"에 있습니다(`docs/`는 이 공개 저장소에 없습니다). 요약하면 다음과 같습니다.
 
 - 키 바인딩: `client.GameKeyCodes`가 Poly 모드 로더 키 코드(GLFW 값)를 26.3의 SDL 스캔코드로 바꿉니다(ADR-0029).
 - 몹 스폰: 바이옴의 환경 속성 `NATURAL_MOB_SPAWNS`(`WorldgenModifier.applySpawns`, `Views`, `GeneratedDataPack`).

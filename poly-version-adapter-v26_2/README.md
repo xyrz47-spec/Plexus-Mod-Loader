@@ -1,7 +1,7 @@
 # poly-version-adapter-v26_2
 
 ## 이 모듈이 하는 일
-Minecraft 26.2 전용 지식을 담습니다. 클라이언트/서버 진입점과 브랜드 변환 규칙 2개가 있습니다.
+Minecraft 26.2 전용 지식을 담습니다. 클라이언트/서버 진입점과 내장 변환 규칙(브랜드, 타이틀 화면 모드 수, 레지스트리·페이로드 처리, Native API 이벤트 훅 등 수십 개)이 있습니다.
 
 ## 무엇을 소유하는가
 `dev.polymodloader.game.version.v26_2.Minecraft26_2Adapter`와 `META-INF/services` 등록

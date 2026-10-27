@@ -9,7 +9,7 @@
 ### 1) Native API 객체 인스턴스화
 - `ContentInstaller`: 모드가 선언한 `PolyBlock`, `PolyItem`을 마인크래프트 원본 레지스트리(`BuiltInRegistries`)에 직접 등록.
 - `Views`: 마인크래프트 바닐라 `ServerLevel`, `Entity`, `ServerPlayer` 객체를 안전한 `WorldView`, `PlayerView` 불변 인터페이스로 래핑.
-- `commands.CommandRegistration`: 바닐라 Brigadier 커맨드 디스패처에 플랫폼 중립적 커맨드 트리 등록.
+- `commands.CommandInstaller`: 바닐라 Brigadier 커맨드 디스패처에 플랫폼 중립적 커맨드 트리 등록.
 
 ### 2) 인게임 훅 (Runtime Hooks)
 - `LifecycleHooks`: 서버 틱, 레벨 로드/언로드, 엔티티 스폰 및 플레이어 리스폰 이벤트 가로채기.
