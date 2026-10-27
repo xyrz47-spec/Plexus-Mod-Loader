@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
- * Main class of {@code PolyModLoader-<version>.jar} (and of the Windows {@code .exe}, which runs this jar).
+ * Main class of {@code PolyModLoader-<version>.jar}.
  * Without arguments it opens the installer window; with arguments it is a command line tool.
  */
 public final class InstallerMain {

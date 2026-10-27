@@ -2,8 +2,7 @@
 # plugin's own tests, and the installer build.
 # The game tests (serverBootSmokeTest, worldCreateSaveTest, compatibilityMatrix, ...) need examples/ and
 # test-mods/, which the public repository leaves out (settings.gradle.kts), so they are not run here.
-# Windows, like the project's earlier CI: it is the platform the project is developed on, and the only one that
-# builds PolyModLoader-<version>.exe (cargo is preinstalled on the runner).
+# Windows, like the project's earlier CI: it is the platform the project is developed on.
 name: ci
 on:
   push:
@@ -35,7 +34,7 @@ jobs:
         run: ./gradlew.bat check --stacktrace
       - name: build-logic tests
         run: ./gradlew.bat -p build-logic check --stacktrace
-      - name: Installer (.jar and .exe)
+      - name: Installer jar
         run: ./gradlew.bat :poly-installer:installerDistributions --stacktrace
       # The Gradle daemon keeps its cache lock files open, and setup-java cannot save a cache it cannot read.
       - name: Stop Gradle

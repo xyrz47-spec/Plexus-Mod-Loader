@@ -82,6 +82,8 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 ## 4. Immediate Roadmap & Future Milestones
 
 ### Milestone A: Client-Side & NeoForge Fabric API Adaptation (In Progress)
+- **Verify the 1.2.3 NeoForge injection points first:** the four client entries added to `NeoForgeInjectionPoints` in 1.2.3 (`Gui.extractRenderState`, `ServerPlayer.openMenu`, `ClientPacketListener.handleCustomPayload`, `ModelManager.<init>`) have not been checked against NeoForge's patched classes; the NeoForge unit test only compares them with themselves. Add a check against the patched NeoForge client jar, like Forge's `everyPointHasItsShapeInForgesPatchedClient`, and fix or remove the entries that do not match (the `ModelManager` entry replaces a call that returns `BlockColors` with one that returns `ModelDataMap`).
+- **Re-measure the Fabric API modules left out next to Forge and NeoForge:** README says 10 next to Forge and 16 next to NeoForge on 26.2, while the 1.2.2 notes say the Forge count dropped to 6 without a new corpus run. Run `corpusFabricForge` and `corpusFabricNeoForge` on 26.2 and update README and CHANGELOG with the measured counts.
 - **`fabric-screen-api-v1`:** Retarget `GuiMixin:onExtractGui` for NeoForge client UI mods (`ModMenu`, etc.).
 - **`fabric-menu-api-v1` & `fabric-data-attachment-api-v1`:** Integrate NeoForge `openMenu` and `AttachmentType` extensions.
 - **Rendering & Model Modules:** Adapt `fabric-renderer-api-v1`, `fabric-rendering-v1`, and `fabric-model-loading-api-v1` for client-side shaders and resource packs.
@@ -90,9 +92,8 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 - Headless execution and world save/load verification on 26.3 across large corpus modpacks (`corpusFabric26_3`, `corpusForge26_3`, `corpusNeoForge26_3`).
 - Hardening against 26.3-specific game changes (SDL keyboard handling, shader `#include`, data pack overlay formats).
 
-### Milestone C: Technical Benchmarking & Player Trust
+### Milestone C: Technical Benchmarking
 - Publish detailed memory, tick-rate, and startup benchmarks comparing Poly against standalone loaders.
-- Finalize Code Signing pipeline integration (SignPath Foundation / open-source certificate) for Windows SmartScreen trust.
 
 ---
 

@@ -34,7 +34,7 @@ These are inside PolyLoader's jars, the installer, or the libraries the installe
   servers or the Minecraft Launcher provide. Use is subject to the Minecraft EULA.
 - **SLF4J** (MIT), **Gson** (Apache-2.0) and other libraries that Minecraft ships. PolyLoader uses Minecraft's
   copies at run time.
-- Build and test tools (Gradle, JUnit, Spotless, palantir-java-format, Rust). They are used to build PolyLoader and
+- Build and test tools (Gradle, JUnit, Spotless, palantir-java-format). They are used to build PolyLoader and
   are not part of its distribution.
 
 ## Documentation website

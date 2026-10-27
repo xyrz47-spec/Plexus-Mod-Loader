@@ -12,9 +12,6 @@ Welcome to the Poly Mod Loader contributor documentation. This guide provides al
   java -version   # Must output java version "25" or higher
   ```
 - **Git 2.40+**
-- **Rust Toolchain (Optional, for Installer native executable):**
-  - Building the Java installer (`.jar`) only requires the JDK.
-  - Building the native Windows executable (`PolyModLoader-<version>.exe`) compiles the embedded launcher under `poly-installer/native-windows` and requires a stable Rust toolchain (`cargo`).
 
 ---
 
@@ -28,7 +25,7 @@ cd Poly-Mod-Loader
 # Verify code formatting and run all unit tests
 .\gradlew.bat check
 
-# Build the distribution installer (.jar and .exe)
+# Build the distribution installer (.jar)
 .\gradlew.bat :poly-installer:installerDistributions
 ```
 
@@ -42,7 +39,7 @@ cd Poly-Mod-Loader
 | :--- | :--- | :--- |
 | `.\gradlew check` | Runs Spotless format checks and all unit test suites across all modules. | Mandatory before submitting any PR or commit. |
 | `.\gradlew spotlessApply` | Automatically formats all Java sources according to project style. | Uses 4 spaces, clean imports, Google Java Format standard. |
-| `.\gradlew :poly-installer:installerDistributions` | Builds `PolyModLoader-<version>.jar` and `PolyModLoader-<version>.exe`. | Outputs to `poly-installer/build/distributions/`. |
+| `.\gradlew :poly-installer:installerDistributions` | Builds `PolyModLoader-<version>.jar`, the only download for every platform. | Outputs to `poly-installer/build/distributions/`. |
 | `.\gradlew :poly-bootstrap:runClient` | Launches the Minecraft client in development mode with Poly active. | Minecraft 26.2 client with debug hooks. |
 | `.\gradlew :poly-bootstrap:runServer` | Launches the dedicated server in development mode. | Requires accepting `run/server/eula.txt`. |
 | `.\gradlew :poly-bootstrap:serverBootSmokeTest` | Headless smoke test: boots server, verifies Poly runtime initialization, stops. | Fast, CI-friendly check (no UI). |
@@ -75,7 +72,7 @@ Poly-Mod-Loader
 ├── poly-system-registry/          # Native API: high-performance in-memory registry implementation
 ├── poly-lifecycle-api/            # Mod lifecycle hooks (pre-init, init, post-init, server events)
 ├── poly-mod-metadata/             # Parser for poly.mod.json, fabric.mod.json, mods.toml, quilt.mod.json
-└── poly-installer/                # Cross-platform installer (Java Swing GUI + native Rust binary)
+└── poly-installer/                # Cross-platform installer jar (Java Swing GUI and command line)
 ```
 
 ---
