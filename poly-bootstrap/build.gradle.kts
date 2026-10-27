@@ -2145,6 +2145,38 @@ clientWorldReload("corpusQuiltClient") {
 dependencies {
     testImplementation(libs.gson)
     testImplementation(project(":poly-bridge-api"))
+    // NeoForgeHostCheckTest prepares NeoForge's files as the runtime does and prints classes with ASM's Textifier.
+    testImplementation(project(":poly-bridge-forge"))
+    testImplementation(libs.asm.tree)
+    testImplementation(libs.asm.util)
+}
+
+// Which Fabric and Quilt mods NeoForge's patched client leaves out (POLY-COMPAT-224) and why (NeoForgeHostCheckTest):
+// the mods are the jars in -PhostCheckMods=<folder> (Fabric API's, for one), NeoForge is the release Poly Mod Loader pins
+// for this Minecraft version, downloaded and patched as the runtime does. -PhostCheckFocus=<mod IDs> adds those mods'
+// mixins and the methods they target, vanilla and patched; -PhostCheckDump=<class>#<method>,... adds more methods.
+tasks.register<Test>("neoForgeHostCheck") {
+    group = "verification"
+    description = "Reports the Fabric and Quilt mods in -PhostCheckMods that NeoForge's patched client leaves out."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform()
+    filter { includeTestsMatching("*NeoForgeHostCheckTest") }
+    dependsOn("prepareMinecraftClient")
+    val mods = providers.gradleProperty("hostCheckMods")
+    onlyIf("-PhostCheckMods is set") { mods.isPresent }
+    systemProperty("poly.hostCheckMods", mods.getOrElse(""))
+    systemProperty("poly.hostCheckFocus", providers.gradleProperty("hostCheckFocus").getOrElse(""))
+    systemProperty("poly.hostCheckDump", providers.gradleProperty("hostCheckDump").getOrElse(""))
+    systemProperty(
+        "poly.hostCheckSpec",
+        layout.buildDirectory.file("poly/minecraft/$minecraft-client.json").get().asFile.absolutePath)
+    systemProperty(
+        "poly.hostCheckCache",
+        gradle.gradleUserHomeDir.resolve("caches/poly-minecraft/host-check").absolutePath)
+    systemProperty("poly.hostCheckReport", layout.buildDirectory.dir("reports/poly").get().asFile.absolutePath)
+    testLogging { showStandardStreams = true }
+    outputs.upToDateWhen { false }
 }
 tasks.register<Test>("corpusAssessment") {
     group = "verification"
