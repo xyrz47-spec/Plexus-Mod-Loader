@@ -57,8 +57,12 @@ class HostPatchAdjustmentsTest {
     }
 
     /** plan() with the default hosted launch: "Host 1", no bridges, no injection point replacements. */
-    private HostPatchAdjustments plan(GameSide side, Map<String, String> configs, Map<String, Path> jars,
-            Function<String, Optional<byte[]>> vanilla, GameClassBytes patched) {
+    private HostPatchAdjustments plan(
+            GameSide side,
+            Map<String, String> configs,
+            Map<String, Path> jars,
+            Function<String, Optional<byte[]>> vanilla,
+            GameClassBytes patched) {
         return HostPatchAdjustments.plan(
                 new HostedLaunch("Host 1", List.of(), List.of(), directory), side, configs, jars, vanilla, patched);
     }
@@ -79,8 +83,12 @@ class HostPatchAdjustmentsTest {
                 directory);
 
         HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
-                host, GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(3, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(adjustments.hasIncompatible());
@@ -129,8 +137,12 @@ class HostPatchAdjustmentsTest {
         MethodTypeDesc handlerType = MethodTypeDesc.of(CD_void, CD_String, CD_float, CALLBACK_INFO);
         Path jar = jar(Map.of(EXTRACT_CONFIG, EXTRACT_CONFIG_TEXT, "m/ExtractMixin.class", extractMixin(handlerType)));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(EXTRACT_CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(EXTRACT_CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertFalse(adjustments.findings().getFirst().leftOut());
@@ -167,8 +179,12 @@ class HostPatchAdjustmentsTest {
         MethodTypeDesc handlerType = MethodTypeDesc.of(CD_void, CD_String, CD_float, CALLBACK_INFO);
         Path jar = jar(Map.of(EXTRACT_CONFIG, EXTRACT_CONFIG_TEXT, "m/ExtractMixin.class", extractMixin(handlerType)));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(EXTRACT_CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(EXTRACT_CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
@@ -917,8 +933,12 @@ class HostPatchAdjustmentsTest {
         MethodTypeDesc handlerType = MethodTypeDesc.of(CD_void, CD_String, CD_float, CALLBACK_INFO);
         Path jar = jar(Map.of(EXTRACT_CONFIG, EXTRACT_CONFIG_TEXT, "m/ExtractMixin.class", extractMixin(handlerType)));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(EXTRACT_CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(EXTRACT_CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(
@@ -949,8 +969,12 @@ class HostPatchAdjustmentsTest {
         byte[] mixin = extractMixinWithLocal(handlerType);
         Path jar = jar(Map.of(EXTRACT_CONFIG, EXTRACT_CONFIG_TEXT, "m/ExtractMixin.class", mixin));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(EXTRACT_CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(EXTRACT_CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.ExtractMixin", mixin));
         MethodModel bridge = method(
@@ -989,8 +1013,12 @@ class HostPatchAdjustmentsTest {
         String configText = "{\"package\":\"m\",\"mixins\":[\"WrapCodecMixin\"]}";
         Path jar = jar(Map.of(CONFIG, configText, "m/WrapCodecMixin.class", wrapCodecMixin()));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         String reason = adjustments.findings().getFirst().reason();
@@ -1135,8 +1163,12 @@ class HostPatchAdjustmentsTest {
         MethodTypeDesc handlerType = MethodTypeDesc.of(CD_void, CD_String, CD_float, CALLBACK_INFO);
         Path jar = jar(Map.of(EXTRACT_CONFIG, EXTRACT_CONFIG_TEXT, "m/ExtractMixin.class", extractMixin(handlerType)));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(EXTRACT_CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(EXTRACT_CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertTrue(
                 adjustments.findings().getFirst().reason().contains("does not run")
@@ -1165,8 +1197,11 @@ class HostPatchAdjustmentsTest {
                 directory);
 
         HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
-                host, GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla),
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
                 classes(patchedWithReplacementTakingAnInt()));
 
         String findings = adjustments.findings().toString();
@@ -1189,8 +1224,12 @@ class HostPatchAdjustmentsTest {
                 jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"HelperMixin\"]}", "m/HelperMixin.class", mixin));
 
         HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
-                helperHost(), GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", helperTarget(true)), classes(helperTarget(false)));
+                helperHost(),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", helperTarget(true)),
+                classes(helperTarget(false)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(
@@ -1236,8 +1275,12 @@ class HostPatchAdjustmentsTest {
                 jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"HelperMixin\"]}", "m/HelperMixin.class", mixin));
 
         HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
-                helperHost(), GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", helperTarget(true)), classes(helperTarget(false)));
+                helperHost(),
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", helperTarget(true)),
+                classes(helperTarget(false)));
 
         assertTrue(
                 adjustments.findings().getFirst().reason().contains("does not run")
@@ -1274,8 +1317,11 @@ class HostPatchAdjustmentsTest {
                 "m/ModApi.class",
                 modApi));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla),
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
                 classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
@@ -1314,8 +1360,11 @@ class HostPatchAdjustmentsTest {
                 "m/ModApi.class",
                 modApi));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla),
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
                 classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
@@ -1350,7 +1399,9 @@ class HostPatchAdjustmentsTest {
                 "m/ModApi.class",
                 modApi));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
                 Map.of("example", jar),
                 vanillaOf("t/Target", ClassFile.of().build(TARGET, builder -> {})),
                 classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
@@ -1589,8 +1640,13 @@ class HostPatchAdjustmentsTest {
 
     @Test
     void withoutAHostNothingChanges() {
-        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(HostedLaunch.NONE, GameSide.DEDICATED_SERVER,
-                Map.of(CONFIG, "example"), Map.of(), name -> Optional.empty(), classes(new byte[0]));
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                HostedLaunch.NONE,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of(),
+                name -> Optional.empty(),
+                classes(new byte[0]));
 
         byte[] mixin = injectMixin();
         assertEquals(HostPatchAdjustments.NONE, adjustments);
@@ -1672,8 +1728,12 @@ class HostPatchAdjustmentsTest {
                 "m/UserMixin.class",
                 userMixin()));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertTrue(
                 adjustments.findings().stream()
@@ -1714,8 +1774,12 @@ class HostPatchAdjustmentsTest {
         String configText = "{\"package\":\"m\",\"client\":[\"WrapNewMixin\"]}";
         Path jar = jar(Map.of(CONFIG, configText, "m/WrapNewMixin.class", wrapNewMixin()));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         String reason = adjustments.findings().getFirst().reason();
@@ -1752,8 +1816,12 @@ class HostPatchAdjustmentsTest {
         byte[] mixin = mixin("m.SliceMixin", List.of(new Handler("inSlice", inject)));
         Path jar = jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"SliceMixin\"]}", "m/SliceMixin.class", mixin));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", target(true)), classes(target(false)));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", target(true)),
+                classes(target(false)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
@@ -1815,8 +1883,12 @@ class HostPatchAdjustmentsTest {
                                         .invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
                                         .return_()));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
@@ -1824,8 +1896,12 @@ class HostPatchAdjustmentsTest {
                 finding.incompatible() && finding.reason().contains("inside the injection's slice"),
                 finding.toString());
         // In the same order as vanilla nothing is reported.
-        assertTrue(plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"), Map.of("example", jar),
-                        vanillaOf("t/Target", vanilla), classes(vanilla))
+        assertTrue(plan(
+                        GameSide.DEDICATED_SERVER,
+                        Map.of(CONFIG, "example"),
+                        Map.of("example", jar),
+                        vanillaOf("t/Target", vanilla),
+                        classes(vanilla))
                 .findings()
                 .isEmpty());
     }
@@ -1879,8 +1955,12 @@ class HostPatchAdjustmentsTest {
                                         code -> code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void))
                                                 .return_()));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(
@@ -1969,8 +2049,12 @@ class HostPatchAdjustmentsTest {
             });
         });
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
@@ -2267,16 +2351,24 @@ class HostPatchAdjustmentsTest {
         byte[] mixin = mixin("m.NewMixin", List.of(new Handler("modifySnippet", modify)));
         Path jar = jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"NewMixin\"]}", "m/NewMixin.class", mixin));
 
-        HostPatchAdjustments adjustments = plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
-                Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(patched));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
         assertTrue(
                 adjustments.findings().getFirst().incompatible(),
                 adjustments.findings().toString());
         // The same constructor in both: nothing to report.
-        assertTrue(plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"), Map.of("example", jar),
-                        vanillaOf("t/Target", vanilla), classes(vanilla))
+        assertTrue(plan(
+                        GameSide.DEDICATED_SERVER,
+                        Map.of(CONFIG, "example"),
+                        Map.of("example", jar),
+                        vanillaOf("t/Target", vanilla),
+                        classes(vanilla))
                 .findings()
                 .isEmpty());
     }
@@ -2447,8 +2539,11 @@ class HostPatchAdjustmentsTest {
                 "m/GameMixin.class",
                 handleMixin("m.GameMixin", GAME)));
 
-        HostPatchAdjustments adjustments = plan(GameSide.CLIENT, Map.of(CONFIG, "example"),
-                Map.of("example", jar), name -> Optional.ofNullable(vanilla.get(name)),
+        HostPatchAdjustments adjustments = plan(
+                GameSide.CLIENT,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> Optional.ofNullable(vanilla.get(name)),
                 classes(Map.of("t/Common", common(), "t/Game", patchedGame)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
@@ -2487,9 +2582,12 @@ class HostPatchAdjustmentsTest {
                         "onHandle",
                         ON_HANDLE))
                 .contains("Inject"));
-        HostPatchAdjustments unchanged = plan(GameSide.CLIENT, Map.of(CONFIG, "example"),
+        HostPatchAdjustments unchanged = plan(
+                GameSide.CLIENT,
+                Map.of(CONFIG, "example"),
                 Map.of("example", jar),
-                name -> Optional.ofNullable(Map.of("t/Common", common(), "t/Game", patchedGame).get(name)),
+                name -> Optional.ofNullable(
+                        Map.of("t/Common", common(), "t/Game", patchedGame).get(name)),
                 classes(Map.of("t/Common", common(), "t/Game", patchedGame)));
         assertEquals(List.of(), unchanged.findings());
     }
