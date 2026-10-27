@@ -49,36 +49,3 @@ jobs:
             **/build/reports/tests/
             **/build/test-results/
           if-no-files-found: ignore
-
-  # Which Fabric API modules NeoForge's patched client leaves out (POLY-COMPAT-224) and why: the latest Fabric API for
-  # the default Minecraft version (26.2) from Modrinth, against the NeoForge release Poly Mod Loader pins, checked as
-  # the runtime checks it (:poly-bootstrap:neoForgeHostCheck).
-  neoforge-host-check:
-    runs-on: windows-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: "25"
-          cache: gradle
-      - uses: actions/cache@v6
-        with:
-          path: ~/.gradle/caches/poly-minecraft
-          key: poly-minecraft-${{ hashFiles('gradle/minecraft-versions.properties') }}
-      - name: Fabric API from Modrinth
-        shell: pwsh
-        run: |
-          $query = 'game_versions=%5B%2226.2%22%5D&loaders=%5B%22fabric%22%5D'
-          $version = (Invoke-RestMethod "https://api.modrinth.com/v2/project/fabric-api/version?$query")[0]
-          $file = $version.files | Where-Object { $_.primary } | Select-Object -First 1
-          $folder = Join-Path $env:RUNNER_TEMP 'host-check-mods'
-          New-Item -ItemType Directory -Force $folder | Out-Null
-          Invoke-WebRequest $file.url -OutFile (Join-Path $folder $file.filename)
-          Write-Output "Fabric API $($version.version_number): $($file.filename)"
-      - name: NeoForge host check
-        run: ./gradlew.bat :poly-bootstrap:neoForgeHostCheck "-PhostCheckMods=${{ runner.temp }}\host-check-mods" "-PhostCheckFocus=fabric-screen-api-v1,fabric-menu-api-v1,fabric-data-attachment-api-v1" --stacktrace
-      - name: Stop Gradle
-        if: always()
-        run: ./gradlew.bat --stop
