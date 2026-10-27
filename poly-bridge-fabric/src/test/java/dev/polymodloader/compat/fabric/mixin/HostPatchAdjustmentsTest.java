@@ -63,11 +63,6 @@ class HostPatchAdjustmentsTest {
                 new HostedLaunch("Host 1", List.of(), List.of(), directory), side, configs, jars, vanilla, patched);
     }
 
-    private HostPatchAdjustments plan(HostedLaunch host, GameSide side, Map<String, String> configs,
-            Map<String, Path> jars, Function<String, Optional<byte[]>> vanilla, GameClassBytes patched) {
-        return HostPatchAdjustments.plan(host, side, configs, jars, vanilla, patched);
-    }
-
     @Test
     void injectionsAreMovedAndMixinsThatCannotWorkAsWrittenAreIncompatible() throws Exception {
         // Vanilla calls old() and moved() and has the field gone; the host's patch calls replacement() instead of
@@ -83,7 +78,8 @@ class HostPatchAdjustmentsTest {
                         "t/Target", "run", "Lt/Target;moved()V", "Lt/Target;replacement()V")),
                 directory);
 
-        HostPatchAdjustments adjustments = plan(host, GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host, GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
                 Map.of("example", jar), vanillaOf("t/Target", vanilla), classes(patched));
 
         assertEquals(3, adjustments.findings().size(), adjustments.findings().toString());
@@ -843,12 +839,11 @@ class HostPatchAdjustmentsTest {
 
     private HostPatchAdjustments plan(String targetName, Path jar, byte[] vanilla, byte[] patched) {
         String internal = targetName.replace('.', '/');
-        return HostPatchAdjustments.plan(
-                new HostedLaunch("Host 1", List.of(), List.of(), directory),
+        return plan(
                 GameSide.DEDICATED_SERVER,
                 Map.of(MEMBER_CONFIG, "example"),
                 Map.of("example", jar),
-                name -> name.equals(internal) ? Optional.of(vanilla) : Optional.empty(),
+                vanillaOf(internal, vanilla),
                 new GameClassBytes() {
                     @Override
                     public Optional<byte[]> classBytes(String className) {
@@ -1169,7 +1164,8 @@ class HostPatchAdjustmentsTest {
                         "t/Target", "run", "Lt/Target;moved()V", "Lt/Target;replacement(I)V")),
                 directory);
 
-        HostPatchAdjustments adjustments = plan(host, GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host, GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
                 Map.of("example", jar), vanillaOf("t/Target", vanilla),
                 classes(patchedWithReplacementTakingAnInt()));
 
@@ -1192,7 +1188,8 @@ class HostPatchAdjustmentsTest {
         Path jar =
                 jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"HelperMixin\"]}", "m/HelperMixin.class", mixin));
 
-        HostPatchAdjustments adjustments = plan(helperHost(), GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                helperHost(), GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
                 Map.of("example", jar), vanillaOf("t/Target", helperTarget(true)), classes(helperTarget(false)));
 
         assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
@@ -1238,7 +1235,8 @@ class HostPatchAdjustmentsTest {
         Path jar =
                 jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"HelperMixin\"]}", "m/HelperMixin.class", mixin));
 
-        HostPatchAdjustments adjustments = plan(helperHost(), GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                helperHost(), GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"),
                 Map.of("example", jar), vanillaOf("t/Target", helperTarget(true)), classes(helperTarget(false)));
 
         assertTrue(
@@ -1591,7 +1589,7 @@ class HostPatchAdjustmentsTest {
 
     @Test
     void withoutAHostNothingChanges() {
-        HostPatchAdjustments adjustments = plan(HostedLaunch.NONE, GameSide.DEDICATED_SERVER,
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(HostedLaunch.NONE, GameSide.DEDICATED_SERVER,
                 Map.of(CONFIG, "example"), Map.of(), name -> Optional.empty(), classes(new byte[0]));
 
         byte[] mixin = injectMixin();
@@ -1826,13 +1824,8 @@ class HostPatchAdjustmentsTest {
                 finding.incompatible() && finding.reason().contains("inside the injection's slice"),
                 finding.toString());
         // In the same order as vanilla nothing is reported.
-        assertTrue(HostPatchAdjustments.plan(
-                        new HostedLaunch("Host 1", List.of(), List.of(), directory),
-                        GameSide.DEDICATED_SERVER,
-                        Map.of(CONFIG, "example"),
-                        Map.of("example", jar),
-                        vanillaOf("t/Target", vanilla),
-                        classes(vanilla))
+        assertTrue(plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"), Map.of("example", jar),
+                        vanillaOf("t/Target", vanilla), classes(vanilla))
                 .findings()
                 .isEmpty());
     }
@@ -2282,13 +2275,8 @@ class HostPatchAdjustmentsTest {
                 adjustments.findings().getFirst().incompatible(),
                 adjustments.findings().toString());
         // The same constructor in both: nothing to report.
-        assertTrue(HostPatchAdjustments.plan(
-                        new HostedLaunch("Host 1", List.of(), List.of(), directory),
-                        GameSide.DEDICATED_SERVER,
-                        Map.of(CONFIG, "example"),
-                        Map.of("example", jar),
-                        vanillaOf("t/Target", vanilla),
-                        classes(vanilla))
+        assertTrue(plan(GameSide.DEDICATED_SERVER, Map.of(CONFIG, "example"), Map.of("example", jar),
+                        vanillaOf("t/Target", vanilla), classes(vanilla))
                 .findings()
                 .isEmpty());
     }

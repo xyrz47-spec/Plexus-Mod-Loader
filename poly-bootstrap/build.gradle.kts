@@ -2402,22 +2402,12 @@ if (minecraft == "26.2") {
         "Veinminer 2.12.1 (veinminer)", "Simple Voice Chat 2.6.24+26.2 (voicechat)",
         "YetAnotherConfigLib 3.9.7+26.2-fabric (yet_another_config_lib_v3)",
     )
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmarkConnector") {
-        group = "verification"
+    startupBenchmark("Connector", connectorPolyMods) {
         description = "Game test server startup: vanilla, Poly Mod Loader with Fabric mods, and NeoForge with Sinytra Connector and the same Fabric mods."
         dependsOn(modCorpus, modCorpusConnector, installNeoForgeReferenceServer)
-        val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
-        launchSpecFile.set(base.flatMap { it.launchSpecFile })
-        // Through a Callable: base.map would make this task run the base benchmark too.
-        polyRuntime.from(Callable { base.get().polyRuntime })
-        devModJars.from(connectorPolyMods)
-        javaLauncher.set(base.flatMap { it.javaLauncher })
-        runs.convention(5)
         // -PstartupBenchmarkRuns=<n>; -PtickBenchmarkHeap=<size> pins the heap of all three variants, as in the tick run.
         providers.gradleProperty("startupBenchmarkRuns").orNull?.let { runs = it.toInt() }
         providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
-        workDirectory.set(layout.buildDirectory.dir("poly/startup-benchmark-connector"))
-        transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
         referenceName = "connector"
         referenceServer.set(installNeoForgeReferenceServer.flatMap { it.serverDirectory })
         referenceNeoForgeVersion = neoForgeReference
@@ -2425,25 +2415,11 @@ if (minecraft == "26.2") {
         polyExpectedOutput.set(connectorPolyExpected)
         referenceExpectedOutput.set(connectorReferenceExpected)
     }
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmarkConnector") {
-        group = "verification"
+    tickBenchmark("Connector", connectorPolyMods) {
         description = "Server tick times, heap and GC: vanilla, Poly Mod Loader with Fabric mods, and NeoForge with Sinytra Connector and the same Fabric mods."
         dependsOn(modCorpus, modCorpusConnector, installNeoForgeReferenceServer)
-        val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
-        launchSpecFile.set(base.flatMap { it.launchSpecFile })
-        // Through a Callable: base.map would make this task run the base benchmark too.
-        polyRuntime.from(Callable { base.get().polyRuntime })
-        devModJars.from(connectorPolyMods)
-        probeAgent.from(tickProbe)
-        javaLauncher.set(base.flatMap { it.javaLauncher })
-        runs.convention(5)
-        holdTicks.convention(1200)
-        warmupTicks.convention(200)
         providers.gradleProperty("tickBenchmarkRuns").orNull?.let { runs = it.toInt() }
         providers.gradleProperty("tickBenchmarkTicks").orNull?.let { holdTicks = it.toInt() }
-        providers.gradleProperty("tickBenchmarkHeap").orNull?.let { heapSize = it }
-        workDirectory.set(layout.buildDirectory.dir("poly/tick-benchmark-connector"))
-        transformCacheDirectory.set(base.flatMap { it.transformCacheDirectory })
         referenceName = "connector"
         referenceServer.set(installNeoForgeReferenceServer.flatMap { it.serverDirectory })
         referenceNeoForgeVersion = neoForgeReference
