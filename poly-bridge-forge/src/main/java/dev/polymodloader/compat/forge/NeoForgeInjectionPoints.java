@@ -121,31 +121,24 @@ final class NeoForgeInjectionPoints {
                         "checkFallDamage",
                         "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/core/particles/BlockParticleOption;",
                         "(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/particles/BlockParticleOption;"),
-                // fabric-screen-api-v1: Gui.extractRenderState under NeoForge
-                new InjectionPointReplacement(
-                        "net/minecraft/client/gui/Gui",
-                        "extractRenderState",
-                        "Lnet/minecraft/client/gui/Gui;extractRenderState(Lnet/minecraft/client/DeltaTracker;ZZ)V",
-                        "Lnet/neoforged/neoforge/client/gui/NeoForgeClientHooks;extractRenderState(Lnet/minecraft/client/gui/Gui;Lnet/minecraft/client/DeltaTracker;ZZ)V"),
-                // fabric-menu-api-v1: ServerPlayer.openMenu under NeoForge (IPlayerExtension delegation)
+                // ServerPlayer.openMenu(MenuProvider): NeoForge turns it into a delegate to openMenu(MenuProvider,
+                // Consumer), which holds the vanilla body: closeContainer() and, when the menu has no extra client
+                // data, the vanilla ClientboundOpenScreenPacket sent through ServerGamePacketListenerImpl.send(Packet).
+                // Fabric API's ServerPlayerMixin (fabric-menu-api-v1) redirects closeContainer and injects at and
+                // redirects send there. (The four points 1.2.3 added for Gui.extractRenderState, openMenu,
+                // ClientPacketListener.handleCustomPayload and ModelManager.<init> named calls vanilla does not make;
+                // NeoForgeInjectionPointsTest found them on 2026-10-27, and they moved nothing.)
                 new InjectionPointReplacement(
                         "net/minecraft/server/level/ServerPlayer",
                         "openMenu",
-                        "Lnet/minecraft/server/level/ServerPlayer;openMenu(Lnet/minecraft/world/MenuProvider;)Ljava/util/OptionalInt;",
+                        "Lnet/minecraft/server/level/ServerPlayer;closeContainer()V",
                         "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
-                        InjectionPointReplacement.Placement.SAME_PLACE),
-                // fabric-data-attachment-api-v1: ClientPacketListener payload handling under NeoForge
-                new InjectionPointReplacement(
-                        "net/minecraft/client/multiplayer/ClientPacketListener",
-                        "handleCustomPayload",
-                        "Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;type()Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload$Type;",
-                        "handleCustomPayload(Lnet/minecraft/network/protocol/common/ClientboundCustomPayloadPacket;)V",
                         InjectionPointReplacement.Placement.IN_METHOD),
-                // fabric-model-loading-api-v1 / client rendering: ModelManager constructor hook
                 new InjectionPointReplacement(
-                        "net/minecraft/client/resources/model/ModelManager",
-                        "<init>",
-                        "Lnet/minecraft/client/color/block/BlockColors;createDefault()Lnet/minecraft/client/color/block/BlockColors;",
-                        "Lnet/neoforged/neoforge/client/model/data/ModelDataMap$Builder;build()Lnet/neoforged/neoforge/client/model/data/ModelDataMap;"));
+                        "net/minecraft/server/level/ServerPlayer",
+                        "openMenu",
+                        "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V",
+                        "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
+                        InjectionPointReplacement.Placement.IN_METHOD));
     }
 }

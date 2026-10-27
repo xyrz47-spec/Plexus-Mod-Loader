@@ -301,6 +301,20 @@ class ModLinkVerifierTest {
         assertEquals(List.of("POLY-COMPAT-112"), blockingCodes(client), "this fake game has no client classes");
     }
 
+    /**
+     * Minecraft 26.3 renamed Blaze3D to {@code com.mojang.renderpearl}, which only the client jar has. Before that was a
+     * client package here, nine Fabric mods of the 26.3 corpus (AppleSkin, Cloth Config, GeckoLib, YACL, ...) were
+     * left out on the server with POLY-COMPAT-112, and 18 more with them (corpusFabric 26.3, 2026-10-27).
+     */
+    @Test
+    void renderPearlIsAClientPackage() throws IOException {
+        Path mod = mod("renderpearl", code -> code.ldc(ClassDesc.of("com.mojang.renderpearl.api.buffers.GpuBuffer")));
+
+        List<CompatibilityFinding> server = verify(mod, GameSide.DEDICATED_SERVER, List.of(), List.of());
+
+        assertEquals(List.of(), blockingCodes(server), server::toString);
+    }
+
     @Test
     void aMissingEntrypointClassBlocks() throws IOException {
         Path mod = mod("typo", code -> {});

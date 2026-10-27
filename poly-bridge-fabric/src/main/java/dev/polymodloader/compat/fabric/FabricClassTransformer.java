@@ -2,6 +2,7 @@ package dev.polymodloader.compat.fabric;
 
 import dev.polymodloader.compat.bridge.BridgeClassTransformer;
 import dev.polymodloader.compat.bridge.GameClassBytes;
+import dev.polymodloader.compat.fabric.mixin.AttributeBuilderBridge;
 import dev.polymodloader.compat.fabric.mixin.HostInterfaceDefaults;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
@@ -73,8 +74,16 @@ final class FabricClassTransformer implements BridgeClassTransformer {
         return hostDefaults.isPresent() ? hostDefaults.get().apply(className, bytes, transformed) : transformed;
     }
 
+    /**
+     * Mixin's synthetic classes, and the game class loader's own copy of {@link AttributeBuilderBridge}, which the
+     * getBuilder() added to {@code AttributeSupplier$Builder} calls and which must link to the game's Guava.
+     */
     @Override
     public byte[] generate(String className) {
+        byte[] bridge = AttributeBuilderBridge.classFile(className);
+        if (bridge != null) {
+            return bridge;
+        }
         return mixin.map(stage -> stage.generate(className)).orElse(null);
     }
 
@@ -104,6 +113,14 @@ final class FabricClassTransformer implements BridgeClassTransformer {
         }
         ClassFile classFile = ClassFile.of();
         ClassModel model = classFile.parse(bytes);
+        // Only a host's patch makes the field a Map (Forge, NeoForge); vanilla's ImmutableMap.Builder field is what
+        // Fabric's @Accessor reads, and a getBuilder() added here would make Mixin refuse that accessor.
+        boolean hostMapField = model.fields().stream()
+                .anyMatch(f ->
+                        f.fieldName().equalsString("builder") && f.fieldType().equalsString("Ljava/util/Map;"));
+        if (!hostMapField) {
+            return bytes;
+        }
         boolean hasGetBuilder = model.methods().stream()
                 .anyMatch(m -> m.methodName().equalsString("getBuilder")
                         && m.methodType().equalsString("()Lcom/google/common/collect/ImmutableMap$Builder;"));

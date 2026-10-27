@@ -305,23 +305,24 @@ class ForgeInjectionPointsTest {
                 checkFall.replacement());
         assertEquals(Placement.SAME_PLACE, checkFall.placement());
 
-        InjectionPointReplacement extractGui = points.stream()
-                .filter(p -> p.targetClass().equals("net/minecraft/client/gui/Gui")
-                        && p.method().equals("extractRenderState"))
-                .findFirst()
-                .orElseThrow();
-        assertEquals(
-                "Lnet/neoforged/neoforge/client/gui/NeoForgeClientHooks;extractRenderState(Lnet/minecraft/client/gui/Gui;Lnet/minecraft/client/DeltaTracker;ZZ)V",
-                extractGui.replacement());
-
-        InjectionPointReplacement openMenu = points.stream()
-                .filter(p -> p.targetClass().equals("net/minecraft/server/level/ServerPlayer")
-                        && p.method().equals("openMenu"))
-                .findFirst()
-                .orElseThrow();
-        assertEquals(
-                "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
-                openMenu.replacement());
+        // NeoForge moved openMenu's body, with its closeContainer() and vanilla send(Packet), into its overload.
+        for (String replaced : List.of(
+                "ServerPlayer;closeContainer()V",
+                "ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V")) {
+            InjectionPointReplacement openMenu = point(points, replaced);
+            assertEquals("net/minecraft/server/level/ServerPlayer", openMenu.targetClass());
+            assertEquals("openMenu", openMenu.method());
+            assertEquals(
+                    "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
+                    openMenu.replacement());
+            assertEquals(Placement.IN_METHOD, openMenu.placement());
+        }
+        assertFalse(
+                points.stream()
+                        .anyMatch(p -> p.targetClass().equals("net/minecraft/client/gui/Gui")
+                                || p.targetClass().equals("net/minecraft/client/resources/model/ModelManager")
+                                || p.targetClass().equals("net/minecraft/client/multiplayer/ClientPacketListener")),
+                "the 1.2.3 client points named calls vanilla does not make");
     }
 
     /**

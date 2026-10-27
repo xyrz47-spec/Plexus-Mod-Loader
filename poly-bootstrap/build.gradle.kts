@@ -1016,13 +1016,15 @@ val brokenUnderForge = listOf(
 //   reach Sodium's classes (NoClassDefFoundError .../sodium/client/services/PlatformRuntimeInformation).
 // - ImmediatelyFast 1.16.5 (the 26.2 corpus) reads its configuration in its Mixin plugin with LWJGL's MathUtil when
 //   Mixin selects its configurations (NoClassDefFoundError org/lwjgl/system/MathUtil), before the game starts. Its 26.1
-//   build 1.15.3 does not, and runs on the server.
+//   build 1.15.3 does not, and runs on the server. Its 26.3 build 1.17.1 stops the same way under Poly Mod Loader
+//   (corpusNeoForge 26.3, 2026-10-27); a server has no LWJGL, so NeoForge's own server would too, but that was not run.
 val notOnNeoForgeServer = listOf(
     "sodium-neoforge-*.jar",
     "sodium-extra-neoforge-*.jar",
     "reeses-sodium-options-neoforge-*.jar",
     "iris-neoforge-*.jar",
     "ImmediatelyFast-NeoForge-1.16.5+26.2.jar",
+    "ImmediatelyFast-NeoForge-1.17.1+26.3.jar",
 )
 // NeoForge mods that construct client classes on a server: real NeoForge's server stops at mod construction (after the
 // dedicated server's EULA check). Zoomify's bootstrap needs KeyMapping$Category (NoClassDefFoundError).
@@ -1212,9 +1214,11 @@ val corpusScenarios = listOf(
         expectedOutput.addAll(
             // The corpus mods, the harness and the probe below. Fabric mods whose mixins do not fit Forge's patch are
             // not loaded (ADR-0030), and with them the Fabric mods that need them.
-            corpusCounts("[Poly Mod Loader] Foreign mods: 42 loaded, 124 not loaded"),
+            // 2026-10-27: no Fabric API module is left out next to Forge any more; Architectury, Balm, Lithium and
+            // Puzzles Lib are.
+            corpusCounts("[Poly Mod Loader] Foreign mods: 87 loaded, 79 not loaded"),
             corpusCounts(
-                "POLY-COMPAT-224 14 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it",
+                "POLY-COMPAT-224 4 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it: architectury, balm, lithium, puzzleslib",
                 "mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge ",
             ),
             "share Fabric's Mixin",
@@ -1222,8 +1226,9 @@ val corpusScenarios = listOf(
             // Fabric API features whose mixins meet members Forge's patch added or changed (test-mods/fabric-host-patch-probe).
             // Forge's own getConnection() serves Fabric's accessor; the rest of that accessor mixin applies (212).
             "[poly_host_patch_probe] fabric-networking-api-v1: ServerCommonPacketListenerImpl implements ServerCommonPacketListenerImplAccessor: true; getConnection() is the listener's connection: true; getServer() is the listener's server: true",
-            // Forge changed the field Fabric's attribute builder accessor reads: the module is not loaded.
-            "[poly_host_patch_probe] fabric-object-builder-api-v1: failed: java.lang.ClassNotFoundException",
+            // Forge changed the field Fabric's attribute builder accessor reads to a Map: getBuilder() wraps it, through
+            // the game class loader's own copy of AttributeBuilderBridge (linked to Forge's Guava).
+            "[poly_host_patch_probe] fabric-object-builder-api-v1: AttributeSupplier\$Builder implements AttributeSupplierBuilderAccessor: true; getBuilder() returns dev.polymodloader.compat.fabric.mixin.AttributeBuilderBridge\$ForwardingBuilder",
             "All 1 required tests passed",
             worldsSavedLine,
         )

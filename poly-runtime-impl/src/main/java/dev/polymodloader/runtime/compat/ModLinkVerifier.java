@@ -76,8 +76,14 @@ public final class ModLinkVerifier implements AutoCloseable {
      */
     private static final List<String> LIBRARY_PACKAGES = List.of("net/minecraft/launchwrapper/");
 
+    /** Packages only the client jar has; {@code com/mojang/renderpearl/} is Blaze3D's name from Minecraft 26.3 on. */
     private static final List<String> CLIENT_PACKAGES = List.of(
-            "net/minecraft/client/", "net/minecraft/realms/", "com/mojang/blaze3d/", "com/mojang/realmsclient/");
+            "net/minecraft/client/",
+            "net/minecraft/realms/",
+            "com/mojang/blaze3d/",
+            "com/mojang/renderpearl/",
+            "com/mojang/realmsclient/");
+
     private static final List<String> JDK_PACKAGES = List.of("java/", "javax/", "jdk/");
     /**
      * API packages of other loaders. A class of a multi-loader jar that uses one of them, when nothing installed has

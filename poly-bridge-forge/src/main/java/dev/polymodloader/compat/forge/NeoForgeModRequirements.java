@@ -218,7 +218,7 @@ final class NeoForgeModRequirements {
                 continue; // the requirements check left such a jar out
             }
             if (toml == null) {
-                continue; // an FML library without mods
+                continue; // an FML library without mods, own or nested
             }
             toml.versions().forEach((id, version) -> {
                 if (seen.add(id)) {
@@ -276,7 +276,9 @@ final class NeoForgeModRequirements {
             List<NestedMod> nestedMods) {
 
         /**
-         * The jar's {@code neoforge.mods.toml}, or {@code null} when it has none.
+         * The jar's {@code neoforge.mods.toml} and its JarJar mods, or {@code null} when it has neither. A game library
+         * without {@code neoforge.mods.toml} whose JarJar holds mods (MezzConfig's {@code -standalone.jar}) gives a
+         * {@code ModsToml} with only {@link #nestedMods()}: FML installs those mods too.
          *
          * @throws IOException when the jar cannot be read
          * @throws IllegalArgumentException when the file is not valid TOML or names an unknown dependency type or side
@@ -285,31 +287,16 @@ final class NeoForgeModRequirements {
             try (JarFile file = new JarFile(jar.toFile())) {
                 ZipEntry entry = file.getEntry(METADATA);
                 if (entry == null) {
-                    return null;
+                    List<NestedMod> nestedMods = nestedMods(file);
+                    return nestedMods.isEmpty()
+                            ? null
+                            : new ModsToml("", "", Map.of(), Map.of(), Map.of(), List.of(), nestedMods);
                 }
                 String text;
                 try (InputStream input = file.getInputStream(entry)) {
                     text = new String(input.readAllBytes(), StandardCharsets.UTF_8);
                 }
                 ModsToml toml = parse(text, jarVersion(file.getManifest()));
-                List<NestedMod> nestedMods = new ArrayList<>();
-                for (String path : jarJarPaths(file)) {
-                    ZipEntry inner = file.getEntry(path);
-                    if (inner == null) {
-                        continue; // FML's JarJar reports a missing nested jar itself
-                    }
-                    try (JarInputStream nestedJar = new JarInputStream(file.getInputStream(inner))) {
-                        ModsToml nestedToml = nested(nestedJar);
-                        nestedToml
-                                .versions()
-                                .forEach((id, version) -> nestedMods.add(new NestedMod(
-                                        id,
-                                        version,
-                                        nestedToml.displayNames().getOrDefault(id, id),
-                                        nestedToml.providedIds().getOrDefault(id, List.of()),
-                                        inner.getName())));
-                    }
-                }
                 return new ModsToml(
                         toml.modLoader(),
                         toml.loaderVersion(),
@@ -317,8 +304,31 @@ final class NeoForgeModRequirements {
                         toml.displayNames(),
                         toml.providedIds(),
                         toml.dependencies(),
-                        List.copyOf(nestedMods));
+                        nestedMods(file));
             }
+        }
+
+        /** The mods of the jars JarJar installs with {@code file} ({@link #jarJarPaths}). */
+        private static List<NestedMod> nestedMods(JarFile file) throws IOException {
+            List<NestedMod> nestedMods = new ArrayList<>();
+            for (String path : jarJarPaths(file)) {
+                ZipEntry inner = file.getEntry(path);
+                if (inner == null) {
+                    continue; // FML's JarJar reports a missing nested jar itself
+                }
+                try (JarInputStream nestedJar = new JarInputStream(file.getInputStream(inner))) {
+                    ModsToml nestedToml = nested(nestedJar);
+                    nestedToml
+                            .versions()
+                            .forEach((id, version) -> nestedMods.add(new NestedMod(
+                                    id,
+                                    version,
+                                    nestedToml.displayNames().getOrDefault(id, id),
+                                    nestedToml.providedIds().getOrDefault(id, List.of()),
+                                    inner.getName())));
+                }
+            }
+            return List.copyOf(nestedMods);
         }
 
         /**
@@ -415,7 +425,8 @@ final class NeoForgeModRequirements {
             if (toml.get("modproperties") instanceof TomlTable properties) {
                 for (String owner : properties.keySet()) {
                     if (properties.get(List.of(owner)) instanceof TomlTable ownerTable) {
-                        Object provides = ownerTable.get("fabric:provides");
+                        // One key, not a dotted path: get(String) parses its argument as TOML and fails on ':'.
+                        Object provides = ownerTable.get(List.of("fabric:provides"));
                         List<String> ids = new ArrayList<>();
                         if (provides instanceof String single) {
                             ids.add(single);

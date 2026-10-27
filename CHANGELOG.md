@@ -1,15 +1,40 @@
 # Changelog
 
-## Unreleased
+## 1.2.4 — 2026-10-27
+
+### Highlights
+
+- Fixes three bugs from 1.2.2: NeoForge mods such as JEI, Kotlin for Forge, Lithium and MoreCulling load again; a Fabric dedicated server with Fabric API starts again; and Fabric API's entity attributes work next to Forge and NeoForge.
+- Fabric and NeoForge mods together: JEI's MezzConfig no longer stops the server.
+- Minecraft 26.3: Fabric mods that use the renamed rendering classes (AppleSkin, Cloth Config, GeckoLib, YACL, ...) are no longer left out on servers.
+- The installer is now one `.jar` for every system (Java 17 or newer); the Windows `.exe` is gone.
+
+### 주요 변경
+
+- 1.2.2에서 생긴 버그 세 가지를 고쳤습니다. JEI, Kotlin for Forge, Lithium, MoreCulling 같은 NeoForge 모드가 다시 로드되고, Fabric API를 넣은 Fabric 전용 서버가 다시 시작되며, Forge·NeoForge와 함께일 때 Fabric API의 엔티티 속성 기능이 동작합니다.
+- Fabric 모드와 NeoForge 모드를 함께 쓸 때 JEI의 MezzConfig 때문에 서버가 멈추지 않습니다.
+- Minecraft 26.3: 이름이 바뀐 렌더링 클래스를 쓰는 Fabric 모드(AppleSkin, Cloth Config, GeckoLib, YACL 등)가 서버에서 더 이상 빠지지 않습니다.
+- 설치 프로그램은 이제 모든 시스템에서 `.jar` 하나입니다(Java 17 이상). Windows `.exe`는 없어졌습니다.
+
+### Fixes
+
+- NeoForge mods with a `[modproperties.<id>]` table in `neoforge.mods.toml` load again. Since 1.2.2 they were left out with `POLY-COMPAT-217` ("Invalid key: Unexpected ':'"), whether or not Fabric mods were installed: on 26.2 JEI, Kotlin for Forge, Lambda Dynamic Lights, Lithium and MoreCulling, and the mods that need them.
+- A Fabric dedicated server with Fabric API starts again. Since 1.2.2 Poly Mod Loader added a `getBuilder()` to `AttributeSupplier$Builder` also without Forge or NeoForge, and Mixin then refused Fabric API's accessor in `Bootstrap.validate`. Now only Forge's and NeoForge's patched class gets it.
+- With Forge or NeoForge, Fabric API's `getBuilder()` on `AttributeSupplier$Builder` no longer throws `LinkageError` (loader constraint violation on Guava's `ImmutableMap$Builder`); the game class loader has its own copy of the bridge.
+- With NeoForge, a mod shipped as a game library whose JarJar holds the mod (MezzConfig's `-standalone.jar`, needed by JEI) counts as one NeoForge runs, so its Fabric build is left out (`POLY-COMPAT-139`) instead of running next to it. Before, the server stopped: "More than one MezzConfig physical-side provider is present".
+- NeoForge injection points: the four client entries 1.2.3 added named calls vanilla does not make, so they moved nothing. `ServerPlayer.openMenu` now has the two calls NeoForge really moved (`closeContainer()` and `send(Packet)`), and the other three are removed. `NeoForgeInjectionPointsTest` checks every entry against NeoForge's patched client and the vanilla client.
+- Minecraft 26.3: `com.mojang.renderpearl` (Blaze3D's new name) counts as a client package in the link check. Before, nine Fabric mods of the 26.3 corpus (AppleSkin, Cloth Config, GeckoLib, YACL, ...) and the mods that need them were left out on the server with `POLY-COMPAT-112`.
+- `neoforge.mods.toml`에 `[modproperties.<id>]` 표가 있는 NeoForge 모드가 다시 로드됩니다. 1.2.2부터 Fabric 모드가 있든 없든 `POLY-COMPAT-217`("Invalid key: Unexpected ':'")로 빠졌습니다. 26.2에서는 JEI, Kotlin for Forge, Lambda Dynamic Lights, Lithium, MoreCulling과 이것들이 필요한 모드입니다.
+- Fabric API를 넣은 Fabric 전용 서버가 다시 시작됩니다. 1.2.2부터 Forge·NeoForge가 없어도 `AttributeSupplier$Builder`에 `getBuilder()`를 넣어, Mixin이 `Bootstrap.validate`에서 Fabric API의 accessor를 거부했습니다. 이제 Forge·NeoForge가 패치한 클래스에만 넣습니다.
+- Forge·NeoForge와 함께일 때 Fabric API의 `AttributeSupplier$Builder.getBuilder()`가 더 이상 `LinkageError`(Guava `ImmutableMap$Builder`의 로더 제약 위반)를 던지지 않습니다. 게임 클래스로더가 브리지를 따로 한 벌 정의합니다.
+- NeoForge에서, 실제 모드를 JarJar로 품은 game library jar(JEI가 필요로 하는 MezzConfig의 `-standalone.jar`)도 NeoForge가 실행하는 모드로 셉니다. 그래서 같은 모드의 Fabric 판은 함께 실행되지 않고 빠집니다(`POLY-COMPAT-139`). 전에는 서버가 "More than one MezzConfig physical-side provider is present"로 멈췄습니다.
+- NeoForge 주입 지점: 1.2.3에서 넣은 클라이언트 항목 4개는 바닐라에 없는 호출을 가리켜 아무것도 옮기지 않았습니다. `ServerPlayer.openMenu`는 NeoForge가 실제로 옮긴 호출 두 개(`closeContainer()`, `send(Packet)`)로 고쳤고, 나머지 셋은 지웠습니다. `NeoForgeInjectionPointsTest`가 모든 항목을 NeoForge의 패치된 클라이언트와 바닐라 클라이언트에 대조합니다.
+- Minecraft 26.3: 링크 검사가 `com.mojang.renderpearl`(Blaze3D의 새 이름)을 클라이언트 패키지로 봅니다. 전에는 26.3 모드 묶음의 Fabric 모드 9개(AppleSkin, Cloth Config, GeckoLib, YACL 등)와 이것들이 필요한 모드가 서버에서 `POLY-COMPAT-112`로 빠졌습니다.
 
 ### Installer
 
 - The installer is `PolyModLoader-<version>.jar` only, on every platform (Java 17 or newer). The Windows `.exe` and its Rust launcher are gone, and releases attach the jar and `SHA256SUMS.txt`. Releases up to 1.2.3 keep their `.exe`.
 - 설치 프로그램은 모든 시스템에서 `PolyModLoader-<버전>.jar` 하나입니다(Java 17 이상). Windows `.exe`와 그 Rust 실행기를 없앴고, 릴리스에는 jar와 `SHA256SUMS.txt`만 올립니다. 1.2.3까지의 릴리스에 있는 `.exe`는 그대로 둡니다.
-
-### Build
-
-- `poly-bootstrap`'s verification tasks and the `HostPatchAdjustments` tests share their wiring through helpers (public pull request #3 by yjsjs0987, finished in #4). A duplicate `java.26.3` entry in `gradle/minecraft-versions.properties` is removed.
 
 ## 1.2.3 — 2026-10-26
 

@@ -291,6 +291,75 @@ class NeoForgeModRequirementsTest {
                         .toList());
     }
 
+    /**
+     * A game library without {@code neoforge.mods.toml} whose only content is JarJar: MezzConfig 0.6.8 for NeoForge
+     * ships as {@code mezz_config-<mc>-neoforge-<version>-standalone.jar} ({@code FMLModType: GAMELIBRARY}) with the mod
+     * in {@code META-INF/jarjar/}. FML installs that mod, so it is a host mod; when it was missing from the host mods,
+     * MezzConfig's Fabric build ran next to it under the same ID and the server stopped ("More than one MezzConfig
+     * physical-side provider is present", corpusFabricNeoForge 2026-10-27).
+     */
+    @Test
+    void aGameLibraryWithOnlyJarJarInstallsItsNestedMods() throws Exception {
+        Path standalone = jar(
+                "mezz_config-26.2-neoforge-0.6.8-standalone.jar",
+                Map.of(
+                        "META-INF/jarjar/mezz_config-26.2-neoforge-0.6.8.jar",
+                        nestedJar(modsToml("javafml", "[1,)", "mezz_config", "${file.jarVersion}", ""), "0.6.8"),
+                        "META-INF/jarjar/metadata.json",
+                        jarJarMetadata("META-INF/jarjar/mezz_config-26.2-neoforge-0.6.8.jar")));
+        Path user = jar("jei.jar", modsToml("javafml", "[1,)", "jei", "30.47.0", """
+                [[dependencies.jei]]
+                modId="mezz_config"
+                type="required"
+                versionRange="[0.6.8,)"
+                """));
+
+        List<BridgeLaunchContext.LoadedMod> mods = NeoForgeModRequirements.hostMods(List.of(standalone, user));
+        ForgeModRequirements.Result result = check(List.of(standalone, user), GameSide.DEDICATED_SERVER);
+
+        assertEquals(
+                List.of("jei", "mezz_config"),
+                mods.stream().map(BridgeLaunchContext.LoadedMod::modId).toList());
+        BridgeLaunchContext.LoadedMod nested = mods.get(1);
+        assertEquals("0.6.8", nested.version());
+        assertEquals(standalone, nested.containerJar());
+        assertEquals("META-INF/jarjar/mezz_config-26.2-neoforge-0.6.8.jar", nested.nestedEntry());
+        assertEquals(List.of(standalone, user), result.kept(), result.excluded().toString());
+    }
+
+    /**
+     * {@code [modproperties.<id>]} is free-form: keys such as {@code "sodium:config_api_user"} or {@code
+     * "yumi:entrypoints"} (Lambda Dynamic Lights 4.12.4) are valid TOML, and FML reads such a file. From 1.2.2 to
+     * 1.2.3 Poly Mod Loader looked up {@code fabric:provides} as a dotted key, which fails on {@code :}, so every NeoForge
+     * mod with a {@code modproperties} table was left out with POLY-COMPAT-217 (JEI, Kotlin for Forge, Lithium,
+     * MoreCulling, Lambda Dynamic Lights; corpusFabricNeoForge 2026-10-27).
+     */
+    @Test
+    void modPropertiesWithColonKeysAreReadAndFabricProvidesIsKept() throws Exception {
+        Path lights = jar("lambdynamiclights.jar", modsToml("javafml", "[2,)", "lambdynlights", "4.12.4", "") + """
+                        [modproperties.lambdynlights]
+                        catalogueImageIcon = "assets/lambdynlights/icon.png"
+                        "sodium:config_api_user" = "dev.lambdaurora.lambdynlights.compat.SodiumCompat"
+
+                        [[modproperties.lambdynlights."yumi:entrypoints"."yumi:client_init"]]
+                        value = "dev.lambdaurora.lambdynlights.LambDynLights::INSTANCE"
+                        """);
+        Path provider = jar("forgified.jar", modsToml("javafml", "[1,)", "fabric_api_base", "1.0", "") + """
+                        [modproperties.fabric_api_base]
+                        "fabric:provides" = ["fabric-api-base-alias"]
+                        """);
+
+        ForgeModRequirements.Result result = check(List.of(lights, provider), GameSide.CLIENT);
+        List<BridgeLaunchContext.LoadedMod> mods = NeoForgeModRequirements.hostMods(List.of(lights, provider));
+
+        assertEquals(List.of(lights, provider), result.kept(), result.excluded().toString());
+        assertEquals(
+                List.of("lambdynlights", "fabric_api_base"),
+                mods.stream().map(BridgeLaunchContext.LoadedMod::modId).toList());
+        assertEquals(
+                List.of("fabric-api-base-alias", "fabric-api-base"), mods.get(1).providedIds());
+    }
+
     /** JarJar's {@code metadata.json} naming {@code paths}. */
     private static String jarJarMetadata(String... paths) {
         StringBuilder json = new StringBuilder("{\"jars\": [");

@@ -72,8 +72,9 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 | **Quilt Mod Support** | Quilt Loader 0.31.x / `quilt.mod.json` | **Full** | 114+ Quilt-only Modrinth mods verified. |
 | **Forge Mod Support** | MinecraftForge 62.0.9 ~ 66.1.0 | **Full** | Verified on client, dedicated server, and GameTest servers. |
 | **NeoForge Mod Support** | NeoForge 26.1.0 ~ 26.3.0 | **Full** | Runs via unified FML layer; runs alongside Fabric/Quilt. |
-| **Fabric API on Forge** | 6 Core Modules (`fabric-item-api-v1`, `fabric-registry-sync-v0`, `fabric-content-registries-v0`, etc.) | **Partial** | Injection points of these modules are retargeted to Forge's patch. The last corpus run on 26.2 (2026-10-25) still left out 10 Fabric API modules next to Forge; a new count is planned (Milestone A). |
-| **NeoForge Injection Points** | Screen, Container Menu, Data Attachment | **Unverified** | Entries added to `NeoForgeInjectionPoints` in 1.2.3, not yet checked against NeoForge's patched classes (Milestone A). |
+| **Fabric API on Forge** | Every Fabric API module of the 26.2 corpus | **Partial** | `corpusFabricForge` on 26.2 (2026-10-27): no Fabric API module is left out next to Forge; Architectury, Balm, Lithium and Puzzles Lib still are (`POLY-COMPAT-224`). |
+| **Fabric API on NeoForge** | 10 modules left out on 26.2 | **Partial** | `corpusFabricNeoForge` on 26.2 (2026-10-27): block, content-registries, crash-report-info, data-generation, entity-events, events-interaction, item, registry-sync, resource-conditions and transfer are left out (`POLY-COMPAT-224`). |
+| **NeoForge Injection Points** | Every `NeoForgeInjectionPoints` entry | **Checked** | `NeoForgeInjectionPointsTest` against NeoForge 26.2.0.93's patched client and vanilla 26.2 (2026-10-27). The four 1.2.3 client entries named calls vanilla does not make; `openMenu` was corrected, the other three removed. |
 | **Custom Loading UI** | `PolyLoadingOverlay` | **Done** | Font corruption fix merged in 1.2.3; loader mod count overlay. |
 | **Bug Reporting Flow** | GitHub Issues Direct Route | **Done** | Exceptions & crash UI direct users to official issue tracker. |
 
@@ -82,14 +83,15 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 ## 4. Immediate Roadmap & Future Milestones
 
 ### Milestone A: Client-Side & NeoForge Fabric API Adaptation (In Progress)
-- **Verify the 1.2.3 NeoForge injection points first:** the four client entries added to `NeoForgeInjectionPoints` in 1.2.3 (`Gui.extractRenderState`, `ServerPlayer.openMenu`, `ClientPacketListener.handleCustomPayload`, `ModelManager.<init>`) have not been checked against NeoForge's patched classes; the NeoForge unit test only compares them with themselves. Add a check against the patched NeoForge client jar, like Forge's `everyPointHasItsShapeInForgesPatchedClient`, and fix or remove the entries that do not match (the `ModelManager` entry replaces a call that returns `BlockColors` with one that returns `ModelDataMap`).
-- **Re-measure the Fabric API modules left out next to Forge and NeoForge:** README says 10 next to Forge and 16 next to NeoForge on 26.2, while the 1.2.2 notes say the Forge count dropped to 6 without a new corpus run. Run `corpusFabricForge` and `corpusFabricNeoForge` on 26.2 and update README and CHANGELOG with the measured counts.
-- **`fabric-screen-api-v1`:** Retarget `GuiMixin:onExtractGui` for NeoForge client UI mods (`ModMenu`, etc.).
-- **`fabric-menu-api-v1` & `fabric-data-attachment-api-v1`:** Integrate NeoForge `openMenu` and `AttachmentType` extensions.
+- **Done (2026-10-27):** the NeoForge injection points are checked against NeoForge's patched client (`NeoForgeInjectionPointsTest`), and the Fabric API modules left out next to Forge (none) and NeoForge (10) were measured on 26.2.
+- **`fabric-registry-sync-v0` next to NeoForge:** now the module that keeps the most others out; `fabric-menu-api-v1` no longer meets NeoForge's patch, but needs its `RegistryEntryAddedCallback` (`POLY-COMPAT-111`).
+- **`fabric-screen-api-v1`:** Retarget `GuiMixin:onExtractGui` for NeoForge client UI mods (`ModMenu`, etc.). NeoForge's `Gui.extractRenderState` no longer calls `Screen.extractRenderStateWithTooltipAndSubtitles`; find where it moved before adding a point.
+- **`fabric-data-attachment-api-v1`:** Integrate NeoForge's `AttachmentType` extensions.
 - **Rendering & Model Modules:** Adapt `fabric-renderer-api-v1`, `fabric-rendering-v1`, and `fabric-model-loading-api-v1` for client-side shaders and resource packs.
 
 ### Milestone B: Minecraft 26.3 Real-World Corpus Verification
-- Headless execution and world save/load verification on 26.3 across large corpus modpacks: `corpusFabric`, `corpusForge` and `corpusNeoForge` with `-PpolyMinecraft=26.3`, after building the 26.3 corpus list (`modCorpus -PmodCorpusRefresh`).
+- **Done headless (2026-10-27):** the 26.3 corpus list (`mod-corpus-26.3.json`: 43 Fabric, 42 Forge, 44 NeoForge) passes `corpusFabric` (98 loaded, 73 not), `corpusFabricServer` (100 / 74), `corpusForge` (30 of 38), `corpusForgeServer` (33 of 41), `corpusNeoForge` (FML loads 50) and `corpusNeoForgeServer` (49).
+- Still open: the Quilt list for 26.3 (`mod-corpus-quilt-26.3.json`), the mixed-loader tasks (`corpusFabricForge`, `corpusFabricNeoForge`, ...) and the window runs on 26.3.
 - Hardening against 26.3-specific game changes (SDL keyboard handling, shader `#include`, data pack overlay formats).
 
 ### Milestone C: Technical Benchmarking
