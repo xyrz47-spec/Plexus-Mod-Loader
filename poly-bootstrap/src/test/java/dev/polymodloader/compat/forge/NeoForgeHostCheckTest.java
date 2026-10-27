@@ -100,8 +100,10 @@ class NeoForgeHostCheckTest {
         }
         assertFalse(jars.isEmpty(), "no mod jars in " + modsDirectory);
 
+        // The details first and the verdicts last, so the verdicts end the output (CI logs keep the end).
         StringBuilder report = new StringBuilder();
-        report.append("NeoForge ")
+        StringBuilder summary = new StringBuilder();
+        summary.append("\n================ verdicts ================\nNeoForge ")
                 .append(release.neoForgeVersion())
                 .append(" on Minecraft ")
                 .append(gameVersion)
@@ -145,18 +147,18 @@ class NeoForgeHostCheckTest {
                 for (CompatibilityFinding finding : mod.assessment().findings()) {
                     if (finding.code().equals(HostPatchCheck.CODE)) {
                         leftOut++;
-                        report.append("\n[left out] ")
+                        summary.append("\n[left out] ")
                                 .append(modId)
                                 .append(' ')
                                 .append(mod.assessment().version())
                                 .append('\n');
                         for (String reason : finding.detail().split(" \\| ")) {
-                            report.append("    ").append(reason).append('\n');
+                            summary.append("    ").append(reason).append('\n');
                         }
                     }
                 }
             }
-            report.append("\n")
+            summary.append("\n")
                     .append(leftOut)
                     .append(" of ")
                     .append(checked.size())
@@ -187,6 +189,7 @@ class NeoForgeHostCheckTest {
                 }
             }
         }
+        report.append(summary);
         Path out = Path.of(System.getProperty("poly.hostCheckReport")).resolve("neoforge-host-check.txt");
         Files.createDirectories(out.getParent());
         Files.writeString(out, report, StandardCharsets.UTF_8);
@@ -238,9 +241,12 @@ class NeoForgeHostCheckTest {
                                 .append(") ")
                                 .append(className)
                                 .append('\n');
+                        // Signatures and annotations: where each injector points is in its annotations.
                         StringWriter text = new StringWriter();
                         new ClassReader(bytes.get())
-                                .accept(new TraceClassVisitor(null, new Textifier(), new PrintWriter(text)), 0);
+                                .accept(
+                                        new TraceClassVisitor(null, new Textifier(), new PrintWriter(text)),
+                                        ClassReader.SKIP_CODE);
                         report.append(text);
                         collectTargets(bytes.get(), targets);
                     }
@@ -252,8 +258,20 @@ class NeoForgeHostCheckTest {
                 JarFile patched = new JarFile(patchedGame.toFile())) {
             for (Map.Entry<String, Set<String>> target : targets.entrySet()) {
                 for (String method : target.getValue()) {
-                    describeMethod("vanilla", vanilla, target.getKey(), method, report);
-                    describeMethod("NeoForge", patched, target.getKey(), method, report);
+                    StringBuilder before = new StringBuilder();
+                    StringBuilder after = new StringBuilder();
+                    describeMethod("vanilla", vanilla, target.getKey(), method, before);
+                    describeMethod("NeoForge", patched, target.getKey(), method, after);
+                    // Only what NeoForge changed matters; line numbers move with any patch to the file.
+                    if (withoutLineNumbers(before).equals(withoutLineNumbers(after))) {
+                        report.append("\n---- ")
+                                .append(target.getKey())
+                                .append('.')
+                                .append(method)
+                                .append(": unchanged by NeoForge\n");
+                    } else {
+                        report.append(before).append(after);
+                    }
                 }
             }
         }
@@ -348,6 +366,16 @@ class NeoForgeHostCheckTest {
         if (!any) {
             report.append("    (no such method)\n");
         }
+    }
+
+    /** {@link #describeMethod}'s {@code text} without its heading, which names the jar, and its line numbers. */
+    private static String withoutLineNumbers(StringBuilder text) {
+        return text.toString()
+                .lines()
+                .skip(2)
+                .filter(line -> !line.strip().startsWith("LINENUMBER"))
+                .toList()
+                .toString();
     }
 
     private static Optional<byte[]> read(JarFile jar, String entryName) throws IOException {
