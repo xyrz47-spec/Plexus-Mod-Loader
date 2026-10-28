@@ -376,8 +376,14 @@ final class NeoForgeGameHost implements GameHost {
         }
         Map<String, ModuleReference> rewritten = new HashMap<>();
         UnaryOperator<ModuleReference> modList = modListPatch();
+        Path earlyScreen = request.gameDirectory().resolve(".poly").resolve("early-screen");
         for (Map.Entry<String, ModuleReference> entry : references.entrySet()) {
             ModuleReference reference = modList.apply(automatic(entry.getValue()));
+            if (request.side() == GameSide.CLIENT) {
+                // NeoForge's early loading window shows Poly Mod Loader's art and title.
+                reference = EarlyScreenArt.of(reference, earlyScreen, request.log());
+                reference = EarlyWindowTitle.of(reference, request.gameVersion(), request.log());
+            }
             if (request.sharedMixin()) {
                 reference = NeoForgeSharedMixinPatch.patching(reference, hierarchy, result -> {
                     if (!result.missing().isEmpty()) {
@@ -623,9 +629,6 @@ final class NeoForgeGameHost implements GameHost {
         if (launch == null) {
             throw new IllegalStateException("NeoForge was not prepared");
         }
-        System.setProperty("neoforge.earlyprogresswindow", "false");
-        System.setProperty("fml.earlyprogresswindow", "false");
-        System.setProperty("forge.forceDisplay", "false");
         launch.launch(mainClass(request.launchTarget()));
     }
 

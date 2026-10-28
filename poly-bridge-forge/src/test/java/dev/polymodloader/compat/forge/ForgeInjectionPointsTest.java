@@ -282,6 +282,22 @@ class ForgeInjectionPointsTest {
         }
     }
 
+    /**
+     * Forge's {@code Mob.setTarget} (26.2-65.1.5, 26.3-66.1.0) assigns the target of its {@code LivingChangeTargetEvent}
+     * where vanilla assigns {@code asValidTarget(target)}; Puzzles Lib 26.3 modifies that value.
+     */
+    @Test
+    void mobTargetFollowsForgesChangeTargetEvent() {
+        InjectionPointReplacement setTarget = point(ForgeInjectionPoints.all(), "Mob;asValidTarget(");
+        assertEquals("net/minecraft/world/entity/Mob", setTarget.targetClass());
+        assertEquals("setTarget", setTarget.method());
+        assertEquals(
+                "Lnet/minecraftforge/event/entity/living/LivingChangeTargetEvent;getNewTarget()"
+                        + "Lnet/minecraft/world/entity/LivingEntity;",
+                setTarget.replacement());
+        assertEquals(Placement.SAME_PLACE, setTarget.placement());
+    }
+
     @Test
     void neoForgePointsFollowLanguageAndConfigurationPatches() {
         List<InjectionPointReplacement> points = NeoForgeInjectionPoints.all();

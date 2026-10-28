@@ -1,297 +1,307 @@
 package dev.polymodloader.game.layer.v26_3.client;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import dev.polymodloader.game.layer.v26_3.LayerState;
 import dev.polymodloader.game.version.layer.GameLayerContext;
 import dev.polymodloader.game.version.layer.LoadedModCounts;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.LoadingOverlay;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Poly Mod Loader's dedicated loading screen and live mod count overlay for Minecraft 26.3.
- * Replaces the vanilla/host loader loading overlay rendering with Poly's custom UI.
+ * Poly Mod Loader's marks on the game's loading screen ({@code LoadingOverlay}), for every loader Poly Mod Loader runs.
+ * The screen stays the game's own: its background (Mojang red, or black with the monochrome logo option), the Mojang
+ * Studios logo, the progress bar and their fades. Poly Mod Loader adds, with the same fades, its spinning gold cube and
+ * name at the bottom right (where NeoForge's early window, which Poly Mod Loader gives the same cube, has them) and the
+ * mods each loader runs under the progress bar.
+ *
+ * <p>Called after {@code LoadingOverlay.extractRenderState} ({@code poly:client_loading_overlay}), also for a host
+ * loader's overlay (MinecraftForge's {@code ForgeLoadingOverlay}, which draws the game's screen and keeps its fades).
+ * Thread: the render thread.
  */
 public final class PolyLoadingOverlay {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
     private static final AtomicBoolean REPORTED = new AtomicBoolean();
+    private static final AtomicBoolean FAILED = new AtomicBoolean();
 
-    private static final Field RELOAD_FIELD;
-    private static final Field ON_FINISH_FIELD;
-    private static final Field MINECRAFT_FIELD;
+    /** The cube's frames: 24 of 32 x 32 pixels, a quarter turn ({@code poly_cube.png}, Poly Mod Loader's own art). */
+    private static final int CUBE = 32;
 
-    static {
-        Field reload = null;
-        Field onFinish = null;
-        Field mc = null;
-        try {
-            reload = LoadingOverlay.class.getDeclaredField("reload");
-            reload.setAccessible(true);
-            onFinish = LoadingOverlay.class.getDeclaredField("onFinish");
-            onFinish.setAccessible(true);
-            mc = LoadingOverlay.class.getDeclaredField("minecraft");
-            mc.setAccessible(true);
-        } catch (ReflectiveOperationException e) {
-            LOGGER.warn("[Poly Mod Loader] LoadingOverlay reflection lookup: {}", e.getMessage());
-        }
-        RELOAD_FIELD = reload;
-        ON_FINISH_FIELD = onFinish;
-        MINECRAFT_FIELD = mc;
-    }
+    private static final int FRAME_MILLIS = 60;
 
-    private static volatile LoadingOverlay lastOverlay;
-    private static volatile float currentProgress;
-    private static volatile long fadeInStart = -1L;
-    private static volatile long fadeOutStart = -1L;
-    private static volatile boolean finishedSignaled;
+    // The game's own fade timing (LoadingOverlay: FADE_OUT_TIME 1000, FADE_IN_TIME 500).
+    private static final float FADE_OUT_MILLIS = 1000.0f;
+    private static final float FADE_IN_MILLIS = 500.0f;
+
+    private static final Field FADE_IN = field("fadeIn");
+    private static final Field FADE_IN_START = field("fadeInStart");
+    private static final Field FADE_OUT_START = field("fadeOutStart");
+
+    private static volatile List<int[]> frames;
 
     private PolyLoadingOverlay() {}
 
-    /**
-     * Intercepts {@code LoadingOverlay.extractRenderState}: renders Poly's dedicated loading screen
-     * and custom mod count overlay, cancelling the vanilla/host loader rendering.
-     *
-     * @return {@code true} to cancel original method body, {@code false} to fall back
-     */
-    public static boolean onExtractRenderState(
+    /** After the game drew {@code overlay} into {@code graphics}: Poly Mod Loader's marks, faded as the screen. */
+    public static void onExtractRenderStateReturn(
             LoadingOverlay overlay, GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        if (FAILED.get() || FADE_IN == null || FADE_IN_START == null || FADE_OUT_START == null) {
+            return;
+        }
         try {
-            return renderCustomOverlay(overlay, graphics);
-        } catch (Throwable t) {
-            LOGGER.error("[Poly Mod Loader] Failed to render Poly loading screen, falling back to default", t);
-            return false;
+            draw(overlay, graphics);
+        } catch (RuntimeException | ReflectiveOperationException e) {
+            // The game's screen is complete without the marks; draw them no more rather than fail every frame.
+            if (FAILED.compareAndSet(false, true)) {
+                LOGGER.warn("[Poly Mod Loader] Loading screen marks left out: {}", e.toString());
+            }
         }
     }
 
-    private static boolean renderCustomOverlay(LoadingOverlay overlay, GuiGraphicsExtractor graphics) {
-        if (lastOverlay != overlay) {
-            lastOverlay = overlay;
-            currentProgress = 0.0f;
-            fadeInStart = -1L;
-            fadeOutStart = -1L;
-            finishedSignaled = false;
+    private static void draw(LoadingOverlay overlay, GuiGraphicsExtractor graphics)
+            throws ReflectiveOperationException {
+        long now = Util.getMillis();
+        long fadeOutStart = FADE_OUT_START.getLong(overlay);
+        long fadeInStart = FADE_IN_START.getLong(overlay);
+        float fadeOut = fadeOutStart > -1L ? (now - fadeOutStart) / FADE_OUT_MILLIS : -1.0f;
+        float fadeIn = fadeInStart > -1L ? (now - fadeInStart) / FADE_IN_MILLIS : -1.0f;
+        // As the game fades its logo and its progress bar.
+        float logoAlpha;
+        if (fadeOut >= 1.0f) {
+            logoAlpha = 1.0f - Mth.clamp(fadeOut - 1.0f, 0.0f, 1.0f);
+        } else if (FADE_IN.getBoolean(overlay)) {
+            logoAlpha = Mth.clamp(fadeIn, 0.0f, 1.0f);
+        } else {
+            logoAlpha = 1.0f;
         }
-
-        long now = System.currentTimeMillis();
-        if (fadeInStart == -1L) {
-            fadeInStart = now;
+        float barAlpha = fadeOut < 1.0f ? 1.0f - Mth.clamp(fadeOut, 0.0f, 1.0f) : 0.0f;
+        if (logoAlpha <= 0.0f && barAlpha <= 0.0f) {
+            return;
         }
-
-        ReloadInstance reload = getReload(overlay);
-        float actualProgress = reload != null ? reload.getActualProgress() : 1.0f;
-        currentProgress = Mth.clamp(currentProgress * 0.95f + actualProgress * 0.05f, 0.0f, 1.0f);
-
-        if (reload != null && reload.isDone()) {
-            if (!finishedSignaled) {
-                finishedSignaled = true;
-                Consumer<Optional<Throwable>> onFinish = getOnFinish(overlay);
-                if (onFinish != null) {
-                    onFinish.accept(Optional.empty());
-                }
-                if (fadeOutStart == -1L) {
-                    fadeOutStart = now;
-                }
-            }
-        }
-
-        float fadeOutAnim = fadeOutStart > 0L ? (now - fadeOutStart) / 800.0f : -1.0f;
-        if (fadeOutAnim >= 1.0f) {
-            Minecraft mc = getMinecraft(overlay);
-            if (mc != null && mc.gui != null) {
-                mc.gui.setOverlay(null);
-            }
-            return true;
-        }
-
-        float alpha = 1.0f;
-        if (fadeOutAnim >= 0.0f) {
-            alpha = 1.0f - Mth.clamp(fadeOutAnim, 0.0f, 1.0f);
-        }
-        int a = (int) (alpha * 255.0f);
-        if (a <= 0) {
-            return true;
-        }
-
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
 
-        graphics.nextStratum();
-
-        // 1. Sleek dark background
-        int bgColor = (a << 24) | 0x0E131F;
-        graphics.fill(0, 0, width, height, bgColor);
-
-        Minecraft mc = getMinecraft(overlay);
-        Font font = mc != null ? mc.font : null;
-        int centerY = height / 2;
-
-        if (font != null) {
-            // 2. Brand logo & title
-            graphics.centeredText(
-                    font,
-                    Component.literal("P  O  L  Y").withStyle(ChatFormatting.BOLD, ChatFormatting.GOLD),
-                    width / 2,
-                    centerY - 45,
-                    (a << 24) | 0xFFFFFF);
-            graphics.centeredText(
-                    font,
-                    Component.literal("Next-Gen Unified Mod Loader").withStyle(ChatFormatting.GRAY),
-                    width / 2,
-                    centerY - 28,
-                    (a << 24) | 0x94A3B8);
+        if (logoAlpha > 0.0f) {
+            List<int[]> cube = frames();
+            if (!cube.isEmpty()) {
+                int[] frame = cube.get((int) ((now / FRAME_MILLIS) % cube.size()));
+                drawFrame(graphics, frame, width - CUBE - 6, height - CUBE - 16, logoAlpha);
+            }
+            String name = "Poly Mod Loader";
+            pixelText(graphics, name, width - pixelWidth(name) - 6, height - 12, logoAlpha * 0.9f, 0xFFFFFF);
         }
 
-        // 3. Progress bar
-        int barWidth = Math.min(260, width - 40);
-        int barHeight = 6;
-        int barX = (width - barWidth) / 2;
-        int barY = centerY;
-
-        graphics.fill(barX - 1, barY - 1, barX + barWidth + 1, barY + barHeight + 1, (a << 24) | 0x334155);
-        graphics.fill(barX, barY, barX + barWidth, barY + barHeight, (a << 24) | 0x1E293B);
-
-        int filled = (int) (barWidth * currentProgress);
-        if (filled > 0) {
-            graphics.fill(barX, barY, barX + filled, barY + barHeight, (a << 24) | 0xF59E0B);
-        }
-
-        if (font != null) {
-            int pct = (int) (currentProgress * 100);
-            graphics.centeredText(
-                    font,
-                    Component.literal(pct + "%").withStyle(ChatFormatting.DARK_GRAY),
-                    width / 2,
-                    barY + 10,
-                    (a << 24) | 0x64748B);
-
-            // 4. Poly Mod Count Overlay
+        if (barAlpha > 0.0f) {
             LoadedModCounts counts =
                     LayerState.context().map(GameLayerContext::modCounts).orElse(LoadedModCounts.NONE);
-            MutableComponent modSummary = Component.empty();
-            boolean hasBadges = false;
-            if (counts.fabricMods() > 0) {
-                modSummary
-                        .append(Component.literal("Fabric: ").withStyle(ChatFormatting.GREEN))
-                        .append(Component.literal(String.valueOf(counts.fabricMods()))
-                                .withStyle(ChatFormatting.WHITE));
-                hasBadges = true;
+            String line = countsLine(counts);
+            // The game's progress bar: centred at height * 0.8325, 10 pixels high.
+            int barCentre = (int) (height * 0.8325);
+            if (!line.isEmpty()) {
+                pixelText(graphics, line, (width - pixelWidth(line)) / 2, barCentre + 10, barAlpha * 0.85f, 0xFFFFFF);
             }
-            if (counts.forgeMods() > 0) {
-                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
-                modSummary
-                        .append(Component.literal("Forge: ").withStyle(ChatFormatting.GOLD))
-                        .append(Component.literal(String.valueOf(counts.forgeMods()))
-                                .withStyle(ChatFormatting.WHITE));
-                hasBadges = true;
-            }
-            if (counts.neoForgeMods() > 0) {
-                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
-                modSummary
-                        .append(Component.literal("NeoForge: ").withStyle(ChatFormatting.RED))
-                        .append(Component.literal(String.valueOf(counts.neoForgeMods()))
-                                .withStyle(ChatFormatting.WHITE));
-                hasBadges = true;
-            }
-            if (counts.quiltMods() > 0) {
-                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
-                modSummary
-                        .append(Component.literal("Quilt: ").withStyle(ChatFormatting.LIGHT_PURPLE))
-                        .append(Component.literal(String.valueOf(counts.quiltMods()))
-                                .withStyle(ChatFormatting.WHITE));
-                hasBadges = true;
-            }
-            if (counts.polyMods() > 0) {
-                if (hasBadges) modSummary.append(Component.literal("  |  ").withStyle(ChatFormatting.DARK_GRAY));
-                modSummary
-                        .append(Component.literal("Poly: ").withStyle(ChatFormatting.AQUA))
-                        .append(Component.literal(String.valueOf(counts.polyMods()))
-                                .withStyle(ChatFormatting.WHITE));
-                hasBadges = true;
-            }
-
-            MutableComponent displaySummary = Component.empty();
-            if (!hasBadges) {
-                displaySummary.append(
-                        Component.literal("Poly Mod Loader active").withStyle(ChatFormatting.DARK_GRAY));
-            } else {
-                displaySummary
-                        .append(Component.literal("Active Mods:  ").withStyle(ChatFormatting.GRAY))
-                        .append(modSummary);
-            }
-
-            int strW = font.width(displaySummary);
-            int boxPadding = 10;
-            int boxX = (width - strW) / 2 - boxPadding;
-            int boxY = height - 42;
-            int boxW = strW + boxPadding * 2;
-            int boxH = 20;
-
-            graphics.fill(boxX, boxY, boxX + boxW, boxY + boxH, ((int) (a * 0.75f) << 24) | 0x111827);
-            graphics.fill(boxX, boxY, boxX + boxW, boxY + 1, ((int) (a * 0.5f) << 24) | 0x374151);
-            graphics.centeredText(font, displaySummary, width / 2, boxY + 6, (a << 24) | 0xFFFFFF);
-
             if (counts.hostIncompatibleMods() > 0) {
-                graphics.centeredText(
-                        font,
-                        Component.literal("[!] " + counts.hostIncompatibleMods() + " mod(s) isolated for compatibility")
-                                .withStyle(ChatFormatting.YELLOW),
-                        width / 2,
-                        boxY - 14,
-                        (a << 24) | 0xFBBF24);
+                String left = counts.hostIncompatibleMods() + " not loaded: Poly Mod Loader can't run them yet";
+                pixelText(graphics, left, (width - pixelWidth(left)) / 2, barCentre + 21, barAlpha * 0.85f, 0xFFE08A);
             }
-
             if (REPORTED.compareAndSet(false, true)) {
-                LOGGER.info(
-                        "[Poly Mod Loader] Custom loading screen & mod count overlay active (Fabric: {}, Forge: {}, NeoForge: {}, Quilt: {}, Poly: {})",
-                        counts.fabricMods(),
-                        counts.forgeMods(),
-                        counts.neoForgeMods(),
-                        counts.quiltMods(),
-                        counts.polyMods());
+                LOGGER.info("[Poly Mod Loader] Loading screen marks: {}", line.isEmpty() ? "no mods" : line);
             }
         }
-
-        return true;
     }
 
-    private static ReloadInstance getReload(LoadingOverlay overlay) {
-        if (RELOAD_FIELD == null) return null;
-        try {
-            return (ReloadInstance) RELOAD_FIELD.get(overlay);
-        } catch (IllegalAccessException e) {
-            return null;
+    /** {@code Mods: Fabric 34 · NeoForge 53 · Poly 2}: the loaders whose mods run; empty with none. */
+    static String countsLine(LoadedModCounts counts) {
+        List<String> parts = new ArrayList<>();
+        add(parts, "Fabric", counts.fabricMods());
+        add(parts, "Quilt", counts.quiltMods());
+        add(parts, "Forge", counts.forgeMods());
+        add(parts, "NeoForge", counts.neoForgeMods());
+        add(parts, "Poly", counts.polyMods());
+        return parts.isEmpty() ? "" : "Mods: " + String.join("  ·  ", parts);
+    }
+
+    private static void add(List<String> parts, String loader, int count) {
+        if (count > 0) {
+            parts.add(loader + " " + count);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static Consumer<Optional<Throwable>> getOnFinish(LoadingOverlay overlay) {
-        if (ON_FINISH_FIELD == null) return null;
-        try {
-            return (Consumer<Optional<Throwable>>) ON_FINISH_FIELD.get(overlay);
-        } catch (IllegalAccessException e) {
-            return null;
-        }
-    }
-
-    private static Minecraft getMinecraft(LoadingOverlay overlay) {
-        if (MINECRAFT_FIELD != null) {
-            try {
-                return (Minecraft) MINECRAFT_FIELD.get(overlay);
-            } catch (IllegalAccessException ignored) {
+    /** One frame, its runs of equal pixels as rectangles, each pixel's alpha times {@code alpha}. */
+    private static void drawFrame(GuiGraphicsExtractor graphics, int[] frame, int x, int y, float alpha) {
+        for (int row = 0; row < CUBE; row++) {
+            int column = 0;
+            while (column < CUBE) {
+                int pixel = frame[row * CUBE + column];
+                int end = column + 1;
+                while (end < CUBE && frame[row * CUBE + end] == pixel) {
+                    end++;
+                }
+                int pixelAlpha = pixel >>> 24;
+                if (pixelAlpha != 0) {
+                    int shown = Math.round(pixelAlpha * alpha);
+                    if (shown > 0) {
+                        graphics.fill(x + column, y + row, x + end, y + row + 1, (shown << 24) | (pixel & 0xFFFFFF));
+                    }
+                }
+                column = end;
             }
         }
-        return Minecraft.getInstance();
+    }
+
+    /**
+     * {@code text} in Poly Mod Loader's 5 x 7 pixel letters (upper case; digits; space, colon, middle dot, apostrophe,
+     * full stop, hyphen, slash), with a shadow one pixel down and right as the game's text has. The game's font is not
+     * used: MinecraftForge's first loading screen comes before the game loads it.
+     */
+    private static void pixelText(GuiGraphicsExtractor graphics, String text, int x, int y, float alpha, int rgb) {
+        int shadow = (rgb >> 2) & 0x3F3F3F;
+        drawLetters(graphics, text, x + 1, y + 1, argb(alpha, shadow));
+        drawLetters(graphics, text, x, y, argb(alpha, rgb));
+    }
+
+    private static void drawLetters(GuiGraphicsExtractor graphics, String text, int x, int y, int colour) {
+        if ((colour >>> 24) == 0) {
+            return;
+        }
+        int left = x;
+        for (char letter : text.toUpperCase(Locale.ROOT).toCharArray()) {
+            String[] rows = LETTERS.getOrDefault(letter, LETTERS.get(' '));
+            for (int row = 0; row < rows.length; row++) {
+                int column = 0;
+                while (column < rows[row].length()) {
+                    if (rows[row].charAt(column) != '1') {
+                        column++;
+                        continue;
+                    }
+                    int end = column + 1;
+                    while (end < rows[row].length() && rows[row].charAt(end) == '1') {
+                        end++;
+                    }
+                    graphics.fill(left + column, y + row, left + end, y + row + 1, colour);
+                    column = end;
+                }
+            }
+            left += LETTER_ADVANCE;
+        }
+    }
+
+    /** The width of {@code text} in Poly Mod Loader's pixel letters. */
+    static int pixelWidth(String text) {
+        return text.isEmpty() ? 0 : text.length() * LETTER_ADVANCE - 1;
+    }
+
+    private static final int LETTER_ADVANCE = 6;
+
+    private static final Map<Character, String[]> LETTERS = Map.ofEntries(
+            letter('A', ".111.", "1...1", "1...1", "11111", "1...1", "1...1", "1...1"),
+            letter('B', "1111.", "1...1", "1...1", "1111.", "1...1", "1...1", "1111."),
+            letter('C', ".111.", "1...1", "1....", "1....", "1....", "1...1", ".111."),
+            letter('D', "1111.", "1...1", "1...1", "1...1", "1...1", "1...1", "1111."),
+            letter('E', "11111", "1....", "1....", "1111.", "1....", "1....", "11111"),
+            letter('F', "11111", "1....", "1....", "1111.", "1....", "1....", "1...."),
+            letter('G', ".111.", "1...1", "1....", "1.111", "1...1", "1...1", ".1111"),
+            letter('H', "1...1", "1...1", "1...1", "11111", "1...1", "1...1", "1...1"),
+            letter('I', ".111.", "..1..", "..1..", "..1..", "..1..", "..1..", ".111."),
+            letter('J', "..111", "...1.", "...1.", "...1.", "1..1.", "1..1.", ".11.."),
+            letter('K', "1...1", "1..1.", "1.1..", "11...", "1.1..", "1..1.", "1...1"),
+            letter('L', "1....", "1....", "1....", "1....", "1....", "1....", "11111"),
+            letter('M', "1...1", "11.11", "1.1.1", "1.1.1", "1...1", "1...1", "1...1"),
+            letter('N', "1...1", "11..1", "1.1.1", "1..11", "1...1", "1...1", "1...1"),
+            letter('O', ".111.", "1...1", "1...1", "1...1", "1...1", "1...1", ".111."),
+            letter('P', "1111.", "1...1", "1...1", "1111.", "1....", "1....", "1...."),
+            letter('Q', ".111.", "1...1", "1...1", "1...1", "1.1.1", "1..1.", ".11.1"),
+            letter('R', "1111.", "1...1", "1...1", "1111.", "1.1..", "1..1.", "1...1"),
+            letter('S', ".1111", "1....", "1....", ".111.", "....1", "....1", "1111."),
+            letter('T', "11111", "..1..", "..1..", "..1..", "..1..", "..1..", "..1.."),
+            letter('U', "1...1", "1...1", "1...1", "1...1", "1...1", "1...1", ".111."),
+            letter('V', "1...1", "1...1", "1...1", "1...1", "1...1", ".1.1.", "..1.."),
+            letter('W', "1...1", "1...1", "1...1", "1.1.1", "1.1.1", "11.11", "1...1"),
+            letter('X', "1...1", "1...1", ".1.1.", "..1..", ".1.1.", "1...1", "1...1"),
+            letter('Y', "1...1", "1...1", ".1.1.", "..1..", "..1..", "..1..", "..1.."),
+            letter('Z', "11111", "....1", "...1.", "..1..", ".1...", "1....", "11111"),
+            letter('0', ".111.", "1...1", "1..11", "1.1.1", "11..1", "1...1", ".111."),
+            letter('1', "..1..", ".11..", "..1..", "..1..", "..1..", "..1..", ".111."),
+            letter('2', ".111.", "1...1", "....1", "...1.", "..1..", ".1...", "11111"),
+            letter('3', "11111", "...1.", "..1..", "...1.", "....1", "1...1", ".111."),
+            letter('4', "...1.", "..11.", ".1.1.", "1..1.", "11111", "...1.", "...1."),
+            letter('5', "11111", "1....", "1111.", "....1", "....1", "1...1", ".111."),
+            letter('6', "..11.", ".1...", "1....", "1111.", "1...1", "1...1", ".111."),
+            letter('7', "11111", "....1", "...1.", "..1..", ".1...", ".1...", ".1..."),
+            letter('8', ".111.", "1...1", "1...1", ".111.", "1...1", "1...1", ".111."),
+            letter('9', ".111.", "1...1", "1...1", ".1111", "....1", "...1.", ".11.."),
+            letter(' ', ".....", ".....", ".....", ".....", ".....", ".....", "....."),
+            letter(':', ".....", "..1..", ".....", ".....", ".....", "..1..", "....."),
+            letter('\u00b7', ".....", ".....", ".....", "..1..", ".....", ".....", "....."),
+            letter('\'', "..1..", "..1..", ".1...", ".....", ".....", ".....", "....."),
+            letter('.', ".....", ".....", ".....", ".....", ".....", ".....", "..1.."),
+            letter('-', ".....", ".....", ".....", ".111.", ".....", ".....", "....."),
+            letter('/', "....1", "...1.", "...1.", "..1..", ".1...", ".1...", "1...."));
+
+    private static Map.Entry<Character, String[]> letter(char letter, String... rows) {
+        return Map.entry(letter, rows);
+    }
+
+    /** The cube's frames from {@code poly_cube.png} beside this class; none when it cannot be read. */
+    private static List<int[]> frames() {
+        List<int[]> loaded = frames;
+        if (loaded != null) {
+            return loaded;
+        }
+        List<int[]> read = new ArrayList<>();
+        try (InputStream in = PolyLoadingOverlay.class.getResourceAsStream("poly_cube.png")) {
+            if (in == null) {
+                LOGGER.warn("[Poly Mod Loader] poly_cube.png is missing; no cube on the loading screen");
+            } else {
+                try (NativeImage sheet = NativeImage.read(in)) {
+                    if (sheet.getWidth() == CUBE && sheet.getHeight() % CUBE == 0) {
+                        for (int top = 0; top < sheet.getHeight(); top += CUBE) {
+                            int[] frame = new int[CUBE * CUBE];
+                            for (int row = 0; row < CUBE; row++) {
+                                for (int column = 0; column < CUBE; column++) {
+                                    frame[row * CUBE + column] = sheet.getPixel(column, top + row);
+                                }
+                            }
+                            read.add(frame);
+                        }
+                    } else {
+                        LOGGER.warn(
+                                "[Poly Mod Loader] poly_cube.png is not 32 pixels wide; no cube on the loading screen");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.warn("[Poly Mod Loader] poly_cube.png could not be read: {}", e.toString());
+        }
+        loaded = List.copyOf(read);
+        frames = loaded;
+        return loaded;
+    }
+
+    private static int argb(float alpha, int rgb) {
+        return (Mth.clamp(Math.round(alpha * 255.0f), 0, 255) << 24) | rgb;
+    }
+
+    /** A field of the game's {@code LoadingOverlay}; null, and no marks, when this game version has none. */
+    private static Field field(String name) {
+        try {
+            Field field = LoadingOverlay.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException | RuntimeException e) {
+            LOGGER.warn("[Poly Mod Loader] LoadingOverlay has no field {}; no marks on the loading screen", name);
+            return null;
+        }
     }
 }

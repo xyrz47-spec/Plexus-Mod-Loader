@@ -1,0 +1,35 @@
+package dev.polymodloader.game.layer.v26_3.client;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import dev.polymodloader.game.version.layer.LoadedModCounts;
+import org.junit.jupiter.api.Test;
+
+/** Poly Mod Loader's name in the window title, and its mods line on the loading screen. */
+class PolyWindowTitleTest {
+
+    @Test
+    void everyLoadersTitleNamesPolyModLoader() {
+        assertEquals("Minecraft* Poly 26.2", PolyWindowTitle.named("Minecraft* 26.2", "26.2"));
+        assertEquals("Minecraft* Poly 26.2", PolyWindowTitle.named("Minecraft* Forge 26.2", "26.2"));
+        assertEquals("Minecraft* Poly 26.2", PolyWindowTitle.named("Minecraft NeoForge* 26.2", "26.2"));
+        assertEquals(
+                "Minecraft* Poly 26.2 - Singleplayer",
+                PolyWindowTitle.named("Minecraft* Forge 26.2 - Singleplayer", "26.2"));
+        assertEquals("Minecraft Poly 26.2", PolyWindowTitle.named("Minecraft 26.2", "26.2"));
+    }
+
+    @Test
+    void aTitleWithoutTheVersionStaysAsItIs() {
+        assertEquals("Something else", PolyWindowTitle.named("Something else", "26.2"));
+    }
+
+    @Test
+    void theLoadingScreenNamesTheLoadersWhoseModsRun() {
+        assertEquals("", PolyLoadingOverlay.countsLine(LoadedModCounts.NONE));
+        assertEquals(
+                "Mods: Fabric 34  ·  NeoForge 53  ·  Poly 2",
+                PolyLoadingOverlay.countsLine(new LoadedModCounts(2, 34, 0, 0, 53)));
+        assertEquals(15 * 6 - 1, PolyLoadingOverlay.pixelWidth("Poly Mod Loader"));
+    }
+}

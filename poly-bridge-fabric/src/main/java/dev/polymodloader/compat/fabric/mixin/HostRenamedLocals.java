@@ -215,26 +215,32 @@ final class HostRenamedLocals {
             List<MethodModel> before = HostPatchAdjustments.methods(vanilla, method, descriptor);
             List<MethodModel> after = movedTo(
                     injector, targetName, method, HostPatchAdjustments.methods(patched, method, descriptor), patched);
+            // Where the injection point is a call both methods make, the local is looked up in scope there: a patch
+            // may keep the name in one scope and rename it in another (Forge 26.1-62.0.9's stopServer keeps the first
+            // ServerLevel local's name level and calls the one at ServerLevel.close() levelx).
+            List<String> calls = invokePoints(injector).stream()
+                    .filter(call -> before.stream().anyMatch(model -> HostPatchAdjustments.contains(model, call))
+                            && after.stream().anyMatch(model -> HostPatchAdjustments.contains(model, call)))
+                    .toList();
             List<LocalVariableInfo> named = before.stream()
-                    .flatMap(model -> locals(model).stream())
+                    .flatMap(model -> calls.isEmpty() ? locals(model).stream() : inScopeAt(model, calls).stream())
                     .filter(local -> local.name().equalsString(name))
+                    .toList();
+            List<LocalVariableInfo> patchedLocals = after.stream()
+                    .flatMap(model -> calls.isEmpty() ? locals(model).stream() : inScopeAt(model, calls).stream())
                     .toList();
             if (named.isEmpty()
                     || after.isEmpty()
-                    || after.stream()
-                            .flatMap(model -> locals(model).stream())
-                            .anyMatch(local -> local.name().equalsString(name))) {
+                    || patchedLocals.stream().anyMatch(local -> local.name().equalsString(name))) {
                 return Optional.empty();
             }
             Set<Integer> slots = new HashSet<>();
             named.forEach(local -> slots.add(local.slot()));
             Map<String, ClassDesc> candidates = new HashMap<>();
-            for (MethodModel model : after) {
-                for (LocalVariableInfo local : locals(model)) {
-                    ClassDesc localType = local.typeSymbol();
-                    if (slots.contains(local.slot()) && assignable(localType, type)) {
-                        candidates.put(local.name().stringValue(), localType);
-                    }
+            for (LocalVariableInfo local : patchedLocals) {
+                ClassDesc localType = local.typeSymbol();
+                if (slots.contains(local.slot()) && assignable(localType, type)) {
+                    candidates.put(local.name().stringValue(), localType);
                 }
             }
             if (candidates.size() == 1) {
@@ -557,8 +563,17 @@ final class HostRenamedLocals {
      */
     private static Set<String> localsAt(MethodModel method, String target, ClassDesc type) {
         Set<String> names = new LinkedHashSet<>();
+        inScopeAt(method, List.of(target)).stream()
+                .filter(local -> local.typeSymbol().equals(type))
+                .forEach(local -> names.add(local.name().stringValue()));
+        return names;
+    }
+
+    /** The locals of {@code method} in scope at any of its calls of {@code targets} (Mixin's target notation). */
+    private static List<LocalVariableInfo> inScopeAt(MethodModel method, List<String> targets) {
+        List<LocalVariableInfo> found = new ArrayList<>();
         if (method.code().isEmpty()) {
-            return names;
+            return found;
         }
         List<LocalVariableInfo> locals = locals(method);
         int position = 0;
@@ -566,17 +581,31 @@ final class HostRenamedLocals {
             if (!(element instanceof Instruction instruction)) {
                 continue;
             }
-            if (HostPatchAdjustments.matches(instruction, target)) {
-                int at = position;
+            int at = position;
+            if (targets.stream().anyMatch(target -> HostPatchAdjustments.matches(instruction, target))) {
                 locals.stream()
-                        .filter(local -> local.typeSymbol().equals(type)
-                                && local.startPc() <= at
-                                && at < local.startPc() + local.length())
-                        .forEach(local -> names.add(local.name().stringValue()));
+                        .filter(local -> local.startPc() <= at
+                                && at < local.startPc() + local.length()
+                                && !found.contains(local))
+                        .forEach(found::add);
             }
             position += instruction.sizeInBytes();
         }
-        return names;
+        return found;
+    }
+
+    /** The targets of {@code injector}'s {@code INVOKE} injection points. */
+    private static List<String> invokePoints(Annotation injector) {
+        List<String[]> points = new ArrayList<>();
+        for (AnnotationElement element : injector.elements()) {
+            if (element.name().equalsString("at")) {
+                HostPatchAdjustments.points(element.value(), points);
+            }
+        }
+        return points.stream()
+                .filter(point -> "INVOKE".equals(point[0]) && point[1] != null)
+                .map(point -> point[1])
+                .toList();
     }
 
     private static boolean argsOnly(Annotation local) {

@@ -40,6 +40,8 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
 | `dev.polymodloader.compat.forge.MinecraftForgeBridge` | MinecraftForge 바이너리 패치 세트 적용 및 호스트 셋업 |
 | `dev.polymodloader.compat.forge.ForgeInjectionPoints` | MinecraftForge 패치 대응 주입점 대체 규칙 모음 |
 | `dev.polymodloader.compat.forge.ForeignModIndex` | 타 로더의 모드 메타데이터를 FML SPI 형식으로 변환 |
+| `dev.polymodloader.compat.forge.EarlyScreenArt` | 클라이언트에서 Forge·NeoForge 초기 로딩 창의 애니메이션(모루·여우)과 로고·아이콘을 Poly 큐브(`earlyscreen/*.png`)로 바꿈. 원본 이미지 크기가 확인한 값과 같을 때만, 모듈 리더의 `find`·`open`이 `<게임 폴더>/.poly/early-screen`의 사본을 돌려줌 |
+| `dev.polymodloader.compat.forge.EarlyWindowTitle` | 초기 로딩 창 제목을 `Minecraft* Poly <버전>`으로 바꿈(`DisplayWindow`의 제목 상수가 정확히 한 번일 때만, 상수 풀 문자열만 고쳐 코드·스택 맵은 그대로) |
 
 ---
 

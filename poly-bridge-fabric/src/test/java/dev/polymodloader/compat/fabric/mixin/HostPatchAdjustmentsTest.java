@@ -572,6 +572,74 @@ class HostPatchAdjustmentsTest {
         assertTrue(parameters.contains("constant=builder") && !parameters.contains("constant=values"), parameters);
     }
 
+    /**
+     * The patch kept the local's name in one scope and renamed it in the scope of the injection point (Forge
+     * 26.1-62.0.9's {@code MinecraftServer.stopServer}: {@code level} at its first {@code ServerLevel}, {@code levelx}
+     * at {@code ServerLevel.close()}, where Fabric API's lifecycle events capture {@code @Local(name = "level")}). The
+     * local is looked up in scope at the injection point, so the {@code @Local} takes the name it has there; before,
+     * the name in the other scope hid the rename and Mixin stopped the game ({@code POLY-COMPAT-225}).
+     */
+    @Test
+    void aLocalRenamedOnlyInTheScopeOfTheInjectionPointIsCapturedUnderThatName() throws Exception {
+        byte[] vanilla = scopedLocalTarget("values");
+        byte[] patched = scopedLocalTarget("valuesx");
+        byte[] mixin = localMixin("Lt/Target;old()V");
+        Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", mixin));
+
+        HostPatchAdjustments adjustments = plan(jar, vanilla, patched);
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertEquals("POLY-COMPAT-212", finding.code(), finding.toString());
+        assertTrue(finding.reason().contains("valuesx"), finding.reason());
+        ClassModel applied = ClassFile.of().parse(adjustments.apply("m.MemberAccessor", mixin));
+        String parameters = applied.methods().stream()
+                .filter(method -> method.methodName().equalsString("onRun"))
+                .findFirst()
+                .orElseThrow()
+                .findAttribute(java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
+                .orElseThrow()
+                .parameterAnnotations()
+                .toString();
+        assertTrue(parameters.contains("constant=valuesx"), parameters);
+    }
+
+    /** The same local name in scope at the injection point in both games: nothing changes. */
+    @Test
+    void aLocalWhoseNameTheInjectionPointKeepsIsLeftAlone() throws Exception {
+        byte[] target = scopedLocalTarget("values");
+        byte[] mixin = localMixin("Lt/Target;old()V");
+        Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", mixin));
+
+        HostPatchAdjustments adjustments = plan(jar, target, target);
+
+        assertTrue(adjustments.findings().isEmpty(), adjustments.findings().toString());
+    }
+
+    /**
+     * {@code void run()} with two scopes of a {@code Collection} local at slot 1: {@code values} around a {@code nop},
+     * then {@code second} around a call of {@code old()}.
+     */
+    private static byte[] scopedLocalTarget(String second) {
+        return ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "run", MethodTypeDesc.of(CD_void), ClassFile.ACC_PUBLIC, code -> {
+                                    var firstStart = code.newLabel();
+                                    var firstEnd = code.newLabel();
+                                    var secondStart = code.newLabel();
+                                    var secondEnd = code.newLabel();
+                                    code.aconst_null().astore(1).labelBinding(firstStart);
+                                    code.nop().labelBinding(firstEnd);
+                                    code.aconst_null().astore(1).labelBinding(secondStart);
+                                    code.invokestatic(TARGET, "old", MethodTypeDesc.of(CD_void));
+                                    code.labelBinding(secondEnd).return_();
+                                    code.localVariable(1, "values", CD_Collection, firstStart, firstEnd);
+                                    code.localVariable(1, second, CD_Collection, secondStart, secondEnd);
+                                }));
+    }
+
     /** No local of a usable type where the vanilla one was: the injection cannot run, so the mod is incompatible. */
     @Test
     void aLocalThePatchRemovedIsReported() throws Exception {

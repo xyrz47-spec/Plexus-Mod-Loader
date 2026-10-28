@@ -1057,7 +1057,17 @@ val brokenUnderNeoForge = listOf(
 // TagsUpdatedEvent$ClientPacketReceived, which NeoForge 26.1.2.122's universal jar has and 26.1.0.19-beta's does not
 // (NoClassDefFoundError in the fourth corpusNeoForgeClient run on 26.1, 2026-10-24; the same under NeoForge's own
 // launcher, which loads the same jar with the same FML). The server never reaches that code (corpusNeoForge loads it).
-val brokenOnNeoForgeClient = listOf("lambdynamiclights-4.11.2+26.1.2.jar").filter { minecraft == "26.1" }
+// FancyMenu 3.9.14 for NeoForge 26.3 stops every client on NeoForge 26.3.0.98 (corpusNeoForgeClient and
+// corpusFabricNeoForgeClient, 2026-10-28): its injection into Minecraft.resizeGui reads Minecraft.getInstance().gui,
+// and NeoForge's EarlyWindowHandoff.completeWindowHandoff calls Window.onFramebufferResize whenever the early loading
+// screen is up (EarlyLoadingScreenController.current() non-null, the default), from Minecraft.<init> before it assigns
+// gui (checked with javap -c on the patched client and the universal jar). Poly Mod Loader's code is not on that
+// path; the same launch under NeoForge's own launcher was not run. No newer 26.3 build on Modrinth (2026-10-28).
+val brokenOnNeoForgeClient = when (minecraft) {
+    "26.1" -> listOf("lambdynamiclights-4.11.2+26.1.2.jar")
+    "26.3" -> listOf("fancymenu_neoforge_3.9.14_MC_26.3.jar")
+    else -> listOf()
+}
 val lambDynamicLightsOnNeoForgeClient = brokenOnNeoForgeClient.none { it.startsWith("lambdynamiclights-") }
 fun gameTestCorpus(vararg loaders: String): FileCollection =
     files(loaders.map { loader ->

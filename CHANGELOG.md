@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.3.0 — 2026-10-28
+
+### Highlights
+
+- The loading screens are Poly Mod Loader's with every loader and keep Minecraft's look: Forge's and NeoForge's early window shows Poly Mod Loader's spinning gold cube in place of the anvil and the fox, and the game's loading screen keeps the Mojang logo and progress bar with Poly Mod Loader's cube, name and each loader's mod count.
+- The game window is titled `Minecraft* Poly <Minecraft version>` with every loader, from the first frame.
+- Minecraft 26.1 and 26.1.2: Fabric mods next to Forge mods no longer stop the game as it starts (with Fabric API); 76 and 83 mods of the other loaders load in the popular-mod sets.
+
+### 주요 변경
+
+- 어느 로더로 실행해도 로딩 화면이 Poly 모드 로더의 것이 되고, Minecraft의 모습은 그대로입니다. Forge·NeoForge 초기 창은 모루·여우 자리에 회전하는 Poly 금색 큐브를 보여 주고, 게임의 로딩 화면은 Mojang 로고와 진행 막대를 그대로 두고 Poly 큐브와 이름, 로더별 모드 수를 덧그립니다.
+- 게임 창 제목이 어느 로더에서든 첫 화면부터 `Minecraft* Poly <Minecraft 버전>`입니다.
+- Minecraft 26.1·26.1.2: Forge 모드와 함께 쓰는 Fabric 모드가 더는 게임을 멈추지 않습니다. 인기 모드 묶음에서 다른 로더의 모드가 각각 76개, 83개 로드됩니다.
+
+### Loading screen
+
+- The loading screens are Poly Mod Loader's with every loader, and keep the game's look. MinecraftForge's and NeoForge's early loading window shows Poly Mod Loader's spinning gold cube in place of Forge's anvil and logo and NeoForge's running fox (and NeoForge's window icon and label), and the game's own loading screen that follows keeps the Mojang logo, background and progress bar, with the same cube and name at the bottom right and the mods each loader runs under the bar. Before, Forge and NeoForge showed their own early window, and the game's screen turned into a dark Poly Mod Loader screen. The three system properties that were meant to turn the early window off (`neoforge.earlyprogresswindow`, `fml.earlyprogresswindow`, `forge.forceDisplay`) were never read by FML and are gone.
+- The game window's title is `Minecraft* Poly <Minecraft version>` with every loader (`Minecraft* Forge 26.2` and `Minecraft NeoForge* 26.3` before), from the early window on.
+- 로딩 화면이 어느 로더에서든 Poly 모드 로더의 것이 되고, 게임의 모습은 그대로 둡니다. MinecraftForge·NeoForge의 초기 로딩 창은 Forge의 모루·로고와 NeoForge의 달리는 여우(NeoForge는 창 아이콘과 글자도) 자리에 회전하는 Poly 금색 큐브를 보여 주고, 이어지는 게임의 로딩 화면은 Mojang 로고·배경·진행 막대를 그대로 두고 오른쪽 아래에 같은 큐브와 이름을, 막대 아래에 로더별 모드 수를 덧그립니다. 전에는 Forge·NeoForge가 자기 초기 창을 띄웠고, 게임 화면은 어두운 Poly 화면으로 바뀌었습니다. 초기 창을 끄려던 시스템 속성 세 개(`neoforge.earlyprogresswindow`, `fml.earlyprogresswindow`, `forge.forceDisplay`)는 FML이 읽지 않는 것이라 지웠습니다.
+- 게임 창 제목이 로더와 상관없이 초기 창부터 `Minecraft* Poly <Minecraft 버전>`입니다(전에는 `Minecraft* Forge 26.2`, `Minecraft NeoForge* 26.3`).
+
+### Fixes
+
+- Minecraft 26.1 and 26.1.2, with Forge: Fabric API no longer stops the game with `POLY-COMPAT-225` (`MinecraftServerMixin.onUnloadWorldAtShutdown`). Forge renamed the local `level` to `levelx` only where the server closes its worlds, and the check before launch looked for the name in the whole method; it now looks in scope at the injection point, and the `@Local` captures the renamed local (`POLY-COMPAT-212`). `corpusFabricForge`: 76 foreign mods load on 26.1, 83 on 26.1.2.
+- With Forge, an injection at `Mob.setTarget`'s `asValidTarget` call moves to the target of Forge's `LivingChangeTargetEvent`, which Forge assigns there instead (Puzzles Lib's change-target event on 26.3). Puzzles Lib 26.3 is still left out next to Forge, for Fabric API modules it needs.
+- Minecraft 26.1 and 26.1.2, Forge와 함께: Fabric API가 더는 `POLY-COMPAT-225`로 게임을 멈추지 않습니다(`MinecraftServerMixin.onUnloadWorldAtShutdown`). Forge는 서버가 월드를 닫는 자리에서만 지역 변수 `level`을 `levelx`로 바꿨는데, 시작 전 검사는 메서드 전체에서 이름을 찾았습니다. 이제 주입 지점에서 보이는 범위에서 찾고, `@Local`이 바뀐 이름을 따라갑니다(`POLY-COMPAT-212`). `corpusFabricForge`: 26.1에서 외부 모드 76개, 26.1.2에서 83개가 로드됩니다.
+- Forge와 함께일 때 `Mob.setTarget`의 `asValidTarget` 호출에 대한 주입은 Forge가 그 자리에서 대입하는 `LivingChangeTargetEvent`의 대상으로 옮겨집니다(26.3의 Puzzles Lib 대상 변경 이벤트). 26.3의 Puzzles Lib은 필요한 Fabric API 모듈 때문에 Forge 옆에서 아직 빠집니다.
+
 ## 1.2.5 — 2026-10-28
 
 ### Highlights

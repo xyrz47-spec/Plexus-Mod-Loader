@@ -215,6 +215,18 @@ final class ForgeInjectionPoints {
                         "lambda$createLookup$0",
                         "Lnet/minecraft/resources/RegistryDataLoader;WORLDGEN_REGISTRIES:Ljava/util/List;",
                         "Lnet/minecraft/resources/RegistryDataLoader;getWorldGenAndDimensionStream()Ljava/util/stream/Stream;"),
+                // Mob.setTarget (checked on Forge 26.2-65.1.5 and 26.3-66.1.0): vanilla assigns target =
+                // asValidTarget(target); Forge assigns
+                // ForgeEventFactory.onLivingChangeTargetMob(this, target).getNewTarget() when the event is not
+                // cancelled, and does not call asValidTarget there. The value assigned is the event's new target, so a
+                // @ModifyExpressionValue of the vanilla call (Puzzles Lib 26.3's change-target event) applies to it.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/Mob",
+                        "setTarget",
+                        "Lnet/minecraft/world/entity/Mob;asValidTarget(Lnet/minecraft/world/entity/LivingEntity;)"
+                                + "Lnet/minecraft/world/entity/LivingEntity;",
+                        "Lnet/minecraftforge/event/entity/living/LivingChangeTargetEvent;getNewTarget()"
+                                + "Lnet/minecraft/world/entity/LivingEntity;"),
                 // Forge 26.3-66.1.0 only: RegistriesDatapackGenerator.forWorldLayer and
                 // RegistryPatchGenerator.lambda$createWorldLookup$0 read RegistryDataLoader.WORLD_REGISTRIES in
                 // vanilla;

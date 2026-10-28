@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -137,13 +138,19 @@ final class ForgeBootModules {
 
     /**
      * Defines the BOOT layer in the game class loader. Every module reads Poly Mod Loader's class path ({@code classPath}'s
-     * unnamed module), where the libraries it shares with Minecraft are.
+     * unnamed module), where the libraries it shares with Minecraft are. {@code library} adjusts each library module as
+     * it is read (Poly Mod Loader's art in Forge's early window, {@link EarlyScreenArt}).
      */
-    static ModuleLayer define(Libraries libraries, Path hostJar, GameModuleLayers layers, ClassLoader classPath) {
+    static ModuleLayer define(
+            Libraries libraries,
+            Path hostJar,
+            GameModuleLayers layers,
+            ClassLoader classPath,
+            UnaryOperator<ModuleReference> library) {
         Map<String, ModuleReference> references = new HashMap<>();
         for (ModuleReference reference :
                 ModuleFinder.of(libraries.modules().toArray(Path[]::new)).findAll()) {
-            references.put(reference.descriptor().name(), reference);
+            references.put(reference.descriptor().name(), library.apply(reference));
         }
         references.computeIfPresent(
                 NightConfigEmptyFilePatch.MODULE, (name, reference) -> NightConfigEmptyFilePatch.patching(reference));

@@ -132,6 +132,7 @@ public final class Minecraft26_1Adapter implements GameVersionAdapter {
         rules.addAll(modInitializationRules());
         rules.add(titleScreenModCountsRule());
         rules.add(loadingOverlayRule());
+        rules.add(windowTitleRule());
         rules.add(builtInRegistriesRefreezeRule());
         rules.add(customPayloadEncodingRule());
         return List.copyOf(rules);
@@ -225,9 +226,22 @@ public final class Minecraft26_1Adapter implements GameVersionAdapter {
                 TransformFailurePolicy.DISABLE_RULE);
     }
 
+    /** Poly Mod Loader's name in the game window's title ({@code Minecraft* Poly <version>}), for every loader. */
+    private static TransformRuleDefinition windowTitleRule() {
+        return new TransformRuleDefinition(
+                "poly:client_window_title",
+                "poly",
+                GAME_VERSION,
+                CLIENT_ONLY,
+                new MethodTarget("net/minecraft/client/Minecraft", "createTitle", "()Ljava/lang/String;"),
+                new InvokeHookBeforeReturn(
+                        "dev/polymodloader/game/layer/v26_1/client/PolyWindowTitle", "onCreateTitleReturn"),
+                TransformFailurePolicy.DISABLE_RULE);
+    }
+
     /**
-     * Poly's dedicated loading screen and mod count overlay on {@code LoadingOverlay.extractRenderState}.
-     * Replaces vanilla and third-party loader loading screens.
+     * Poly Mod Loader's marks (its spinning cube and name, and the mods each loader runs) on the game's loading screen,
+     * after {@code LoadingOverlay.extractRenderState} drew it; the screen itself stays the game's.
      */
     private static TransformRuleDefinition loadingOverlayRule() {
         return new TransformRuleDefinition(
@@ -239,10 +253,8 @@ public final class Minecraft26_1Adapter implements GameVersionAdapter {
                         "net/minecraft/client/gui/screens/LoadingOverlay",
                         "extractRenderState",
                         "(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V"),
-                new InvokeHookAtHead(
-                        "dev/polymodloader/game/layer/v26_1/client/PolyLoadingOverlay",
-                        "onExtractRenderState",
-                        HeadHookResult.CANCEL_IF_TRUE),
+                new InvokeHookBeforeReturn(
+                        "dev/polymodloader/game/layer/v26_1/client/PolyLoadingOverlay", "onExtractRenderStateReturn"),
                 TransformFailurePolicy.DISABLE_RULE);
     }
 

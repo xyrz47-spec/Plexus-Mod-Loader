@@ -1,5 +1,6 @@
 package dev.polymodloader.compat.forge;
 
+import dev.polymodloader.api.runtime.GameSide;
 import dev.polymodloader.compat.bridge.BridgeClassTransformer;
 import dev.polymodloader.compat.bridge.BridgeLaunchContext;
 import dev.polymodloader.compat.bridge.GameClassBytes;
@@ -194,7 +195,8 @@ final class ForgeGameHost implements GameHost {
 
     @Override
     public void prepare(GameModuleLayers layers, GameClassBytes classes) throws Exception {
-        ModuleLayer boot = ForgeBootModules.define(libraries, hostJar, layers, ForgeGameHost.class.getClassLoader());
+        ModuleLayer boot = ForgeBootModules.define(
+                libraries, hostJar, layers, ForgeGameHost.class.getClassLoader(), earlyScreen());
         request.log()
                 .accept(name() + ": " + boot.modules().size() + " boot module(s), "
                         + libraries.modFiles().size()
@@ -343,6 +345,19 @@ final class ForgeGameHost implements GameHost {
     @Override
     public Optional<BridgeClassTransformer> classTransformer() {
         return Optional.ofNullable(launch).map(ForgeLaunch::classTransformer);
+    }
+
+    /**
+     * On a client, Forge's early loading window shows Poly Mod Loader's art and title ({@link EarlyScreenArt}, {@link
+     * EarlyWindowTitle}).
+     */
+    private UnaryOperator<ModuleReference> earlyScreen() {
+        if (request.side() != GameSide.CLIENT) {
+            return UnaryOperator.identity();
+        }
+        Path cache = request.gameDirectory().resolve(".poly").resolve("early-screen");
+        return reference -> EarlyWindowTitle.of(
+                EarlyScreenArt.of(reference, cache, request.log()), request.gameVersion(), request.log());
     }
 
     /**
