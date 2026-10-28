@@ -1214,11 +1214,11 @@ val corpusScenarios = listOf(
         expectedOutput.addAll(
             // The corpus mods, the harness and the probe below. Fabric mods whose mixins do not fit Forge's patch are
             // not loaded (ADR-0030), and with them the Fabric mods that need them.
-            // 2026-10-27: no Fabric API module is left out next to Forge any more; Architectury, Balm, Lithium and
-            // Puzzles Lib are.
-            corpusCounts("[Poly Mod Loader] Foreign mods: 87 loaded, 79 not loaded"),
+            // 2026-10-27: no Fabric API module is left out next to Forge any more; Architectury, Balm and Lithium are.
+            // Puzzles Lib runs since its item toss event follows Forge's ForgeHooks.onPlayerTossEvent (87 -> 88 loaded).
+            corpusCounts("[Poly Mod Loader] Foreign mods: 88 loaded, 78 not loaded"),
             corpusCounts(
-                "POLY-COMPAT-224 4 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it: architectury, balm, lithium, puzzleslib",
+                "POLY-COMPAT-224 3 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it: architectury, balm, lithium",
                 "mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge ",
             ),
             "share Fabric's Mixin",
@@ -1290,9 +1290,10 @@ val corpusScenarios = listOf(
         expectedOutput.addAll(
             "Fabric or Quilt mod(s) run together; one Mixin serves both (ADR-0026 30)",
             "[fabric_network_probe] reached the configuration phase: true",
-            // Fabric API's registry sync, which registers the fabric: channels, does not fit NeoForge's patch and is not
-            // loaded (POLY-COMPAT-224, ADR-0030).
-            "[fabric_network_probe] the server registered Fabric channels: false",
+            // Fabric API's registry sync does not fit NeoForge's patch and is not loaded (POLY-COMPAT-224, ADR-0030), but
+            // other Fabric API modules register fabric: channels (fabric:custom_ingredient_sync, fabric:recipe_sync/...;
+            // measured true on 26.2 and 26.3, 2026-10-28).
+            "[fabric_network_probe] the server registered Fabric channels: true",
             "[fabric_network_probe] reached the play phase: true",
             "[fabric_network_probe] the server received Fabric echo \"hello\"",
             "[fabric_network_probe] the server answered Fabric's play payload: true",
@@ -1399,12 +1400,27 @@ val keepsTheServerJvmAlive = listOf("invsearch-storage-indexer-*.jar")
 //   (net.fabricmc:sponge-mixin:0.17.4+mixin.0.8.7). Found by mixinAuditQuiltClient, its only failure in the 26.2,
 //   26.1 and 26.1.2 Quilt corpora.
 val brokenOnQuiltClient = listOf("NeoFullbright-1.0+mc26.2-quilt.jar")
+// Quilt corpus data pack mods whose data the game cannot load, left out of the runs that load a world: PurpurPacks'
+// 26.3 builds (pack.mcmeta max_format 107.1; 26.3's data format is 121) still hold 26.2-format enchantments and
+// advancements, so 26.3's codecs stop the registry load ("No key type in MapLike[{"condition":"minecraft:match_tool"...",
+// then recipe_unlocked advancements). Fabric API's resource loader and the game's codecs read them, as under Quilt
+// Loader (corpusQuilt 26.3, 2026-10-27; with these five left out it passes).
+val quiltDataBrokenOnGame = when (minecraft) {
+    "26.3" -> listOf(
+        "enchant_infinity_on_crossbow_v2.12-quilt.jar",
+        "enchant_looting_on_shears_v1.13-quilt.jar",
+        "enchant_elytra_ignores_unbreaking_v2.12-quilt.jar",
+        "crafting_stonecutting_wood_doors_and_trapdoors_v1.12-quilt.jar",
+        "crafting_stonecutting_wood_slabs_and_stairs_v1.13-quilt.jar",
+    )
+    else -> listOf()
+}
 val quiltBrokenUnderNeoForge = listOf("more-beets-1.0-release.jar").filter { minecraft == "26.1" }
 fun quiltCorpus(gameTestServer: Boolean): FileCollection =
     files(corpusRoot.map {
         it.dir("quilt").asFileTree.matching {
             include("*.jar")
-            exclude(if (gameTestServer) notOnGameTestServer else keepsTheServerJvmAlive)
+            exclude(if (gameTestServer) notOnGameTestServer + quiltDataBrokenOnGame else keepsTheServerJvmAlive)
         }
     })
 // What no Quilt corpus run may show: a bridge that threw (002), and crashes.
@@ -1426,6 +1442,10 @@ val quiltDataPacks = when (minecraft) {
         "stewbeet_more_apples", "dwarfsandgiants", "gateway_of_doom",
     )
     "26.1.2" -> listOf("mr_magic_items", "stewbeet_lifestealfr", "stewbeet_more_apples", "dwarfsandgiants", "gateway_of_doom")
+    "26.3" -> listOf(
+        "beacon_base_amethyst", "crafting_re_dye_glass", "mr_magic_items", "stewbeet_lifestealfr",
+        "vintage_animal_paintings_pack", "dwarfsandgiants",
+    )
     else -> listOf()
 }
 val quiltCorpusScenarios = listOf(
@@ -1530,7 +1550,9 @@ val quiltCorpusScenarios = listOf(
         expectedOutput.addAll(
             // Fabric API modules whose mixins do not fit Forge's patch are not loaded, nor the mods that need them
             // (ADR-0030).
-            corpusCounts("[Poly Mod Loader] Foreign mods: 35 loaded, 214 not loaded"),
+            // 2026-10-27: no Fabric API module is left out next to Forge any more; All Stacks Infinite (a redirect of a
+            // call Forge makes an instance call) and Dwarfs and Giants (a shadow field whose type Forge changed) are (224).
+            corpusCounts("[Poly Mod Loader] Foreign mods: 122 loaded, 127 not loaded"),
             // FusionFix (Quilt) needs Fusion; Forge's build of Fusion, mostly the same classes, stands in for the Fabric
             // build it leaves out (ADR-0026 37).
             corpusCounts("mods that need fusion use MinecraftForge 26.2-65.1.5's build fusion 1.3.16", "share Fabric's Mixin"),
@@ -1539,7 +1561,7 @@ val quiltCorpusScenarios = listOf(
                 "MinecraftForge 26.2-65.1.5: 41 of 47 Forge mod file(s) meet their requirements; 6 left out",
                 "MinecraftForge $minecraft-",
             ),
-            corpusCounts("[Poly Mod Loader] Loaded mods per loader: 0 Poly, 22 Fabric, 13 Quilt, 42 Forge", "[Poly Mod Loader] Loaded mods per loader: "),
+            corpusCounts("[Poly Mod Loader] Loaded mods per loader: 0 Poly, 51 Fabric, 71 Quilt, 42 Forge", "[Poly Mod Loader] Loaded mods per loader: "),
             corpusCounts("b-side-1.0.jar is built for several loaders (QUILT and Forge); MinecraftForge runs it", "share Fabric's Mixin"),
             corpusCounts("POLY-COMPAT-139 Quilt mod voicechat (voicechat-quilt-2.6.25+26.2.jar) is NOT loaded: MinecraftForge 26.2-65.1.5 loads its own build of voicechat", "share Fabric's Mixin"),
             "share Fabric's Mixin",

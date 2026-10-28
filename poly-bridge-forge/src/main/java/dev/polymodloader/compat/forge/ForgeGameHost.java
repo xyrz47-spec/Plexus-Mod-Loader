@@ -220,6 +220,7 @@ final class ForgeGameHost implements GameHost {
                             layers,
                             classes,
                             layerModules(),
+                            request.sharedMixin(),
                             request.log()));
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof Exception cause) {

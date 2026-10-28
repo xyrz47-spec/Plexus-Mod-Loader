@@ -36,6 +36,9 @@ public interface ForgeLaunch {
      * @param classes the game class loader's classes, for launch plugins that read other classes
      * @param layerModules applied to each module of the SERVICE, PLUGIN and GAME layers before the layer is defined;
      *     Poly Mod Loader's checked patches of FML's own classes ({@link ForgeModListPatch}, ADR-0025)
+     * @param sharedMixin whether the Mixin on Poly Mod Loader's class path serves the Forge mods too (Fabric mods run in
+     *     the same launch, ADR-0021 G8); the GAME layer then leaves out the MixinExtras jars FML selected, as MixinExtras
+     *     comes from that class path
      */
     record Request(
             String launchTarget,
@@ -48,6 +51,7 @@ public interface ForgeLaunch {
             GameModuleLayers layers,
             GameClassBytes classes,
             UnaryOperator<ModuleReference> layerModules,
+            boolean sharedMixin,
             Consumer<String> log) {
         public Request {
             gameArguments = List.copyOf(gameArguments);

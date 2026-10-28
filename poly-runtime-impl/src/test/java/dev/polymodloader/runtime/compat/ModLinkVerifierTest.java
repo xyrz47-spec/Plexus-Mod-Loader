@@ -451,4 +451,97 @@ class ModLinkVerifierTest {
                     broken.stream().anyMatch(finding -> finding.code().equals("POLY-COMPAT-137")), broken.toString());
         }
     }
+
+    private static final ClassDesc CONFIG_TYPE = ClassDesc.of("net.neoforged.fml.config.ModConfig$Type");
+
+    /** {@code ModConfig$Type} with one static field of its own type per name, as an enum's constants are. */
+    private static byte[] configType(String... constants) {
+        return ClassFile.of().build(CONFIG_TYPE, cb -> {
+            for (String constant : constants) {
+                cb.withField(constant, CONFIG_TYPE, ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC | ClassFile.ACC_FINAL);
+            }
+        });
+    }
+
+    /**
+     * Forge Config API Port's Fabric build carries its own copy of FML's config classes (FML 11's {@code ModConfig$Type}
+     * with {@code SERVER}). Next to NeoForge, FML's module owns {@code net.neoforged.fml.config}, so the game class loader
+     * defines FML's class of that name, never the mod's: on FML 12, whose {@code ModConfig$Type} has {@code SYNCED}
+     * instead, the mod failed in game with {@code NoSuchFieldError} ({@code corpusFabricOnNeoForge}, 26.3). A reference
+     * to a bundled class of a package the host's loader owns is checked against the host's class and blocks; the bundled
+     * copies themselves are never defined, so their own references are not checked.
+     */
+    @Test
+    void bundledCopiesOfTheHostLoadersClassesAreCheckedAgainstTheHostsClasses() throws IOException {
+        Map<String, byte[]> classes = new LinkedHashMap<>();
+        classes.put(
+                "com/example/port/Entry",
+                ClassFile.of(ClassFile.StackMapsOption.DROP_STACK_MAPS)
+                        .build(
+                                ClassDesc.of("com.example.port.Entry"),
+                                cb -> cb.withMethodBody(
+                                        "run",
+                                        MethodTypeDesc.of(CD_void),
+                                        ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC,
+                                        code -> {
+                                            code.getstatic(CONFIG_TYPE, "SERVER", CONFIG_TYPE);
+                                            code.getstatic(CONFIG_TYPE, "CLIENT", CONFIG_TYPE);
+                                            code.ldc(ClassDesc.of("net.neoforged.fml.config.ConfigTracker"));
+                                            code.return_();
+                                        })));
+        classes.put("net/neoforged/fml/config/ModConfig$Type", configType("COMMON", "CLIENT", "SERVER", "STARTUP"));
+        // A bundled class that refers to a member only the bundled copy has: it is never defined from the mod's jar.
+        classes.put(
+                "net/neoforged/fml/config/ModConfigs",
+                ClassFile.of(ClassFile.StackMapsOption.DROP_STACK_MAPS)
+                        .build(
+                                ClassDesc.of("net.neoforged.fml.config.ModConfigs"),
+                                cb -> cb.withMethodBody(
+                                        "common",
+                                        MethodTypeDesc.of(CD_void),
+                                        ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC,
+                                        code -> {
+                                            code.getstatic(CONFIG_TYPE, "COMMON", CONFIG_TYPE);
+                                            code.return_();
+                                        })));
+        classes.put(
+                "net/neoforged/fml/config/ConfigTracker",
+                ClassFile.of().build(ClassDesc.of("net.neoforged.fml.config.ConfigTracker"), cb -> {}));
+        Path mod = jar("config_port.jar", classes);
+        Path fml12 = jar(
+                "loader-12.jar",
+                Map.of(
+                        "net/neoforged/fml/config/ModConfig$Type",
+                        configType("LOCAL", "CLIENT", "SYNCED", "STARTUP"),
+                        "net/neoforged/fml/config/ModConfigs",
+                        ClassFile.of().build(ClassDesc.of("net.neoforged.fml.config.ModConfigs"), cb -> {})));
+        Path fml11 = jar(
+                "loader-11.jar",
+                Map.of(
+                        "net/neoforged/fml/config/ModConfig$Type",
+                        configType("COMMON", "CLIENT", "SERVER", "STARTUP"),
+                        "net/neoforged/fml/config/ConfigTracker",
+                        ClassFile.of().build(ClassDesc.of("net.neoforged.fml.config.ConfigTracker"), cb -> {})));
+
+        // Without a host, the mod's own copies are the classes it runs with.
+        assertEquals(List.of(), blockingCodes(verify(mod, GameSide.DEDICATED_SERVER, List.of(), List.of())));
+
+        try (ModLinkVerifier verifier =
+                new ModLinkVerifier(List.of(gameJar), getClass().getClassLoader(), GameSide.DEDICATED_SERVER)) {
+            verifier.hostLoaderJars(List.of(fml12));
+            List<CompatibilityFinding> findings = verifier.verify(mod, List.of(), FABRIC_LIKE, List.of());
+
+            assertEquals(List.of("POLY-COMPAT-141", "POLY-COMPAT-141"), blockingCodes(findings));
+            String all = findings.toString();
+            assertTrue(all.contains("net.neoforged.fml.config.ModConfig$Type.SERVER"), all);
+            assertTrue(all.contains("net.neoforged.fml.config.ConfigTracker"), all);
+            assertTrue(!all.contains("CLIENT") && !all.contains("COMMON"), all);
+        }
+        // A host whose classes have what the mod uses (FML 11) lets it load.
+        try (ModLinkVerifier verifier =
+                new ModLinkVerifier(List.of(gameJar), getClass().getClassLoader(), GameSide.DEDICATED_SERVER)) {
+            verifier.hostLoaderJars(List.of(fml11));
+            assertEquals(List.of(), verifier.verify(mod, List.of(), FABRIC_LIKE, List.of()));
+        }
+    }
 }

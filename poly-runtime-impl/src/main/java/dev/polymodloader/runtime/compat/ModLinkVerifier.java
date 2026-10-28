@@ -59,6 +59,10 @@ import java.util.jar.JarFile;
  *       dedicated server, which has none; they are not applied there, as under Fabric Loader
  *   <li>{@code POLY-COMPAT-135} (blocking): an interface injection (Fabric class tweaker {@code inject-interface})
  *       whose interface no installed jar has; the game class would fail to load
+ *   <li>{@code POLY-COMPAT-141} (blocking): with a host loader ({@link #hostLoaderJars}), a class or member of a copy
+ *       of the host loader's own classes that the mod carries, which the host's class of that name lacks. The host
+ *       owns those packages, so its classes run instead of the copy: Forge Config API Port's Fabric build carries FML
+ *       11's {@code ModConfig$Type} and failed next to FML 12, whose type has no {@code SERVER}
  * </ul>
  *
  * <p>Only references in the constant pool are checked; which code paths actually run is not analysed. Members
@@ -106,6 +110,11 @@ public final class ModLinkVerifier implements AutoCloseable {
     private final Set<String> absentOnThisSide = new HashSet<>();
     /** Interfaces installed mods inject, by game class. */
     private final Map<String, Set<String>> injectedInterfaces = new HashMap<>();
+    /** The host loader's own jars ({@link #hostLoaderJars}), their classes outside the game's packages, and packages. */
+    private final List<JarFile> hostJars = new ArrayList<>();
+
+    private final Map<String, JarFile> hostClasses = new HashMap<>();
+    private final Set<String> hostPackages = new HashSet<>();
 
     /**
      * @param gameJarPaths the Minecraft jar (and any jar with game classes) of this launch
@@ -167,6 +176,10 @@ public final class ModLinkVerifier implements AutoCloseable {
                 if (!name.endsWith(".class") || name.startsWith("META-INF/") || name.endsWith("module-info.class")) {
                     continue;
                 }
+                if (hostOwned(name.substring(0, name.length() - 6))) {
+                    // The host's class of this name is defined instead; this copy never runs.
+                    continue;
+                }
                 byte[] bytes;
                 try (InputStream input = jar.getInputStream(entry)) {
                     bytes = input.readAllBytes();
@@ -200,6 +213,48 @@ public final class ModLinkVerifier implements AutoCloseable {
      */
     public void absentOnThisSide(Collection<Path> jars) {
         jars.forEach(jar -> absentOnThisSide.addAll(classesIn(jar)));
+    }
+
+    /**
+     * Records the jars of a host loader's own classes ({@link dev.polymodloader.compat.bridge.GameHost#loaderJars()},
+     * such as NeoForge's FML and universal jar). The host defines them as modules of the game class loader, and a module
+     * owns its packages: a class an installed mod carries in one of those packages is never defined from the mod's jar,
+     * the host's class of that name is ({@code POLY-COMPAT-141} when the host's lacks what the mod uses). Game packages
+     * are left to the game jar's checks. Call before {@link #verify}.
+     *
+     * @throws UncheckedIOException when a jar cannot be read
+     */
+    public void hostLoaderJars(List<Path> jars) {
+        try {
+            for (Path path : jars) {
+                JarFile jar = new JarFile(path.toFile());
+                hostJars.add(jar);
+                jar.stream()
+                        .map(JarEntry::getName)
+                        .filter(name -> name.endsWith(".class")
+                                && !name.startsWith("META-INF/")
+                                && !name.endsWith("module-info.class"))
+                        .map(name -> name.substring(0, name.length() - 6))
+                        .filter(name -> GAME_PACKAGES.stream().noneMatch(name::startsWith))
+                        .forEach(name -> {
+                            hostClasses.putIfAbsent(name, jar);
+                            hostPackages.add(packageOf(name));
+                        });
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot read the host loader's jars for link checks", e);
+        }
+        shapes.clear();
+    }
+
+    /** Whether {@code className} is in a package the host loader's own classes hold ({@link #hostLoaderJars}). */
+    private boolean hostOwned(String className) {
+        return !hostPackages.isEmpty() && hostPackages.contains(packageOf(className));
+    }
+
+    private static String packageOf(String className) {
+        int slash = className.lastIndexOf('/');
+        return slash < 0 ? "" : className.substring(0, slash);
     }
 
     /**
@@ -338,6 +393,21 @@ public final class ModLinkVerifier implements AutoCloseable {
                                         + member.name().stringValue()
                                         + member.type().stringValue());
                     }
+                    if (owner != null
+                            && modClasses.contains(owner)
+                            && hostClasses.containsKey(owner)
+                            && !hasMember(
+                                    owner,
+                                    member.name().stringValue(),
+                                    member.type().stringValue(),
+                                    member instanceof FieldRefEntry)) {
+                        // The mod carries its own copy of a host loader class; the host's is the one defined.
+                        problems.computeIfAbsent("POLY-COMPAT-141|host-member", key -> new TreeSet<>())
+                                .add(owner.replace('/', '.')
+                                        + (member instanceof FieldRefEntry ? "." : "#")
+                                        + member.name().stringValue()
+                                        + member.type().stringValue());
+                    }
                     if (owner != null && gameClasses.containsKey(owner) && !modClasses.contains(owner)) {
                         boolean field = member instanceof FieldRefEntry;
                         String name = member.name().stringValue();
@@ -384,6 +454,11 @@ public final class ModLinkVerifier implements AutoCloseable {
     private void checkClassReference(
             String referenced, Set<String> modClasses, ModLoaderBridge bridge, Map<String, Set<String>> problems) {
         if (modClasses.contains(referenced)) {
+            if (hostOwned(referenced) && !hostClasses.containsKey(referenced)) {
+                // A package the host's module owns: the mod's copy is not defined, and the host has no such class.
+                problems.computeIfAbsent("POLY-COMPAT-141|host-class", key -> new TreeSet<>())
+                        .add(referenced.replace('/', '.'));
+            }
             return;
         }
         boolean runtimePackage = bridge.runtimePackages().stream().anyMatch(referenced::startsWith);
@@ -463,6 +538,13 @@ public final class ModLinkVerifier implements AutoCloseable {
                 case "missing" ->
                     items.size() + " class(es) no installed mod or library has, usually an" + " optional integration: "
                             + examples;
+                case "host-member" ->
+                    items.size() + " method(s) or field(s) of the host loader's own classes that this mod carries a"
+                            + " copy of; the host's classes of those names run instead of the copy, and they lack these"
+                            + " (the copy is from another release of that loader): " + examples;
+                case "host-class" ->
+                    items.size() + " class(es) this mod carries in packages of the host loader's own classes; only"
+                            + " the host's classes run there, and it has none of these: " + examples;
                 case "classfile" -> "class files this Java runtime cannot read: " + examples;
                 case "jdk" -> items.size() + " JDK class(es) this Java runtime does not have: " + examples;
                 case "entrypoint" -> "entrypoint class(es) not found in any installed jar: " + examples;
@@ -564,6 +646,10 @@ public final class ModLinkVerifier implements AutoCloseable {
     private byte[] classBytes(String className) {
         try {
             JarFile jar = gameClasses.get(className);
+            if (jar == null) {
+                // The host's module owns the package: its class is the one defined, not a mod's copy.
+                jar = hostClasses.get(className);
+            }
             if (jar != null) {
                 try (InputStream input = jar.getInputStream(jar.getEntry(className + ".class"))) {
                     return input.readAllBytes();
@@ -659,7 +745,9 @@ public final class ModLinkVerifier implements AutoCloseable {
 
     @Override
     public void close() {
-        for (JarFile jar : gameJars) {
+        List<JarFile> opened = new ArrayList<>(gameJars);
+        opened.addAll(hostJars);
+        for (JarFile jar : opened) {
             try {
                 jar.close();
             } catch (IOException e) {

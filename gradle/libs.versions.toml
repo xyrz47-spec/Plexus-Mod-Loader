@@ -45,6 +45,8 @@ forgeRoimfs = "1.0.0"
 # NeoForge's FancyModLoader and its distribution markers, compiled against (never shipped): Poly Mod Loader's host
 # for FML 11 (ADR-0026). The versions NeoForge 26.2.0.93 uses; the jars come from NeoForge's Maven on the player's PC.
 neoforgeFml = "11.0.16"
+# FML 12, which NeoForge 26.3.0.98 uses: NeoForgeSharedMixinPatchTest checks the patch against its classes too.
+neoforgeFml12 = "12.0.12"
 neoforgeMergetool = "2.0.7"
 # The NeoForge release and its event bus the NeoForge test mods compile against (ADR-0026).
 neoforge = "26.2.0.93"
@@ -93,6 +95,7 @@ forge-fmlcore = { module = "net.minecraftforge:fmlcore", version.ref = "forgeFml
 forge-javafmllanguage = { module = "net.minecraftforge:javafmllanguage", version.ref = "forgeFml" }
 forge-eventbus = { module = "net.minecraftforge:eventbus", version.ref = "forgeEventbus" }
 neoforge-fml-loader = { module = "net.neoforged.fancymodloader:loader", version.ref = "neoforgeFml" }
+neoforge-fml12-loader = { module = "net.neoforged.fancymodloader:loader", version.ref = "neoforgeFml12" }
 neoforge-mergetool-api = { module = "net.neoforged:mergetool", version.ref = "neoforgeMergetool" }
 neoforge-universal = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
 neoforge-bus = { module = "net.neoforged:bus", version.ref = "neoforgeBus" }

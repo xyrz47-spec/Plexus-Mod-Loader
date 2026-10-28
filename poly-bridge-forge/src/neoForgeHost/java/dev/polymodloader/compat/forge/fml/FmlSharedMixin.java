@@ -108,6 +108,55 @@ final class FmlSharedMixin {
     }
 
     /**
+     * FML 12's name of its processor for Mixin's synthetic classes ({@code ClassProcessorIds.MIXIN_FRAME_CONTEXT},
+     * which FML 11, the version this host compiles against, does not have).
+     */
+    static final ProcessorName MIXIN_FRAME_CONTEXT = new ProcessorName("neoforge", "mixin_frame_context");
+
+    /**
+     * In place of FML 12's {@code FMLMixinGeneratingClassProcessor}: one with its name and order (after nothing, before
+     * frame computation and FML's Mixin, late among equals) that handles no class and generates no package, so that
+     * processors ordered around it keep their order. FML's processor would make Mixin's synthetic classes ({@code
+     * org.spongepowered.asm.synthetic.args}) with FML's Mixin, which does not start; the shared Mixin's synthetic
+     * classes come from Poly Mod Loader's bridge stage, as with FML 11, whose one Mixin processor this placeholder's
+     * sibling replaces.
+     */
+    static ClassProcessor placeholderGeneratingProcessor() {
+        return new ClassProcessor() {
+            @Override
+            public ProcessorName name() {
+                return MIXIN_FRAME_CONTEXT;
+            }
+
+            /** As FML's: not {@code ClassProcessor}'s default (after frame computation), which would be a cycle. */
+            @Override
+            public Set<ProcessorName> runsAfter() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<ProcessorName> runsBefore() {
+                return Set.of(ClassProcessorIds.COMPUTING_FRAMES, ClassProcessorIds.MIXIN);
+            }
+
+            @Override
+            public OrderingHint orderingHint() {
+                return OrderingHint.LATE;
+            }
+
+            @Override
+            public boolean handlesClass(SelectionContext context) {
+                return false;
+            }
+
+            @Override
+            public ComputeFlags processClass(TransformationContext context) {
+                return ComputeFlags.NO_REWRITE;
+            }
+        };
+    }
+
+    /**
      * The Mixin configurations FML's {@code MixinFacade.addMixins} would add, found the same way: for each mod file in
      * FML's order, each {@code [[mixins]]} entry whose required mods are present and whose behaviour version FML accepts
      * (FML's checks, which add FML's loading issues; a required mod may be another loader's), unless another mod file declares the same configuration

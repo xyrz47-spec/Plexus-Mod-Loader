@@ -227,6 +227,61 @@ class ForgeInjectionPointsTest {
         assertEquals(Placement.SAME_PLACE, dynamicRegistries.placement());
     }
 
+    /**
+     * {@code ServerPlayer.drop(boolean)}: vanilla drops the removed stack with {@code drop(ItemStack, boolean,
+     * boolean)}; Forge calls {@code ForgeHooks.onPlayerTossEvent}, which makes that call itself (Puzzles Lib's item
+     * toss event runs before it). {@code PersistentEntitySectionManager.addEntity}: Forge fires its join event and
+     * moves the vanilla body, with {@code SectionPos.asLong}, into {@code addEntityWithoutEvent} of the same
+     * descriptor (Architectury's entity add event runs there).
+     */
+    @Test
+    void tossAndEntityAddPointsFollowForgesHooks() {
+        List<InjectionPointReplacement> points = ForgeInjectionPoints.all();
+
+        InjectionPointReplacement toss = point(points, "ServerPlayer;drop(Lnet/minecraft/world/item/ItemStack;ZZ)");
+        assertEquals("net/minecraft/server/level/ServerPlayer", toss.targetClass());
+        assertEquals("drop", toss.method());
+        assertEquals(
+                "Lnet/minecraftforge/common/ForgeHooks;onPlayerTossEvent(Lnet/minecraft/world/entity/player/Player;"
+                        + "Lnet/minecraft/world/item/ItemStack;Z)Lnet/minecraft/world/entity/item/ItemEntity;",
+                toss.replacement());
+        assertEquals(Placement.SAME_PLACE, toss.placement());
+
+        InjectionPointReplacement addEntity = point(points, "SectionPos;asLong(");
+        assertEquals("net/minecraft/world/level/entity/PersistentEntitySectionManager", addEntity.targetClass());
+        assertEquals("addEntity", addEntity.method());
+        assertEquals(
+                "addEntityWithoutEvent(Lnet/minecraft/world/level/entity/EntityAccess;Z)Z", addEntity.replacement());
+        assertEquals(Placement.IN_METHOD, addEntity.placement());
+    }
+
+    /**
+     * Forge 26.3-66.1.0's data generators read {@code RegistryDataLoader.getWorldAndDimensionRegistries()} ({@code
+     * WORLD_REGISTRIES} followed by {@code DIMENSION_REGISTRIES}) where vanilla reads {@code WORLD_REGISTRIES}, which
+     * Fabric API's registry sync redirects in both places.
+     */
+    @Test
+    void worldRegistryReadsFollowForgesWorldAndDimensionList() {
+        List<InjectionPointReplacement> points = ForgeInjectionPoints.all().stream()
+                .filter(point -> point.replaced()
+                        .equals("Lnet/minecraft/resources/RegistryDataLoader;WORLD_REGISTRIES:Ljava/util/List;"))
+                .toList();
+
+        assertEquals(
+                List.of(
+                        "net/minecraft/data/registries/RegistriesDatapackGenerator.forWorldLayer",
+                        "net/minecraft/data/registries/RegistryPatchGenerator.lambda$createWorldLookup$0"),
+                points.stream()
+                        .map(point -> point.targetClass() + "." + point.method())
+                        .toList());
+        for (InjectionPointReplacement point : points) {
+            assertEquals(
+                    "Lnet/minecraft/resources/RegistryDataLoader;getWorldAndDimensionRegistries()Ljava/util/List;",
+                    point.replacement());
+            assertEquals(Placement.FIELD_THEN_HOST_ENTRIES, point.placement());
+        }
+    }
+
     @Test
     void neoForgePointsFollowLanguageAndConfigurationPatches() {
         List<InjectionPointReplacement> points = NeoForgeInjectionPoints.all();
@@ -317,6 +372,14 @@ class ForgeInjectionPointsTest {
                     openMenu.replacement());
             assertEquals(Placement.IN_METHOD, openMenu.placement());
         }
+
+        // NeoForge calls its registry snapshot where vanilla wrapped System.out and System.err, at the end of the
+        // bootstrap; Fabric API's BootstrapMixin (fabric-registry-sync-v0) injects there.
+        InjectionPointReplacement bootStrap = point(points, "Bootstrap;wrapStreams()V");
+        assertEquals("net/minecraft/server/Bootstrap", bootStrap.targetClass());
+        assertEquals("bootStrap", bootStrap.method());
+        assertEquals("Lnet/neoforged/neoforge/registries/GameData;vanillaSnapshot()V", bootStrap.replacement());
+        assertEquals(Placement.SAME_PLACE, bootStrap.placement());
         assertFalse(
                 points.stream()
                         .anyMatch(p -> p.targetClass().equals("net/minecraft/client/gui/Gui")
@@ -336,16 +399,41 @@ class ForgeInjectionPointsTest {
         try (JarFile jar = new JarFile(
                 Path.of(System.getProperty("poly.forgePatchedClient")).toFile())) {
             for (InjectionPointReplacement point : ForgeInjectionPoints.all()) {
-                if (point.placement() == Placement.IN_METHOD) {
+                ClassNode target = read(jar, point.targetClass()).orElseThrow();
+                // For IN_METHOD, name(descriptor) or name of the method that took the body (it may be an overload of
+                // the same name, as travelInFluid); with ":target" it makes another call there.
+                String moved = point.placement() == Placement.IN_METHOD
+                        ? point.replacement().replaceFirst(":.*$", "")
+                        : null;
+                // Every overload of that name (ServerPlayer.drop): none makes the replaced call, one the replacement.
+                List<MethodNode> methods = target.methods.stream()
+                        .filter(candidate ->
+                                candidate.name.equals(point.method()) && (moved == null || !isMethod(candidate, moved)))
+                        .toList();
+                if (point.placement() == Placement.FIELD_THEN_HOST_ENTRIES
+                        && methods.stream().noneMatch(method -> makes(method, point.replacement()))
+                        && (methods.isEmpty()
+                                || methods.stream().anyMatch(method -> makes(method, point.replaced())))) {
+                    // A release without this change: forWorldLayer and getWorldAndDimensionRegistries are 26.3's.
                     continue;
                 }
-                ClassNode target = read(jar, point.targetClass()).orElseThrow();
-                MethodNode method = target.methods.stream()
-                        .filter(candidate -> candidate.name.equals(point.method()))
-                        .findFirst()
-                        .orElseThrow(() -> new AssertionError("no " + point.targetClass() + "." + point.method()));
-                assertFalse(makes(method, point.replaced()), point + ": the replaced call is still there");
-                assertTrue(makes(method, point.replacement()), point + ": the replacement is not there");
+                assertFalse(methods.isEmpty(), "no " + point.targetClass() + "." + point.method());
+                assertTrue(
+                        methods.stream().noneMatch(method -> makes(method, point.replaced())),
+                        point + ": the replaced call is still there");
+                if (moved != null) {
+                    if (!point.replacement().contains(":")) {
+                        assertTrue(
+                                target.methods.stream()
+                                        .anyMatch(candidate ->
+                                                isMethod(candidate, moved) && makes(candidate, point.replaced())),
+                                point + ": the method that took the body does not make the call");
+                    }
+                    continue;
+                }
+                assertTrue(
+                        methods.stream().anyMatch(method -> makes(method, point.replacement())),
+                        point + ": the replacement is not there");
                 if (point.placement() == Placement.AFTER_TRUE_RESULT) {
                     String helper = point.replacement();
                     String name = helper.substring(helper.indexOf(';') + 1, helper.indexOf('('));
@@ -367,6 +455,14 @@ class ForgeInjectionPointsTest {
                 .filter(point -> point.replaced().contains(replaced))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("no point replacing " + replaced));
+    }
+
+    /** Whether {@code method} is {@code spec}: {@code name(descriptor)}, or a bare name. */
+    private static boolean isMethod(MethodNode method, String spec) {
+        int parenthesis = spec.indexOf('(');
+        return parenthesis < 0
+                ? method.name.equals(spec)
+                : method.name.equals(spec.substring(0, parenthesis)) && method.desc.equals(spec.substring(parenthesis));
     }
 
     /** Whether {@code method} has the call or field access {@code target} (Mixin's notation). */

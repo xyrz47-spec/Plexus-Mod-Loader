@@ -41,6 +41,9 @@ Thumbs.db
 # Playwright MCP console logs and page snapshots (local only)
 /.playwright-mcp/
 
+# graphify knowledge graph of this repository (local only)
+/graphify-out/
+
 # Not part of the public repository (ADR-0028)
 /site/
 /.claude/

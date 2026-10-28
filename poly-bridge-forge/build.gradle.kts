@@ -60,6 +60,25 @@ dependencies {
     testImplementation(variantOf(libs.neoforge.mergetool.api) { classifier("api") }) { isTransitive = false }
     // NeoForgeSharedMixinPatchTest verifies FML's patched MixinFacade, whose other methods use Mixin's types.
     testImplementation(libs.sponge.mixin) { isTransitive = false }
+    // FmlSharedMixinPlaceholderTest sorts the host's placeholder processors with FML's own topological sort (Guava).
+    testImplementation(neoForgeHost.output)
+    testImplementation(libs.guava)
+}
+// NeoForgeSharedMixinPatchTest also checks the patch against FML 12 (NeoForge 26.3), whose classes cannot share the test
+// class path with FML 11's; the test reads them from this jar (poly.fml12Loader).
+val neoForgeFml12 = configurations.create("neoForgeFml12") {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+dependencies {
+    neoForgeFml12(libs.neoforge.fml12.loader)
+}
+tasks.test {
+    val fml12 = neoForgeFml12.incoming.files
+    inputs.files(fml12).withPathSensitivity(PathSensitivity.NAME_ONLY).withPropertyName("neoForgeFml12")
+    jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("-Dpoly.fml12Loader=" + fml12.singleFile.absolutePath)
+    })
 }
 val neoForgeHostJar = tasks.register<Jar>("neoForgeHostJar") {
     description = "Packs Poly Mod Loader's host for NeoForge's FML."

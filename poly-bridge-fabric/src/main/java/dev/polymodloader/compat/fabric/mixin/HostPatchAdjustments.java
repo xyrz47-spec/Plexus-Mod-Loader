@@ -45,6 +45,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -68,7 +69,9 @@ import java.util.zip.ZipEntry;
  *             moved the call into a helper that returns true exactly when it made it, a non-cancellable {@code
  *             @Inject} before it runs after each such helper call through a MixinExtras {@code @WrapOperation} bridge
  *             ({@link Wrap}). A call the patch makes with more arguments at the end keeps its injection ({@link
- *             Appended}).
+ *             Appended}). A {@code @WrapOperation} of a call whose {@code Either} result the patch reads with an
+ *             {@code Optional} on the left side (MinecraftForge's conditional registry elements) runs through a bridge
+ *             that hands the handler the vanilla value ({@link HostOptionalResults}).
  *         <li>An {@code @Inject} handler written for a method whose parameters the patch only added to, or reordered so
  *             that each type stands once, stays as a plain method, and a bridge with the patched parameters carries the
  *             injection and passes the original ones on ({@link Bridge}).
@@ -129,6 +132,16 @@ final class HostPatchAdjustments {
             MODIFY_ARG,
             MODIFY_ARGS,
             "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;");
+    /**
+     * Injectors whose handler takes the receiver of the call or field access they target when it has one: their
+     * handler does not fit when the patch makes that call or access static, or makes a static one an instance one.
+     */
+    private static final Set<String> RECEIVER_INJECTORS = Set.of(
+            "Lorg/spongepowered/asm/mixin/injection/Redirect;",
+            "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;",
+            "Lcom/llamalad7/mixinextras/injector/WrapWithCondition;",
+            "Lcom/llamalad7/mixinextras/injector/v2/WrapWithCondition;",
+            "Lcom/llamalad7/mixinextras/injector/ModifyReceiver;");
 
     /**
      * One difference between a mixin and the host's patched class: {@code code} is its error code, {@code leftOut}
@@ -287,6 +300,21 @@ final class HostPatchAdjustments {
     private record RegistrySyncWrap(
             String handler, String descriptor, String targetMethod, String targetMethodDescriptor, String targetCall) {}
 
+    /**
+     * A {@code @WrapOperation} handler ({@code handler} {@code descriptor}) of a call whose {@code Either} result the
+     * patch reads with an {@code Optional} on the left side where vanilla has the value: a bridge hands the handler the
+     * value and wraps its result again ({@link HostOptionalResults}).
+     */
+    private record OptionalLeft(String handler, String descriptor) {}
+
+    /**
+     * A {@code @Redirect} handler ({@code handler} {@code descriptor}) of a static {@code List} field read {@code
+     * replaced} that the patch replaced with the call {@code replacement}, which returns the field's elements followed
+     * by the host's own: a bridge at {@code replacement} returns the handler's list followed by the host's own elements
+     * ({@link HostListExtensions}).
+     */
+    private record HostList(String handler, String descriptor, String replaced, String replacement) {}
+
     private static final String BRIDGE_PREFIX = "poly$hostParameters$";
     private static final String APPENDED_PREFIX = "poly$hostArguments$";
     private static final ClassDesc APPENDED_ARGUMENTS = ClassDesc.of(AppendedArguments.class.getName());
@@ -303,6 +331,8 @@ final class HostPatchAdjustments {
 
     static final HostPatchAdjustments NONE = new HostPatchAdjustments(
             Set.of(),
+            Map.of(),
+            Map.of(),
             Map.of(),
             Map.of(),
             Map.of(),
@@ -336,6 +366,8 @@ final class HostPatchAdjustments {
     private final Map<String, List<FluidWrap>> fluidWraps;
     private final Map<String, List<ItemWrap>> itemWraps;
     private final Map<String, List<RegistrySyncWrap>> registrySyncWraps;
+    private final Map<String, List<OptionalLeft>> optionalLefts;
+    private final Map<String, List<HostList>> hostLists;
 
     private final List<Finding> findings;
 
@@ -360,6 +392,8 @@ final class HostPatchAdjustments {
             Map<String, List<FluidWrap>> fluidWraps,
             Map<String, List<ItemWrap>> itemWraps,
             Map<String, List<RegistrySyncWrap>> registrySyncWraps,
+            Map<String, List<OptionalLeft>> optionalLefts,
+            Map<String, List<HostList>> hostLists,
             List<Finding> findings,
             HostAddedMembers members,
             HostRenamedLocals locals) {
@@ -377,6 +411,8 @@ final class HostPatchAdjustments {
         this.fluidWraps = fluidWraps;
         this.itemWraps = itemWraps;
         this.registrySyncWraps = registrySyncWraps;
+        this.optionalLefts = optionalLefts;
+        this.hostLists = hostLists;
         this.findings = findings;
         this.members = members;
         this.locals = locals;
@@ -420,6 +456,8 @@ final class HostPatchAdjustments {
         Map<String, List<FluidWrap>> fluidWraps = new HashMap<>();
         Map<String, List<ItemWrap>> itemWraps = new HashMap<>();
         Map<String, List<RegistrySyncWrap>> registrySyncWraps = new HashMap<>();
+        Map<String, List<OptionalLeft>> optionalLefts = new HashMap<>();
+        Map<String, List<HostList>> hostLists = new HashMap<>();
         List<Finding> findings = new ArrayList<>();
         HostAddedMembers.Planner members = new HostAddedMembers.Planner(host, classes);
         HostRenamedLocals.Planner locals = new HostRenamedLocals.Planner(host, classes);
@@ -470,9 +508,9 @@ final class HostPatchAdjustments {
                                 local.reason().substring(0, local.reason().indexOf(": "));
                         if (!local.incompatible()
                                 || injections.stream()
-                                        .noneMatch(
-                                                injection -> injection.reason().startsWith(where + " ")
-                                                        || injection.reason().startsWith(where + ":"))) {
+                                        .noneMatch(injection -> injection.doesNotRun()
+                                                && (injection.reason().startsWith(where + " ")
+                                                        || injection.reason().startsWith(where + ":")))) {
                             findings.add(local);
                         }
                     }
@@ -527,6 +565,16 @@ final class HostPatchAdjustments {
                             registrySyncWraps
                                     .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                     .add(injection.registrySyncWrap());
+                        }
+                        if (injection.optionalLeft() != null) {
+                            optionalLefts
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.optionalLeft());
+                        }
+                        if (injection.hostList() != null) {
+                            hostLists
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.hostList());
                         }
                         findings.add(
                                 injection.doesNotRun()
@@ -615,6 +663,8 @@ final class HostPatchAdjustments {
                 Map.copyOf(fluidWraps),
                 Map.copyOf(itemWraps),
                 Map.copyOf(registrySyncWraps),
+                Map.copyOf(optionalLefts),
+                Map.copyOf(hostLists),
                 List.copyOf(findings),
                 members.build(),
                 locals.build());
@@ -659,6 +709,8 @@ final class HostPatchAdjustments {
         List<FluidWrap> ownFluidWraps = fluidWraps.getOrDefault(internalName, List.of());
         List<ItemWrap> ownItemWraps = itemWraps.getOrDefault(internalName, List.of());
         List<RegistrySyncWrap> ownRegistrySyncWraps = registrySyncWraps.getOrDefault(internalName, List.of());
+        List<OptionalLeft> ownOptionalLefts = optionalLefts.getOrDefault(internalName, List.of());
+        List<HostList> ownHostLists = hostLists.getOrDefault(internalName, List.of());
         ClassFile classFile = ClassFile.of();
         ClassModel model = classFile.parse(bytes);
         ClassTransform transform = (builder, element) -> {
@@ -711,15 +763,23 @@ final class HostPatchAdjustments {
                         .filter(candidate -> method.methodName().equalsString(candidate.handler())
                                 && method.methodType().equalsString(candidate.descriptor()))
                         .findFirst();
+                Optional<OptionalLeft> optionalLeft = ownOptionalLefts.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
+                Optional<HostList> hostList = ownHostLists.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
                 boolean withoutInject = bridge.isPresent() || wrap.isPresent() || guarded.isPresent();
                 builder.transformMethod(method, (methodBuilder, methodElement) -> {
                     if (methodElement instanceof RuntimeVisibleAnnotationsAttribute attribute) {
                         methodBuilder.with(RuntimeVisibleAnnotationsAttribute.of(attribute.annotations().stream()
                                 .filter(annotation -> !(withoutInject
                                                 && annotation.className().equalsString(INJECT))
-                                        && !(moved.isPresent()
+                                        && !((moved.isPresent() || optionalLeft.isPresent())
                                                 && annotation.className().equalsString(WRAP_OPERATION))
-                                        && !(inPlaceRedirect.isPresent()
+                                        && !((inPlaceRedirect.isPresent() || hostList.isPresent())
                                                 && annotation.className().equalsString(REDIRECT))
                                         && !(bedWrap.isPresent()
                                                 && (annotation.className().equalsString(WRAP_OPERATION)
@@ -800,6 +860,26 @@ final class HostPatchAdjustments {
                 fluidWrap.ifPresent(present -> fluidWrapMethod(builder, model, method, present));
                 itemWrap.ifPresent(present -> itemWrapMethod(builder, model, method, present));
                 registrySyncWrap.ifPresent(present -> registrySyncWrapMethod(builder, model, method, present));
+                optionalLeft.ifPresent(present -> HostOptionalResults.bridgeMethod(
+                        builder,
+                        model,
+                        method,
+                        adjust(
+                                annotation(method.attributes(), WRAP_OPERATION).orElseThrow(),
+                                handlers,
+                                methodHandlers,
+                                sliceHandlers)));
+                hostList.ifPresent(present -> HostListExtensions.bridgeMethod(
+                        builder,
+                        model,
+                        method,
+                        adjust(
+                                annotation(method.attributes(), REDIRECT).orElseThrow(),
+                                handlers,
+                                methodHandlers,
+                                sliceHandlers),
+                        present.replaced(),
+                        present.replacement()));
             } else {
                 builder.with(element);
             }
@@ -1999,9 +2079,23 @@ final class HostPatchAdjustments {
                 continue;
             }
             for (FieldModel field : mixin.fields()) {
-                if (has(field.attributes(), SHADOW)) {
+                Optional<Annotation> shadow = annotation(field.attributes(), SHADOW);
+                if (shadow.isPresent()) {
+                    // Mixin finds a shadow field by its name or an alias, and its type.
                     String name = field.fieldName().stringValue();
-                    if (hasField(vanilla.get(), name) && !hasField(patched.get(), name)) {
+                    String type = field.fieldType().stringValue();
+                    List<String> names = new ArrayList<>(List.of(name));
+                    shadow.get().elements().stream()
+                            .filter(element -> element.name().equalsString("aliases"))
+                            .forEach(element -> strings(element.value(), names));
+                    if (names.stream().anyMatch(candidate -> hasField(vanilla.get(), candidate, type))
+                            && names.stream().noneMatch(candidate -> hasField(patched.get(), candidate, type))) {
+                        Optional<String> patchedType = fieldType(patched.get(), name);
+                        if (patchedType.isPresent()) {
+                            return Optional.of("its @Shadow field " + name + ":" + type + " of " + targetName
+                                    + " is a " + patchedType.get() + " in the game as " + host.hostName()
+                                    + " patches it, so this mixin is left out");
+                        }
                         return Optional.of(removed(host, targetName, "field " + name, "@Shadow"));
                     }
                 }
@@ -2057,58 +2151,146 @@ final class HostPatchAdjustments {
             BedWrap bedWrap,
             FluidWrap fluidWrap,
             ItemWrap itemWrap,
-            RegistrySyncWrap registrySyncWrap) {
+            RegistrySyncWrap registrySyncWrap,
+            OptionalLeft optionalLeft,
+            HostList hostList) {
 
         Injection(String reason, Retarget retarget) {
-            this(reason, retarget, null, null, null, null, null, null, null, null, null, null, null);
+            this(reason, retarget, null, null, null, null, null, null, null, null, null, null, null, null, null);
         }
 
         static Injection methodRetarget(String reason, MethodRetarget methodRetarget) {
             return new Injection(
-                    reason, null, methodRetarget, null, null, null, null, null, null, null, null, null, null);
+                    reason,
+                    null,
+                    methodRetarget,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
         }
 
         static Injection methodAndPointRetarget(String reason, MethodRetarget methodRetarget, Retarget retarget) {
             return new Injection(
-                    reason, retarget, methodRetarget, null, null, null, null, null, null, null, null, null, null);
+                    reason,
+                    retarget,
+                    methodRetarget,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
         }
 
         static Injection sliceRetarget(String reason, SliceRetarget sliceRetarget) {
             return new Injection(
-                    reason, null, null, sliceRetarget, null, null, null, null, null, null, null, null, null);
+                    reason,
+                    null,
+                    null,
+                    sliceRetarget,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
         }
 
         Injection(String reason, Retarget retarget, InPlaceRedirect inPlaceRedirect) {
-            this(reason, retarget, null, null, inPlaceRedirect, null, null, null, null, null, null, null, null);
+            this(
+                    reason,
+                    retarget,
+                    null,
+                    null,
+                    inPlaceRedirect,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut) {
-            this(reason, retarget, null, null, null, bridge, takenOut, null, null, null, null, null, null);
+            this(reason, retarget, null, null, null, bridge, takenOut, null, null, null, null, null, null, null, null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap) {
-            this(reason, retarget, null, null, null, bridge, takenOut, wrap, null, null, null, null, null);
+            this(reason, retarget, null, null, null, bridge, takenOut, wrap, null, null, null, null, null, null, null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap, Appended appended) {
-            this(reason, retarget, null, null, null, bridge, takenOut, wrap, appended, null, null, null, null);
+            this(
+                    reason, retarget, null, null, null, bridge, takenOut, wrap, appended, null, null, null, null, null,
+                    null);
         }
 
         static Injection bedWrap(String reason, BedWrap bedWrap) {
-            return new Injection(reason, null, null, null, null, null, null, null, null, bedWrap, null, null, null);
+            return new Injection(
+                    reason, null, null, null, null, null, null, null, null, bedWrap, null, null, null, null, null);
         }
 
         static Injection fluidWrap(String reason, FluidWrap fluidWrap) {
-            return new Injection(reason, null, null, null, null, null, null, null, null, null, fluidWrap, null, null);
+            return new Injection(
+                    reason, null, null, null, null, null, null, null, null, null, fluidWrap, null, null, null, null);
         }
 
         static Injection itemWrap(String reason, ItemWrap itemWrap) {
-            return new Injection(reason, null, null, null, null, null, null, null, null, null, null, itemWrap, null);
+            return new Injection(
+                    reason, null, null, null, null, null, null, null, null, null, null, itemWrap, null, null, null);
         }
 
         static Injection registrySyncWrap(String reason, RegistrySyncWrap registrySyncWrap) {
             return new Injection(
-                    reason, null, null, null, null, null, null, null, null, null, null, null, registrySyncWrap);
+                    reason,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    registrySyncWrap,
+                    null,
+                    null);
+        }
+
+        static Injection optionalLeft(String reason, OptionalLeft optionalLeft) {
+            return new Injection(
+                    reason, null, null, null, null, null, null, null, null, null, null, null, null, optionalLeft, null);
+        }
+
+        static Injection hostList(String reason, HostList hostList) {
+            return new Injection(
+                    reason, null, null, null, null, null, null, null, null, null, null, null, null, null, hostList);
         }
 
         /** Whether the injection does not run in the patched game (not moved, bridged or wrapped). */
@@ -2124,6 +2306,8 @@ final class HostPatchAdjustments {
                     && fluidWrap == null
                     && itemWrap == null
                     && registrySyncWrap == null
+                    && optionalLeft == null
+                    && hostList == null
                     && (takenOut != null || reason.endsWith("this injection does not run"));
         }
     }
@@ -2164,7 +2348,8 @@ final class HostPatchAdjustments {
                                         host,
                                         owner -> !owner.startsWith("java/")
                                                 && classes.vanilla(owner).isEmpty()
-                                                && classes.patched(owner).isPresent())
+                                                && classes.patched(owner).isPresent(),
+                                        classes::patched)
                                 .ifPresent(injection -> {
                                     found.add(injection);
                                     adjusted.add(CoupledInjections.key(handler));
@@ -2187,7 +2372,8 @@ final class HostPatchAdjustments {
             ClassModel vanilla,
             ClassModel patched,
             HostedLaunch host,
-            Predicate<String> hostOwned) {
+            Predicate<String> hostOwned,
+            Function<String, Optional<ClassModel>> patchedClasses) {
         List<String> selectors = new ArrayList<>();
         List<String[]> points = new ArrayList<>();
         List<String[]> boundaries = new ArrayList<>();
@@ -2272,6 +2458,27 @@ final class HostPatchAdjustments {
                 }
                 boolean inVanilla = before.stream().anyMatch(method -> contains(method, point[1]));
                 boolean inPatched = after.stream().anyMatch(method -> contains(method, point[1]));
+                if (inVanilla && inPatched && RECEIVER_INJECTORS.contains(type)) {
+                    Optional<String> changedKind = changedKind(point[1], before, after);
+                    if (changedKind.isPresent()) {
+                        return Optional.of(new Injection(
+                                where + " at " + point[0] + " " + point[1] + ": " + host.hostName()
+                                        + "'s patch makes that " + point[0].toLowerCase(Locale.ROOT) + " with "
+                                        + changedKind.get() + ", so the handler, written for the vanilla one, has a"
+                                        + " receiver too many or too few; this injection does not run",
+                                null));
+                    }
+                }
+                if (inVanilla
+                        && inPatched
+                        && point[0].equals("INVOKE")
+                        && HostOptionalResults.readsLeftAsOptional(after, point[1])
+                        && !HostOptionalResults.readsLeftAsOptional(before, point[1])) {
+                    Optional<Injection> optional = optionalLeft(handler, type, where, point[1], host);
+                    if (optional.isPresent()) {
+                        return optional;
+                    }
+                }
                 if (inVanilla && inPatched && before.size() == 1 && after.size() == 1 && point[0].equals("INVOKE")) {
                     Optional<Injection> replaced =
                             hostArgument(handler, type, injector, where, point[1], before, after, host, hostOwned);
@@ -2504,6 +2711,18 @@ final class HostPatchAdjustments {
                             }
                         }
                     }
+                    if (HostListExtensions.fits(
+                            handler, type, point[0], point[1], replacement, after, patchedClasses)) {
+                        return Optional.of(Injection.hostList(
+                                where + " at " + point[1] + ": " + host.hostName() + " reads it through "
+                                        + replacement.replacement() + ", which adds the host's own entries; the"
+                                        + " redirect moves there and returns its list followed by them",
+                                new HostList(
+                                        handler.methodName().stringValue(),
+                                        handler.methodType().stringValue(),
+                                        point[1],
+                                        replacement.replacement())));
+                    }
                     if (replacement.placement() == InjectionPointReplacement.Placement.IN_METHOD) {
                         String rep = replacement.replacement();
                         int colon = rep.indexOf(':');
@@ -2573,6 +2792,39 @@ final class HostPatchAdjustments {
     }
 
     /**
+     * An injection at a call whose {@code Either} result the patch reads with an {@code Optional} of the vanilla value on
+     * the left side ({@link HostOptionalResults}): a {@code @WrapOperation} whose handler the bridge can carry runs
+     * through it; any other {@code @WrapOperation}, and a {@code @Redirect} or {@code @ModifyExpressionValue} (which
+     * would hand the patch the vanilla value), does not run. Injectors that do not see the result are left as they are.
+     */
+    private static Optional<Injection> optionalLeft(
+            MethodModel handler, String type, String where, String target, HostedLaunch host) {
+        String change = where + " at INVOKE " + target + ": " + host.hostName()
+                + "'s patch reads the left side of that call's " + HostOptionalResults.EITHER_NAME
+                + " as a java/util/Optional of the value the vanilla game gets";
+        if (type.equals(WRAP_OPERATION)) {
+            Optional<String> unsupported = HostOptionalResults.unsupportedHandler(handler, target);
+            if (unsupported.isEmpty()) {
+                return Optional.of(Injection.optionalLeft(
+                        change + "; the handler gets the value, its result goes back into an Optional, and an element"
+                                + " the patch skips (an empty Optional) does not reach it",
+                        new OptionalLeft(
+                                handler.methodName().stringValue(),
+                                handler.methodType().stringValue())));
+            }
+            return Optional.of(
+                    new Injection(change + ", and " + unsupported.get() + "; this injection does not run", null));
+        }
+        if (type.equals(REDIRECT) || type.equals(MODIFY_EXPRESSION_VALUE)) {
+            return Optional.of(new Injection(
+                    change + ", which the handler, written for the vanilla value, would replace; this injection"
+                            + " does not run",
+                    null));
+        }
+        return Optional.empty();
+    }
+
+    /**
      * An {@code @Inject} or {@code @WrapOperation} at {@code INVOKE} of a call the patch makes with more arguments at the
      * end (ADR-0026 40): in the patched method, the same owner and name, the vanilla parameters followed by others, the
      * same return type, and at least as many such calls as the vanilla method has of the vanilla one (as many when the
@@ -2634,6 +2886,43 @@ final class HostPatchAdjustments {
         }
         return Optional.of(new Injection(
                 reason, null, null, null, null, new Appended(handlerName, handlerDescriptor, point[1], replacement)));
+    }
+
+    /**
+     * How the patch changed the kind of the instructions {@code target} names in the injection's methods, if it made a
+     * static one an instance one or the reverse: {@code "invokevirtual where vanilla has invokestatic"}. A handler that
+     * takes the receiver of an instance call or field ({@link #RECEIVER_INJECTORS}) has one parameter more than for a
+     * static one, so Mixin rejects it on the other kind. Only a kind the vanilla methods do not have counts: without an
+     * ordinal Mixin applies at every match.
+     */
+    private static Optional<String> changedKind(String target, List<MethodModel> before, List<MethodModel> after) {
+        Map<Boolean, String> vanilla = kinds(before, target);
+        Map<Boolean, String> patched = kinds(after, target);
+        return patched.entrySet().stream()
+                .filter(kind -> !vanilla.containsKey(kind.getKey()))
+                .findFirst()
+                .map(kind -> kind.getValue() + " where vanilla has " + String.join(" and ", vanilla.values()));
+    }
+
+    /** The calls and field accesses {@code target} names in {@code methods}: whether static, to an opcode's name. */
+    private static Map<Boolean, String> kinds(List<MethodModel> methods, String target) {
+        Map<Boolean, String> found = new TreeMap<>();
+        for (MethodModel method : methods) {
+            method.code().ifPresent(code -> {
+                for (CodeElement element : code) {
+                    if ((element instanceof InvokeInstruction || element instanceof FieldInstruction)
+                            && element instanceof java.lang.classfile.Instruction instruction
+                            && containsInstruction(instruction, target)) {
+                        Opcode opcode = instruction.opcode();
+                        boolean isStatic = opcode == Opcode.INVOKESTATIC
+                                || opcode == Opcode.GETSTATIC
+                                || opcode == Opcode.PUTSTATIC;
+                        found.putIfAbsent(isStatic, opcode.name().toLowerCase(Locale.ROOT));
+                    }
+                }
+            });
+        }
+        return found;
     }
 
     /** How many calls of {@code owner.name} each descriptor has in {@code methods}. */
@@ -3064,6 +3353,20 @@ final class HostPatchAdjustments {
         return target.fields().stream().anyMatch(field -> field.fieldName().equalsString(name));
     }
 
+    private static boolean hasField(ClassModel target, String name, String descriptor) {
+        return target.fields().stream()
+                .anyMatch(field -> field.fieldName().equalsString(name)
+                        && field.fieldType().equalsString(descriptor));
+    }
+
+    /** The descriptor of {@code target}'s field {@code name}, if it has one. */
+    private static Optional<String> fieldType(ClassModel target, String name) {
+        return target.fields().stream()
+                .filter(field -> field.fieldName().equalsString(name))
+                .map(field -> field.fieldType().stringValue())
+                .findFirst();
+    }
+
     private static boolean hasMethod(ClassModel target, String name, String descriptor) {
         return !methods(target, name, descriptor).isEmpty();
     }
@@ -3381,13 +3684,13 @@ final class HostPatchAdjustments {
     }
 
     /** Whether one instruction is the one {@code target} names ({@link #contains}). */
-    private static boolean matches(CodeElement element, String target) {
+    static boolean matches(CodeElement element, String target) {
         return element instanceof java.lang.classfile.Instruction instruction
                 && containsInstruction(instruction, target);
     }
 
     /** {@code [value, target, another element's name or null]} of each {@code @At}. */
-    private static void points(AnnotationValue value, List<String[]> out) {
+    static void points(AnnotationValue value, List<String[]> out) {
         if (value instanceof AnnotationValue.OfArray array) {
             array.values().forEach(item -> points(item, out));
         } else if (value instanceof AnnotationValue.OfAnnotation at) {

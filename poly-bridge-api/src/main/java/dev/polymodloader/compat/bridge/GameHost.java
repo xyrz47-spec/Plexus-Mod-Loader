@@ -164,6 +164,18 @@ public interface GameHost {
     }
 
     /**
+     * Jars of the host loader's own classes that it defines as modules of the game class loader (NeoForge's FML and
+     * other loader libraries, and its universal jar), known before {@link #prepare}. A module owns its packages: a class
+     * another loader's mod carries in one of them is never defined from the mod's jar, the host's class of that name is.
+     * The runtime's link check reads them, so that a mod built against another release of these classes (Forge Config
+     * API Port's Fabric build carries a copy of FML's config classes) is left out before it runs ({@code
+     * POLY-COMPAT-141}). Empty by default.
+     */
+    default List<Path> loaderJars() {
+        return List.of();
+    }
+
+    /**
      * Runs the loader's own setup and discovery and defines its module layers, before any game or mod class is defined.
      *
      * @param layers defines module layers in the game class loader

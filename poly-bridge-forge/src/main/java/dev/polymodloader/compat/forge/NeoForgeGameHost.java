@@ -281,6 +281,17 @@ final class NeoForgeGameHost implements GameHost {
         return List.of(files.patchedGame(), files.universal());
     }
 
+    /**
+     * NeoForge's loader libraries that become modules ({@link #prepare}; those Poly Mod Loader's class path has already
+     * stay there) and the universal jar, which FML defines in its game layer.
+     */
+    @Override
+    public List<Path> loaderJars() {
+        List<Path> jars = new ArrayList<>(modules);
+        jars.add(files.universal());
+        return jars;
+    }
+
     @Override
     public void prepare(GameModuleLayers layers, GameClassBytes classes) throws Exception {
         AtomicReference<NeoForgeLoaderPatch.Result> patch = new AtomicReference<>();

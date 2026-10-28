@@ -1,6 +1,7 @@
 package dev.polymodloader.compat.fabric.mixin;
 
 import dev.polymodloader.compat.bridge.HostedLaunch;
+import dev.polymodloader.compat.bridge.InjectionPointReplacement;
 import dev.polymodloader.compat.fabric.mixin.HostPatchAdjustments.Finding;
 import java.lang.classfile.AccessFlags;
 import java.lang.classfile.Annotation;
@@ -9,6 +10,8 @@ import java.lang.classfile.AnnotationValue;
 import java.lang.classfile.Attributes;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
+import java.lang.classfile.CodeElement;
+import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodElement;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.attribute.LocalVariableInfo;
@@ -33,6 +36,13 @@ import java.util.Set;
  * LinkedHashSet builder} for vanilla's {@code SequencedSet values} in {@code TagLoader.tryBuildTag}), the {@code @Local}
  * takes that name and the parameter that type ({@code POLY-COMPAT-212}); the handler's code keeps working, as the new
  * type is assignable to the old one. Otherwise the mod is incompatible ({@code POLY-COMPAT-224}, ADR-0030).
+ *
+ * <p>Also locals a Fabric mixin captures by type alone ({@code @Local} without name, ordinal or index: Mixin takes the
+ * one local of the parameter's type in scope) at a call the host's patch replaced by another at the same place
+ * ({@link InjectionPointReplacement.Placement#SAME_PLACE}), where the injection moves. When the patched method has
+ * several locals of that type in scope there (Forge's {@code ServerPlayer.drop(boolean)} keeps the selected stack beside
+ * vanilla's {@code removed}), Mixin would find no single one. If exactly one of them has the name of the one vanilla
+ * local, the {@code @Local} captures it by that name ({@code POLY-COMPAT-212}); otherwise the mod is incompatible.
  */
 final class HostRenamedLocals {
 
@@ -40,7 +50,10 @@ final class HostRenamedLocals {
 
     private static final String LOCAL = "Lcom/llamalad7/mixinextras/sugar/Local;";
 
-    /** Parameter {@code parameter} of handler {@code handler descriptor}: name {@code from} becomes {@code to}. */
+    /**
+     * Parameter {@code parameter} of handler {@code handler descriptor}: name {@code from} becomes {@code to}; with
+     * {@code from} null, the {@code @Local} without a name gets name {@code to}.
+     */
     private record Rename(String handler, String descriptor, int parameter, String from, String to, ClassDesc type) {}
 
     /** A {@link Rename}, or, without one, why the injection cannot find its local. */
@@ -89,10 +102,53 @@ final class HostRenamedLocals {
                             if (!local.className().equalsString(LOCAL) || argsOnly(local)) {
                                 continue;
                             }
+                            if (implicit(local)) {
+                                for (String selector : selectors(injector.get())) {
+                                    Optional<Outcome> outcome = checkImplicit(
+                                            handler,
+                                            index,
+                                            type,
+                                            injector.get(),
+                                            targetName,
+                                            selector,
+                                            vanilla.get(),
+                                            patched.get());
+                                    if (outcome.isEmpty()) {
+                                        continue;
+                                    }
+                                    String where = where(handler, injector.get(), targetName, selector);
+                                    Rename rename = outcome.get().rename();
+                                    if (rename == null) {
+                                        findings.add(Finding.incompatible(
+                                                modId,
+                                                config,
+                                                mixinName,
+                                                where + ": " + outcome.get().reason(),
+                                                false));
+                                    } else if (own.add(rename)) {
+                                        findings.add(new Finding(
+                                                modId,
+                                                config,
+                                                mixinName,
+                                                where + ": " + outcome.get().reason(),
+                                                false,
+                                                "POLY-COMPAT-212",
+                                                false));
+                                    }
+                                }
+                            }
                             for (String name : names(local)) {
                                 for (String selector : selectors(injector.get())) {
-                                    Optional<Outcome> outcome =
-                                            check(handler, index, name, type, selector, vanilla.get(), patched.get());
+                                    Optional<Outcome> outcome = check(
+                                            handler,
+                                            index,
+                                            name,
+                                            type,
+                                            injector.get(),
+                                            targetName,
+                                            selector,
+                                            vanilla.get(),
+                                            patched.get());
                                     if (outcome.isEmpty()) {
                                         continue;
                                     }
@@ -136,13 +192,17 @@ final class HostRenamedLocals {
 
         /**
          * The rename of local {@code name} that parameter {@code parameter} ({@code type}) of {@code handler} captures
-         * in the target method {@code selector}, or why it cannot be found; empty when the patch kept that local.
+         * in the target method {@code selector}, or why it cannot be found; empty when the patch kept that local. When
+         * the patch moved the body with {@code injector}'s point into another method ({@link
+         * InjectionPointReplacement.Placement#IN_METHOD}), where the injection moves, the local is looked up there.
          */
         private Optional<Outcome> check(
                 MethodModel handler,
                 int parameter,
                 String name,
                 ClassDesc type,
+                Annotation injector,
+                String targetName,
                 String selector,
                 ClassModel vanilla,
                 ClassModel patched) {
@@ -153,7 +213,8 @@ final class HostRenamedLocals {
                 return Optional.empty();
             }
             List<MethodModel> before = HostPatchAdjustments.methods(vanilla, method, descriptor);
-            List<MethodModel> after = HostPatchAdjustments.methods(patched, method, descriptor);
+            List<MethodModel> after = movedTo(
+                    injector, targetName, method, HostPatchAdjustments.methods(patched, method, descriptor), patched);
             List<LocalVariableInfo> named = before.stream()
                     .flatMap(model -> locals(model).stream())
                     .filter(local -> local.name().equalsString(name))
@@ -194,6 +255,141 @@ final class HostRenamedLocals {
                     host.hostName() + "'s patch removed or renamed the local " + name + " that its @Local"
                             + " captures, and no single local of type " + type.descriptorString()
                             + " takes its place; this injection does not run"));
+        }
+
+        /**
+         * For parameter {@code parameter} ({@code type}) of {@code handler}, whose {@code @Local} names no local: the
+         * name it takes where {@code injector} moves in the target method {@code selector} of {@code targetName}, or why
+         * it cannot capture the local it captures on the vanilla game; empty when the injection does not move there
+         * through a {@link InjectionPointReplacement.Placement#SAME_PLACE} replacement, or one local of that type is in
+         * scope at the vanilla and at the patched point.
+         */
+        private Optional<Outcome> checkImplicit(
+                MethodModel handler,
+                int parameter,
+                ClassDesc type,
+                Annotation injector,
+                String targetName,
+                String selector,
+                ClassModel vanilla,
+                ClassModel patched) {
+            String method = selector.replaceFirst("^L[^;]+;", "");
+            String descriptor = method.contains("(") ? method.substring(method.indexOf('(')) : null;
+            method = descriptor == null ? method : method.substring(0, method.indexOf('('));
+            if (method.contains("*") || method.startsWith("/") || method.contains(".")) {
+                return Optional.empty();
+            }
+            List<MethodModel> before = HostPatchAdjustments.methods(vanilla, method, descriptor);
+            List<MethodModel> after = HostPatchAdjustments.methods(patched, method, descriptor);
+            if (before.isEmpty() || after.isEmpty()) {
+                return Optional.empty();
+            }
+            if (descriptor == null) {
+                // Without a descriptor Mixin injects into the first method of that name only.
+                before = List.of(before.getFirst());
+                after = List.of(after.getFirst());
+            }
+            List<String[]> points = new ArrayList<>();
+            for (AnnotationElement element : injector.elements()) {
+                if (element.name().equalsString("at")) {
+                    HostPatchAdjustments.points(element.value(), points);
+                }
+            }
+            for (String[] point : points) {
+                String target = point[1];
+                if (!"INVOKE".equals(point[0])
+                        || target == null
+                        || after.stream().anyMatch(model -> HostPatchAdjustments.contains(model, target))) {
+                    continue;
+                }
+                String name = method;
+                List<MethodModel> patchedMethods = after;
+                Optional<String> replacement = host.injectionPointReplacements().stream()
+                        .filter(candidate -> candidate.placement() == InjectionPointReplacement.Placement.SAME_PLACE
+                                && candidate.targetClass().equals(targetName)
+                                && candidate.method().equals(name)
+                                && candidate.replaced().equals(target)
+                                && patchedMethods.stream()
+                                        .anyMatch(
+                                                model -> HostPatchAdjustments.contains(model, candidate.replacement())))
+                        .map(InjectionPointReplacement::replacement)
+                        .findFirst();
+                if (replacement.isEmpty()) {
+                    continue;
+                }
+                Set<String> vanillaLocals = new LinkedHashSet<>();
+                before.forEach(model -> vanillaLocals.addAll(localsAt(model, target, type)));
+                Set<String> patchedLocals = new LinkedHashSet<>();
+                after.forEach(model -> patchedLocals.addAll(localsAt(model, replacement.get(), type)));
+                if (vanillaLocals.size() != 1 || patchedLocals.size() == 1) {
+                    continue;
+                }
+                String local = vanillaLocals.iterator().next();
+                if (patchedLocals.contains(local)) {
+                    return Optional.of(new Outcome(
+                            new Rename(
+                                    handler.methodName().stringValue(),
+                                    handler.methodType().stringValue(),
+                                    parameter,
+                                    null,
+                                    local,
+                                    type),
+                            host.hostName() + "'s patch has " + patchedLocals.size() + " locals of type "
+                                    + type.descriptorString() + " " + patchedLocals + " at " + replacement.get()
+                                    + ", where the injection moves; its @Local captures the vanilla local " + local
+                                    + " by that name"));
+                }
+                return Optional.of(new Outcome(
+                        null,
+                        host.hostName() + "'s patch has " + patchedLocals.size() + " locals of type "
+                                + type.descriptorString() + " " + patchedLocals + " at " + replacement.get()
+                                + ", where the injection moves, and none named " + local + " as on the vanilla"
+                                + " game; its @Local without a name cannot capture one; this injection does not run"));
+            }
+            return Optional.empty();
+        }
+
+        /**
+         * The patched methods {@code injector} applies to in {@code method} of {@code targetName}: {@code after}, or,
+         * when the patch moved the body with one of its points into another method ({@link
+         * InjectionPointReplacement.Placement#IN_METHOD}) as {@link HostPatchAdjustments} moves the injection, that
+         * method.
+         */
+        private List<MethodModel> movedTo(
+                Annotation injector, String targetName, String method, List<MethodModel> after, ClassModel patched) {
+            List<String[]> points = new ArrayList<>();
+            for (AnnotationElement element : injector.elements()) {
+                if (element.name().equalsString("at")) {
+                    HostPatchAdjustments.points(element.value(), points);
+                }
+            }
+            for (String[] point : points) {
+                String target = point[1];
+                if (target == null || after.stream().anyMatch(model -> HostPatchAdjustments.contains(model, target))) {
+                    continue;
+                }
+                for (InjectionPointReplacement replacement : host.injectionPointReplacements()) {
+                    if (replacement.placement() != InjectionPointReplacement.Placement.IN_METHOD
+                            || !replacement.targetClass().equals(targetName)
+                            || !replacement.method().equals(method)
+                            || !replacement.replaced().equals(target)) {
+                        continue;
+                    }
+                    String spec = replacement.replacement();
+                    int colon = spec.indexOf(':');
+                    String moved = colon < 0 ? spec : spec.substring(0, colon);
+                    String movedTarget = colon < 0 ? target : spec.substring(colon + 1);
+                    int parenthesis = moved.indexOf('(');
+                    List<MethodModel> found = HostPatchAdjustments.methods(
+                            patched,
+                            parenthesis < 0 ? moved : moved.substring(0, parenthesis),
+                            parenthesis < 0 ? null : moved.substring(parenthesis));
+                    if (found.stream().anyMatch(model -> HostPatchAdjustments.contains(model, movedTarget))) {
+                        return found;
+                    }
+                }
+            }
+            return after;
         }
 
         /** Whether a value of {@code from} can be passed where {@code to} is expected. */
@@ -286,6 +482,17 @@ final class HostRenamedLocals {
                         if (!annotation.className().equalsString(LOCAL)) {
                             return annotation;
                         }
+                        Optional<Rename> named = renames.stream()
+                                .filter(rename -> rename.parameter() == parameter && rename.from() == null)
+                                .findFirst();
+                        if (named.isPresent() && implicit(annotation)) {
+                            List<AnnotationElement> elements = new ArrayList<>(annotation.elements());
+                            elements.add(AnnotationElement.of(
+                                    "name",
+                                    AnnotationValue.ofArray(
+                                            AnnotationValue.ofString(named.get().to()))));
+                            return Annotation.of(annotation.classSymbol(), elements);
+                        }
                         List<AnnotationElement> elements = new ArrayList<>();
                         for (AnnotationElement element : annotation.elements()) {
                             if (element.name().equalsString("name")
@@ -296,8 +503,8 @@ final class HostRenamedLocals {
                                                 .map(value -> value instanceof AnnotationValue.OfString text
                                                         ? renames.stream()
                                                                 .filter(rename -> rename.parameter() == parameter
-                                                                        && rename.from()
-                                                                                .equals(text.stringValue()))
+                                                                        && text.stringValue()
+                                                                                .equals(rename.from()))
                                                                 .findFirst()
                                                                 .<AnnotationValue>map(
                                                                         rename -> AnnotationValue.ofString(rename.to()))
@@ -334,6 +541,42 @@ final class HostRenamedLocals {
         for (int index = 0; index < annotations.size() && offset >= 0; index++) {
             result.get(offset + index).addAll(annotations.get(index));
         }
+    }
+
+    /** Whether {@code local} names no local: no name, ordinal or index, so Mixin takes the one local of its type. */
+    private static boolean implicit(Annotation local) {
+        return local.elements().stream()
+                .noneMatch(element -> element.name().equalsString("name")
+                        || element.name().equalsString("ordinal")
+                        || element.name().equalsString("index"));
+    }
+
+    /**
+     * The names of the locals of exactly {@code type} (in the local variable table, parameters included) in scope at
+     * each instruction of {@code method} that {@code target} names (Mixin's notation).
+     */
+    private static Set<String> localsAt(MethodModel method, String target, ClassDesc type) {
+        Set<String> names = new LinkedHashSet<>();
+        if (method.code().isEmpty()) {
+            return names;
+        }
+        List<LocalVariableInfo> locals = locals(method);
+        int position = 0;
+        for (CodeElement element : method.code().get()) {
+            if (!(element instanceof Instruction instruction)) {
+                continue;
+            }
+            if (HostPatchAdjustments.matches(instruction, target)) {
+                int at = position;
+                locals.stream()
+                        .filter(local -> local.typeSymbol().equals(type)
+                                && local.startPc() <= at
+                                && at < local.startPc() + local.length())
+                        .forEach(local -> names.add(local.name().stringValue()));
+            }
+            position += instruction.sizeInBytes();
+        }
+        return names;
     }
 
     private static boolean argsOnly(Annotation local) {

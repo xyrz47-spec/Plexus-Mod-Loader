@@ -188,6 +188,13 @@ public final class PolyModLauncher implements ForgeLaunch, IModuleLayerManager {
             collect(scanned, service.completeScan(this));
         }
         List<SecureJar> gameJars = scanned.getOrDefault(Layer.GAME, List.of());
+        if (request.sharedMixin()) {
+            // ForgeLaunch comes from Poly Mod Loader's class path, as the shared Mixin and MixinExtras do.
+            gameJars = SharedMixinExtras.withoutMixinExtras(
+                    gameJars,
+                    ForgeLaunch.class.getClassLoader().getResource(SharedMixinExtras.MIXIN_EXTRAS) != null,
+                    request.log());
+        }
         define(Layer.GAME, gameJars, true);
         request.log().accept("FML's game layer: " + gameJars.size() + " module(s)");
 

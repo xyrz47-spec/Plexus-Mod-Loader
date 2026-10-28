@@ -179,6 +179,16 @@ public final class PolyFml implements NeoForgeLaunch {
     }
 
     /**
+     * In place of FML 12's {@code MixinFacade.getGeneratingClassProcessor()} when Fabric's Mixin is shared ({@code
+     * NeoForgeSharedMixinPatch}, ADR-0026 30): a processor with the name and order of FML's processor for Mixin's
+     * synthetic classes that handles no class. The shared Mixin's synthetic classes come from Poly Mod Loader's bridge
+     * stage ({@code BridgeClassTransformer.generate}).
+     */
+    public static ClassProcessor mixinGeneratingClassProcessor(MixinFacade facade) {
+        return FmlSharedMixin.placeholderGeneratingProcessor();
+    }
+
+    /**
      * In place of {@code MixinFacade.finishInitialization} when Fabric's Mixin is shared ({@code
      * NeoForgeSharedMixinPatch}, ADR-0026 30): the configurations FML would give its Mixin ({@link
      * FmlSharedMixin#configurations}), for the bridge whose Mixin serves every loader ({@link #sharedMixinConfigs()}),

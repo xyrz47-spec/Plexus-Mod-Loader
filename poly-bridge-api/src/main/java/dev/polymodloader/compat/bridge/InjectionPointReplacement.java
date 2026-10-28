@@ -46,7 +46,16 @@ public record InjectionPointReplacement(
          * replaced} whose handler takes no target method parameters (or where {@code replacement} has the same
          * descriptor) moves to {@code replacement}.
          */
-        IN_METHOD
+        IN_METHOD,
+        /**
+         * {@code replaced} is a static {@code List} field, and {@code replacement} a static method of the same class
+         * without parameters that returns that field's elements, in order, followed by the host's own (as a {@code
+         * List} or a {@code Stream}): MinecraftForge 26.3's {@code RegistryDataLoader.getWorldAndDimensionRegistries()}
+         * in place of {@code WORLD_REGISTRIES}. A {@code @Redirect} of the field read, whose handler returns the list a
+         * mod reads in its place, moves to {@code replacement} through a bridge that returns the handler's list
+         * followed by the host's own elements, so that both loaders' additions are there.
+         */
+        FIELD_THEN_HOST_ENTRIES
     }
 
     /** A replacement at the same place ({@link Placement#SAME_PLACE}). */

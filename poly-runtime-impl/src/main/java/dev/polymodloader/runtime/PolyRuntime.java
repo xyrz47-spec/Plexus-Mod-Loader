@@ -300,6 +300,8 @@ public final class PolyRuntime {
         }
         try (ModLinkVerifier linkVerifier = new ModLinkVerifier(
                 List.of(configuration.gameJar()), PolyRuntime.class.getClassLoader(), configuration.side())) {
+            // Classes in the host loader's packages come from the host, not from copies mods carry (ADR-0014).
+            host.ifPresent(found -> linkVerifier.hostLoaderJars(found.loaderJars()));
             linkVerifier.absentOnThisSide(assessedForeignMods.stream()
                     .filter(mod -> mod.assessment().findings().stream()
                             .anyMatch(finding -> finding.code().equals("POLY-COMPAT-108")))

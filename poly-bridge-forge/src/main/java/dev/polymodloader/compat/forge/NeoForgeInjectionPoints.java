@@ -139,6 +139,16 @@ final class NeoForgeInjectionPoints {
                         "openMenu",
                         "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V",
                         "openMenu(Lnet/minecraft/world/MenuProvider;Ljava/util/function/Consumer;)Ljava/util/OptionalInt;",
-                        InjectionPointReplacement.Placement.IN_METHOD));
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // Bootstrap.bootStrap: vanilla calls wrapStreams() last, after CreativeModeTabs.validate(), where
+                // Fabric API's BootstrapMixin (fabric-registry-sync-v0) injects afterInitialize. NeoForge calls
+                // GameData.vanillaSnapshot() in its place and wrapStreams nowhere. afterInitialize only adds
+                // listeners and changes no registry, so it runs before the snapshot as it ran before wrapStreams.
+                // Only an @Inject moves there (the owner differs).
+                new InjectionPointReplacement(
+                        "net/minecraft/server/Bootstrap",
+                        "bootStrap",
+                        "Lnet/minecraft/server/Bootstrap;wrapStreams()V",
+                        "Lnet/neoforged/neoforge/registries/GameData;vanillaSnapshot()V"));
     }
 }

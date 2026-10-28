@@ -12,6 +12,10 @@ import java.util.List;
 final class ForgeInjectionPoints {
 
     private static final String GAME_MODE = "net/minecraft/server/level/ServerPlayerGameMode";
+    private static final String WORLD_REGISTRIES =
+            "Lnet/minecraft/resources/RegistryDataLoader;WORLD_REGISTRIES:Ljava/util/List;";
+    private static final String WORLD_AND_DIMENSION_REGISTRIES =
+            "Lnet/minecraft/resources/RegistryDataLoader;getWorldAndDimensionRegistries()Ljava/util/List;";
 
     private ForgeInjectionPoints() {}
 
@@ -179,12 +183,54 @@ final class ForgeInjectionPoints {
                         "lambda$getAvailableEnchantmentResults$0",
                         "Lnet/minecraft/world/item/enchantment/Enchantment;isPrimaryItem(Lnet/minecraft/world/item/ItemStack;)Z",
                         "Lnet/minecraft/world/item/ItemStack;canApplyAtEnchantingTable(Lnet/minecraft/core/Holder;)Z"),
+                // ServerPlayer.drop(boolean): vanilla drops the stack it removed from the selected slot with
+                // drop(ItemStack, boolean, boolean). Forge calls ForgeHooks.onPlayerTossEvent(player, removed, true)
+                // there, which makes that call itself (through Player.drop) and then fires ItemTossEvent; what comes
+                // before (removing the stack, stopping item use) is vanilla's. Puzzles Lib's item toss event
+                // (cancellable) runs before it. Forge also keeps the selected stack in a new local of the same type;
+                // HostRenamedLocals makes an implicit @Local there capture vanilla's `removed` by name. This and the
+                // next point were checked against 26.2-65.1.5 only; the bridge checks the patched class anyway.
+                new InjectionPointReplacement(
+                        "net/minecraft/server/level/ServerPlayer",
+                        "drop",
+                        "Lnet/minecraft/server/level/ServerPlayer;drop(Lnet/minecraft/world/item/ItemStack;ZZ)"
+                                + "Lnet/minecraft/world/entity/item/ItemEntity;",
+                        "Lnet/minecraftforge/common/ForgeHooks;onPlayerTossEvent(Lnet/minecraft/world/entity/player/"
+                                + "Player;Lnet/minecraft/world/item/ItemStack;Z)Lnet/minecraft/world/entity/item/"
+                                + "ItemEntity;"),
+                // PersistentEntitySectionManager.addEntity(EntityAccess, boolean): Forge fires EntityJoinLevelEvent
+                // and moves the vanilla body unchanged into addEntityWithoutEvent of the same descriptor (also called
+                // by Forge's addNewEntityWithoutEvent, for ServerLevel.addPlayer). Architectury's entity add event
+                // (cancellable, returning false) runs there before SectionPos.asLong.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/level/entity/PersistentEntitySectionManager",
+                        "addEntity",
+                        "Lnet/minecraft/core/SectionPos;asLong(Lnet/minecraft/core/BlockPos;)J",
+                        "addEntityWithoutEvent(Lnet/minecraft/world/level/entity/EntityAccess;Z)Z",
+                        InjectionPointReplacement.Placement.IN_METHOD),
                 // RegistryPatchGenerator.lambda$createLookup$0: vanilla reads RegistryDataLoader.WORLDGEN_REGISTRIES.
                 // Forge calls RegistryDataLoader.getWorldGenAndDimensionStream().
                 new InjectionPointReplacement(
                         "net/minecraft/data/registries/RegistryPatchGenerator",
                         "lambda$createLookup$0",
                         "Lnet/minecraft/resources/RegistryDataLoader;WORLDGEN_REGISTRIES:Ljava/util/List;",
-                        "Lnet/minecraft/resources/RegistryDataLoader;getWorldGenAndDimensionStream()Ljava/util/stream/Stream;"));
+                        "Lnet/minecraft/resources/RegistryDataLoader;getWorldGenAndDimensionStream()Ljava/util/stream/Stream;"),
+                // Forge 26.3-66.1.0 only: RegistriesDatapackGenerator.forWorldLayer and
+                // RegistryPatchGenerator.lambda$createWorldLookup$0 read RegistryDataLoader.WORLD_REGISTRIES in
+                // vanilla;
+                // Forge calls getWorldAndDimensionRegistries(), which returns WORLD_REGISTRIES followed by
+                // DIMENSION_REGISTRIES. Fabric API's registry sync redirects both reads to its own world registries.
+                new InjectionPointReplacement(
+                        "net/minecraft/data/registries/RegistriesDatapackGenerator",
+                        "forWorldLayer",
+                        WORLD_REGISTRIES,
+                        WORLD_AND_DIMENSION_REGISTRIES,
+                        InjectionPointReplacement.Placement.FIELD_THEN_HOST_ENTRIES),
+                new InjectionPointReplacement(
+                        "net/minecraft/data/registries/RegistryPatchGenerator",
+                        "lambda$createWorldLookup$0",
+                        WORLD_REGISTRIES,
+                        WORLD_AND_DIMENSION_REGISTRIES,
+                        InjectionPointReplacement.Placement.FIELD_THEN_HOST_ENTRIES));
     }
 }

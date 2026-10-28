@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.2.5 — 2026-10-28
+
+### Highlights
+
+- Minecraft 26.3: Fabric and Quilt mods run next to NeoForge and Forge mods again. In 1.2.4 these games stopped at startup or while loading.
+- Minecraft 26.3 with Forge: Fabric API's registry sync and the mods that need it load; Fabric mods that add blocks no longer stop the game, and data packs with Fabric API load without a crash.
+- With Forge, Puzzles Lib's Fabric build (and the mods that need it) loads again on 26.2.
+- Mods that Poly Mod Loader cannot run next to Forge or NeoForge are left out before the game starts, with the reason, instead of crashing it.
+
+### 주요 변경
+
+- Minecraft 26.3: Fabric·Quilt 모드를 NeoForge·Forge 모드와 한 게임에서 다시 쓸 수 있습니다. 1.2.4에서는 이런 게임이 시작하거나 불러오는 중에 멈췄습니다.
+- Minecraft 26.3, Forge와 함께: Fabric API의 레지스트리 동기화와 그것이 필요한 모드가 로드됩니다. 블록을 더하는 Fabric 모드가 게임을 멈추지 않고, Fabric API가 있을 때 데이터 팩도 크래시 없이 읽습니다.
+- Forge와 함께일 때 26.2에서 Puzzles Lib의 Fabric 판(과 그것이 필요한 모드)이 다시 로드됩니다.
+- Forge·NeoForge 옆에서 실행할 수 없는 모드는 게임을 멈추는 대신 게임 시작 전에 이유와 함께 빠집니다.
+
+### Fixes
+
+- With Forge, Puzzles Lib's Fabric build loads again (and with it the Fabric mods that need it): its injection into `ServerPlayer.drop` follows Forge's `ForgeHooks.onPlayerTossEvent`, and its `@Local` capture is matched by the vanilla local's name where Forge added a second local of the same type.
+- With Forge, Fabric injections into `PersistentEntitySectionManager.addEntity` move into Forge's `addEntityWithoutEvent`, which holds the vanilla body.
+- With NeoForge, Fabric API's registry sync `@Inject` at `Bootstrap.wrapStreams()` moves to `GameData.vanillaSnapshot()`, which NeoForge calls there instead. `fabric-registry-sync-v0` is still left out for other parts.
+- Minecraft 26.3: Fabric and Quilt mods next to NeoForge mods start again. NeoForge 26.3's FML 12 adds a second Mixin class processor (`neoforge:mixin_frame_context`), which Poly Mod Loader's shared Mixin left empty, so every such game stopped with `POLY-COMPAT-208` before 1.2.5. The shared Mixin now fills it, and the shape checks accept FML 11 and FML 12 only.
+- Minecraft 26.3, with Forge: a Forge mod that ships a newer MixinExtras (Carry On 2.12.0) no longer stops the game. With a shared Mixin, FML's copy of MixinExtras is left out of the game layer, as NeoForge's host already did.
+- Next to Forge, the check before launch now leaves out a Fabric or Quilt mod with `POLY-COMPAT-224` when Forge's patch made a call it redirects static or instance (All Stacks Infinite's `consumeFuel`), or changed the type of a field it `@Shadow`s (Dwarfs and Giants' `RangedBowAttackGoal.mob`). Before, Mixin stopped the game with `POLY-COMPAT-225`.
+- Minecraft 26.3, with Forge: loading data packs with Fabric API no longer stops with a `ClassCastException`. Forge 66 wraps the registry element decoder in `ConditionCodec`, so the call Fabric API's loot table hook wraps returns an `Optional`; the hook now runs through a bridge that hands it the table and gives Forge back its `Optional`, so Forge's condition check and `onJsonDataParsed` still run (`POLY-COMPAT-226`). Other wraps of such a call are left out before launch (`POLY-COMPAT-224`).
+- Next to NeoForge, a Fabric mod's own copy of the host loader's classes (Forge Config API Port's Fabric build carries 36 of FML's and NeoForge's config classes) is checked against the host's classes, which are the ones that run. A mod that uses a member the host's class lacks is left out before the game starts with the new `POLY-COMPAT-141`. Before, the 26.3 server stopped with `NoSuchFieldError: ModConfig$Type.SERVER`.
+- Minecraft 26.3, with Forge: Fabric and Quilt mods that register blocks or creative tabs in their initializer no longer stop the game with "Registry minecraft:block is already frozen". Without Fabric API's registry sync (left out under Forge 66), vanilla freezes the built-in registries before mods initialize; Poly Mod Loader now opens them (and Forge's wrappers' own `frozen` flag) around that initialization and freezes them again afterwards. It reads Forge's write checks from the class files first; a Forge release that checks something else stops the launch with the new `POLY-COMPAT-227` before those mods run. `corpusQuiltForge` on 26.3 passes: 91 foreign mods loaded, 90 left out.
+- Minecraft 26.3, with Forge: Fabric API's registry sync (`fabric-registry-sync-v0`) loads again, and with it `fabric-object-builder-api-v1`. Forge 66's data generators read `RegistryDataLoader.getWorldAndDimensionRegistries()` where vanilla reads `WORLD_REGISTRIES`, which registry sync redirects; the redirect now moves to Forge's call through a bridge that returns Fabric's list followed by Forge's own entries (`POLY-COMPAT-226`). `corpusFabricForge` on 26.3: 80 foreign mods loaded (was 76); `corpusQuiltForge`: 95 (was 91).
+- Minecraft 26.3: Fabric·Quilt 모드와 NeoForge 모드를 함께 쓰는 게임이 다시 시작됩니다. NeoForge 26.3의 FML 12가 Mixin 클래스 처리기를 하나 더 두는데(`neoforge:mixin_frame_context`), Poly 모드 로더의 공유 Mixin이 이를 비워 두어 이런 게임은 모두 `POLY-COMPAT-208`로 멈췄습니다. 이제 공유 Mixin이 그 자리를 채우고, 형태 검사는 FML 11과 FML 12만 받아들입니다.
+- Minecraft 26.3, Forge와 함께: 더 새 MixinExtras를 품은 Forge 모드(Carry On 2.12.0)가 있어도 게임이 멈추지 않습니다. Mixin을 공유할 때는 FML의 MixinExtras 사본을 게임 계층에서 뺍니다(NeoForge 쪽은 이미 그렇게 했습니다).
+- Forge와 함께일 때, Forge 패치가 리다이렉트 대상 호출을 static↔인스턴스로 바꿨거나(All Stacks Infinite의 `consumeFuel`) `@Shadow` 필드의 형을 바꾼 경우(Dwarfs and Giants의 `RangedBowAttackGoal.mob`) 시작 전 검사가 그 Fabric·Quilt 모드를 `POLY-COMPAT-224`로 뺍니다. 전에는 Mixin이 `POLY-COMPAT-225`로 게임을 멈췄습니다.
+- Minecraft 26.3, Forge와 함께: Fabric API가 있을 때 데이터 팩을 읽다가 `ClassCastException`으로 멈추지 않습니다. Forge 66은 레지스트리 요소 디코더를 `ConditionCodec`으로 감싸서, Fabric API의 전리품 테이블 훅이 감싸는 호출이 `Optional`을 돌려줍니다. 이제 그 훅은 브리지를 거쳐 테이블을 받고 Forge에는 다시 `Optional`을 돌려주므로, Forge의 조건 검사와 `onJsonDataParsed`도 그대로 실행됩니다(`POLY-COMPAT-226`). 그런 호출을 다르게 감싸는 경우는 시작 전에 뺍니다(`POLY-COMPAT-224`).
+- NeoForge와 함께일 때, Fabric 모드가 품은 호스트 로더 클래스의 사본(Forge Config API Port의 Fabric 판은 FML·NeoForge 설정 클래스 36개를 품음)을 실제로 실행되는 호스트의 클래스와 대조합니다. 호스트 클래스에 없는 멤버를 쓰는 모드는 새 오류 코드 `POLY-COMPAT-141`로 게임 시작 전에 뺍니다. 전에는 26.3 서버가 `NoSuchFieldError: ModConfig$Type.SERVER`로 멈췄습니다.
+- Minecraft 26.3, Forge와 함께: 초기화에서 블록이나 크리에이티브 탭을 등록하는 Fabric·Quilt 모드가 "Registry minecraft:block is already frozen"으로 게임을 멈추지 않습니다. Fabric API의 레지스트리 동기화가 빠지면(Forge 66에서) 바닐라가 모드 초기화 전에 내장 레지스트리를 얼립니다. 이제 Poly 모드 로더가 그 초기화 동안 레지스트리(와 Forge 래퍼 자신의 `frozen` 표시)를 열고 끝나면 다시 얼립니다. 먼저 클래스 파일에서 Forge의 쓰기 검사를 읽고, 다른 것을 검사하는 Forge 릴리스면 그 모드들이 실행되기 전에 새 오류 코드 `POLY-COMPAT-227`로 시작을 멈춥니다. 26.3 `corpusQuiltForge`가 통과합니다(외부 모드 91개 로드, 90개 제외).
+- Minecraft 26.3, Forge와 함께: Fabric API의 레지스트리 동기화(`fabric-registry-sync-v0`)가 다시 로드되고, 그것이 필요한 `fabric-object-builder-api-v1`도 로드됩니다. Forge 66의 데이터 생성기는 바닐라가 `WORLD_REGISTRIES`를 읽는 자리에서 `RegistryDataLoader.getWorldAndDimensionRegistries()`를 부르는데, 레지스트리 동기화가 바로 그 읽기를 바꿉니다. 이제 그 `@Redirect`는 브리지를 거쳐 Forge의 호출로 옮겨지고, Fabric의 목록 뒤에 Forge 자신의 항목을 붙여 돌려줍니다(`POLY-COMPAT-226`). 26.3 `corpusFabricForge`는 외부 모드 80개(전에는 76개), `corpusQuiltForge`는 95개(전에는 91개)를 로드합니다.
+- Forge의 `ForgeHooks.onPlayerTossEvent`를 따라 Puzzles Lib의 `ServerPlayer.drop` 주입을 옮기고, Forge가 같은 형의 지역 변수를 하나 더 만든 곳에서 `@Local`을 바닐라 변수 이름으로 찾습니다. 그래서 Forge와 함께 Puzzles Lib의 Fabric 판(과 그것이 필요한 Fabric 모드)이 다시 로드됩니다.
+- Forge와 함께일 때 `PersistentEntitySectionManager.addEntity`에 대한 Fabric 주입은 바닐라 본문을 가진 Forge의 `addEntityWithoutEvent`로 옮겨집니다.
+- NeoForge와 함께일 때 Fabric API 레지스트리 동기화의 `Bootstrap.wrapStreams()` 주입(`@Inject`)은 NeoForge가 그 자리에서 부르는 `GameData.vanillaSnapshot()`으로 옮겨집니다. `fabric-registry-sync-v0`는 다른 부분 때문에 여전히 빠집니다.
+
 ## 1.2.4 — 2026-10-27
 
 ### Highlights
