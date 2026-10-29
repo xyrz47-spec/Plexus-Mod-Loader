@@ -82,6 +82,13 @@ final class ForgeInjectionPoints {
                         "lambda$stopSleeping$0",
                         "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z",
                         "Lnet/minecraft/world/level/block/state/BlockState;setBedOccupied(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;Z)V"),
+                // The same on 26.3, where vanilla's lambda$stopSleeping$0 calls Level.setBlockAndUpdate (checked with
+                // javap on the 26.3 client and Forge 26.3-66.1.0).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "lambda$stopSleeping$0",
+                        "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z",
+                        "Lnet/minecraft/world/level/block/state/BlockState;setBedOccupied(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;Z)V"),
                 // TagsProvider.lambda$run$5: vanilla saves stable JSON via DataProvider.saveStable.
                 // Forge moves this tag-saving lambda to lambda$run$6.
                 new InjectionPointReplacement(
@@ -215,6 +222,15 @@ final class ForgeInjectionPoints {
                         "lambda$createLookup$0",
                         "Lnet/minecraft/resources/RegistryDataLoader;WORLDGEN_REGISTRIES:Ljava/util/List;",
                         "Lnet/minecraft/resources/RegistryDataLoader;getWorldGenAndDimensionStream()Ljava/util/stream/Stream;"),
+                // FishingHook.shouldStopFishing (Forge 26.2-65.1.5, 26.3-66.1.0): vanilla keeps the hook while either
+                // hand holds
+                // ItemStack.is(Items.FISHING_ROD); Forge asks ItemStack.canPerformAction(ToolActions.FISHING_ROD_CAST)
+                // at the same two places. Fabric API's allowModdedRods wraps the vanilla check.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/projectile/FishingHook",
+                        "shouldStopFishing",
+                        "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z",
+                        "Lnet/minecraft/world/item/ItemStack;canPerformAction(Lnet/minecraftforge/common/ToolAction;)Z"),
                 // Mob.setTarget (checked on Forge 26.2-65.1.5 and 26.3-66.1.0): vanilla assigns target =
                 // asValidTarget(target); Forge assigns
                 // ForgeEventFactory.onLivingChangeTargetMob(this, target).getNewTarget() when the event is not

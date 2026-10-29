@@ -17,6 +17,7 @@ import java.util.Objects;
  * @param resourcePacks loaded mods whose jars Poly Mod Loader exposes as resource and data packs, in load order
  * @param declarations everything mods declared through the Native API
  * @param modCounts how many mods each loader loaded, for the title screen ({@link ModCountLines})
+ * @param gameWindow told when the game opens its window and shows its loading screen
  */
 @ApiStability(StabilityLevel.INTERNAL)
 public record GameLayerContext(
@@ -25,10 +26,23 @@ public record GameLayerContext(
         EventPublisher events,
         List<ModResourcePack> resourcePacks,
         NativeDeclarations declarations,
-        LoadedModCounts modCounts) {
+        LoadedModCounts modCounts,
+        GameWindowListener gameWindow) {
 
     public GameLayerContext {
         resourcePacks = List.copyOf(resourcePacks);
         Objects.requireNonNull(modCounts, "modCounts");
+        Objects.requireNonNull(gameWindow, "gameWindow");
+    }
+
+    /** A context whose game window tells nothing ({@link GameWindowListener#NONE}). */
+    public GameLayerContext(
+            GameSide side,
+            GameLaunchTarget target,
+            EventPublisher events,
+            List<ModResourcePack> resourcePacks,
+            NativeDeclarations declarations,
+            LoadedModCounts modCounts) {
+        this(side, target, events, resourcePacks, declarations, modCounts, GameWindowListener.NONE);
     }
 }

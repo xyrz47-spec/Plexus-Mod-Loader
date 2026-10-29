@@ -213,6 +213,12 @@ public final class Minecraft26_2Adapter implements GameVersionAdapter {
                 TransformFailurePolicy.DISABLE_RULE);
     }
 
+    /** The game's {@code LoadingOverlay.MOJANG_STUDIOS_LOGO_LOCATION} ({@code javap}, the client jar). */
+    @Override
+    public Optional<String> loadingScreenLogo() {
+        return Optional.of("assets/minecraft/textures/gui/title/mojangstudios.png");
+    }
+
     /** Poly Mod Loader's name in the game window's title ({@code Minecraft* Poly <version>}), for every loader. */
     private static TransformRuleDefinition windowTitleRule() {
         return new TransformRuleDefinition(

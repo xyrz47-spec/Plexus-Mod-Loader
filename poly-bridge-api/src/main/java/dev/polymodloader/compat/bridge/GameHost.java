@@ -37,6 +37,8 @@ public interface GameHost {
      *     Java agent, ADR-0024); for jars Java only finds there, such as file systems
      * @param jdkModuleAccess opens JDK packages to the host's modules, when Poly Mod Loader's launcher was started with
      *     its Java agent (ADR-0026)
+     * @param polyEarlyWindow whether Poly Mod Loader shows its own early loading window over this launch: the host's
+     *     loader then opens none (FML's early window stays closed), so that every loader starts with the same window
      */
     record Request(
             GameSide side,
@@ -49,11 +51,40 @@ public interface GameHost {
             Consumer<String> log,
             boolean sharedMixin,
             Optional<SystemClassPath> systemClassPath,
-            Optional<JdkModuleAccess> jdkModuleAccess) {
+            Optional<JdkModuleAccess> jdkModuleAccess,
+            boolean polyEarlyWindow) {
         public Request {
             gameArguments = List.copyOf(gameArguments);
             Objects.requireNonNull(systemClassPath, "systemClassPath");
             Objects.requireNonNull(jdkModuleAccess, "jdkModuleAccess");
+        }
+
+        /** A launch without Poly Mod Loader's early loading window: the host's loader opens its own. */
+        public Request(
+                GameSide side,
+                String launchTarget,
+                String gameVersion,
+                Path vanillaGameJar,
+                Path gameDirectory,
+                Path cacheDirectory,
+                List<String> gameArguments,
+                Consumer<String> log,
+                boolean sharedMixin,
+                Optional<SystemClassPath> systemClassPath,
+                Optional<JdkModuleAccess> jdkModuleAccess) {
+            this(
+                    side,
+                    launchTarget,
+                    gameVersion,
+                    vanillaGameJar,
+                    gameDirectory,
+                    cacheDirectory,
+                    gameArguments,
+                    log,
+                    sharedMixin,
+                    systemClassPath,
+                    jdkModuleAccess,
+                    false);
         }
 
         /** A launch whose JDK modules cannot be opened to the host's modules. */

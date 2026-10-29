@@ -10,6 +10,8 @@ dependencies {
     implementation(project(":poly-mod-metadata"))
     implementation(project(":poly-transform-engine"))
     implementation(project(":poly-system-registry"))
+    // The early loading window, shown in its own process while the game starts.
+    implementation(project(":poly-early-window"))
     // LaunchConfiguration carries the bridge SPI's SystemClassPath (ADR-0024).
     api(project(":poly-bridge-api"))
     implementation(libs.slf4j.api)

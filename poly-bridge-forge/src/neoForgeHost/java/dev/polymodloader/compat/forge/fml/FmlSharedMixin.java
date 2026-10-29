@@ -50,6 +50,28 @@ final class FmlSharedMixin {
     private FmlSharedMixin() {}
 
     /**
+     * {@code plugins} (FML's plugin files) without those that have Fabric Loader's {@code FabricLoader}, when Poly Mod
+     * Loader's class path has it: such a file is another Fabric Loader (Forgified Fabric Loader, whose {@code
+     * LoaderBootstrap} calls its own {@code FabricLoaderImpl.setup()}), whose {@code FabricLoader} would shadow Poly Mod
+     * Loader's for the NeoForge mods, and Poly Mod Loader runs the Fabric mods itself.
+     */
+    static List<IModFileInfo> withoutForeignFabricLoader(List<IModFileInfo> plugins, Consumer<String> log) {
+        if (FmlSharedMixin.class.getClassLoader().getResource(FABRIC_LOADER) == null) {
+            return plugins;
+        }
+        List<IModFileInfo> kept = new ArrayList<>();
+        for (IModFileInfo plugin : plugins) {
+            if (plugin.getFile().getContents().containsFile(FABRIC_LOADER)) {
+                log.accept("FML plugin " + plugin.getFile().getFileName()
+                        + ": skipped because Poly Mod Loader provides Fabric Loader and runs Fabric mods itself");
+            } else {
+                kept.add(plugin);
+            }
+        }
+        return kept.size() == plugins.size() ? plugins : kept;
+    }
+
+    /**
      * {@code content} without the MixinExtras game libraries (NeoForge's own {@code mixinextras-neoforge}, or a newer
      * copy FML selected from a mod's JarJar), when Poly Mod Loader's class path has MixinExtras, and without
      * {@code forgified-fabric-loader} which shadows Poly Mod Loader's {@code FabricLoader}.

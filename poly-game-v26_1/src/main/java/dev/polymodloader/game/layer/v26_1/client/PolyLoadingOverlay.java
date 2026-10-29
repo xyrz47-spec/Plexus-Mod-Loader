@@ -56,6 +56,8 @@ public final class PolyLoadingOverlay {
     /** After the game drew {@code overlay} into {@code graphics}: Poly Mod Loader's marks, faded as the screen. */
     public static void onExtractRenderStateReturn(
             LoadingOverlay overlay, GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        // The game's window shows its loading screen: Poly Mod Loader's early window closes.
+        LayerState.context().ifPresent(context -> context.gameWindow().shown());
         if (FAILED.get() || FADE_IN == null || FADE_IN_START == null || FADE_OUT_START == null) {
             return;
         }

@@ -18,6 +18,11 @@ fabricLoader = "0.19.5"
 # Mixin and MixinExtras at the versions Fabric Loader 0.19.5 ships (its fabric-installer.json and META-INF/jars).
 mixin = "0.17.4+mixin.0.8.7"
 mixinExtras = "0.5.5"
+# Fabric API 0.161.0+26.2 nests these module versions; the NeoForge host modules (ADR-0031) compile against them.
+fabricApiBase = "2.0.4+ece063239e"
+fabricResourceLoaderV1 = "2.0.13+9edec1269e"
+jspecify = "1.0.0"
+jetbrainsAnnotations = "26.0.2"
 # Quilt Loader (Apache-2.0): its public API and version classes are packed into the Fabric bridge jar (ADR-0027).
 quiltLoader = "0.31.0-beta.4"
 # Real Quilt Loader's own launcher profile for 0.31.0-beta.4 (meta.quiltmc.org/v3 .../server/json), used only by the
@@ -69,6 +74,10 @@ guava = { module = "com.google.guava:guava", version.ref = "guava" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabricLoader" }
+fabric-api-base = { module = "net.fabricmc.fabric-api:fabric-api-base", version.ref = "fabricApiBase" }
+fabric-resource-loader-v1 = { module = "net.fabricmc.fabric-api:fabric-resource-loader-v1", version.ref = "fabricResourceLoaderV1" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
 sponge-mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin" }
 mixinextras-common = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinExtras" }
 quilt-loader = { module = "org.quiltmc:quilt-loader", version.ref = "quiltLoader" }

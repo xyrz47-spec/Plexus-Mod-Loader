@@ -781,6 +781,52 @@ class HostPatchAdjustmentsTest {
                 adjustments.findings().toString());
     }
 
+    /**
+     * A handler that takes the target method's parameters can only move to a method whose parameters start with them:
+     * NeoForge 26.3.0.98 moves startSleepInBed's checks to a lambda taking {@code (BlockState, BedRule, BlockPos,
+     * boolean)}, and Fabric API's redirect there takes vanilla's {@code (AbstractBedBlock, ...)}.
+     */
+    @Test
+    void aHandlerTakingTheTargetsParametersMovesOnlyWhereTheyComeFirst() {
+        MethodTypeDesc wrap = MethodTypeDesc.of(CD_boolean, CD_Object, OPERATION, CD_String, CD_int);
+        MethodTypeDesc redirect = MethodTypeDesc.of(CD_boolean, CD_Object, CD_String, CD_int);
+        ClassModel model = ClassFile.of().parse(ClassFile.of().build(TARGET, builder -> {
+            for (String name : List.of("wrap", "redirect")) {
+                builder.withMethodBody(
+                        name,
+                        name.equals("wrap") ? wrap : redirect,
+                        ClassFile.ACC_PRIVATE,
+                        code -> code.iconst_0().ireturn());
+            }
+            builder.withMethodBody(
+                    "run", MethodTypeDesc.of(CD_void, CD_String, CD_int), ClassFile.ACC_PUBLIC, code -> code.return_());
+            builder.withMethodBody(
+                    "same",
+                    MethodTypeDesc.of(CD_void, CD_String, CD_int, CD_boolean),
+                    ClassFile.ACC_PUBLIC,
+                    code -> code.return_());
+            builder.withMethodBody(
+                    "other",
+                    MethodTypeDesc.of(CD_void, CD_int, CD_String),
+                    ClassFile.ACC_PUBLIC,
+                    code -> code.return_());
+        }));
+        MethodModel vanilla = method(model, "run", MethodTypeDesc.of(CD_void, CD_String, CD_int));
+        MethodModel same = method(model, "same", MethodTypeDesc.of(CD_void, CD_String, CD_int, CD_boolean));
+        MethodModel other = method(model, "other", MethodTypeDesc.of(CD_void, CD_int, CD_String));
+        String wrapOperation = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
+        String redirectType = "Lorg/spongepowered/asm/mixin/injection/Redirect;";
+
+        assertTrue(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "wrap", wrap), wrapOperation, List.of(vanilla), List.of(same)));
+        assertFalse(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "wrap", wrap), wrapOperation, List.of(vanilla), List.of(other)));
+        assertTrue(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "redirect", redirect), redirectType, List.of(vanilla), List.of(same)));
+        assertFalse(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "redirect", redirect), redirectType, List.of(vanilla), List.of(other)));
+    }
+
     private HostPatchAdjustments implicitLocalPlan(byte[] mixin, byte[] vanilla, byte[] patched) throws IOException {
         Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", mixin));
         HostedLaunch host = new HostedLaunch(
@@ -1204,10 +1250,22 @@ class HostPatchAdjustmentsTest {
                     ClassFile.ACC_PRIVATE,
                     method -> {
                         method.with(RuntimeVisibleAnnotationsAttribute.of(wrapAnnotation));
-                        method.withCode(code -> {
-                            code.iconst_1();
-                            code.ireturn();
-                        });
+                        // Fabric API's shape: the wrapped call made once, with the handler's own arguments.
+                        method.withCode(code -> code.aload(3)
+                                .iconst_2()
+                                .anewarray(CD_Object)
+                                .dup()
+                                .iconst_0()
+                                .aload(1)
+                                .aastore()
+                                .dup()
+                                .iconst_1()
+                                .aload(2)
+                                .aastore()
+                                .invokeinterface(OPERATION, "call", MethodTypeDesc.of(CD_Object, CD_Object.arrayType()))
+                                .checkcast(ConstantDescs.CD_Boolean)
+                                .invokevirtual(ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(CD_boolean))
+                                .ireturn());
                     });
         });
 
@@ -1736,6 +1794,768 @@ class HostPatchAdjustmentsTest {
         });
     }
 
+    private static final ClassDesc STACK = ClassDesc.of("t.Stack");
+    private static final ClassDesc ACTION = ClassDesc.of("t.Action");
+    private static final String VANILLA_CHECK = "Lt/Stack;is(Ljava/lang/Object;)Z";
+    private static final String HOST_CHECK = "Lt/Stack;canPerform(Lt/Action;)Z";
+    private static final MethodTypeDesc WRAP_CHECK = MethodTypeDesc.of(
+            CD_boolean,
+            STACK,
+            CD_Object,
+            ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;"));
+
+    /**
+     * MinecraftForge asks {@code ItemStack.canPerformAction(ToolActions.FISHING_ROD_CAST)} where vanilla's {@code
+     * FishingHook.shouldStopFishing} asks {@code ItemStack.is(Items.FISHING_ROD)}, and Fabric API's {@code
+     * allowModdedRods} wraps the vanilla check ({@code fabric-item-api-v1} was left out on 26.3). The wrap moves to the
+     * host's call through a bridge that makes it and hands the handler its arguments and result.
+     */
+    @Test
+    void aWrapOfACallTheHostReplacedRunsOnTheHostsCall() throws Exception {
+        byte[] mixin = wrapCheckMixin();
+        Path jar = jar(
+                Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"WrapCheckMixin\"]}", "m/WrapCheckMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch(
+                "Host 1",
+                List.of(),
+                List.of(new InjectionPointReplacement("t/Target", "shouldStop", VANILLA_CHECK, HOST_CHECK)),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", checkTarget(VANILLA_CHECK)),
+                classes(checkTarget(HOST_CHECK)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-226", adjustments.findings().getFirst().code());
+        byte[] applied = adjustments.apply("m.WrapCheckMixin", mixin);
+        ClassModel model = ClassFile.of().parse(applied);
+        assertFalse(annotationsOf(method(model, "allowOther", WRAP_CHECK)).contains("WrapOperation"));
+        MethodTypeDesc bridgeType = MethodTypeDesc.of(
+                CD_boolean,
+                STACK,
+                ACTION,
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;"));
+        String bridgeAnnotations = annotationsOf(method(model, "poly$hostCall$allowOther", bridgeType));
+        assertTrue(
+                bridgeAnnotations.contains(HOST_CHECK) && !bridgeAnnotations.contains(VANILLA_CHECK),
+                bridgeAnnotations);
+
+        // The bridge as the patched game runs it: the host's answer reaches the handler, which may still say yes.
+        ClassLoader loader = new ClassLoader(getClass().getClassLoader()) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                byte[] bytes = switch (name) {
+                    case "m.WrapCheckMixin" -> applied;
+                    case "t.Stack" -> ClassFile.of().build(STACK, builder -> builder.withFlags(ClassFile.ACC_PUBLIC));
+                    case "t.Action" -> ClassFile.of().build(ACTION, builder -> builder.withFlags(ClassFile.ACC_PUBLIC));
+                    default -> throw new ClassNotFoundException(name);
+                };
+                return defineClass(name, bytes, 0, bytes.length);
+            }
+        };
+        Class<?> mixinClass = loader.loadClass("m.WrapCheckMixin");
+        java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
+                "poly$hostCall$allowOther",
+                loader.loadClass("t.Stack"),
+                loader.loadClass("t.Action"),
+                com.llamalad7.mixinextras.injector.wrapoperation.Operation.class);
+        bridge.setAccessible(true);
+        Object instance = mixinClass.getDeclaredConstructor().newInstance();
+        List<List<Object>> calls = new java.util.ArrayList<>();
+        Function<Boolean, com.llamalad7.mixinextras.injector.wrapoperation.Operation<Object>> original =
+                result -> arguments -> {
+                    calls.add(java.util.Arrays.asList(arguments));
+                    return result;
+                };
+        assertEquals(true, bridge.invoke(instance, null, null, original.apply(true)));
+        assertEquals(false, bridge.invoke(instance, null, null, original.apply(false)));
+        assertEquals(2, calls.size());
+    }
+
+    /**
+     * The bridge makes the host's call before the handler runs, so a handler that makes the call it wraps with other
+     * arguments (or more than once, or not at all) does not get one: the mod is left out as before.
+     */
+    @Test
+    void aWrapThatChangesTheArgumentsOfACallTheHostReplacedMakesTheModIncompatible() throws Exception {
+        byte[] mixin = wrapCheckMixin(true);
+        Path jar = jar(
+                Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"WrapCheckMixin\"]}", "m/WrapCheckMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch(
+                "Host 1",
+                List.of(),
+                List.of(new InjectionPointReplacement("t/Target", "shouldStop", VANILLA_CHECK, HOST_CHECK)),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", checkTarget(VANILLA_CHECK)),
+                classes(checkTarget(HOST_CHECK)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-224", adjustments.findings().getFirst().code());
+    }
+
+    private static final ClassDesc LIVING = ClassDesc.of("net.minecraft.world.entity.LivingEntity");
+    private static final ClassDesc MAP = ClassDesc.of("java.util.Map");
+    private static final ClassDesc HASH_MAP = ClassDesc.of("java.util.HashMap");
+    private static final ClassDesc SET = ClassDesc.of("java.util.Set");
+    private static final ClassDesc CONSUMER = ClassDesc.of("java.util.function.Consumer");
+
+    /**
+     * NeoForge removes the effects its event lets go with {@code removed.keySet().forEach(activeEffects::remove)} where
+     * vanilla's {@code removeAllEffects} clears the map, and Fabric API's {@code allowRemoveAllEffects} wraps the clear
+     * to put back what its listeners keep. The bridge wraps NeoForge's removal and hands the handler the entity's map
+     * and an {@code Operation} that makes that removal; the handler then puts its effect back.
+     */
+    @Test
+    void aWrapOfTheEffectClearRunsOnNeoForgesRemoval() throws Exception {
+        byte[] mixin = effectsMixin();
+        Path jar =
+                jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"EffectsMixin\"]}", "m/EffectsMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch(
+                "Host 1",
+                List.of(),
+                List.of(new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "removeAllEffects",
+                        "Ljava/util/Map;clear()V",
+                        "Ljava/util/Set;forEach(Ljava/util/function/Consumer;)V")),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("net/minecraft/world/entity/LivingEntity", livingEntity(false)),
+                classes(Map.of("net/minecraft/world/entity/LivingEntity", livingEntity(true))));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-226", adjustments.findings().getFirst().code());
+        byte[] applied = adjustments.apply("m.EffectsMixin", mixin);
+        ClassModel model = ClassFile.of().parse(applied);
+        MethodModel bridgeModel =
+                method(model, "poly$hostCall$allowRemoveAll", MethodTypeDesc.of(CD_void, SET, CONSUMER, OPERATION));
+        assertTrue(annotationsOf(bridgeModel).contains("Ljava/util/Set;forEach"), annotationsOf(bridgeModel));
+
+        ClassLoader loader = new ClassLoader(getClass().getClassLoader()) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                byte[] bytes = switch (name) {
+                    case "m.EffectsMixin" -> applied;
+                    case "net.minecraft.world.entity.LivingEntity" -> runtimeLivingEntity();
+                    default -> throw new ClassNotFoundException(name);
+                };
+                return defineClass(name, bytes, 0, bytes.length);
+            }
+        };
+        Class<?> mixinClass = loader.loadClass("m.EffectsMixin");
+        Object entity = mixinClass.getDeclaredConstructor().newInstance();
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> effects = (Map<Object, Object>)
+                mixinClass.getMethod("getActiveEffectsMap").invoke(entity);
+        effects.put("kept", 1);
+        effects.put("gone", 2);
+        effects.put("neoforge", 3);
+        java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
+                "poly$hostCall$allowRemoveAll",
+                java.util.Set.class,
+                java.util.function.Consumer.class,
+                com.llamalad7.mixinextras.injector.wrapoperation.Operation.class);
+        bridge.setAccessible(true);
+        // NeoForge's removal: the keys its event let go ("neoforge" stays), each removed from the map.
+        com.llamalad7.mixinextras.injector.wrapoperation.Operation<Object> removal = arguments -> {
+            @SuppressWarnings("unchecked")
+            java.util.Set<Object> keys = (java.util.Set<Object>) arguments[0];
+            @SuppressWarnings("unchecked")
+            java.util.function.Consumer<Object> remove = (java.util.function.Consumer<Object>) arguments[1];
+            keys.forEach(remove);
+            return null;
+        };
+
+        bridge.invoke(
+                entity,
+                java.util.Set.of("kept", "gone"),
+                (java.util.function.Consumer<Object>) effects::remove,
+                removal);
+
+        assertEquals(Map.of("kept", 1, "neoforge", 3), effects);
+    }
+
+    /** A handler that calls its clear with another map is not bridged: the mod is left out. */
+    @Test
+    void aWrapOfTheEffectClearThatClearsAnotherMapMakesTheModIncompatible() throws Exception {
+        byte[] mixin = effectsMixin(true);
+        Path jar =
+                jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"EffectsMixin\"]}", "m/EffectsMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch(
+                "Host 1",
+                List.of(),
+                List.of(new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "removeAllEffects",
+                        "Ljava/util/Map;clear()V",
+                        "Ljava/util/Set;forEach(Ljava/util/function/Consumer;)V")),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("net/minecraft/world/entity/LivingEntity", livingEntity(false)),
+                classes(Map.of("net/minecraft/world/entity/LivingEntity", livingEntity(true))));
+
+        assertEquals("POLY-COMPAT-224", adjustments.findings().getFirst().code());
+    }
+
+    /** {@code removeAllEffects()} clearing {@code activeEffects} (vanilla) or removing a key set from it (NeoForge). */
+    private static byte[] livingEntity(boolean neoForge) {
+        return ClassFile.of().build(LIVING, builder -> {
+            builder.withField("activeEffects", MAP, ClassFile.ACC_PRIVATE | ClassFile.ACC_FINAL);
+            builder.withMethodBody("removeAllEffects", MethodTypeDesc.of(CD_boolean), ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.getfield(LIVING, "activeEffects", MAP);
+                if (neoForge) {
+                    code.invokeinterface(MAP, "keySet", MethodTypeDesc.of(SET));
+                    code.aconst_null();
+                    code.invokeinterface(SET, "forEach", MethodTypeDesc.of(CD_void, CONSUMER));
+                } else {
+                    code.invokeinterface(MAP, "clear", MethodTypeDesc.of(CD_void));
+                }
+                code.iconst_1();
+                code.ireturn();
+            });
+        });
+    }
+
+    /** A loadable {@code LivingEntity} with an effect map and {@code getActiveEffectsMap()}. */
+    private static byte[] runtimeLivingEntity() {
+        return ClassFile.of().build(LIVING, builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC);
+            builder.withField("activeEffects", MAP, ClassFile.ACC_PRIVATE | ClassFile.ACC_FINAL);
+            builder.withMethodBody(ConstantDescs.INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.invokespecial(CD_Object, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+                code.aload(0);
+                code.new_(HASH_MAP);
+                code.dup();
+                code.invokespecial(HASH_MAP, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+                code.putfield(LIVING, "activeEffects", MAP);
+                code.return_();
+            });
+            builder.withMethodBody("getActiveEffectsMap", MethodTypeDesc.of(MAP), ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.getfield(LIVING, "activeEffects", MAP);
+                code.areturn();
+            });
+        });
+    }
+
+    private static byte[] effectsMixin() {
+        return effectsMixin(false);
+    }
+
+    /**
+     * {@code allowRemoveAll(Map effects, Operation clear)}: copies the map, makes the clear and puts {@code "kept"}
+     * back; with {@code otherMap}, it clears its copy instead.
+     */
+    private static byte[] effectsMixin(boolean otherMap) {
+        Annotation wrap = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("removeAllEffects"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", "Ljava/util/Map;clear()V"))))));
+        return ClassFile.of().build(ClassDesc.of("m.EffectsMixin"), builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC);
+            builder.withSuperclass(LIVING);
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation(LIVING)));
+            builder.withMethodBody(ConstantDescs.INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.invokespecial(LIVING, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+                code.return_();
+            });
+            builder.withMethod(
+                    "allowRemoveAll", MethodTypeDesc.of(CD_void, MAP, OPERATION), ClassFile.ACC_PRIVATE, method -> {
+                        method.with(RuntimeVisibleAnnotationsAttribute.of(wrap));
+                        method.withCode(code -> {
+                            code.new_(HASH_MAP);
+                            code.dup();
+                            code.aload(1);
+                            code.invokespecial(HASH_MAP, ConstantDescs.INIT_NAME, MethodTypeDesc.of(CD_void, MAP));
+                            code.astore(3);
+                            code.aload(2);
+                            code.iconst_1();
+                            code.anewarray(CD_Object);
+                            code.dup();
+                            code.iconst_0();
+                            code.aload(otherMap ? 3 : 1);
+                            code.aastore();
+                            code.invokeinterface(
+                                    OPERATION, "call", MethodTypeDesc.of(CD_Object, CD_Object.arrayType()));
+                            code.pop();
+                            code.aload(1);
+                            code.ldc("kept");
+                            code.aload(3);
+                            code.ldc("kept");
+                            code.invokeinterface(MAP, "get", MethodTypeDesc.of(CD_Object, CD_Object));
+                            code.invokeinterface(MAP, "put", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object));
+                            code.pop();
+                            code.return_();
+                        });
+                    });
+        });
+    }
+
+    private static final ClassDesc HOPPER_CONTAINER = ClassDesc.of("net.minecraft.world.Container");
+    private static final ClassDesc HOPPER_LOOKUP_RESULT =
+            ClassDesc.of("net.neoforged.neoforge.transfer.item.ContainerOrHandler");
+    private static final ClassDesc HOPPER_HANDLER = ClassDesc.of("net.neoforged.neoforge.transfer.ResourceHandler");
+    private static final String VANILLA_LOOKUP = "Lt/Target;lookup()Lnet/minecraft/world/Container;";
+    private static final String HOST_LOOKUP =
+            "Lt/Target;lookupOrHandler()Lnet/neoforged/neoforge/transfer/item/ContainerOrHandler;";
+    private static final MethodTypeDesc HOPPER_HOOK = MethodTypeDesc.of(
+            CD_void,
+            ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;"),
+            HOPPER_CONTAINER);
+
+    /**
+     * NeoForge's hopper looks up a {@code ContainerOrHandler} where vanilla's looks up a {@code Container}, and Fabric
+     * API's transfer API injects after the vanilla lookup with the container as an {@code @Local}. The bridge injects
+     * after NeoForge's lookup and calls the handler with the container NeoForge found, or none, unless NeoForge found
+     * its own item handler.
+     */
+    @Test
+    void aHopperHookRunsAfterNeoForgesLookupUnlessNeoForgeFoundItsHandler() throws Exception {
+        byte[] mixin = hopperMixin();
+        Path jar =
+                jar(Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"HopperMixin\"]}", "m/HopperMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch(
+                "Host 1",
+                List.of(),
+                List.of(new InjectionPointReplacement("t/Target", "eject", VANILLA_LOOKUP, HOST_LOOKUP)),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", hopperTarget(false)),
+                classes(hopperTarget(true)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-226", adjustments.findings().getFirst().code());
+        byte[] applied = adjustments.apply("m.HopperMixin", mixin);
+        ClassModel model = ClassFile.of().parse(applied);
+        assertFalse(annotationsOf(method(model, "hook", HOPPER_HOOK)).contains("Inject"));
+        MethodModel bridgeModel =
+                method(model, "poly$hostCall$hook", HOPPER_HOOK.changeParameterType(1, HOPPER_LOOKUP_RESULT));
+        assertTrue(annotationsOf(bridgeModel).contains(HOST_LOOKUP), annotationsOf(bridgeModel));
+        assertTrue(
+                bridgeModel
+                        .findAttribute(java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
+                        .orElseThrow()
+                        .parameterAnnotations()
+                        .get(1)
+                        .toString()
+                        .contains("Local"),
+                "the lookup's result is captured by type");
+
+        ClassLoader loader = new ClassLoader(getClass().getClassLoader()) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                byte[] bytes = switch (name) {
+                    case "m.HopperMixin" -> applied;
+                    case "net.minecraft.world.Container", "net.neoforged.neoforge.transfer.ResourceHandler" ->
+                        ClassFile.of()
+                                .build(
+                                        ClassDesc.of(name),
+                                        builder -> builder.withFlags(ClassFile.ACC_PUBLIC
+                                                | ClassFile.ACC_INTERFACE
+                                                | ClassFile.ACC_ABSTRACT));
+                    case "net.neoforged.neoforge.transfer.item.ContainerOrHandler" -> lookupResult();
+                    default -> throw new ClassNotFoundException(name);
+                };
+                return defineClass(name, bytes, 0, bytes.length);
+            }
+        };
+        Class<?> mixinClass = loader.loadClass("m.HopperMixin");
+        Class<?> container = loader.loadClass("net.minecraft.world.Container");
+        Class<?> handler = loader.loadClass("net.neoforged.neoforge.transfer.ResourceHandler");
+        Class<?> result = loader.loadClass("net.neoforged.neoforge.transfer.item.ContainerOrHandler");
+        java.lang.reflect.Constructor<?> lookup = result.getConstructor(container, handler);
+        java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
+                "poly$hostCall$hook",
+                org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable.class,
+                result);
+        bridge.setAccessible(true);
+        java.lang.reflect.Field seen = mixinClass.getDeclaredField("seen");
+        java.lang.reflect.Field calls = mixinClass.getDeclaredField("calls");
+        seen.setAccessible(true);
+        calls.setAccessible(true);
+        Object vanillaContainer =
+                java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[] {container}, (proxy, m, a) -> null);
+        Object neoForgeHandler =
+                java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[] {handler}, (proxy, m, a) -> null);
+
+        bridge.invoke(null, null, lookup.newInstance(vanillaContainer, null));
+        org.junit.jupiter.api.Assertions.assertSame(vanillaContainer, seen.get(null));
+        bridge.invoke(null, null, lookup.newInstance(null, null));
+        assertEquals(null, seen.get(null));
+        bridge.invoke(null, null, lookup.newInstance(null, neoForgeHandler));
+        assertEquals(2, calls.get(null));
+    }
+
+    /** {@code void eject()} looking up its container: vanilla's {@code lookup()} or the host's {@code lookupOrHandler()}. */
+    private static byte[] hopperTarget(boolean host) {
+        return ClassFile.of().build(TARGET, builder -> {
+            builder.withMethodBody(
+                    "eject", MethodTypeDesc.of(CD_void), ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC, code -> {
+                        if (host) {
+                            code.invokestatic(TARGET, "lookupOrHandler", MethodTypeDesc.of(HOPPER_LOOKUP_RESULT));
+                        } else {
+                            code.invokestatic(TARGET, "lookup", MethodTypeDesc.of(HOPPER_CONTAINER));
+                        }
+                        code.astore(0);
+                        code.return_();
+                    });
+        });
+    }
+
+    /** {@code record ContainerOrHandler(Container container, ResourceHandler itemHandler)}, as far as the bridge uses it. */
+    private static byte[] lookupResult() {
+        return ClassFile.of().build(HOPPER_LOOKUP_RESULT, builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_FINAL);
+            builder.withField("container", HOPPER_CONTAINER, ClassFile.ACC_PRIVATE | ClassFile.ACC_FINAL);
+            builder.withField("itemHandler", HOPPER_HANDLER, ClassFile.ACC_PRIVATE | ClassFile.ACC_FINAL);
+            builder.withMethodBody(
+                    ConstantDescs.INIT_NAME,
+                    MethodTypeDesc.of(CD_void, HOPPER_CONTAINER, HOPPER_HANDLER),
+                    ClassFile.ACC_PUBLIC,
+                    code -> {
+                        code.aload(0);
+                        code.invokespecial(CD_Object, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+                        code.aload(0);
+                        code.aload(1);
+                        code.putfield(HOPPER_LOOKUP_RESULT, "container", HOPPER_CONTAINER);
+                        code.aload(0);
+                        code.aload(2);
+                        code.putfield(HOPPER_LOOKUP_RESULT, "itemHandler", HOPPER_HANDLER);
+                        code.return_();
+                    });
+            builder.withMethodBody("container", MethodTypeDesc.of(HOPPER_CONTAINER), ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.getfield(HOPPER_LOOKUP_RESULT, "container", HOPPER_CONTAINER);
+                code.areturn();
+            });
+            builder.withMethodBody("itemHandler", MethodTypeDesc.of(HOPPER_HANDLER), ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.getfield(HOPPER_LOOKUP_RESULT, "itemHandler", HOPPER_HANDLER);
+                code.areturn();
+            });
+        });
+    }
+
+    /**
+     * {@code @Inject(method = "eject", at = @At(value = "INVOKE_ASSIGN", target = lookup()))} {@code static void
+     * hook(CallbackInfoReturnable, @Local(name = "container") Container)}, which records the container and counts calls.
+     */
+    private static byte[] hopperMixin() {
+        ClassDesc self = ClassDesc.of("m.HopperMixin");
+        Annotation inject = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/Inject;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("eject"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE_ASSIGN"),
+                                AnnotationElement.ofString("target", VANILLA_LOOKUP))))),
+                AnnotationElement.ofBoolean("cancellable", true));
+        Annotation local = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/sugar/Local;"),
+                AnnotationElement.of("name", AnnotationValue.ofArray(AnnotationValue.ofString("container"))));
+        return ClassFile.of().build(self, builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withField("seen", CD_Object, ClassFile.ACC_PRIVATE | ClassFile.ACC_STATIC);
+            builder.withField("calls", CD_int, ClassFile.ACC_PRIVATE | ClassFile.ACC_STATIC);
+            builder.withMethod("hook", HOPPER_HOOK, ClassFile.ACC_PRIVATE | ClassFile.ACC_STATIC, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(inject));
+                method.with(java.lang.classfile.attribute.RuntimeInvisibleParameterAnnotationsAttribute.of(
+                        List.of(List.of(), List.of(local))));
+                method.withCode(code -> {
+                    code.aload(1);
+                    code.putstatic(self, "seen", CD_Object);
+                    code.getstatic(self, "calls", CD_int);
+                    code.iconst_1();
+                    code.iadd();
+                    code.putstatic(self, "calls", CD_int);
+                    code.return_();
+                });
+            });
+        });
+    }
+
+    private static final ClassDesc PICK_ITEM = ClassDesc.of("t.Item");
+    private static final ClassDesc PICK_LEVEL = ClassDesc.of("t.Level");
+    private static final ClassDesc PICK_POS = ClassDesc.of("t.Pos");
+    private static final ClassDesc PICK_PLAYER = ClassDesc.of("t.Player");
+    private static final String VANILLA_PICK = "Lt/Stack;pick(Lt/Level;Lt/Pos;Z)Lt/Item;";
+    private static final String HOST_PICK = "Lt/Stack;pick(Lt/Pos;Lt/Level;ZLt/Player;)Lt/Item;";
+    private static final ClassDesc PICK_OPERATION =
+            ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;");
+    private static final MethodTypeDesc WRAP_PICK =
+            MethodTypeDesc.of(PICK_ITEM, STACK, PICK_LEVEL, PICK_POS, CD_boolean, PICK_OPERATION, CD_String);
+
+    /**
+     * NeoForge asks {@code getCloneItemStack(BlockPos, LevelReader, boolean, Player)} where vanilla asks {@code
+     * getCloneItemStack(LevelReader, BlockPos, boolean)}, and Fabric API's {@code onPickItemFromBlock} wraps the
+     * vanilla call and takes the packet after its {@code Operation} with {@code @Local(argsOnly = true)}. The bridge
+     * takes the host's arguments in the host's order, gives the handler each by its type, and keeps the packet's
+     * annotation on its own last parameter.
+     */
+    @Test
+    void aWrapOfACallWhoseArgumentsTheHostReorderedRunsOnTheHostsCall() throws Exception {
+        byte[] mixin = wrapPickMixin();
+        Path jar = jar(
+                Map.of(CONFIG, "{\"package\":\"m\",\"mixins\":[\"WrapPickMixin\"]}", "m/WrapPickMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch(
+                "Host 1",
+                List.of(),
+                List.of(new InjectionPointReplacement("t/Target", "pick", VANILLA_PICK, HOST_PICK)),
+                directory);
+
+        HostPatchAdjustments adjustments = HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", pickTarget(false)),
+                classes(pickTarget(true)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        assertEquals("POLY-COMPAT-226", adjustments.findings().getFirst().code());
+        byte[] applied = adjustments.apply("m.WrapPickMixin", mixin);
+        ClassModel model = ClassFile.of().parse(applied);
+        MethodTypeDesc bridgeType = MethodTypeDesc.of(
+                PICK_ITEM, STACK, PICK_POS, PICK_LEVEL, CD_boolean, PICK_PLAYER, OPERATION, CD_String);
+        MethodModel bridgeModel = method(model, "poly$hostCall$onPick", bridgeType);
+        assertTrue(annotationsOf(bridgeModel).contains(HOST_PICK), annotationsOf(bridgeModel));
+        List<List<Annotation>> parameters = bridgeModel
+                .findAttribute(java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
+                .orElseThrow()
+                .parameterAnnotations();
+        assertEquals(7, parameters.size());
+        assertTrue(parameters.subList(0, 6).stream().allMatch(List::isEmpty), parameters.toString());
+        assertTrue(parameters.get(6).toString().contains("Local"), parameters.toString());
+
+        ClassLoader loader = new ClassLoader(getClass().getClassLoader()) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                byte[] bytes = switch (name) {
+                    case "m.WrapPickMixin" -> applied;
+                    case "t.Stack", "t.Item", "t.Level", "t.Pos", "t.Player" ->
+                        ClassFile.of().build(ClassDesc.of(name), builder -> {
+                            builder.withFlags(ClassFile.ACC_PUBLIC);
+                            builder.withMethodBody(
+                                    ConstantDescs.INIT_NAME,
+                                    ConstantDescs.MTD_void,
+                                    ClassFile.ACC_PUBLIC,
+                                    code -> code.aload(0)
+                                            .invokespecial(CD_Object, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void)
+                                            .return_());
+                        });
+                    default -> throw new ClassNotFoundException(name);
+                };
+                return defineClass(name, bytes, 0, bytes.length);
+            }
+        };
+        Class<?> mixinClass = loader.loadClass("m.WrapPickMixin");
+        java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
+                "poly$hostCall$onPick",
+                loader.loadClass("t.Stack"),
+                loader.loadClass("t.Pos"),
+                loader.loadClass("t.Level"),
+                boolean.class,
+                loader.loadClass("t.Player"),
+                com.llamalad7.mixinextras.injector.wrapoperation.Operation.class,
+                String.class);
+        bridge.setAccessible(true);
+        Object item = loader.loadClass("t.Item").getConstructor().newInstance();
+        List<List<Object>> calls = new java.util.ArrayList<>();
+        com.llamalad7.mixinextras.injector.wrapoperation.Operation<Object> original = arguments -> {
+            calls.add(java.util.Arrays.asList(arguments));
+            return item;
+        };
+        Object pos = loader.loadClass("t.Pos").getConstructor().newInstance();
+        Object level = loader.loadClass("t.Level").getConstructor().newInstance();
+
+        Object result = bridge.invoke(
+                mixinClass.getDeclaredConstructor().newInstance(), null, pos, level, true, null, original, "packet");
+
+        org.junit.jupiter.api.Assertions.assertSame(item, result);
+        assertEquals(List.of(java.util.Arrays.asList(null, pos, level, true, null)), calls);
+    }
+
+    /** {@code Item pick(Stack stack, Level level, Pos pos)}: vanilla's call, or the host's with the player null. */
+    private static byte[] pickTarget(boolean host) {
+        return ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "pick",
+                                MethodTypeDesc.of(PICK_ITEM, STACK, PICK_LEVEL, PICK_POS),
+                                ClassFile.ACC_PUBLIC,
+                                code -> {
+                                    code.aload(1);
+                                    if (host) {
+                                        code.aload(3).aload(2).iconst_1().aconst_null();
+                                        code.invokevirtual(
+                                                STACK,
+                                                "pick",
+                                                MethodTypeDesc.of(
+                                                        PICK_ITEM, PICK_POS, PICK_LEVEL, CD_boolean, PICK_PLAYER));
+                                    } else {
+                                        code.aload(2).aload(3).iconst_1();
+                                        code.invokevirtual(
+                                                STACK,
+                                                "pick",
+                                                MethodTypeDesc.of(PICK_ITEM, PICK_LEVEL, PICK_POS, CD_boolean));
+                                    }
+                                    code.areturn();
+                                }));
+    }
+
+    /**
+     * Like Fabric API's {@code onPickItemFromBlock}: {@code @WrapOperation} of {@code Stack.pick(Level, Pos, boolean)}
+     * by {@code onPick(stack, level, pos, flag, original, @Local(argsOnly = true) String packet)}, which returns {@code
+     * original.call(stack, level, pos, flag)}.
+     */
+    private static byte[] wrapPickMixin() {
+        Annotation wrap = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("pick"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", VANILLA_PICK))))));
+        Annotation local = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/sugar/Local;"),
+                AnnotationElement.ofBoolean("argsOnly", true));
+        return ClassFile.of().build(ClassDesc.of("m.WrapPickMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withMethodBody(ConstantDescs.INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.invokespecial(CD_Object, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+                code.return_();
+            });
+            builder.withMethod("onPick", WRAP_PICK, ClassFile.ACC_PUBLIC, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrap));
+                method.with(java.lang.classfile.attribute.RuntimeInvisibleParameterAnnotationsAttribute.of(
+                        List.of(List.of(), List.of(), List.of(), List.of(), List.of(), List.of(local))));
+                method.withCode(code -> {
+                    code.aload(5);
+                    code.iconst_4();
+                    code.anewarray(CD_Object);
+                    code.dup().iconst_0().aload(1).aastore();
+                    code.dup().iconst_1().aload(2).aastore();
+                    code.dup().iconst_2().aload(3).aastore();
+                    code.dup().iconst_3().iload(4);
+                    code.invokestatic(
+                            ClassDesc.of("java.lang.Boolean"),
+                            "valueOf",
+                            MethodTypeDesc.of(ClassDesc.of("java.lang.Boolean"), CD_boolean));
+                    code.aastore();
+                    code.invokeinterface(OPERATION, "call", MethodTypeDesc.of(CD_Object, CD_Object.arrayType()));
+                    code.checkcast(PICK_ITEM);
+                    code.areturn();
+                });
+            });
+        });
+    }
+
+    /** {@code boolean shouldStop(Stack stack)} returning {@code stack.<check>(null)}. */
+    private static byte[] checkTarget(String check) {
+        String owner = check.substring(1, check.indexOf(';'));
+        String name = check.substring(check.indexOf(';') + 1, check.indexOf('('));
+        MethodTypeDesc type = MethodTypeDesc.ofDescriptor(check.substring(check.indexOf('(')));
+        return ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "shouldStop", MethodTypeDesc.of(CD_boolean, STACK), ClassFile.ACC_PUBLIC, code -> {
+                                    code.aload(1);
+                                    code.aconst_null();
+                                    code.invokevirtual(ClassDesc.ofInternalName(owner), name, type);
+                                    code.ireturn();
+                                }));
+    }
+
+    /**
+     * Like Fabric API's {@code allowModdedRods}: {@code @WrapOperation} of {@code Stack.is(Object)} in {@code
+     * shouldStop} by {@code allowOther(stack, item, original)}, which returns {@code original.call(stack, item)}.
+     */
+    private static byte[] wrapCheckMixin() {
+        return wrapCheckMixin(false);
+    }
+
+    /** With {@code swapped}, the handler calls its {@code Operation} with the receiver and the argument swapped. */
+    private static byte[] wrapCheckMixin(boolean swapped) {
+        Annotation wrap = Annotation.of(
+                ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("shouldStop"))),
+                AnnotationElement.of(
+                        "at",
+                        AnnotationValue.ofArray(AnnotationValue.ofAnnotation(Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", VANILLA_CHECK))))));
+        return ClassFile.of().build(ClassDesc.of("m.WrapCheckMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withMethodBody(ConstantDescs.INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                code.invokespecial(CD_Object, ConstantDescs.INIT_NAME, ConstantDescs.MTD_void);
+                code.return_();
+            });
+            builder.withMethod("allowOther", WRAP_CHECK, ClassFile.ACC_PRIVATE, method -> {
+                method.with(RuntimeVisibleAnnotationsAttribute.of(wrap));
+                method.withCode(code -> {
+                    code.aload(3);
+                    code.iconst_2();
+                    code.anewarray(CD_Object);
+                    code.dup();
+                    code.iconst_0();
+                    code.aload(swapped ? 2 : 1);
+                    code.aastore();
+                    code.dup();
+                    code.iconst_1();
+                    code.aload(swapped ? 1 : 2);
+                    code.aastore();
+                    code.invokeinterface(OPERATION, "call", MethodTypeDesc.of(CD_Object, CD_Object.arrayType()));
+                    code.checkcast(ClassDesc.of("java.lang.Boolean"));
+                    code.invokevirtual(
+                            ClassDesc.of("java.lang.Boolean"), "booleanValue", MethodTypeDesc.of(CD_boolean));
+                    code.ireturn();
+                });
+            });
+        });
+    }
+
     private HostPatchAdjustments wrapLoadPlan(byte[] mixin) throws IOException {
         Path jar = jar(Map.of(CONFIG, WRAP_LOAD_CONFIG_TEXT, "m/WrapLoadMixin.class", mixin));
         return plan(
@@ -2121,8 +2941,9 @@ class HostPatchAdjustmentsTest {
     @Test
     void aDefaultMethodBothTheHostsAndAModsInterfaceGiveTheClassCallsTheHostOne() throws Exception {
         MethodTypeDesc remainder = MethodTypeDesc.of(CD_String);
-        byte[] hostApi = defaultInterface("h.HostApi", "remainder", remainder);
-        byte[] modApi = defaultInterface("m.ModApi", "remainder", remainder);
+        // The same call on the class: Fabric API's interface casts this, Forge's asks its self().
+        byte[] hostApi = receiverInterface("h.HostApi", "remainder", true);
+        byte[] modApi = receiverInterface("m.ModApi", "remainder", false);
         byte[] patched =
                 ClassFile.of().build(TARGET, builder -> builder.withInterfaceSymbols(ClassDesc.of("h.HostApi")));
         byte[] vanilla = ClassFile.of().build(TARGET, builder -> {});
@@ -2228,6 +3049,121 @@ class HostPatchAdjustmentsTest {
                 classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
 
         assertEquals(List.of(), adjustments.findings());
+    }
+
+    /**
+     * An interface whose default {@code method()} returns {@code t.Target.base()} on this: through {@code self()} (as
+     * Forge's and NeoForge's extension interfaces do) or a cast (as Fabric API's interfaces do).
+     */
+    private static byte[] receiverInterface(String name, String method, boolean viaSelf) {
+        ClassDesc type = ClassDesc.of(name);
+        return ClassFile.of().build(type, builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_INTERFACE | ClassFile.ACC_ABSTRACT);
+            if (viaSelf) {
+                builder.withMethod(
+                        "self",
+                        MethodTypeDesc.of(TARGET),
+                        ClassFile.ACC_PUBLIC | ClassFile.ACC_ABSTRACT,
+                        abstractMethod -> {});
+            }
+            builder.withMethodBody(method, MethodTypeDesc.of(CD_String), ClassFile.ACC_PUBLIC, code -> {
+                code.aload(0);
+                if (viaSelf) {
+                    code.invokeinterface(type, "self", MethodTypeDesc.of(TARGET));
+                } else {
+                    code.checkcast(TARGET);
+                }
+                code.invokevirtual(TARGET, "base", MethodTypeDesc.of(CD_String));
+                code.areturn();
+            });
+        });
+    }
+
+    /**
+     * A mod interface that extends the host's interface and overrides its default (Forgified Fabric API's
+     * FabricItemStack extends NeoForge's IItemStackExtension): the JVM selects the mod's, the more specific default, so
+     * there is no conflict.
+     */
+    @Test
+    void aModInterfaceThatExtendsTheHostsOverridesItsDefault() throws Exception {
+        byte[] hostApi = defaultInterface("h.HostApi", "remainder", MethodTypeDesc.of(CD_String));
+        byte[] modApi = ClassFile.of().build(ClassDesc.of("m.ModApi"), builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_INTERFACE | ClassFile.ACC_ABSTRACT);
+            builder.withInterfaceSymbols(ClassDesc.of("h.HostApi"));
+            builder.withMethodBody("remainder", MethodTypeDesc.of(CD_String), ClassFile.ACC_PUBLIC, code -> {
+                code.ldc("mod");
+                code.areturn();
+            });
+        });
+        byte[] patched =
+                ClassFile.of().build(TARGET, builder -> builder.withInterfaceSymbols(ClassDesc.of("h.HostApi")));
+        byte[] vanilla = ClassFile.of().build(TARGET, builder -> {});
+        byte[] mixin = ClassFile.of().build(ClassDesc.of("m.StackMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withInterfaceSymbols(ClassDesc.of("m.ModApi"));
+        });
+        Path jar = jar(Map.of(
+                CONFIG,
+                "{\"package\":\"m\",\"mixins\":[\"StackMixin\"]}",
+                "m/StackMixin.class",
+                mixin,
+                "m/ModApi.class",
+                modApi));
+
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", vanilla),
+                classes(Map.of("t/Target", patched, "h/HostApi", hostApi)));
+
+        assertEquals(List.of(), adjustments.findings());
+    }
+
+    /**
+     * NeoForge's shape: the host's patch makes a vanilla interface of the class ({@code v.Instance}) extend its own
+     * ({@code h.InstanceExtension}), whose default the mod's interface also gives, with other code. The check sees
+     * past the vanilla interface, and the mod cannot run as written.
+     */
+    @Test
+    void aDefaultThePatchAddsUnderAVanillaInterfaceConflictsWithTheModsDefault() throws Exception {
+        ClassDesc instance = ClassDesc.of("v.Instance");
+        byte[] extension = defaultInterface("h.InstanceExtension", "remainder", MethodTypeDesc.of(CD_String));
+        byte[] vanillaInstance = ClassFile.of()
+                .build(
+                        instance,
+                        builder -> builder.withFlags(
+                                ClassFile.ACC_PUBLIC | ClassFile.ACC_INTERFACE | ClassFile.ACC_ABSTRACT));
+        byte[] patchedInstance = ClassFile.of().build(instance, builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_INTERFACE | ClassFile.ACC_ABSTRACT);
+            builder.withInterfaceSymbols(ClassDesc.of("h.InstanceExtension"));
+        });
+        byte[] target = ClassFile.of().build(TARGET, builder -> builder.withInterfaceSymbols(instance));
+        byte[] modApi = receiverInterface("m.ModApi", "remainder", false);
+        byte[] mixin = ClassFile.of().build(ClassDesc.of("m.StackMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withInterfaceSymbols(ClassDesc.of("m.ModApi"));
+        });
+        Path jar = jar(Map.of(
+                CONFIG,
+                "{\"package\":\"m\",\"mixins\":[\"StackMixin\"]}",
+                "m/StackMixin.class",
+                mixin,
+                "m/ModApi.class",
+                modApi));
+        Map<String, byte[]> vanilla = Map.of("t/Target", target, "v/Instance", vanillaInstance);
+
+        HostPatchAdjustments adjustments = plan(
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                name -> Optional.ofNullable(vanilla.get(name)),
+                classes(Map.of("t/Target", target, "v/Instance", patchedInstance, "h/InstanceExtension", extension)));
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertEquals("POLY-COMPAT-224", finding.code(), finding.reason());
+        assertTrue(finding.reason().contains("remainder()Ljava/lang/String;"), finding.reason());
     }
 
     private static byte[] defaultInterface(String name, String method, MethodTypeDesc type) {

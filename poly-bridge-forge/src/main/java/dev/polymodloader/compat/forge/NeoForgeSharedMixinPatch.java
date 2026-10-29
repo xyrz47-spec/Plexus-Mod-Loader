@@ -63,6 +63,12 @@ final class NeoForgeSharedMixinPatch {
     static final String MIXIN_CLASS_PROCESSOR = "mixinClassProcessor";
     static final String MIXIN_GENERATING_CLASS_PROCESSOR = "mixinGeneratingClassProcessor";
     static final String FINISH = "finishSharedMixin";
+    static final String WITHOUT_FOREIGN_FABRIC_LOADER = "withoutForeignFabricLoader";
+
+    private static final MethodTypeDesc PLUGIN_FILTER_TYPE =
+            MethodTypeDesc.of(ConstantDescs.CD_List, ConstantDescs.CD_List);
+    private static final MethodTypeDesc LOAD_PLUGINS_TYPE =
+            MethodTypeDesc.of(ConstantDescs.CD_void, ConstantDescs.CD_List);
 
     private static final ClassDesc FACADE = ClassDesc.of("net.neoforged.fml.loading.mixin.MixinFacade");
     private static final ClassDesc FML_PROCESSOR =
@@ -176,6 +182,21 @@ final class NeoForgeSharedMixinPatch {
             if (element instanceof MethodModel method
                     && is(method, "createClassProcessorSet", CREATE_PROCESSOR_SET_TYPE)) {
                 builder.transformMethod(method, MethodTransform.transformingCode(redirect));
+            } else if (element instanceof MethodModel method && is(method, "loadPlugins", LOAD_PLUGINS_TYPE)) {
+                // The plugin files, first: without another Fabric Loader (PolyFml.withoutForeignFabricLoader).
+                builder.transformMethod(method, MethodTransform.transformingCode(CodeTransform.ofStateful(() -> {
+                    boolean[] started = {false};
+                    return (code, codeElement) -> {
+                        if (!started[0] && codeElement instanceof java.lang.classfile.Instruction) {
+                            started[0] = true;
+                            code.aload(1);
+                            code.invokestatic(
+                                    NeoForgeLoaderPatch.HOST, WITHOUT_FOREIGN_FABRIC_LOADER, PLUGIN_FILTER_TYPE);
+                            code.astore(1);
+                        }
+                        code.with(codeElement);
+                    };
+                })));
             } else {
                 builder.with(element);
             }
@@ -185,6 +206,9 @@ final class NeoForgeSharedMixinPatch {
         if (generatingCalls(model) == 1) {
             changed.add("createClassProcessorSet: MixinFacade.getGeneratingClassProcessor() -> PolyFml."
                     + MIXIN_GENERATING_CLASS_PROCESSOR);
+        }
+        if (model.methods().stream().anyMatch(method -> is(method, "loadPlugins", LOAD_PLUGINS_TYPE))) {
+            changed.add("loadPlugins: its plugin files through PolyFml." + WITHOUT_FOREIGN_FABRIC_LOADER);
         }
         return new Result(classFile.transformClass(model, transform), changed, List.of());
     }

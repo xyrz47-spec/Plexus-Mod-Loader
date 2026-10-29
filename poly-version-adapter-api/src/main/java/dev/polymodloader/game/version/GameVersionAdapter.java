@@ -81,4 +81,14 @@ public interface GameVersionAdapter {
     default java.util.Optional<String> gameLayerClass() {
         return java.util.Optional.empty();
     }
+
+    /**
+     * The entry in the client jar of the logo the game's loading screen draws, for Poly Mod Loader's early loading
+     * window, which looks like that screen. Empty when this adapter's game layer does not tell the runtime when the
+     * game's window shows ({@link dev.polymodloader.game.version.layer.GameWindowListener}); there is no early window
+     * then. Called once, on the launch thread, before discovery.
+     */
+    default java.util.Optional<String> loadingScreenLogo() {
+        return java.util.Optional.empty();
+    }
 }

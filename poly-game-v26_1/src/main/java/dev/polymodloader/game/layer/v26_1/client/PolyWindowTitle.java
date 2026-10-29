@@ -1,5 +1,6 @@
 package dev.polymodloader.game.layer.v26_1.client;
 
+import dev.polymodloader.game.layer.v26_1.LayerState;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 
@@ -17,6 +18,7 @@ public final class PolyWindowTitle {
 
     /** {@code title} with Poly Mod Loader's name before the game's version; {@code title} itself without the version. */
     public static String onCreateTitleReturn(Minecraft minecraft, String title) {
+        LayerState.context().ifPresent(context -> context.gameWindow().opening());
         return named(title, SharedConstants.getCurrentVersion().name());
     }
 

@@ -322,7 +322,10 @@ final class NeoForgeGameHost implements GameHost {
                                 null,
                                 new NeoForgeLaunch.Request(
                                         request.side() == GameSide.CLIENT ? "CLIENT" : "DEDICATED_SERVER",
-                                        request.side() != GameSide.CLIENT || NeoForgeLaunch.headlessClient(),
+                                        // With Poly Mod Loader's early window, FML opens none of its own.
+                                        request.side() != GameSide.CLIENT
+                                                || NeoForgeLaunch.headlessClient()
+                                                || request.polyEarlyWindow(),
                                         request.gameDirectory(),
                                         arguments,
                                         files.libraryDirectory(),
@@ -379,7 +382,7 @@ final class NeoForgeGameHost implements GameHost {
         Path earlyScreen = request.gameDirectory().resolve(".poly").resolve("early-screen");
         for (Map.Entry<String, ModuleReference> entry : references.entrySet()) {
             ModuleReference reference = modList.apply(automatic(entry.getValue()));
-            if (request.side() == GameSide.CLIENT) {
+            if (request.side() == GameSide.CLIENT && !request.polyEarlyWindow()) {
                 // NeoForge's early loading window shows Poly Mod Loader's art and title.
                 reference = EarlyScreenArt.of(reference, earlyScreen, request.log());
                 reference = EarlyWindowTitle.of(reference, request.gameVersion(), request.log());

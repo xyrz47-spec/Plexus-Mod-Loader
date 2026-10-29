@@ -8,7 +8,7 @@ dependencyResolutionManagement {
         mavenCentral()
         exclusiveContent {
             forRepository { maven("https://maven.fabricmc.net/") { name = "FabricMC" } }
-            filter { includeGroup("net.fabricmc") }
+            filter { includeGroupAndSubgroups("net.fabricmc") }
         }
         exclusiveContent {
             forRepository { maven("https://maven.minecraftforge.net/") { name = "MinecraftForge" } }
@@ -64,10 +64,13 @@ includeIfPresent(
     "poly-transform-api",
     "poly-transform-engine",
     "poly-version-adapter-api",
+    "poly-early-window",
     "poly-runtime-impl",
     "poly-bridge-api",
     "poly-bridge-fabric",
     "poly-bridge-forge",
+    // Fabric API modules implemented on NeoForge 26.2 (ADR-0031).
+    "poly-fabric-api-neoforge-v26_2",
     "poly-bootstrap",
     "poly-installer",
     "examples:minimal-native-mod",

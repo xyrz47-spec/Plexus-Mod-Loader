@@ -59,7 +59,13 @@ class NeoForgeSharedMixinPatchTest {
                 NeoForgeSharedMixinPatch.applyToLoader(classFile(NeoForgeLoaderPatch.CLASS_FILE), HIERARCHY);
 
         assertTrue(result.missing().isEmpty(), () -> "missing: " + result.missing());
-        assertEquals(1, result.changed().size());
+        assertEquals(2, result.changed().size(), () -> "changed: " + result.changed());
+        // FML's plugin files pass Poly Mod Loader's filter first (another Fabric Loader is left out).
+        assertEquals(
+                1,
+                hostCalls(
+                        instructions(ClassFile.of().parse(result.bytes()), "loadPlugins"),
+                        NeoForgeSharedMixinPatch.WITHOUT_FOREIGN_FABRIC_LOADER));
         List<Instruction> code = instructions(ClassFile.of().parse(result.bytes()), "createClassProcessorSet");
         assertEquals(1, hostCalls(code, NeoForgeSharedMixinPatch.MIXIN_CLASS_PROCESSOR));
         assertEquals(0, hostCalls(code, NeoForgeSharedMixinPatch.MIXIN_GENERATING_CLASS_PROCESSOR));
@@ -156,7 +162,12 @@ class NeoForgeSharedMixinPatchTest {
                 NeoForgeSharedMixinPatch.applyToLoader(fml12(NeoForgeLoaderPatch.CLASS_FILE), hierarchy);
 
         assertTrue(result.missing().isEmpty(), () -> "missing: " + result.missing());
-        assertEquals(2, result.changed().size(), () -> "changed: " + result.changed());
+        assertEquals(3, result.changed().size(), () -> "changed: " + result.changed());
+        assertEquals(
+                1,
+                hostCalls(
+                        instructions(ClassFile.of().parse(result.bytes()), "loadPlugins"),
+                        NeoForgeSharedMixinPatch.WITHOUT_FOREIGN_FABRIC_LOADER));
         List<Instruction> code = instructions(ClassFile.of().parse(result.bytes()), "createClassProcessorSet");
         assertEquals(1, hostCalls(code, NeoForgeSharedMixinPatch.MIXIN_CLASS_PROCESSOR));
         assertEquals(1, hostCalls(code, NeoForgeSharedMixinPatch.MIXIN_GENERATING_CLASS_PROCESSOR));

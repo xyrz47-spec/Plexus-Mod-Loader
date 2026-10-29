@@ -156,7 +156,11 @@ tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("wo
 tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest") {
     // The showcase leaves the world after its demo, so leaving is checked too.
     systemProperties.add("native_showcase.leaveAfterDemo=true")
+    // Poly Mod Loader's early loading window (no host loader here): opened, drawn, closed when the game's window shows.
+    systemProperties.add("poly.earlyWindow.snapshots=.poly")
     expectedOutput.addAll(
+        "[Poly Mod Loader] Early loading window opened",
+        "[Poly Mod Loader] Early loading window closed",
         "[Poly Mod Loader] Phase GAME_LAUNCH: net.minecraft.client.main.Main",
         "[minimal_native_mod] Client entrypoint called",
         "[Poly Mod Loader] poly:game_brand reported 'poly/example' to Minecraft (CLIENT)",
@@ -518,7 +522,7 @@ if (minecraft == "26.2") {
         expectedOutput.addAll(
             "NeoForge mod file(s) and 7 Fabric or Quilt mod(s) run together; one Mixin serves both (ADR-0026 30)",
             "[Poly Mod Loader] NeoForge 26.2.0.93 loads 5 NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
-            "FML's Mixin: [createClassProcessorSet: MixinFacade.getClassProcessor() -> PolyFml.mixinClassProcessor] (ADR-0026 30)",
+            "FML's Mixin: [createClassProcessorSet: MixinFacade.getClassProcessor() -> PolyFml.mixinClassProcessor, loadPlugins: its plugin files through PolyFml.withoutForeignFabricLoader] (ADR-0026 30)",
             "is left out of the game layer: NeoForge's mods use the MixinExtras of the Mixin that Fabric mods share (ADR-0026 30)",
             "Mixin configuration(s) of NeoForge's mods and libraries for the Mixin Fabric mods share; FML's own Mixin does not start (ADR-0026 30)",
             "share Fabric's Mixin",
@@ -1226,9 +1230,13 @@ val corpusScenarios = listOf(
             // not loaded (ADR-0030), and with them the Fabric mods that need them.
             // 2026-10-27: no Fabric API module is left out next to Forge any more; Architectury, Balm and Lithium are.
             // Puzzles Lib runs since its item toss event follows Forge's ForgeHooks.onPlayerTossEvent (87 -> 88 loaded).
-            corpusCounts("[Poly Mod Loader] Foreign mods: 88 loaded, 78 not loaded"),
+            // 2026-10-29: fabric-content-registries-v0 is left out (Forge moved drowning and fluid jumping into
+            // FluidType hooks), and Puzzles Lib, which uses its classes, with it (88 -> 86 loaded).
+            // 2026-10-29: the link check reads Forge's patched game first (ADR-0031), and fabric-biome-api-v1 writes
+            // ChunkGenerator.featuresPerStep as a Supplier, which Forge made a ClearableLazy (86 -> 85 loaded).
+            corpusCounts("[Poly Mod Loader] Foreign mods: 85 loaded, 81 not loaded"),
             corpusCounts(
-                "POLY-COMPAT-224 3 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it: architectury, balm, lithium",
+                "POLY-COMPAT-224 4 mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge 26.2-65.1.5 patches it: architectury, balm, fabric-content-registries-v0, lithium",
                 "mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on the game as MinecraftForge ",
             ),
             "share Fabric's Mixin",
@@ -1525,12 +1533,12 @@ val quiltCorpusScenarios = listOf(
         )
         if (minecraft == "26.2") {
             // The 26.2 Quilt corpus's Cloth Config is the Fabric build; NeoForge's build cloth_config runs instead and
-            // stands in for it (ADR-0026 37). Better Shulker Boxes, which needs it, also needs Fabric API modules that
-            // do not fit NeoForge's patch, so it is not loaded (ADR-0030).
+            // stands in for it (ADR-0026 37). Better Shulker Boxes, which needs it and Fabric API's interaction events
+            // (loaded since the wraps of calls NeoForge replaced run on its calls, 2026-10-28), runs on it.
             expectedOutput.addAll(
                 "loads its own build of it as cloth_config (the same ID as NeoForge spells it)",
                 "mods that need cloth-config or cloth-config2 use NeoForge ",
-                "bettershulker 1.5.1 (better-shulker-boxes-quilt-1.5.1.jar): BLOCKED",
+                "Fabric mod bettershulker 1.5.1 (better-shulker-boxes-quilt-1.5.1.jar): EXPERIMENTAL - loaded",
             )
         }
         unexpectedOutput.addAll(quiltCorpusUnexpected + "POLY-COMPAT-216")
@@ -1650,6 +1658,11 @@ val fabricApiEvents = if (minecraft == "26.2") {
         "[fabric_api_events] PlayerBlockBreakEvents.BEFORE minecraft:dirt, block entity none",
         "[fabric_api_events] PlayerBlockBreakEvents.AFTER minecraft:dirt, block entity none",
         "[fabric_api_events] creative destroyBlock(minecraft:dirt) = true, block left: minecraft:air",
+        "[fabric_api_events] FabricBlockState.getAppearance(minecraft:stone) = minecraft:stone",
+        "[fabric_api_events] FabricBlockState.getProvidedEnchantmentPower(minecraft:bookshelf) = 1.0",
+        "[fabric_api_events] enchanting table offers minecraft:sharpness for minecraft:diamond_sword: false",
+        "[fabric_api_events] enchanting table offers minecraft:sharpness for minecraft:iron_sword: true",
+        "[fabric_api_events] default max stack size of minecraft:stick: 16",
         "[fabric_api_events] recipe behind a met Fabric condition loaded: true",
         "[fabric_api_events] recipe behind an unmet Fabric condition loaded: false",
         "[fabric_api_events] crafting remainder of a lava bucket: minecraft:bucket",
@@ -1665,13 +1678,36 @@ val fabricApiEvents = if (minecraft == "26.2") {
             dependsOn(modCorpus)
             classpath(forgeClassPath)
             systemProperty("poly.forge", "always")
-            description = "Real Fabric API with MinecraftForge: all 6 modules adapted and loaded."
+            description = "Real Fabric API with MinecraftForge: every module but fabric-content-registries-v0 loaded."
             expectedOutput.addAll(lines)
             expectedOutput.addAll(
                 "Fabric mod fabric_api_events 1.0.0 (fabric-api-events-",
                 "Forge mod loading, version 65.1.5",
+                // Forge moved the air supply and fluid jump code into FluidType hooks; ADR-0030 leaves the module out.
+                "POLY-COMPAT-224 1 mod(s) are NOT loaded",
+                "MinecraftForge 26.2-65.1.5 patches it: fabric-content-registries-v0.",
+                "useCustomEnchantingChecks into net/minecraft/world/item/enchantment/EnchantmentHelper",
             )
-            unexpectedOutput.addAll("POLY-COMPAT-224", "POLY-COMPAT-225", "Critical injection failure")
+            unexpectedOutput.addAll("POLY-COMPAT-225", "Critical injection failure")
+        },
+        // The same lines next to NeoForge, whose patch moved the code Fabric API hooks (ADR-0026 30): resource
+        // conditions through NeoForge's conditional codec, block break events through events-interaction. The item
+        // module is left out there (224); the remainder line then comes from NeoForge's own stack call.
+        // NeoForge starts only with a NeoForge mod file in the game; the harness is one.
+        scenarios.gameTest("neoForgeFabricApiGameTest", mods + modJars(":test-mods:neoforge-gametest-harness")) {
+            dependsOn(modCorpus)
+            runsNeoForge()
+            description = "Real Fabric API's block break events, resource conditions and crafting remainders next to NeoForge."
+            expectedOutput.addAll(lines)
+            expectedOutput.addAll(
+                "Fabric mod fabric_api_events 1.0.0 (fabric-api-events-",
+                "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge ",
+                "@Inject skipData into net/minecraft/server/packs/resources/SimpleJsonResourceReloadListener",
+                // The block module runs as Poly Mod Loader's build on NeoForge's hooks (ADR-0031).
+                "runs its build on the host's hooks instead (ADR-0031): fabric-block-api-v1-3.1.0+poly.neoforge.26.2.jar",
+                "runs its build on the host's hooks instead (ADR-0031): fabric-item-api-v1-14.5.0+poly.neoforge.26.2.jar",
+            )
+            unexpectedOutput.addAll("POLY-COMPAT-225", "Critical injection failure")
         },
     )
 } else {
@@ -1748,6 +1784,11 @@ clientWorldReload("forgeClient") {
     expectedOutput.addAll(
         "[Poly Mod Loader] MinecraftForge 26.2-65.1.5 loads 3 Forge mod(s) itself on Poly Mod Loader's game class loader",
         "Forge mod loading, version 65.1.5",
+        // Poly Mod Loader's early loading window in place of Forge's (ForgeEarlyWindowOff), closed when the game's shows.
+        "[Poly Mod Loader] Early loading window opened",
+        "Early loading window: disabled net.minecraftforge.earlydisplay providing net.minecraftforge.fml.loading.ImmediateWindowProvider",
+        "ImmediateWindowProvider fmlearlywindow, disabling",
+        "[Poly Mod Loader] Early loading window closed",
         "[forge_hello] Common setup: item forge_hello:hello_item is registered",
         "[forge_at] Mth.SIN has 65536 entries",
         "joined the game",
@@ -1845,7 +1886,7 @@ clientWorldReload("corpusForgeClient") {
 }
 
 // NeoForge on the client (ADR-0026, N7; opens a window, run it alone after the headless checks): FML's client startup with
-// its early window, the NeoForge test mod, a Poly Mod, and neoforge-client-session, a NeoForge mod that plays 200 ticks in
+// Poly Mod Loader's early window in place of its own, the NeoForge test mod, a Poly Mod, and neoforge-client-session, a NeoForge mod that plays 200 ticks in
 // the world worldCreateSaveTest saved, then saves, quits to the title screen and stops the client.
 if (minecraft == "26.2") {
     clientWorldReload("neoForgeClient") {
@@ -1856,6 +1897,10 @@ if (minecraft == "26.2") {
         runDirectory.set(layout.buildDirectory.dir("poly/neoforge-client-$minecraft"))
         timeoutSeconds.set(300)
         expectedOutput.addAll(
+            // Poly Mod Loader's early loading window; FML opens none (headless start).
+            "[Poly Mod Loader] Early loading window opened",
+            "Not loading early display in headless mode",
+            "[Poly Mod Loader] Early loading window closed",
             "[Poly Mod Loader] NeoForge 26.2.0.93 loads 2 NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
             "[Poly Mod Loader] Loaded mods per loader: 2 Poly, 0 Fabric, 0 Quilt, 0 Forge, 2 NeoForge",
             "[neoforge_hello] Constructed by FML in module neoforge_hello (neoforge_hello)",

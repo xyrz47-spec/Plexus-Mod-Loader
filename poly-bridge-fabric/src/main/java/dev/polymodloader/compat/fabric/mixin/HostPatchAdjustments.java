@@ -16,20 +16,33 @@ import java.lang.classfile.Annotation;
 import java.lang.classfile.AnnotationElement;
 import java.lang.classfile.AnnotationValue;
 import java.lang.classfile.Attribute;
+import java.lang.classfile.Attributes;
+import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeElement;
 import java.lang.classfile.FieldModel;
+import java.lang.classfile.Instruction;
+import java.lang.classfile.Label;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.TypeKind;
 import java.lang.classfile.attribute.RuntimeInvisibleAnnotationsAttribute;
+import java.lang.classfile.attribute.RuntimeInvisibleParameterAnnotationsAttribute;
 import java.lang.classfile.attribute.RuntimeVisibleAnnotationsAttribute;
+import java.lang.classfile.attribute.RuntimeVisibleParameterAnnotationsAttribute;
 import java.lang.classfile.constantpool.ClassEntry;
+import java.lang.classfile.instruction.BranchInstruction;
+import java.lang.classfile.instruction.ConstantInstruction;
 import java.lang.classfile.instruction.FieldInstruction;
 import java.lang.classfile.instruction.InvokeInstruction;
+import java.lang.classfile.instruction.LoadInstruction;
+import java.lang.classfile.instruction.LookupSwitchInstruction;
 import java.lang.classfile.instruction.NewObjectInstruction;
+import java.lang.classfile.instruction.StoreInstruction;
+import java.lang.classfile.instruction.TableSwitchInstruction;
+import java.lang.classfile.instruction.TypeCheckInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
 import java.lang.constant.MethodTypeDesc;
@@ -232,7 +245,7 @@ final class HostPatchAdjustments {
      * {@code hostInterface} (a direct interface of the target class) give the target class, which does not declare it:
      * the mixin gets a public method that calls {@code hostInterface}'s.
      */
-    private record HostDefault(String name, String descriptor, String hostInterface) {}
+    private record HostDefault(String name, String descriptor, String hostInterface, boolean sameCode) {}
 
     /**
      * An {@code @Inject} handler ({@code handler} {@code descriptor}) into a method that the patched overrides in {@code
@@ -258,7 +271,10 @@ final class HostPatchAdjustments {
     }
 
     /**
-     * A fluid interaction injection adapted for Forge's custom fluid patches via {@code @WrapOperation}.
+     * A {@code @WrapOperation} of vanilla's {@code FluidState.is(FluidTags.WATER)} that Forge replaced with a call
+     * returning the same answer from its fluid types; the bridge makes Forge's call and runs the handler on its result
+     * ({@link #fluidWrapMethod}). BOAT_SUPPORT: the fluid state is Forge's argument; SWIMMING: the bridge reads the same
+     * fluid state vanilla reads ({@code level().getFluidState(blockPosition())}).
      */
     private record FluidWrap(
             String handler,
@@ -269,14 +285,15 @@ final class HostPatchAdjustments {
             Kind kind) {
         enum Kind {
             BOAT_SUPPORT,
-            SWIMMING,
-            DROWNING,
-            JUMP
+            SWIMMING
         }
     }
 
     /**
-     * An item / crafting remainder injection adapted for Forge's item patches via {@code @WrapOperation}.
+     * An item injection at a call Forge replaced. The remainder kinds are kept only when the handler makes no call but
+     * {@code ItemStack.getCraftingRemainder()} on the stack Forge calls it on ({@link #onlyStackRemainder}), which is
+     * Forge's own call; ENCHANTMENT_CHECK only when the handler is Fabric's {@code canBeEnchantedWith} check
+     * ({@link #onlyFabricEnchantingCheck}).
      */
     private record ItemWrap(
             String handler,
@@ -315,10 +332,34 @@ final class HostPatchAdjustments {
      */
     private record HostList(String handler, String descriptor, String replaced, String replacement) {}
 
+    /**
+     * A {@code @WrapOperation} handler ({@code handler} {@code descriptor}) of a call {@code replaced} that the patch
+     * replaced at the same place with {@code replacement} on the same receiver: a bridge at {@code replacement} hands the
+     * handler the host's arguments and result ({@link HostReplacedCalls}).
+     */
+    private record ReplacedCall(String handler, String descriptor, String replaced, String replacement) {}
+
     private static final String BRIDGE_PREFIX = "poly$hostParameters$";
     private static final String APPENDED_PREFIX = "poly$hostArguments$";
     private static final ClassDesc APPENDED_ARGUMENTS = ClassDesc.of(AppendedArguments.class.getName());
     private static final String WRAP_PREFIX = "poly$hostCall$";
+    private static final String HOST_MAKES_HANDLER_CALL =
+            " there; the redirect only calls ItemStack.getCraftingRemainder() on that stack, matching Forge's call, so dropping the handler preserves behavior";
+    private static final ClassDesc FLUID_STATE = ClassDesc.of("net.minecraft.world.level.material.FluidState");
+    private static final ClassDesc TAG_KEY = ClassDesc.of("net.minecraft.tags.TagKey");
+    private static final ClassDesc ITEM_STACK = ClassDesc.of("net.minecraft.world.item.ItemStack");
+    private static final ClassDesc LOCAL_REF = ClassDesc.of("com.llamalad7.mixinextras.sugar.ref.LocalRef");
+    private static final ClassDesc ENTITY = ClassDesc.of("net.minecraft.world.entity.Entity");
+    private static final ClassDesc LEVEL = ClassDesc.of("net.minecraft.world.level.Level");
+    private static final ClassDesc BLOCK_POS = ClassDesc.of("net.minecraft.core.BlockPos");
+    private static final ClassDesc FLUID_TAGS = ClassDesc.of("net.minecraft.tags.FluidTags");
+    private static final ClassDesc HOLDER = ClassDesc.of("net.minecraft.core.Holder");
+    private static final ClassDesc ENCHANTMENT = ClassDesc.of("net.minecraft.world.item.enchantment.Enchantment");
+    private static final ClassDesc ENCHANTING_CONTEXT =
+            ClassDesc.of("net.fabricmc.fabric.api.item.v1.EnchantingContext");
+    private static final String CAN_BE_ENCHANTED_WITH =
+            "(Lnet/minecraft/core/Holder;Lnet/fabricmc/fabric/api/item/v1/EnchantingContext;)Z";
+    private static final ClassDesc PRECOMPUTED_CALL = ClassDesc.of(PrecomputedCall.class.getName());
     private static final String REDIRECT_PREFIX = "poly$hostRedirect$";
     private static final String RECEIVERS_PREFIX = "poly$receivers$";
     private static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
@@ -331,6 +372,7 @@ final class HostPatchAdjustments {
 
     static final HostPatchAdjustments NONE = new HostPatchAdjustments(
             Set.of(),
+            Map.of(),
             Map.of(),
             Map.of(),
             Map.of(),
@@ -368,6 +410,7 @@ final class HostPatchAdjustments {
     private final Map<String, List<RegistrySyncWrap>> registrySyncWraps;
     private final Map<String, List<OptionalLeft>> optionalLefts;
     private final Map<String, List<HostList>> hostLists;
+    private final Map<String, List<ReplacedCall>> replacedCalls;
 
     private final List<Finding> findings;
 
@@ -394,6 +437,7 @@ final class HostPatchAdjustments {
             Map<String, List<RegistrySyncWrap>> registrySyncWraps,
             Map<String, List<OptionalLeft>> optionalLefts,
             Map<String, List<HostList>> hostLists,
+            Map<String, List<ReplacedCall>> replacedCalls,
             List<Finding> findings,
             HostAddedMembers members,
             HostRenamedLocals locals) {
@@ -413,6 +457,7 @@ final class HostPatchAdjustments {
         this.registrySyncWraps = registrySyncWraps;
         this.optionalLefts = optionalLefts;
         this.hostLists = hostLists;
+        this.replacedCalls = replacedCalls;
         this.findings = findings;
         this.members = members;
         this.locals = locals;
@@ -458,6 +503,7 @@ final class HostPatchAdjustments {
         Map<String, List<RegistrySyncWrap>> registrySyncWraps = new HashMap<>();
         Map<String, List<OptionalLeft>> optionalLefts = new HashMap<>();
         Map<String, List<HostList>> hostLists = new HashMap<>();
+        Map<String, List<ReplacedCall>> replacedCalls = new HashMap<>();
         List<Finding> findings = new ArrayList<>();
         HostAddedMembers.Planner members = new HostAddedMembers.Planner(host, classes);
         HostRenamedLocals.Planner locals = new HostRenamedLocals.Planner(host, classes);
@@ -576,6 +622,24 @@ final class HostPatchAdjustments {
                                     .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                     .add(injection.hostList());
                         }
+                        if (injection.replacedCall() != null) {
+                            replacedCalls
+                                    .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
+                                    .add(injection.replacedCall());
+                            ReplacedCall dropped = injection.replacedCall();
+                            if (dropped.replaced().equals(HostConditionalSkip.SKIP)) {
+                                String companion = dropped.replacement();
+                                int open = companion.indexOf('(');
+                                int hash = companion.lastIndexOf('#');
+                                replacedCalls
+                                        .get(mixin.getValue())
+                                        .add(new ReplacedCall(
+                                                companion.substring(0, open),
+                                                companion.substring(open, hash),
+                                                HostConditionalSkip.COMPANION,
+                                                companion.substring(hash + 1)));
+                            }
+                        }
                         findings.add(
                                 injection.doesNotRun()
                                         ? Finding.incompatible(
@@ -587,7 +651,7 @@ final class HostPatchAdjustments {
                         hostDefaults
                                 .computeIfAbsent(mixin.getValue(), name -> new ArrayList<>())
                                 .add(conflict);
-                        if (isCompatibleDefault(conflict)) {
+                        if (conflict.sameCode()) {
                             findings.add(Finding.adapted(
                                     modId,
                                     config,
@@ -665,6 +729,7 @@ final class HostPatchAdjustments {
                 Map.copyOf(registrySyncWraps),
                 Map.copyOf(optionalLefts),
                 Map.copyOf(hostLists),
+                Map.copyOf(replacedCalls),
                 List.copyOf(findings),
                 members.build(),
                 locals.build());
@@ -711,6 +776,7 @@ final class HostPatchAdjustments {
         List<RegistrySyncWrap> ownRegistrySyncWraps = registrySyncWraps.getOrDefault(internalName, List.of());
         List<OptionalLeft> ownOptionalLefts = optionalLefts.getOrDefault(internalName, List.of());
         List<HostList> ownHostLists = hostLists.getOrDefault(internalName, List.of());
+        List<ReplacedCall> ownReplacedCalls = replacedCalls.getOrDefault(internalName, List.of());
         ClassFile classFile = ClassFile.of();
         ClassModel model = classFile.parse(bytes);
         ClassTransform transform = (builder, element) -> {
@@ -771,14 +837,22 @@ final class HostPatchAdjustments {
                         .filter(candidate -> method.methodName().equalsString(candidate.handler())
                                 && method.methodType().equalsString(candidate.descriptor()))
                         .findFirst();
+                Optional<ReplacedCall> replacedCall = ownReplacedCalls.stream()
+                        .filter(candidate -> method.methodName().equalsString(candidate.handler())
+                                && method.methodType().equalsString(candidate.descriptor()))
+                        .findFirst();
                 boolean withoutInject = bridge.isPresent() || wrap.isPresent() || guarded.isPresent();
                 builder.transformMethod(method, (methodBuilder, methodElement) -> {
                     if (methodElement instanceof RuntimeVisibleAnnotationsAttribute attribute) {
                         methodBuilder.with(RuntimeVisibleAnnotationsAttribute.of(attribute.annotations().stream()
                                 .filter(annotation -> !(withoutInject
                                                 && annotation.className().equalsString(INJECT))
-                                        && !((moved.isPresent() || optionalLeft.isPresent())
+                                        && !((moved.isPresent() || optionalLeft.isPresent() || replacedCall.isPresent())
                                                 && annotation.className().equalsString(WRAP_OPERATION))
+                                        && !(replacedCall.isPresent()
+                                                && annotation.className().equalsString(INJECT))
+                                        && !(replacedCall.isPresent()
+                                                && annotation.className().equalsString(MODIFY_ARG))
                                         && !((inPlaceRedirect.isPresent() || hostList.isPresent())
                                                 && annotation.className().equalsString(REDIRECT))
                                         && !(bedWrap.isPresent()
@@ -787,13 +861,7 @@ final class HostPatchAdjustments {
                                                                 .className()
                                                                 .equalsString(REDIRECT)))
                                         && !(fluidWrap.isPresent()
-                                                && (annotation.className().equalsString(WRAP_OPERATION)
-                                                        || annotation
-                                                                .className()
-                                                                .equalsString(MODIFY_EXPRESSION_VALUE)
-                                                        || annotation
-                                                                .className()
-                                                                .equalsString(MODIFY_ARG)))
+                                                && annotation.className().equalsString(WRAP_OPERATION))
                                         && !(itemWrap.isPresent()
                                                 && (annotation.className().equalsString(WRAP_OPERATION)
                                                         || annotation
@@ -803,20 +871,6 @@ final class HostPatchAdjustments {
                                                 && annotation.className().equalsString(REDIRECT)))
                                 .map(annotation -> adjust(annotation, handlers, methodHandlers, sliceHandlers))
                                 .toList()));
-                    } else if (methodElement instanceof RuntimeInvisibleAnnotationsAttribute attribute) {
-                        if (fluidWrap.isPresent()) {
-                            List<Annotation> kept = attribute.annotations().stream()
-                                    .filter(annotation -> !annotation
-                                            .className()
-                                            .stringValue()
-                                            .startsWith("Lcom/llamalad7/mixinextras/expression/"))
-                                    .toList();
-                            if (!kept.isEmpty()) {
-                                methodBuilder.with(RuntimeInvisibleAnnotationsAttribute.of(kept));
-                            }
-                        } else {
-                            methodBuilder.with(methodElement);
-                        }
                     } else {
                         methodBuilder.with(methodElement);
                     }
@@ -858,7 +912,7 @@ final class HostPatchAdjustments {
                 });
                 bedWrap.ifPresent(present -> bedWrapMethod(builder, model, method, present));
                 fluidWrap.ifPresent(present -> fluidWrapMethod(builder, model, method, present));
-                itemWrap.ifPresent(present -> itemWrapMethod(builder, model, method, present));
+                itemWrap.ifPresent(present -> itemWrapMethod(builder, method, present));
                 registrySyncWrap.ifPresent(present -> registrySyncWrapMethod(builder, model, method, present));
                 optionalLeft.ifPresent(present -> HostOptionalResults.bridgeMethod(
                         builder,
@@ -880,6 +934,54 @@ final class HostPatchAdjustments {
                                 sliceHandlers),
                         present.replaced(),
                         present.replacement()));
+                replacedCall.ifPresent(present -> {
+                    if (present.replaced().equals(HostConditionalSkip.SKIP)) {
+                        return;
+                    }
+                    if (present.replaced().equals(HostConditionalSkip.COMPANION)) {
+                        HostConditionalSkip.companionBridge(
+                                builder,
+                                model,
+                                method,
+                                adjust(
+                                        annotation(method.attributes(), WRAP_OPERATION)
+                                                .orElseThrow(),
+                                        handlers,
+                                        methodHandlers,
+                                        sliceHandlers),
+                                present.replacement());
+                        return;
+                    }
+                    if (HostThreadDump.covers(present.replaced(), present.replacement())) {
+                        HostThreadDump.bridgeMethod(builder, model, method);
+                        return;
+                    }
+                    if (HostHopperTransfer.covers(present.replaced(), present.replacement())) {
+                        HostHopperTransfer.bridgeMethod(
+                                builder,
+                                model,
+                                method,
+                                adjust(
+                                        annotation(method.attributes(), INJECT).orElseThrow(),
+                                        handlers,
+                                        methodHandlers,
+                                        sliceHandlers),
+                                present.replaced(),
+                                present.replacement());
+                        return;
+                    }
+                    Annotation wrapOperation = adjust(
+                            annotation(method.attributes(), WRAP_OPERATION).orElseThrow(),
+                            handlers,
+                            methodHandlers,
+                            sliceHandlers);
+                    if (HostEffectRemoval.covers(present.replaced(), present.replacement())) {
+                        HostEffectRemoval.bridgeMethod(builder, model, method, wrapOperation);
+                    } else {
+                        HostReplacedCalls.bridgeMethod(
+                                builder, model, method, wrapOperation, present.replaced(), present.replacement());
+                    }
+                });
             } else {
                 builder.with(element);
             }
@@ -912,11 +1014,77 @@ final class HostPatchAdjustments {
     }
 
     /**
-     * Whether {@code conflict} is between equivalent default methods (such as {@code getCraftingRemainder} on {@code Item}
-     * and {@code ItemStack}), where keeping the host's default method resolves the conflict and works as written.
+     * Whether two default methods make the same calls in the same order on the same receiver ({@link #normalized}):
+     * keeping the host's then runs the mod's code as written (MinecraftForge's and Fabric API's {@code
+     * getCraftingRemainder} on {@code Item} and {@code ItemStack}).
      */
-    private static boolean isCompatibleDefault(HostDefault conflict) {
-        return conflict.name().equals("getCraftingRemainder") || conflict.name().equals("remainder");
+    static boolean sameCode(Optional<MethodModel> mine, Optional<MethodModel> host) {
+        if (mine.isEmpty() || host.isEmpty()) {
+            return false;
+        }
+        Optional<List<String>> left = normalized(mine.get());
+        return left.isPresent() && left.equals(normalized(host.get()));
+    }
+
+    /**
+     * A straight-line default method's instructions as text, with the interface's own receiver ({@code this} cast to the
+     * class, or the extension interfaces' {@code self()}) as {@code this}; empty for code with a branch or a switch.
+     */
+    private static Optional<List<String>> normalized(MethodModel method) {
+        List<Instruction> code = instructions(method);
+        List<String> text = new ArrayList<>();
+        for (int index = 0; index < code.size(); index++) {
+            Instruction instruction = code.get(index);
+            Instruction next = index + 1 < code.size() ? code.get(index + 1) : null;
+            if (instruction instanceof LoadInstruction load && load.slot() == 0) {
+                if (next instanceof TypeCheckInstruction check && check.opcode() == Opcode.CHECKCAST) {
+                    text.add("this " + check.type().asSymbol().descriptorString());
+                    index++;
+                    continue;
+                }
+                if (next instanceof InvokeInstruction self
+                        && self.opcode() == Opcode.INVOKEINTERFACE
+                        && self.name().equalsString("self")
+                        && self.typeSymbol().parameterCount() == 0) {
+                    text.add("this " + self.typeSymbol().returnType().descriptorString());
+                    index++;
+                    continue;
+                }
+            }
+            if (instruction instanceof BranchInstruction
+                    || instruction instanceof TableSwitchInstruction
+                    || instruction instanceof LookupSwitchInstruction) {
+                return Optional.empty();
+            }
+            text.add(
+                    switch (instruction) {
+                        case InvokeInstruction invoke ->
+                            invoke.opcode() + " " + invoke.owner().asInternalName() + "."
+                                    + invoke.name().stringValue()
+                                    + invoke.typeSymbol().descriptorString();
+                        case FieldInstruction field ->
+                            field.opcode() + " " + field.owner().asInternalName() + "."
+                                    + field.name().stringValue();
+                        case TypeCheckInstruction check ->
+                            check.opcode() + " " + check.type().asInternalName();
+                        case LoadInstruction load -> load.opcode() + " " + load.slot();
+                        case StoreInstruction store -> store.opcode() + " " + store.slot();
+                        case ConstantInstruction constant -> constant.opcode() + " " + constant.constantValue();
+                        default -> instruction.opcode().toString();
+                    });
+        }
+        return Optional.of(text);
+    }
+
+    /** The method {@code method} (name and descriptor) that {@code owner} declares in {@code classes}, if any. */
+    private static Optional<MethodModel> declaredMethod(
+            Function<String, Optional<ClassModel>> classes, String owner, String method) {
+        return classes.apply(owner)
+                .flatMap(model -> model.methods().stream()
+                        .filter(candidate ->
+                                method.equals(candidate.methodName().stringValue()
+                                        + candidate.methodType().stringValue()))
+                        .findFirst());
     }
 
     /**
@@ -966,22 +1134,64 @@ final class HostPatchAdjustments {
                             vanilla.interfaces().forEach(face -> vanillaInterfaces.add(face.asInternalName())));
             for (var hostInterface : target.get().interfaces()) {
                 String hostName = hostInterface.asInternalName();
-                if (added.containsValue(hostName) || vanillaInterfaces.contains(hostName)) {
+                if (added.containsValue(hostName)) {
                     continue;
                 }
-                for (Map.Entry<String, String> hostDefault :
-                        defaults(hostName, classes::patched, new HashSet<>()).entrySet()) {
+                Map<String, String> hostDefaults = defaults(hostName, classes::patched, new HashSet<>());
+                if (vanillaInterfaces.contains(hostName)) {
+                    // A vanilla interface: only the defaults the patch added to it or its superinterfaces (NeoForge's
+                    // ItemInstanceExtension under ItemInstance).
+                    defaults(hostName, classes::vanilla, new HashSet<>())
+                            .keySet()
+                            .forEach(hostDefaults::remove);
+                }
+                for (Map.Entry<String, String> hostDefault : hostDefaults.entrySet()) {
                     String method = hostDefault.getKey();
                     String mine = added.get(method);
-                    if (mine != null && !mine.equals(hostDefault.getValue()) && !declared.contains(method)) {
+                    // A mod interface that extends the host's interface overrides its default: the JVM selects the
+                    // mod's, the more specific one (Forgified Fabric API's FabricItemStack extends
+                    // IItemStackExtension).
+                    if (mine != null
+                            && !mine.equals(hostDefault.getValue())
+                            && !declared.contains(method)
+                            && !extendsInterface(mine, hostDefault.getValue(), modClass, classes, new HashSet<>())) {
                         int split = method.indexOf('(');
-                        conflicts.add(new HostDefault(method.substring(0, split), method.substring(split), hostName));
+                        conflicts.add(new HostDefault(
+                                method.substring(0, split),
+                                method.substring(split),
+                                hostName,
+                                sameCode(
+                                        declaredMethod(modClass, mine, method),
+                                        declaredMethod(classes::patched, hostDefault.getValue(), method))));
                         declared.add(method);
                     }
                 }
             }
         }
         return conflicts;
+    }
+
+    /** Whether interface {@code name} (a mod's or the game's) extends {@code ancestor}, directly or further up. */
+    private static boolean extendsInterface(
+            String name,
+            String ancestor,
+            Function<String, Optional<ClassModel>> modClass,
+            Classes classes,
+            Set<String> seen) {
+        if (!seen.add(name)) {
+            return false;
+        }
+        Optional<ClassModel> model = modClass.apply(name).or(() -> classes.patched(name));
+        if (model.isEmpty()) {
+            return false;
+        }
+        for (var parent : model.get().interfaces()) {
+            String parentName = parent.asInternalName();
+            if (parentName.equals(ancestor) || extendsInterface(parentName, ancestor, modClass, classes, seen)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The default methods of interface {@code name} and its superinterfaces: name and descriptor, to the declaring one. */
@@ -1512,160 +1722,244 @@ final class HostPatchAdjustments {
         }
     }
 
+    /**
+     * Whether {@code handler} is a {@code @WrapOperation} of {@code FluidState.is(TagKey)} the fluid bridge can run:
+     * an instance method taking the fluid state, the tag and the {@code Operation} (then, when {@code trailing}, the
+     * target method's parameters or MixinExtras sugar), returning {@code boolean}, calling its {@code Operation} once
+     * with its own arguments and with no annotation on those three parameters.
+     */
+    static boolean fluidCheckWrap(MethodModel handler, boolean trailing) {
+        MethodTypeDesc type = handler.methodTypeSymbol();
+        return !handler.flags().has(AccessFlag.STATIC)
+                && type.returnType().equals(ConstantDescs.CD_boolean)
+                && (trailing ? type.parameterCount() >= 3 : type.parameterCount() == 3)
+                && type.parameterType(0).equals(FLUID_STATE)
+                && type.parameterType(1).equals(TAG_KEY)
+                && type.parameterType(2).equals(OPERATION)
+                && !HostReplacedCalls.annotatedBefore(handler, 3)
+                && HostReplacedCalls.callsOnceWithOwnArguments(handler, 2);
+    }
+
+    /**
+     * Whether {@code handler}'s only calls are {@code ItemStack.getCraftingRemainder()} (last, its result returned) and
+     * maybe {@code LocalRef.get()} for the stack, with no branch or store: the handler is that call on a stack.
+     */
+    static boolean onlyStackRemainder(MethodModel handler) {
+        List<Instruction> code = instructions(handler);
+        int last = code.size() - 1;
+        if (last < 1
+                || code.get(last).opcode() != Opcode.ARETURN
+                || !(code.get(last - 1) instanceof InvokeInstruction remainder)
+                || !remainder.owner().asSymbol().equals(ITEM_STACK)
+                || !remainder.name().equalsString("getCraftingRemainder")
+                || remainder.typeSymbol().parameterCount() != 0) {
+            return false;
+        }
+        for (int index = 0; index < last - 1; index++) {
+            Instruction instruction = code.get(index);
+            boolean allowed = instruction instanceof LoadInstruction
+                    || (instruction instanceof TypeCheckInstruction check
+                            && check.opcode() == Opcode.CHECKCAST
+                            && check.type().asSymbol().equals(ITEM_STACK))
+                    || (instruction instanceof InvokeInstruction get
+                            && get.owner().asSymbol().equals(LOCAL_REF)
+                            && get.name().equalsString("get"));
+            if (!allowed) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether {@code handler} (a {@code @WrapOperation} of {@code ItemStack.getItem()}) only stores its stack with
+     * {@code LocalRef.set} and makes the wrapped call once with its own arguments.
+     */
+    static boolean onlyCapturesStack(MethodModel handler) {
+        if (!HostReplacedCalls.callsOnceWithOwnArguments(handler, 1)) {
+            return false;
+        }
+        for (Instruction instruction : instructions(handler)) {
+            if (instruction instanceof InvokeInstruction invoke
+                    && !(invoke.owner().asSymbol().equals(LOCAL_REF)
+                            && invoke.name().equalsString("set"))
+                    && !(invoke.owner().asSymbol().equals(OPERATION)
+                            && invoke.name().equalsString("call"))) {
+                return false;
+            }
+            if (instruction instanceof BranchInstruction) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether {@code handler}'s only call is Fabric API's {@code ItemStack.canBeEnchantedWith(Holder,
+     * EnchantingContext)} with {@code EnchantingContext.PRIMARY}, its result returned, with no branch or store.
+     */
+    static boolean onlyFabricEnchantingCheck(MethodModel handler) {
+        int calls = 0;
+        boolean primary = false;
+        for (Instruction instruction : instructions(handler)) {
+            if (instruction instanceof InvokeInstruction invoke) {
+                if (!invoke.owner().asSymbol().equals(ITEM_STACK)
+                        || !invoke.name().equalsString("canBeEnchantedWith")
+                        || !invoke.typeSymbol().descriptorString().equals(CAN_BE_ENCHANTED_WITH)) {
+                    return false;
+                }
+                calls++;
+            } else if (instruction instanceof FieldInstruction field) {
+                primary |= field.opcode() == Opcode.GETSTATIC
+                        && field.owner().asSymbol().equals(ENCHANTING_CONTEXT)
+                        && field.name().equalsString("PRIMARY");
+            } else if (!(instruction instanceof LoadInstruction) && instruction.opcode() != Opcode.IRETURN) {
+                return false;
+            }
+        }
+        return calls == 1 && primary;
+    }
+
+    /** The instructions of {@code method}'s code (no labels, line numbers or other pseudo-instructions). */
+    private static List<Instruction> instructions(MethodModel method) {
+        List<Instruction> instructions = new ArrayList<>();
+        method.code().ifPresent(code -> {
+            for (CodeElement element : code) {
+                if (element instanceof Instruction instruction) {
+                    instructions.add(instruction);
+                }
+            }
+        });
+        return instructions;
+    }
+
+    /**
+     * Adds the bridge of a {@link FluidWrap}: a {@code @WrapOperation} of Forge's call that makes it once, then calls
+     * the handler with the fluid state, vanilla's {@code FluidTags.WATER}, a {@link PrecomputedCall} of Forge's answer
+     * and the handler's trailing parameters (with their annotations), and returns what the handler returns.
+     */
     private static void fluidWrapMethod(
-            java.lang.classfile.ClassBuilder builder, ClassModel mixin, MethodModel handler, FluidWrap fluidWrap) {
-        int flags = handler.flags().flagsMask();
+            ClassBuilder builder, ClassModel mixin, MethodModel handler, FluidWrap fluidWrap) {
+        List<String> methods = fluidWrap.kind() == FluidWrap.Kind.BOAT_SUPPORT
+                ? List.of("checkInWater()Z", "isUnderwater()Z")
+                : List.of(fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor());
         Annotation at = Annotation.of(
                 ClassDesc.ofDescriptor(AT),
                 AnnotationElement.ofString("value", "INVOKE"),
                 AnnotationElement.ofString("target", fluidWrap.targetCall()));
-        if (fluidWrap.kind() == FluidWrap.Kind.BOAT_SUPPORT) {
-            Annotation wrapOperation = Annotation.of(
-                    ClassDesc.ofDescriptor(WRAP_OPERATION),
-                    AnnotationElement.of(
-                            "method",
-                            AnnotationValue.ofArray(
-                                    AnnotationValue.ofString("checkInWater()Z"),
-                                    AnnotationValue.ofString("isUnderwater()Z"))),
-                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
-            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
-                    "(Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;Lnet/minecraft/world/level/material/FluidState;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z");
-            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
-                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
-                method.withCode(code -> {
-                    code.aload(3);
-                    code.iconst_2();
-                    code.anewarray(ConstantDescs.CD_Object);
-                    code.dup();
-                    code.iconst_0();
-                    code.aload(1);
-                    code.aastore();
-                    code.dup();
-                    code.iconst_1();
-                    code.aload(2);
-                    code.aastore();
-                    code.invokeinterface(
-                            OPERATION,
-                            "call",
-                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
-                    code.checkcast(ConstantDescs.CD_Boolean);
-                    code.invokevirtual(
-                            ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
-                    code.ireturn();
-                });
-            });
-        } else if (fluidWrap.kind() == FluidWrap.Kind.SWIMMING) {
-            Annotation wrapOperation = Annotation.of(
-                    ClassDesc.ofDescriptor(WRAP_OPERATION),
-                    AnnotationElement.of(
-                            "method",
-                            AnnotationValue.ofArray(AnnotationValue.ofString(
-                                    fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor()))),
-                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
-            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
-                    "(Lnet/minecraft/world/entity/Entity;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z");
-            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
-                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
-                method.withCode(code -> {
-                    code.aload(2);
-                    code.iconst_1();
-                    code.anewarray(ConstantDescs.CD_Object);
-                    code.dup();
-                    code.iconst_0();
-                    code.aload(1);
-                    code.aastore();
-                    code.invokeinterface(
-                            OPERATION,
-                            "call",
-                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
-                    code.checkcast(ConstantDescs.CD_Boolean);
-                    code.invokevirtual(
-                            ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
-                    code.ireturn();
-                });
-            });
-        } else if (fluidWrap.kind() == FluidWrap.Kind.DROWNING) {
-            Annotation wrapOperation = Annotation.of(
-                    ClassDesc.ofDescriptor(WRAP_OPERATION),
-                    AnnotationElement.of(
-                            "method",
-                            AnnotationValue.ofArray(AnnotationValue.ofString(
-                                    fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor()))),
-                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
-            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
-                    "(Lnet/minecraft/world/entity/LivingEntity;IILcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V");
-            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
-                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
-                method.withCode(code -> {
-                    code.aload(4);
-                    code.iconst_3();
-                    code.anewarray(ConstantDescs.CD_Object);
-                    code.dup();
-                    code.iconst_0();
-                    code.aload(1);
-                    code.aastore();
-                    code.dup();
-                    code.iconst_1();
-                    code.iload(2);
-                    code.invokestatic(
-                            ConstantDescs.CD_Integer,
-                            "valueOf",
-                            MethodTypeDesc.of(ConstantDescs.CD_Integer, ConstantDescs.CD_int));
-                    code.aastore();
-                    code.dup();
-                    code.iconst_2();
-                    code.iload(3);
-                    code.invokestatic(
-                            ConstantDescs.CD_Integer,
-                            "valueOf",
-                            MethodTypeDesc.of(ConstantDescs.CD_Integer, ConstantDescs.CD_int));
-                    code.aastore();
-                    code.invokeinterface(
-                            OPERATION,
-                            "call",
-                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
-                    code.pop();
-                    code.return_();
-                });
-            });
-        } else if (fluidWrap.kind() == FluidWrap.Kind.JUMP) {
-            Annotation wrapOperation = Annotation.of(
-                    ClassDesc.ofDescriptor(WRAP_OPERATION),
-                    AnnotationElement.of(
-                            "method",
-                            AnnotationValue.ofArray(AnnotationValue.ofString(
-                                    fluidWrap.targetMethod() + fluidWrap.targetMethodDescriptor()))),
-                    AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
-            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
-                    "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraftforge/fluids/FluidType;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V");
-            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
-                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
-                method.withCode(code -> {
-                    code.aload(3);
-                    code.iconst_2();
-                    code.anewarray(ConstantDescs.CD_Object);
-                    code.dup();
-                    code.iconst_0();
-                    code.aload(1);
-                    code.aastore();
-                    code.dup();
-                    code.iconst_1();
-                    code.aload(2);
-                    code.aastore();
-                    code.invokeinterface(
-                            OPERATION,
-                            "call",
-                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
-                    code.pop();
-                    code.return_();
-                });
-            });
+        Annotation wrapOperation = Annotation.of(
+                ClassDesc.ofDescriptor(WRAP_OPERATION),
+                AnnotationElement.of(
+                        "method",
+                        AnnotationValue.ofArray(methods.stream()
+                                .<AnnotationValue>map(AnnotationValue::ofString)
+                                .toList())),
+                AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
+        MethodTypeDesc handlerType = handler.methodTypeSymbol();
+        HostReplacedCalls.Call host =
+                HostReplacedCalls.Call.parse(fluidWrap.targetCall()).orElseThrow();
+        int hostArguments = host.type().parameterCount();
+        List<ClassDesc> trailing = handlerType.parameterList().subList(3, handlerType.parameterCount());
+        List<ClassDesc> parameters = new ArrayList<>();
+        parameters.add(ClassDesc.ofDescriptor(host.owner()));
+        parameters.addAll(host.type().parameterList());
+        parameters.add(OPERATION);
+        parameters.addAll(trailing);
+        // The bridge's slots (an instance method): receiver, Forge's arguments, Operation, trailing parameters.
+        int[] slots = new int[parameters.size()];
+        int next = 1;
+        for (int index = 0; index < parameters.size(); index++) {
+            slots[index] = next;
+            next += TypeKind.from(parameters.get(index)).slotSize();
         }
+        int operationSlot = slots[1 + hostArguments];
+        ClassDesc owner = mixin.thisClass().asSymbol();
+        boolean isInterface = mixin.flags().has(AccessFlag.INTERFACE);
+        builder.withMethod(
+                WRAP_PREFIX + handler.methodName().stringValue(),
+                MethodTypeDesc.of(ConstantDescs.CD_boolean, parameters),
+                handler.flags().flagsMask(),
+                method -> {
+                    method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+                    handler.findAttribute(Attributes.runtimeVisibleParameterAnnotations())
+                            .ifPresent(attribute ->
+                                    method.with(RuntimeVisibleParameterAnnotationsAttribute.of(trailingAnnotations(
+                                            attribute.parameterAnnotations(), parameters.size(), trailing.size()))));
+                    handler.findAttribute(Attributes.runtimeInvisibleParameterAnnotations())
+                            .ifPresent(attribute ->
+                                    method.with(RuntimeInvisibleParameterAnnotationsAttribute.of(trailingAnnotations(
+                                            attribute.parameterAnnotations(), parameters.size(), trailing.size()))));
+                    method.withCode(code -> {
+                        int result = code.allocateLocal(TypeKind.REFERENCE);
+                        // Forge's call, once: its receiver and arguments.
+                        code.aload(operationSlot);
+                        code.loadConstant(hostArguments + 1);
+                        code.anewarray(ConstantDescs.CD_Object);
+                        for (int index = 0; index <= hostArguments; index++) {
+                            code.dup();
+                            code.loadConstant(index);
+                            code.aload(slots[index]);
+                            code.aastore();
+                        }
+                        code.invokeinterface(
+                                OPERATION,
+                                "call",
+                                MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                        code.astore(result);
+                        code.aload(0);
+                        if (fluidWrap.kind() == FluidWrap.Kind.BOAT_SUPPORT) {
+                            code.aload(slots[1]);
+                        } else {
+                            // The fluid state vanilla's updateSwimming tests: level().getFluidState(blockPosition()).
+                            code.aload(slots[0]);
+                            code.invokevirtual(ENTITY, "level", MethodTypeDesc.of(LEVEL));
+                            code.aload(slots[0]);
+                            code.invokevirtual(ENTITY, "blockPosition", MethodTypeDesc.of(BLOCK_POS));
+                            code.invokevirtual(LEVEL, "getFluidState", MethodTypeDesc.of(FLUID_STATE, BLOCK_POS));
+                        }
+                        code.getstatic(FLUID_TAGS, "WATER", TAG_KEY);
+                        code.new_(PRECOMPUTED_CALL);
+                        code.dup();
+                        code.aload(result);
+                        code.invokespecial(
+                                PRECOMPUTED_CALL,
+                                ConstantDescs.INIT_NAME,
+                                MethodTypeDesc.of(ConstantDescs.CD_void, ConstantDescs.CD_Object));
+                        for (int index = 0; index < trailing.size(); index++) {
+                            int parameter = 2 + hostArguments + index;
+                            code.loadLocal(TypeKind.from(parameters.get(parameter)), slots[parameter]);
+                        }
+                        code.invokespecial(owner, handler.methodName().stringValue(), handlerType, isInterface);
+                        code.ireturn();
+                    });
+                });
     }
 
-    private static void itemWrapMethod(
-            java.lang.classfile.ClassBuilder builder, ClassModel mixin, MethodModel handler, ItemWrap itemWrap) {
-        if (itemWrap.kind() == ItemWrap.Kind.CRAFTING_CAPTURE) {
+    /** Parameter annotations for a bridge of {@code count} parameters: only the last {@code trailing} keep the handler's. */
+    private static List<List<Annotation>> trailingAnnotations(
+            List<List<Annotation>> annotations, int count, int trailing) {
+        List<List<Annotation>> placed = new ArrayList<>();
+        for (int index = 0; index < count; index++) {
+            placed.add(List.of());
+        }
+        for (int index = 0; index < trailing; index++) {
+            int from = 3 + index;
+            if (from < annotations.size()) {
+                placed.set(count - trailing + index, annotations.get(from));
+            }
+        }
+        return placed;
+    }
+
+    /**
+     * Adds the bridge of an {@link ItemWrap}, if it needs one. The remainder kinds need none: the handler only makes the
+     * call Forge makes ({@link #onlyStackRemainder}, {@link #onlyCapturesStack}). ENCHANTMENT_CHECK wraps Forge's
+     * {@code canApplyAtEnchantingTable}: Fabric's check decides when its answer differs from vanilla's {@code
+     * Enchantment.isPrimaryItem} (an {@code EnchantmentEvents.ALLOW_ENCHANTING} listener or a Fabric item's override),
+     * otherwise Forge's call does (a Forge item's override).
+     */
+    private static void itemWrapMethod(ClassBuilder builder, MethodModel handler, ItemWrap itemWrap) {
+        if (itemWrap.kind() != ItemWrap.Kind.ENCHANTMENT_CHECK) {
             return;
         }
         int flags = handler.flags().flagsMask();
@@ -1680,76 +1974,50 @@ final class HostPatchAdjustments {
                         AnnotationValue.ofArray(
                                 AnnotationValue.ofString(itemWrap.targetMethod() + itemWrap.targetMethodDescriptor()))),
                 AnnotationElement.of("at", AnnotationValue.ofArray(AnnotationValue.ofAnnotation(at))));
-
-        if (itemWrap.kind() == ItemWrap.Kind.FURNACE_REMAINDER
-                || itemWrap.kind() == ItemWrap.Kind.BREWING_REMAINDER
-                || itemWrap.kind() == ItemWrap.Kind.CRAFTING_REMAINDER) {
-            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
-                    "(Lnet/minecraft/world/item/ItemStack;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Lnet/minecraft/world/item/ItemStackTemplate;");
-            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
-                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
-                method.withCode(code -> {
-                    code.aload(1);
-                    code.iconst_1();
-                    code.anewarray(ConstantDescs.CD_Object);
-                    code.dup();
-                    code.iconst_0();
-                    code.aload(0);
-                    code.aastore();
-                    code.invokeinterface(
-                            OPERATION,
-                            "call",
-                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
-                    code.checkcast(ClassDesc.of("net.minecraft.world.item.ItemStackTemplate"));
-                    code.areturn();
-                });
+        MethodTypeDesc bridgeType = MethodTypeDesc.of(ConstantDescs.CD_boolean, ITEM_STACK, HOLDER, OPERATION);
+        int stack = (flags & ClassFile.ACC_STATIC) != 0 ? 0 : 1;
+        builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
+            method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
+            method.withCode(code -> {
+                Label forge = code.newLabel();
+                code.aload(stack);
+                code.aload(stack + 1);
+                code.getstatic(ENCHANTING_CONTEXT, "PRIMARY", ENCHANTING_CONTEXT);
+                code.invokevirtual(
+                        ITEM_STACK, "canBeEnchantedWith", MethodTypeDesc.ofDescriptor(CAN_BE_ENCHANTED_WITH));
+                code.dup();
+                code.aload(stack + 1);
+                code.invokeinterface(HOLDER, "value", MethodTypeDesc.of(ConstantDescs.CD_Object));
+                code.checkcast(ENCHANTMENT);
+                code.aload(stack);
+                code.invokevirtual(
+                        ENCHANTMENT, "isPrimaryItem", MethodTypeDesc.of(ConstantDescs.CD_boolean, ITEM_STACK));
+                // Stack: fabric, fabric, vanilla. Equal answers: Fabric changed nothing, so Forge's call decides.
+                code.if_icmpeq(forge);
+                code.ireturn();
+                code.labelBinding(forge);
+                code.pop();
+                code.aload(stack + 2);
+                code.iconst_2();
+                code.anewarray(ConstantDescs.CD_Object);
+                code.dup();
+                code.iconst_0();
+                code.aload(stack);
+                code.aastore();
+                code.dup();
+                code.iconst_1();
+                code.aload(stack + 1);
+                code.aastore();
+                code.invokeinterface(
+                        OPERATION,
+                        "call",
+                        MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
+                code.checkcast(ConstantDescs.CD_Boolean);
+                code.invokevirtual(
+                        ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
+                code.ireturn();
             });
-        } else if (itemWrap.kind() == ItemWrap.Kind.ENCHANTMENT_CHECK) {
-            MethodTypeDesc bridgeType = MethodTypeDesc.ofDescriptor(
-                    "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/Holder;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z");
-            builder.withMethod(WRAP_PREFIX + handler.methodName().stringValue(), bridgeType, flags, method -> {
-                method.with(RuntimeVisibleAnnotationsAttribute.of(wrapOperation));
-                method.withCode(code -> {
-                    ClassDesc enchantingContextDesc = ClassDesc.of("net.fabricmc.fabric.api.item.v1.EnchantingContext");
-                    ClassDesc holderDesc = ClassDesc.of("net.minecraft.core.Holder");
-                    ClassDesc itemStackDesc = ClassDesc.of("net.minecraft.world.item.ItemStack");
-
-                    code.aload(0);
-                    code.aload(1);
-                    code.getstatic(enchantingContextDesc, "PRIMARY", enchantingContextDesc);
-                    code.invokevirtual(
-                            itemStackDesc,
-                            "canBeEnchantedWith",
-                            MethodTypeDesc.of(ConstantDescs.CD_boolean, holderDesc, enchantingContextDesc));
-                    java.lang.classfile.Label returnTrue = code.newLabel();
-                    code.ifne(returnTrue);
-
-                    code.aload(2);
-                    code.iconst_2();
-                    code.anewarray(ConstantDescs.CD_Object);
-                    code.dup();
-                    code.iconst_0();
-                    code.aload(0);
-                    code.aastore();
-                    code.dup();
-                    code.iconst_1();
-                    code.aload(1);
-                    code.aastore();
-                    code.invokeinterface(
-                            OPERATION,
-                            "call",
-                            MethodTypeDesc.of(ConstantDescs.CD_Object, ConstantDescs.CD_Object.arrayType()));
-                    code.checkcast(ConstantDescs.CD_Boolean);
-                    code.invokevirtual(
-                            ConstantDescs.CD_Boolean, "booleanValue", MethodTypeDesc.of(ConstantDescs.CD_boolean));
-                    code.ireturn();
-
-                    code.labelBinding(returnTrue);
-                    code.iconst_1();
-                    code.ireturn();
-                });
-            });
-        }
+        });
     }
 
     private static void registrySyncWrapMethod(
@@ -2153,10 +2421,11 @@ final class HostPatchAdjustments {
             ItemWrap itemWrap,
             RegistrySyncWrap registrySyncWrap,
             OptionalLeft optionalLeft,
-            HostList hostList) {
+            HostList hostList,
+            ReplacedCall replacedCall) {
 
         Injection(String reason, Retarget retarget) {
-            this(reason, retarget, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            this(reason, retarget, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
         }
 
         static Injection methodRetarget(String reason, MethodRetarget methodRetarget) {
@@ -2164,6 +2433,7 @@ final class HostPatchAdjustments {
                     reason,
                     null,
                     methodRetarget,
+                    null,
                     null,
                     null,
                     null,
@@ -2194,6 +2464,7 @@ final class HostPatchAdjustments {
                     null,
                     null,
                     null,
+                    null,
                     null);
         }
 
@@ -2203,6 +2474,7 @@ final class HostPatchAdjustments {
                     null,
                     null,
                     sliceRetarget,
+                    null,
                     null,
                     null,
                     null,
@@ -2232,36 +2504,44 @@ final class HostPatchAdjustments {
                     null,
                     null,
                     null,
+                    null,
                     null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut) {
-            this(reason, retarget, null, null, null, bridge, takenOut, null, null, null, null, null, null, null, null);
+            this(
+                    reason, retarget, null, null, null, bridge, takenOut, null, null, null, null, null, null, null,
+                    null, null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap) {
-            this(reason, retarget, null, null, null, bridge, takenOut, wrap, null, null, null, null, null, null, null);
+            this(
+                    reason, retarget, null, null, null, bridge, takenOut, wrap, null, null, null, null, null, null,
+                    null, null);
         }
 
         Injection(String reason, Retarget retarget, Bridge bridge, TakenOut takenOut, Wrap wrap, Appended appended) {
             this(
                     reason, retarget, null, null, null, bridge, takenOut, wrap, appended, null, null, null, null, null,
-                    null);
+                    null, null);
         }
 
         static Injection bedWrap(String reason, BedWrap bedWrap) {
             return new Injection(
-                    reason, null, null, null, null, null, null, null, null, bedWrap, null, null, null, null, null);
+                    reason, null, null, null, null, null, null, null, null, bedWrap, null, null, null, null, null,
+                    null);
         }
 
         static Injection fluidWrap(String reason, FluidWrap fluidWrap) {
             return new Injection(
-                    reason, null, null, null, null, null, null, null, null, null, fluidWrap, null, null, null, null);
+                    reason, null, null, null, null, null, null, null, null, null, fluidWrap, null, null, null, null,
+                    null);
         }
 
         static Injection itemWrap(String reason, ItemWrap itemWrap) {
             return new Injection(
-                    reason, null, null, null, null, null, null, null, null, null, null, itemWrap, null, null, null);
+                    reason, null, null, null, null, null, null, null, null, null, null, itemWrap, null, null, null,
+                    null);
         }
 
         static Injection registrySyncWrap(String reason, RegistrySyncWrap registrySyncWrap) {
@@ -2280,17 +2560,54 @@ final class HostPatchAdjustments {
                     null,
                     registrySyncWrap,
                     null,
+                    null,
                     null);
         }
 
         static Injection optionalLeft(String reason, OptionalLeft optionalLeft) {
             return new Injection(
-                    reason, null, null, null, null, null, null, null, null, null, null, null, null, optionalLeft, null);
+                    reason,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    optionalLeft,
+                    null,
+                    null);
         }
 
         static Injection hostList(String reason, HostList hostList) {
             return new Injection(
-                    reason, null, null, null, null, null, null, null, null, null, null, null, null, null, hostList);
+                    reason, null, null, null, null, null, null, null, null, null, null, null, null, null, hostList,
+                    null);
+        }
+
+        static Injection replacedCall(String reason, ReplacedCall replacedCall) {
+            return new Injection(
+                    reason,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    replacedCall);
         }
 
         /** Whether the injection does not run in the patched game (not moved, bridged or wrapped). */
@@ -2308,6 +2625,7 @@ final class HostPatchAdjustments {
                     && registrySyncWrap == null
                     && optionalLeft == null
                     && hostList == null
+                    && replacedCall == null
                     && (takenOut != null || reason.endsWith("this injection does not run"));
         }
     }
@@ -2339,6 +2657,7 @@ final class HostPatchAdjustments {
                     String type = injector.className().stringValue();
                     if (INJECTORS.contains(type)) {
                         injection(
+                                        mixin,
                                         handler,
                                         type,
                                         injector,
@@ -2365,6 +2684,7 @@ final class HostPatchAdjustments {
     }
 
     private static Optional<Injection> injection(
+            ClassModel mixin,
             MethodModel handler,
             String type,
             Annotation injector,
@@ -2407,6 +2727,22 @@ final class HostPatchAdjustments {
                         null));
             }
             if (type.equals(INJECT) && descriptor == null && before.size() == 1 && after.size() == 1) {
+                Optional<HostConditionalSkip.Companion> companion = HostConditionalSkip.companion(
+                        mixin, handler, type, targetName, before.getFirst(), after.getFirst(), patched);
+                if (companion.isPresent()) {
+                    return Optional.of(Injection.replacedCall(
+                            where + ": " + host.hostName()
+                                    + " parses with ConditionalOps.createConditionalCodec, with bridge turning fabric skip marker into empty Optional skipped by store lambda",
+                            new ReplacedCall(
+                                    handler.methodName().stringValue(),
+                                    handler.methodType().stringValue(),
+                                    HostConditionalSkip.SKIP,
+                                    companion.get().name() + companion.get().descriptor() + "#"
+                                            + companion.get().marker()
+                                            + (companion.get().withModifier()
+                                                    ? HostConditionalSkip.MODIFIER_FLAG
+                                                    : ""))));
+                }
                 Optional<Injection> changed =
                         changedParameters(handler, where, before.getFirst(), after.getFirst(), host);
                 if (changed.isPresent()) {
@@ -2438,19 +2774,16 @@ final class HostPatchAdjustments {
             if (outOfSlice.isPresent()) {
                 return outOfSlice;
             }
+            // Forge 26.2 rewrote the fluid jump around FluidType (jumpInFluid at three places); a handler that swaps
+            // the fluid tag of jumpInLiquid(LAVA) has no tag argument left to change.
             if (targetName.equals("net/minecraft/world/entity/LivingEntity")
                     && name.equals("aiStep")
                     && handler.methodName().stringValue().equals("swapFluidTag")) {
-                return Optional.of(Injection.fluidWrap(
+                return Optional.of(new Injection(
                         where + " at MIXINEXTRAS:EXPRESSION this.jumpInLiquid(LAVA): " + host.hostName()
-                                + " replaced jumpInLiquid with jumpInFluid; adapted via @WrapOperation bridge",
-                        new FluidWrap(
-                                handler.methodName().stringValue(),
-                                handler.methodType().stringValue(),
-                                "aiStep",
-                                "()V",
-                                "Lnet/minecraft/world/entity/LivingEntity;jumpInFluid(Lnet/minecraftforge/fluids/FluidType;)V",
-                                FluidWrap.Kind.JUMP)));
+                                + " replaced jumpInLiquid(TagKey) with jumpInFluid(FluidType), leaving no tag argument for the handler to change"
+                                + "; this injection does not run",
+                        null));
             }
             for (String[] point : points) {
                 if (point[1] == null || !CHECKED_POINTS.contains(point[0])) {
@@ -2505,6 +2838,21 @@ final class HostPatchAdjustments {
                     }
                     if (replacement.placement() == InjectionPointReplacement.Placement.SAME_PLACE
                             && after.stream().anyMatch(found -> contains(found, replacement.replacement()))) {
+                        if (HostHopperTransfer.covers(point[1], replacement.replacement())) {
+                            if (HostHopperTransfer.fits(handler, type, point[0], point[1], replacement.replacement())) {
+                                return Optional.of(Injection.replacedCall(
+                                        where + " at " + point[1] + ": " + host.hostName() + " looks up its"
+                                                + " container or item handler with " + replacement.replacement()
+                                                + " there; the injection runs after it with the container it found,"
+                                                + " unless it found its own item handler",
+                                        new ReplacedCall(
+                                                handler.methodName().stringValue(),
+                                                handler.methodType().stringValue(),
+                                                point[1],
+                                                replacement.replacement())));
+                            }
+                            continue;
+                        }
                         if (type.equals(INJECT)
                                 || sameShape(point[1], replacement.replacement())
                                 || (type.equals(MODIFY_EXPRESSION_VALUE)
@@ -2513,6 +2861,29 @@ final class HostPatchAdjustments {
                                     where + " at " + point[1] + ": " + host.hostName() + " patches that call to "
                                             + replacement.replacement() + ", where it now applies",
                                     new Retarget(
+                                            handler.methodName().stringValue(),
+                                            handler.methodType().stringValue(),
+                                            point[1],
+                                            replacement.replacement())));
+                        }
+                        if (HostReplacedCalls.fits(handler, type, point[1], replacement.replacement())) {
+                            return Optional.of(Injection.replacedCall(
+                                    where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                            + replacement.replacement() + " there; the wrap runs on that call with the"
+                                            + " host's arguments and result",
+                                    new ReplacedCall(
+                                            handler.methodName().stringValue(),
+                                            handler.methodType().stringValue(),
+                                            point[1],
+                                            replacement.replacement())));
+                        }
+                        if (HostEffectRemoval.fits(
+                                handler, type, targetName, method, point[1], replacement.replacement())) {
+                            return Optional.of(Injection.replacedCall(
+                                    where + " at " + point[1] + ": " + host.hostName() + " removes the effects its"
+                                            + " event lets go with " + replacement.replacement() + " there; the wrap"
+                                            + " runs on that removal and puts back what Fabric's listeners keep",
+                                    new ReplacedCall(
                                             handler.methodName().stringValue(),
                                             handler.methodType().stringValue(),
                                             point[1],
@@ -2545,7 +2916,8 @@ final class HostPatchAdjustments {
                                                 BedWrap.Kind.DIRECTION)));
                             }
                             if (method.equals("lambda$stopSleeping$0")
-                                    && replacement.replaced().contains("Level;setBlock(")
+                                    && (replacement.replaced().contains("Level;setBlock(")
+                                            || replacement.replaced().contains("Level;setBlockAndUpdate("))
                                     && type.equals(REDIRECT)) {
                                 return Optional.of(Injection.bedWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
@@ -2563,11 +2935,12 @@ final class HostPatchAdjustments {
                         if (targetName.equals("net/minecraft/world/entity/vehicle/boat/AbstractBoat")) {
                             if ((method.equals("checkInWater") || method.equals("isUnderwater"))
                                     && replacement.replaced().contains("FluidState;is(")
-                                    && type.equals(WRAP_OPERATION)) {
+                                    && type.equals(WRAP_OPERATION)
+                                    && fluidCheckWrap(handler, false)) {
                                 return Optional.of(Injection.fluidWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
+                                                + " there; a generated @WrapOperation bridge wraps Forge's call, invoking it once and running the Fabric handler with the fluid state and Forge's result",
                                         new FluidWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2580,11 +2953,12 @@ final class HostPatchAdjustments {
                         if (targetName.equals("net/minecraft/world/entity/Entity")) {
                             if (method.equals("updateSwimming")
                                     && replacement.replaced().contains("FluidState;is(")
-                                    && type.equals(WRAP_OPERATION)) {
+                                    && type.equals(WRAP_OPERATION)
+                                    && fluidCheckWrap(handler, true)) {
                                 return Optional.of(Injection.fluidWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
+                                                + " there; a generated @WrapOperation bridge calls Forge once, reads the fluid state at the entity's block position, and runs the Fabric handler with that state and Forge's result",
                                         new FluidWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2594,31 +2968,28 @@ final class HostPatchAdjustments {
                                                 FluidWrap.Kind.SWIMMING)));
                             }
                         }
-                        if (targetName.equals("net/minecraft/world/entity/LivingEntity")) {
-                            if (method.equals("baseTick")
-                                    && replacement.replaced().contains("LivingEntity;isEyeInFluid(")
-                                    && type.equals(MODIFY_EXPRESSION_VALUE)) {
-                                return Optional.of(Injection.fluidWrap(
-                                        where + " at " + point[1] + ": " + host.hostName() + " calls "
-                                                + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
-                                        new FluidWrap(
-                                                handler.methodName().stringValue(),
-                                                handler.methodType().stringValue(),
-                                                "baseTick",
-                                                "()V",
-                                                replacement.replacement(),
-                                                FluidWrap.Kind.DROWNING)));
-                            }
+                        // Forge moved vanilla's air supply code into ForgeHooks.onLivingBreathe, which decides from
+                        // FluidType; no boolean is left for a handler of isEyeInFluid(TagKey) to change.
+                        if (targetName.equals("net/minecraft/world/entity/LivingEntity")
+                                && method.equals("baseTick")
+                                && replacement.replaced().contains("LivingEntity;isEyeInFluid(")
+                                && type.equals(MODIFY_EXPRESSION_VALUE)) {
+                            return Optional.of(new Injection(
+                                    where + " at " + point[1] + ": " + host.hostName() + " calls "
+                                            + replacement.replacement()
+                                            + " instead, which moves the air supply update into that hook based on fluid types, leaving no boolean for the handler to modify"
+                                            + "; this injection does not run",
+                                    null));
                         }
                         if (targetName.equals("net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity")) {
                             if (method.equals("consumeFuel")
                                     && replacement.replaced().contains("Item;getCraftingRemainder(")
-                                    && type.equals(REDIRECT)) {
+                                    && type.equals(REDIRECT)
+                                    && onlyStackRemainder(handler)) {
                                 return Optional.of(Injection.itemWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
+                                                + HOST_MAKES_HANDLER_CALL,
                                         new ItemWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2631,11 +3002,12 @@ final class HostPatchAdjustments {
                         if (targetName.equals("net/minecraft/world/level/block/entity/BrewingStandBlockEntity")) {
                             if (method.equals("doBrew")
                                     && replacement.replaced().contains("Item;getCraftingRemainder(")
-                                    && type.equals(REDIRECT)) {
+                                    && type.equals(REDIRECT)
+                                    && onlyStackRemainder(handler)) {
                                 return Optional.of(Injection.itemWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
+                                                + HOST_MAKES_HANDLER_CALL,
                                         new ItemWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2648,11 +3020,12 @@ final class HostPatchAdjustments {
                         if (targetName.equals("net/minecraft/world/item/crafting/CraftingRecipe")) {
                             if (method.equals("defaultCraftingReminder")
                                     && replacement.replaced().contains("ItemStack;getItem(")
-                                    && type.equals(WRAP_OPERATION)) {
+                                    && type.equals(WRAP_OPERATION)
+                                    && onlyCapturesStack(handler)) {
                                 return Optional.of(Injection.itemWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " directly; adapted via @WrapOperation bridge",
+                                                + " directly; this handler only stores the stack in a local for another handler to query its remainder, which Forge already calls, so dropping the injection preserves behavior",
                                         new ItemWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2663,11 +3036,12 @@ final class HostPatchAdjustments {
                             }
                             if (method.equals("defaultCraftingReminder")
                                     && replacement.replaced().contains("Item;getCraftingRemainder(")
-                                    && type.equals(REDIRECT)) {
+                                    && type.equals(REDIRECT)
+                                    && onlyStackRemainder(handler)) {
                                 return Optional.of(Injection.itemWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
+                                                + HOST_MAKES_HANDLER_CALL,
                                         new ItemWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2680,11 +3054,12 @@ final class HostPatchAdjustments {
                         if (targetName.equals("net/minecraft/world/item/enchantment/EnchantmentHelper")) {
                             if (method.equals("lambda$getAvailableEnchantmentResults$0")
                                     && replacement.replaced().contains("Enchantment;isPrimaryItem(")
-                                    && type.equals(REDIRECT)) {
+                                    && type.equals(REDIRECT)
+                                    && onlyFabricEnchantingCheck(handler)) {
                                 return Optional.of(Injection.itemWrap(
                                         where + " at " + point[1] + ": " + host.hostName() + " calls "
                                                 + replacement.replacement()
-                                                + " there; adapted via @WrapOperation bridge",
+                                                + " there; a generated @WrapOperation bridge runs Fabric's PRIMARY check, using Fabric's answer if it differs from vanilla isPrimaryItem and otherwise using Forge's answer",
                                         new ItemWrap(
                                                 handler.methodName().stringValue(),
                                                 handler.methodType().stringValue(),
@@ -2732,8 +3107,17 @@ final class HostPatchAdjustments {
                         int paren = movedMethodSpec.indexOf('(');
                         String movedName = paren < 0 ? movedMethodSpec : movedMethodSpec.substring(0, paren);
                         String movedDescriptor = paren < 0 ? null : movedMethodSpec.substring(paren);
-                        if (methods(patched, movedName, movedDescriptor).stream()
-                                .anyMatch(found -> contains(found, newTarget))) {
+                        List<MethodModel> movedMethods = methods(patched, movedName, movedDescriptor);
+                        if (movedMethods.stream().anyMatch(found -> contains(found, newTarget))
+                                && !capturedArgumentsFit(handler, type, before, movedMethods)) {
+                            return Optional.of(new Injection(
+                                    where + " at " + point[1] + ": " + host.hostName() + " moved that call to "
+                                            + targetName + "." + movedMethodSpec + ", whose parameters do not start"
+                                            + " with the target method's parameters the handler takes; this injection"
+                                            + " does not run",
+                                    null));
+                        }
+                        if (movedMethods.stream().anyMatch(found -> contains(found, newTarget))) {
                             MethodRetarget methodRetarget = new MethodRetarget(
                                     handler.methodName().stringValue(),
                                     handler.methodType().stringValue(),
@@ -2780,6 +3164,16 @@ final class HostPatchAdjustments {
                         appendedArguments(handler, type, injector, where, point, points, before, after, host);
                 if (moved.isPresent()) {
                     return moved;
+                }
+                if (HostThreadDump.fits(handler, type, targetName, name, point[1], patched)) {
+                    return Optional.of(Injection.replacedCall(
+                            where + " at " + point[1] + ": " + host.hostName()
+                                    + " moved the watchdog crash report body into createWatchdogCrashReport(String, long, String), where a generated @WrapOperation bridge on ThreadInfoUtil.getEntireStacktrace runs the handler",
+                            new ReplacedCall(
+                                    handler.methodName().stringValue(),
+                                    handler.methodType().stringValue(),
+                                    HostThreadDump.REPLACED,
+                                    HostThreadDump.REPLACEMENT)));
                 }
                 return Optional.of(new Injection(
                         where + " at " + point[0] + " " + point[1] + ": " + host.hostName()
@@ -3340,6 +3734,76 @@ final class HostPatchAdjustments {
                 helperStatic,
                 callbackAt > 0,
                 handlerType.parameterType(callbackAt).descriptorString()));
+    }
+
+    /**
+     * Whether the target method's parameters that {@code handler} takes are the first parameters of each of {@code
+     * moved}, the methods a patch moved the injection point to. Mixin hands an injector handler a prefix of the target
+     * method's parameters after its own (after the {@code CallbackInfo} of an {@code @Inject}, the {@code Operation} of
+     * a {@code @WrapOperation}, the call's receiver and arguments of a {@code @Redirect}, the value of the others), and
+     * before MixinExtras sugar parameters. For an {@code @Inject} or {@code @WrapOperation}, those are the parameters
+     * between its own and the sugar ones, when they start {@code vanilla}'s parameters (else they are captured locals,
+     * which this does not judge); for the others, the longest run before the sugar ones that starts {@code vanilla}'s
+     * parameters. NeoForge 26.3.0.98's {@code lambda$startSleepInBed$0} takes {@code (BlockState, BedRule, BlockPos,
+     * boolean)} where vanilla's {@code startSleepInBed} takes {@code (AbstractBedBlock, BlockState, BlockPos)}.
+     */
+    static boolean capturedArgumentsFit(
+            MethodModel handler, String type, List<MethodModel> vanilla, List<MethodModel> moved) {
+        List<ClassDesc> parameters = handler.methodTypeSymbol().parameterList();
+        List<List<Annotation>> annotations = new ArrayList<>();
+        handler.findAttribute(java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
+                .ifPresent(attribute -> annotations.addAll(attribute.parameterAnnotations()));
+        int end = parameters.size();
+        for (int index = 0; index < annotations.size() && index < parameters.size(); index++) {
+            if (annotations.get(index).stream()
+                    .anyMatch(annotation -> annotation.className().stringValue().startsWith(SUGAR_PACKAGE))) {
+                end = index;
+                break;
+            }
+        }
+        int start = -1;
+        for (int index = 0; index < end; index++) {
+            String descriptor = parameters.get(index).descriptorString();
+            if ((type.equals(INJECT) && CALLBACK_INFOS.contains(descriptor))
+                    || (type.equals(WRAP_OPERATION) && parameters.get(index).equals(OPERATION))) {
+                start = index + 1;
+                break;
+            }
+        }
+        if ((type.equals(INJECT) || type.equals(WRAP_OPERATION)) && start < 0) {
+            return true;
+        }
+        for (MethodModel method : vanilla) {
+            List<ClassDesc> targetParameters = method.methodTypeSymbol().parameterList();
+            List<ClassDesc> captured;
+            if (start >= 0) {
+                captured = parameters.subList(start, end);
+                if (!startsWith(targetParameters, captured)) {
+                    return true;
+                }
+            } else {
+                captured = List.of();
+                for (int count = Math.min(end, targetParameters.size()); count > 0; count--) {
+                    if (parameters.subList(end - count, end).equals(targetParameters.subList(0, count))) {
+                        captured = parameters.subList(end - count, end);
+                        break;
+                    }
+                }
+            }
+            if (captured.isEmpty()) {
+                continue;
+            }
+            List<ClassDesc> taken = captured;
+            if (moved.stream()
+                    .anyMatch(found -> !startsWith(found.methodTypeSymbol().parameterList(), taken))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean startsWith(List<ClassDesc> list, List<ClassDesc> prefix) {
+        return list.size() >= prefix.size() && list.subList(0, prefix.size()).equals(prefix);
     }
 
     static List<MethodModel> methods(ClassModel target, String name, String descriptor) {

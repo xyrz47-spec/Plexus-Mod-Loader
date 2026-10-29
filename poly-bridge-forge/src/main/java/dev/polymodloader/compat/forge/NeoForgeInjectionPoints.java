@@ -11,6 +11,15 @@ import java.util.List;
  */
 final class NeoForgeInjectionPoints {
 
+    private static final String HOPPER = "net/minecraft/world/level/block/entity/HopperBlockEntity";
+    private static final String CONTAINER_OR_HANDLER = "Lnet/neoforged/neoforge/transfer/item/ContainerOrHandler;";
+    private static final String SOURCE_LOOKUP = "Lnet/minecraft/world/level/Level;"
+            + "Lnet/minecraft/world/level/block/entity/Hopper;Lnet/minecraft/core/BlockPos;"
+            + "Lnet/minecraft/world/level/block/state/BlockState;";
+
+    /** The lambda that holds startSleepInBed's checks; its descriptor differs between releases. */
+    private static final String SLEEP_CHECKS = "lambda$startSleepInBed$0";
+
     private NeoForgeInjectionPoints() {}
 
     static List<InjectionPointReplacement> all() {
@@ -71,26 +80,35 @@ final class NeoForgeInjectionPoints {
                         "canGlide(Z)Z",
                         InjectionPointReplacement.Placement.IN_METHOD),
                 // ServerPlayer.startSleepInBed: NeoForge moves the sleeping precondition checks into
-                // lambda$startSleepInBed$0.
+                // lambda$startSleepInBed$0, (BlockPos) on 26.2.0.93 and (BlockState, BedRule, BlockPos, boolean) on
+                // 26.3.0.98, so the point names the lambda only.
                 // Fabric API's ServerPlayerMixin wraps getValue, setRespawnPosition and isEmpty there.
                 new InjectionPointReplacement(
                         "net/minecraft/server/level/ServerPlayer",
                         "startSleepInBed",
                         "Lnet/minecraft/world/level/block/state/BlockState;getValue(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;",
-                        "lambda$startSleepInBed$0(Lnet/minecraft/core/BlockPos;)Lcom/mojang/datafixers/util/Either;",
+                        SLEEP_CHECKS,
                         InjectionPointReplacement.Placement.IN_METHOD),
                 new InjectionPointReplacement(
                         "net/minecraft/server/level/ServerPlayer",
                         "startSleepInBed",
                         "Lnet/minecraft/server/level/ServerPlayer;setRespawnPosition(Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;Z)V",
-                        "lambda$startSleepInBed$0(Lnet/minecraft/core/BlockPos;)Lcom/mojang/datafixers/util/Either;",
+                        SLEEP_CHECKS,
                         InjectionPointReplacement.Placement.IN_METHOD),
                 new InjectionPointReplacement(
                         "net/minecraft/server/level/ServerPlayer",
                         "startSleepInBed",
                         "Ljava/util/List;isEmpty()Z",
-                        "lambda$startSleepInBed$0(Lnet/minecraft/core/BlockPos;)Lcom/mojang/datafixers/util/Either;",
+                        SLEEP_CHECKS,
                         InjectionPointReplacement.Placement.IN_METHOD),
+                // RegistryLoadTask$PendingRegistration.loadFromResource (26.2.0.93): NeoForge parses the same JSON
+                // element with its conditional codec (ConditionalOps.createConditionalCodec) where vanilla calls
+                // Decoder.parse; an injection before the call sees the same locals.
+                new InjectionPointReplacement(
+                        "net/minecraft/resources/RegistryLoadTask$PendingRegistration",
+                        "loadFromResource",
+                        "Lcom/mojang/serialization/Decoder;parse(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;",
+                        "Lcom/mojang/serialization/Codec;parse(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;"),
                 // LivingEntity.forceAddEffect: NeoForge replaces canBeAffected with CommonHooks.canMobEffectBeApplied.
                 new InjectionPointReplacement(
                         "net/minecraft/world/entity/LivingEntity",
@@ -149,6 +167,87 @@ final class NeoForgeInjectionPoints {
                         "net/minecraft/server/Bootstrap",
                         "bootStrap",
                         "Lnet/minecraft/server/Bootstrap;wrapStreams()V",
-                        "Lnet/neoforged/neoforge/registries/GameData;vanillaSnapshot()V"));
+                        "Lnet/neoforged/neoforge/registries/GameData;vanillaSnapshot()V"),
+                // Checked with javap on NeoForge 26.2.0.93 and 26.3.0.98 against vanilla 26.2 and 26.3:
+                // FishingHook.shouldStopFishing asks ItemStack.canPerformAction(ItemAbilities.FISHING_ROD_CAST) where
+                // vanilla asks ItemStack.is(Items.FISHING_ROD); Fabric API's allowModdedRods wraps the vanilla check.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/projectile/FishingHook",
+                        "shouldStopFishing",
+                        "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z",
+                        "Lnet/minecraft/world/item/ItemStack;canPerformAction(Lnet/neoforged/neoforge/common/ItemAbility;)Z"),
+                // ServerGamePacketListenerImpl.handlePickItemFromBlock asks NeoForge's
+                // BlockState.getCloneItemStack(BlockPos, LevelReader, boolean, Player) where vanilla asks
+                // getCloneItemStack(LevelReader, BlockPos, boolean); Fabric API's onPickItemFromBlock wraps it.
+                new InjectionPointReplacement(
+                        "net/minecraft/server/network/ServerGamePacketListenerImpl",
+                        "handlePickItemFromBlock",
+                        "Lnet/minecraft/world/level/block/state/BlockState;getCloneItemStack(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Z)Lnet/minecraft/world/item/ItemStack;",
+                        "Lnet/minecraft/world/level/block/state/BlockState;getCloneItemStack(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/LevelReader;ZLnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/item/ItemStack;"),
+                // BaseContainerBlockEntity.setItem(int, ItemStack) and SimpleContainer.setItem(int, ItemStack) call
+                // NeoForge's setItem(int, ItemStack, boolean), which holds the vanilla body with its setChanged()
+                // (Fabric API's transfer API wraps that call).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/level/block/entity/BaseContainerBlockEntity",
+                        "setItem",
+                        "Lnet/minecraft/world/level/block/entity/BaseContainerBlockEntity;setChanged()V",
+                        "setItem(ILnet/minecraft/world/item/ItemStack;Z)V",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                new InjectionPointReplacement(
+                        "net/minecraft/world/SimpleContainer",
+                        "setItem",
+                        "Lnet/minecraft/world/SimpleContainer;setChanged()V",
+                        "setItem(ILnet/minecraft/world/item/ItemStack;Z)V",
+                        InjectionPointReplacement.Placement.IN_METHOD),
+                // NeoForge 26.2.0.93 only (26.3.0.98 keeps vanilla's calls; javap on both):
+                // LivingEntity.getBedOrientation
+                // asks BlockState.getBedDirection(LevelReader, BlockPos) where vanilla asks
+                // BedBlock.getBedOrientation(BlockGetter, BlockPos), and lambda$stopSleeping$0 calls
+                // BlockState.setBedOccupied(Level, BlockPos, LivingEntity, boolean) where vanilla calls Level.setBlock,
+                // as MinecraftForge does. Fabric API's sleeping direction and bed occupation events run there.
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "getBedOrientation",
+                        "Lnet/minecraft/world/level/block/BedBlock;getBedOrientation(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;",
+                        "Lnet/minecraft/world/level/block/state/BlockState;getBedDirection(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Direction;"),
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "lambda$stopSleeping$0",
+                        "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z",
+                        "Lnet/minecraft/world/level/block/state/BlockState;setBedOccupied(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;Z)V"),
+                // LivingEntity.removeAllEffects (26.2.0.93, 26.3.0.98): after the same early returns, vanilla copies
+                // the
+                // effects with Maps.newHashMap(activeEffects) and clears the map; NeoForge sizes a new HashMap with
+                // activeEffects.size() at that place, collects the effects its MobEffectEvent.Remove lets go and
+                // removes them with removed.keySet().forEach(activeEffects::remove). Fabric API's
+                // beforeRemoveAllEffects (BEFORE_REMOVE for every active effect) runs at the first, and its
+                // allowRemoveAllEffects wrap of the clear runs on the removal (HostEffectRemoval).
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "removeAllEffects",
+                        "Lcom/google/common/collect/Maps;newHashMap(Ljava/util/Map;)Ljava/util/HashMap;",
+                        "Ljava/util/Map;size()I"),
+                new InjectionPointReplacement(
+                        "net/minecraft/world/entity/LivingEntity",
+                        "removeAllEffects",
+                        "Ljava/util/Map;clear()V",
+                        "Ljava/util/Set;forEach(Ljava/util/function/Consumer;)V"),
+                // HopperBlockEntity.ejectItems and suckInItems (26.2.0.93, 26.3.0.98): NeoForge looks up a
+                // ContainerOrHandler (the container, or NeoForge's item handler of the block) where vanilla looks up
+                // the container. Fabric API's transfer API moves items through a block's Fabric storage after the
+                // vanilla lookup found no container (HostHopperTransfer).
+                new InjectionPointReplacement(
+                        HOPPER,
+                        "ejectItems",
+                        "L" + HOPPER + ";getAttachedContainer(Lnet/minecraft/world/level/Level;"
+                                + "Lnet/minecraft/core/BlockPos;L" + HOPPER + ";)Lnet/minecraft/world/Container;",
+                        "L" + HOPPER + ";getContainerOrHandlerAt(Lnet/minecraft/world/level/Level;"
+                                + "Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)"
+                                + CONTAINER_OR_HANDLER),
+                new InjectionPointReplacement(
+                        HOPPER,
+                        "suckInItems",
+                        "L" + HOPPER + ";getSourceContainer(" + SOURCE_LOOKUP + ")Lnet/minecraft/world/Container;",
+                        "L" + HOPPER + ";getSourceContainerOrHandler(" + SOURCE_LOOKUP + ")" + CONTAINER_OR_HANDLER));
     }
 }

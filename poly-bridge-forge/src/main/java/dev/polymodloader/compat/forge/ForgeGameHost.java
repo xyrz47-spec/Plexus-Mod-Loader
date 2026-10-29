@@ -349,11 +349,15 @@ final class ForgeGameHost implements GameHost {
 
     /**
      * On a client, Forge's early loading window shows Poly Mod Loader's art and title ({@link EarlyScreenArt}, {@link
-     * EarlyWindowTitle}).
+     * EarlyWindowTitle}); with Poly Mod Loader's own early window over the launch, Forge opens none ({@link
+     * ForgeEarlyWindowOff}).
      */
     private UnaryOperator<ModuleReference> earlyScreen() {
         if (request.side() != GameSide.CLIENT) {
             return UnaryOperator.identity();
+        }
+        if (request.polyEarlyWindow()) {
+            return reference -> ForgeEarlyWindowOff.of(reference, request.log());
         }
         Path cache = request.gameDirectory().resolve(".poly").resolve("early-screen");
         return reference -> EarlyWindowTitle.of(

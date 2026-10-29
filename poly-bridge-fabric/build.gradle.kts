@@ -113,8 +113,16 @@ val quiltLoaderApi = tasks.register<Sync>("quiltLoaderApi") {
     include(quiltLoaderApiClasses)
     into(layout.buildDirectory.dir("quilt-loader-api"))
 }
+// Poly Mod Loader's builds of Fabric API modules on NeoForge's hooks and their index (ADR-0031, HostModules): in the jar
+// only, so that the bridge's unit tests do not install NeoForge.
+val hostModules = configurations.dependencyScope("hostModules")
+val hostModuleResources = configurations.resolvable("hostModuleResources") { extendsFrom(hostModules.get()) }
+dependencies {
+    hostModules(project(path = ":poly-fabric-api-neoforge-v26_2", configuration = "hostModuleElements"))
+}
 tasks.jar {
     from(quiltLoaderApi)
+    from(hostModuleResources)
 }
 dependencies {
     // The bridge compiles against the packed Quilt classes only, not the whole Quilt Loader jar: that jar also carries

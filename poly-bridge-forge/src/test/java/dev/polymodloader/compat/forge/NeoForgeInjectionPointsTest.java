@@ -31,6 +31,19 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
  */
 class NeoForgeInjectionPointsTest {
 
+    /**
+     * Points of one NeoForge release only (target class, method, replaced call): NeoForge 26.2.0.93's bed calls, which
+     * 26.3.0.98 no longer patches (and 26.3's vanilla stopSleeping calls setBlockAndUpdate). In a jar of another
+     * release, vanilla's code is still there; the tests check these only where the release has them.
+     */
+    private static final List<String> RELEASE_POINTS = List.of(
+            "net/minecraft/world/entity/LivingEntity getBedOrientation",
+            "net/minecraft/world/entity/LivingEntity lambda$stopSleeping$0");
+
+    private static boolean releasePoint(InjectionPointReplacement point) {
+        return RELEASE_POINTS.contains(point.targetClass() + " " + point.method());
+    }
+
     /** Each replaced call is one vanilla makes in the method; a point that names a call vanilla lacks moves nothing. */
     @Test
     @EnabledIfSystemProperty(named = "poly.neoForgeVanillaJar", matches = ".+")
@@ -42,7 +55,8 @@ class NeoForgeInjectionPointsTest {
                 Optional<ClassModel> target = read(jar, point.targetClass());
                 if (target.isEmpty()) {
                     problems.add(point + ": no class " + point.targetClass());
-                } else if (named(target.get(), point.method()).stream().noneMatch(m -> makes(m, point.replaced()))) {
+                } else if (named(target.get(), point.method()).stream().noneMatch(m -> makes(m, point.replaced()))
+                        && !releasePoint(point)) {
                     problems.add(point + ": vanilla " + point.method() + " does not make " + point.replaced());
                 }
             }
@@ -83,6 +97,9 @@ class NeoForgeInjectionPointsTest {
                     }
                     continue;
                 }
+                if (releasePoint(point) && methods.stream().noneMatch(m -> makes(m, point.replacement()))) {
+                    continue;
+                }
                 if (methods.stream().anyMatch(m -> makes(m, point.replaced()))) {
                     problems.add(point + ": the replaced call is still there");
                 }
@@ -108,13 +125,17 @@ class NeoForgeInjectionPointsTest {
                 .toList();
     }
 
-    /** The method {@code nameAndDescriptor} ({@code name(descriptor)}) of {@code model}. */
+    /**
+     * The method {@code nameAndDescriptor} ({@code name(descriptor)}) of {@code model}, or the first one named {@code
+     * nameAndDescriptor} when it has no descriptor (as Mixin selects a method by name).
+     */
     private static Optional<MethodModel> method(ClassModel model, String nameAndDescriptor) {
-        String name = nameAndDescriptor.substring(0, nameAndDescriptor.indexOf('('));
-        String descriptor = nameAndDescriptor.substring(nameAndDescriptor.indexOf('('));
+        int open = nameAndDescriptor.indexOf('(');
+        String name = open < 0 ? nameAndDescriptor : nameAndDescriptor.substring(0, open);
+        String descriptor = open < 0 ? null : nameAndDescriptor.substring(open);
         return model.methods().stream()
                 .filter(method -> method.methodName().equalsString(name)
-                        && method.methodType().equalsString(descriptor))
+                        && (descriptor == null || method.methodType().equalsString(descriptor)))
                 .findFirst();
     }
 

@@ -27,6 +27,7 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.fml.loading.mixin.MixinFacade;
 import net.neoforged.fml.startup.StartupArgs;
+import net.neoforged.neoforgespi.language.IModFileInfo;
 import net.neoforged.neoforgespi.locating.IModFileCandidateLocator;
 import net.neoforged.neoforgespi.transformation.ClassProcessor;
 
@@ -176,6 +177,16 @@ public final class PolyFml implements NeoForgeLaunch {
      */
     public static ClassProcessor mixinClassProcessor(MixinFacade facade) {
         return FmlSharedMixin.placeholderProcessor();
+    }
+
+    /**
+     * At the start of FML's {@code loadPlugins} when Fabric's Mixin is shared ({@code NeoForgeSharedMixinPatch}): the
+     * plugin files without another Fabric Loader that a NeoForge mod brings, such as Forgified Fabric Loader in
+     * Forgified Fabric API ({@link FmlSharedMixin#withoutForeignFabricLoader}).
+     */
+    public static List<IModFileInfo> withoutForeignFabricLoader(List<IModFileInfo> plugins) {
+        Request current = request;
+        return FmlSharedMixin.withoutForeignFabricLoader(plugins, current != null ? current.log() : line -> {});
     }
 
     /**

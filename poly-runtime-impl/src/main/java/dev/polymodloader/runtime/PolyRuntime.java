@@ -39,6 +39,7 @@ import dev.polymodloader.runtime.diagnostics.StartupReport;
 import dev.polymodloader.runtime.diagnostics.TransformationReport;
 import dev.polymodloader.runtime.discovery.DiscoveredModFile;
 import dev.polymodloader.runtime.discovery.ForeignModResolver;
+import dev.polymodloader.runtime.discovery.HostModules;
 import dev.polymodloader.runtime.discovery.ModFileKind;
 import dev.polymodloader.runtime.discovery.ModFileScanner;
 import dev.polymodloader.runtime.discovery.NestedJarExtractor;
@@ -117,6 +118,8 @@ public final class PolyRuntime {
                 configuration.side(),
                 adapter.adapterId(),
                 configuration.target().id());
+        // Poly Mod Loader's early loading window, prepared hidden while the mods are found.
+        StartupWindow startup = StartupWindow.start(configuration, adapter, gameVersion, gameArguments);
 
         // DISCOVERY + compatibility classification
         List<DiscoveredModFile> files =
@@ -127,6 +130,7 @@ public final class PolyRuntime {
                 files.size(),
                 configuration.modsDirectory(),
                 configuration.devModJars().size());
+        startup.discovered(files.size());
         List<DiscoveredModFile> nativeFiles = new ArrayList<>();
         List<StartupReport.BlockedFile> blockedFiles = new ArrayList<>();
         ForeignModResolver foreignMods = new ForeignModResolver(PolyRuntime.class.getClassLoader());
@@ -141,9 +145,16 @@ public final class PolyRuntime {
             reportNeoForgeBesideForge(files);
         }
         List<Path> hostJars = forge ? forgeJars : neoForgeJars;
+        if (forge) {
+            startup.hostStarting("Forge");
+        } else if (!neoForgeJars.isEmpty()) {
+            startup.hostStarting("NeoForge");
+        }
+        // With Poly Mod Loader's early window, the host's FML opens none.
         Optional<GameHost> host = forge
-                ? gameHost(configuration, gameVersion, gameArguments, files, forgeJars, foreignMods)
-                : neoForgeHost(configuration, gameVersion, gameArguments, files, neoForgeJars, foreignMods);
+                ? gameHost(configuration, gameVersion, gameArguments, files, forgeJars, foreignMods, startup.shows())
+                : neoForgeHost(
+                        configuration, gameVersion, gameArguments, files, neoForgeJars, foreignMods, startup.shows());
         List<ForeignModResolver.ForeignMod> assessedForeignMods = new ArrayList<>();
         List<StartupReport.ForeignMod> foreignReport = new ArrayList<>();
         for (DiscoveredModFile file : files) {
@@ -239,6 +250,31 @@ public final class PolyRuntime {
                     PolyRuntime.class.getClassLoader(),
                     foreignMods.bridges(),
                     assessedForeignMods);
+            // A left-out Fabric API module runs as Poly Mod Loader's build on the host's hooks, when there is one for
+            // this host release (ADR-0031); that build must fit the patch too.
+            HostModules.Result hostModules = HostModules.replaceLeftOut(
+                    host.get().name(),
+                    assessedForeignMods,
+                    foreignMods,
+                    configuration.side(),
+                    configuration.reportDirectory().resolve("host-modules"),
+                    PolyRuntime.class.getClassLoader());
+            for (Path[] replaced : hostModules.replaced()) {
+                LOGGER.info(
+                        "[Poly Mod Loader] {} {} {}",
+                        replaced[0].getFileName(),
+                        "does not fit the host's patch (POLY-COMPAT-224); Poly Mod Loader runs its build on the host's hooks instead (ADR-0031):",
+                        replaced[1].getFileName());
+            }
+            if (!hostModules.replaced().isEmpty()) {
+                assessedForeignMods = HostPatchCheck.apply(
+                        configuration.side(),
+                        hostedLaunch(host.get(), configuration.gameJar()),
+                        patchedJars.stream().distinct().toList(),
+                        PolyRuntime.class.getClassLoader(),
+                        foreignMods.bridges(),
+                        hostModules.mods());
+            }
         }
         for (NestedJarExtractor.NestedFile file : nestedJars.otherFiles()) {
             blockedFiles.add(new StartupReport.BlockedFile(
@@ -273,6 +309,7 @@ public final class PolyRuntime {
         }
         failIfAny(RuntimePhase.METADATA_VALIDATION, metadataErrors);
 
+        startup.resolving();
         // DEPENDENCY_RESOLUTION, across loaders: foreign mods first (they may be blocked, which Poly Mods
         // that need them must hear about), then Poly Mods with the foreign result.
         Map<String, String> nativeVersions = new HashMap<>();
@@ -298,8 +335,17 @@ public final class PolyRuntime {
                 }
             }
         }
+        // With a host the mods run on its patched game and its loader's classes, which come first (ADR-0031: a host
+        // module calls what the patch adds); the vanilla jar stays for what the host jars do not hold.
+        List<Path> linkGameJars = new ArrayList<>();
+        host.ifPresent(found -> {
+            linkGameJars.add(found.gameJar());
+            linkGameJars.addAll(found.classBytesJars());
+            linkGameJars.addAll(found.resourceJars());
+        });
+        linkGameJars.add(configuration.gameJar());
         try (ModLinkVerifier linkVerifier = new ModLinkVerifier(
-                List.of(configuration.gameJar()), PolyRuntime.class.getClassLoader(), configuration.side())) {
+                linkGameJars.stream().distinct().toList(), PolyRuntime.class.getClassLoader(), configuration.side())) {
             // Classes in the host loader's packages come from the host, not from copies mods carry (ADR-0014).
             host.ifPresent(found -> linkVerifier.hostLoaderJars(found.loaderJars()));
             linkVerifier.absentOnThisSide(assessedForeignMods.stream()
@@ -424,6 +470,7 @@ public final class PolyRuntime {
                 modCounts.quiltMods(),
                 modCounts.forgeMods(),
                 modCounts.neoForgeMods());
+        startup.modsLoaded(modCounts);
 
         // CONFLICT_RESOLUTION (system replacements are decided from metadata, before mod code runs)
         List<SystemDefinition<?>> systemDefinitions = BuiltInSystems.definitions();
@@ -437,6 +484,7 @@ public final class PolyRuntime {
         failIfAny(RuntimePhase.CONFLICT_RESOLUTION, replacements.problems());
 
         // TRANSFORMATION_PLANNING
+        startup.preparing();
         List<TransformRuleDefinition> rules =
                 new ArrayList<>(AdapterTransformRules.forGameVersion(adapter, gameVersion));
         // Poly Mod Loader's rules for a host's patched game, where the patch replaced what an adapter rule changes.
@@ -659,6 +707,7 @@ public final class PolyRuntime {
                 "[Poly Mod Loader] Phase {}: {} mod(s)",
                 RuntimePhase.LIFECYCLE_INITIALIZATION,
                 resolution.loadOrder().size());
+        startup.initialisingMods(order.size());
         ShutdownCoordinator shutdown = new ShutdownCoordinator();
         shutdown.installJvmShutdownHook();
         // Registered first, so it runs last: the report then covers classes loaded during mod shutdown.
@@ -732,7 +781,13 @@ public final class PolyRuntime {
                     adapter.gameLayerClass().get(),
                     gameClassLoader,
                     new GameLayerContext(
-                            configuration.side(), configuration.target(), events, packs, registrations, modCounts));
+                            configuration.side(),
+                            configuration.target(),
+                            events,
+                            packs,
+                            registrations,
+                            modCounts,
+                            startup));
             // A host that draws the title screen's branding itself shows the game layer's lines there too.
             host.ifPresent(found -> found.addBrandingLines(layer::brandingLines));
         } else {
@@ -745,7 +800,12 @@ public final class PolyRuntime {
                     "[Poly Mod Loader] Phase {}: {} starts the game",
                     RuntimePhase.GAME_LAUNCH,
                     host.get().name());
-            host.get().launch();
+            startup.startingGame(gameVersion);
+            try {
+                host.get().launch();
+            } finally {
+                startup.gameEnded();
+            }
             return new LaunchedGame(gameVersion, gameClassLoader, shutdown, systems);
         }
         String mainClassName = adapter.mainClass(configuration.target());
@@ -753,7 +813,12 @@ public final class PolyRuntime {
         Class<?> mainClass = Class.forName(mainClassName, false, gameClassLoader);
         MethodHandle main = MethodHandles.publicLookup()
                 .findStatic(mainClass, "main", MethodType.methodType(void.class, String[].class));
-        main.invokeExact(gameArguments);
+        startup.startingGame(gameVersion);
+        try {
+            main.invokeExact(gameArguments);
+        } finally {
+            startup.gameEnded();
+        }
         return new LaunchedGame(gameVersion, gameClassLoader, shutdown, systems);
     }
 
@@ -879,7 +944,8 @@ public final class PolyRuntime {
             String[] gameArguments,
             List<DiscoveredModFile> files,
             List<Path> forgeJars,
-            ForeignModResolver foreignMods) {
+            ForeignModResolver foreignMods,
+            boolean polyEarlyWindow) {
         String mode = System.getProperty("poly.forge", "auto");
         if (mode.equals("off") || (forgeJars.isEmpty() && !mode.equals("always"))) {
             return Optional.empty();
@@ -901,7 +967,9 @@ public final class PolyRuntime {
                 List.of(gameArguments),
                 line -> LOGGER.info("[Poly Mod Loader] {}", line),
                 fabricMods > 0,
-                configuration.systemClassPath());
+                configuration.systemClassPath(),
+                Optional.empty(),
+                polyEarlyWindow);
         for (dev.polymodloader.compat.bridge.ModLoaderBridge bridge : foreignMods.bridges()) {
             if (!bridge.metadataPath().equals(ModFileKind.FORGE.metadataPath())) {
                 continue;
@@ -939,7 +1007,8 @@ public final class PolyRuntime {
             String[] gameArguments,
             List<DiscoveredModFile> files,
             List<Path> neoForgeJars,
-            ForeignModResolver foreignMods) {
+            ForeignModResolver foreignMods,
+            boolean polyEarlyWindow) {
         if (System.getProperty("poly.neoforge", "on").equals("off")
                 || neoForgeJars.stream()
                         .noneMatch(jar -> files.stream()
@@ -958,7 +1027,8 @@ public final class PolyRuntime {
                 line -> LOGGER.info("[Poly Mod Loader] {}", line),
                 fabricMods > 0,
                 configuration.systemClassPath(),
-                configuration.jdkModuleAccess());
+                configuration.jdkModuleAccess(),
+                polyEarlyWindow);
         for (dev.polymodloader.compat.bridge.ModLoaderBridge bridge : foreignMods.bridges()) {
             if (!bridge.metadataPath().equals(ModFileKind.NEOFORGE.metadataPath())) {
                 continue;
