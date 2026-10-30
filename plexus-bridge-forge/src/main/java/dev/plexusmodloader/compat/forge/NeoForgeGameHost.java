@@ -42,7 +42,7 @@ import java.util.jar.JarFile;
  * NeoForge on Poly Mod Loader (ADR-0026): prepares NeoForge's files ({@link NeoForgeInstallation}), defines the layer
  * of NeoForge's loader libraries in the game class loader with Poly Mod Loader's host ({@code neoforge-host.jar}) and
  * the checked patch of {@code FMLLoader} ({@link NeoForgeLoaderPatch}), and runs FML's own startup there ({@code
- * PolyFml.start}). The game class loader defines the game layer FML computes; FML sees exactly the NeoForge mods Poly
+ * PlexusFml.start}). The game class loader defines the game layer FML computes; FML sees exactly the NeoForge mods Poly
  * Mod Loader found.
  *
  * <p>FML's {@code ModList} answers for the Poly Mods and other loaders' mods in the same game too ({@link
@@ -55,7 +55,7 @@ import java.util.jar.JarFile;
 final class NeoForgeGameHost implements GameHost {
 
     private static final String HOST_JAR = "/META-INF/polymodloader/neoforge-host.jar";
-    private static final String HOST_CLASS = "dev.plexusmodloader.compat.forge.fml.PolyFml";
+    private static final String HOST_CLASS = "dev.plexusmodloader.compat.forge.fml.PlexusFml";
     private static final String MIXIN_BOOTSTRAP = "org/spongepowered/asm/launch/MixinBootstrap.class";
 
     private final GameHost.Request request;

@@ -11,7 +11,7 @@ import dev.plexusmodloader.internal.transform.TransformRuleDefinition;
 import java.util.EnumSet;
 import java.util.List;
 
-/** Adapter for the synthetic game built by {@link PolyRuntimeTest}; registered via META-INF/services. */
+/** Adapter for the synthetic game built by {@link PlexusRuntimeTest}; registered via META-INF/services. */
 public final class TestGameVersionAdapter implements GameVersionAdapter {
 
     static final String GAME_VERSION = "test-1";

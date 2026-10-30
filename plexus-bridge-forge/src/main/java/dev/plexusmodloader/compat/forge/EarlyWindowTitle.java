@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * The title of the early loading window of MinecraftForge and NeoForge names Poly Mod Loader, as the game window's does
- * after it ({@code Minecraft* Poly <version>}, the game layers' {@code PolyWindowTitle}):
+ * after it ({@code Minecraft* Poly <version>}, the game layers' {@code PlexusWindowTitle}):
  *
  * <ul>
  *   <li>NeoForge's {@code earlydisplay} (FML 11 and 12) creates its window as {@code Minecraft: NeoForge Loading...};

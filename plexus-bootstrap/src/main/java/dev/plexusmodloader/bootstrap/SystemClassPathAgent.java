@@ -16,7 +16,7 @@ import java.util.jar.JarFile;
  * NeoForge's own launcher profile does with {@code --add-opens}. It registers no class transformer and does nothing
  * else; without Forge or NeoForge mods it is never used.
  *
- * <p>The JVM starts it before {@link PolyLauncherMain#main}: with {@code -javaagent:<this jar>} (the launcher profile's
+ * <p>The JVM starts it before {@link PlexusLauncherMain#main}: with {@code -javaagent:<this jar>} (the launcher profile's
  * JVM argument; this jar's manifest names it as {@code Premain-Class}), or as the {@code Launcher-Agent-Class} of an
  * executable jar (the server's {@code polymodloader-server.jar}, whose {@code Class-Path} has this jar).
  *

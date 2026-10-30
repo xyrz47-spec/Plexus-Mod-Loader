@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
 /**
  * MinecraftForge on Poly Mod Loader (ADR-0021): prepares Forge's files ({@link ForgeInstallation}), defines FML's BOOT
  * layer in the game class loader ({@link ForgeBootModules}), and hands over to Poly Mod Loader's implementation of
- * ModLauncher's launch ({@code PolyModLauncher}, inside that layer), which runs FML's own discovery and Forge's own
+ * ModLauncher's launch ({@code PlexusModLauncher}, inside that layer), which runs FML's own discovery and Forge's own
  * launch handler. FML sees exactly the Forge mods Poly Mod Loader found: they are resources of the game class loader, where
  * FML's {@code ClasspathLocator} finds them, and FML's own mods folder scan is left out ({@link ForgeBootModules}).
  *
@@ -203,9 +203,9 @@ final class ForgeGameHost implements GameHost {
                         + " mod file(s) for FML, " + libraries.onClassPath().size()
                         + " librar(y/ies) shared with the game");
         Module modLauncher = boot.findModule(ForgeBootModules.MODLAUNCHER).orElseThrow();
-        Class<?> host = Class.forName(modLauncher, ForgeBootModules.HOST_PACKAGE + ".PolyModLauncher");
+        Class<?> host = Class.forName(modLauncher, ForgeBootModules.HOST_PACKAGE + ".PlexusModLauncher");
         if (host == null) {
-            throw new IllegalStateException("forge-host.jar has no PolyModLauncher");
+            throw new IllegalStateException("forge-host.jar has no PlexusModLauncher");
         }
         Method start = host.getMethod("start", ForgeLaunch.Request.class);
         try {

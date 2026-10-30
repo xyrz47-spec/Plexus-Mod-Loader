@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 /**
  * FML 11 started by Poly Mod Loader (ADR-0026), ready to start the game. FML's own {@code FMLLoader.create} runs inside
- * the layer of NeoForge's loader libraries, with Poly Mod Loader's host ({@code PolyFml}, built from the {@code
+ * the layer of NeoForge's loader libraries, with Poly Mod Loader's host ({@code PlexusFml}, built from the {@code
  * neoForgeHost} source set) in place of the two calls {@link NeoForgeLoaderPatch} replaces; this side and that one meet
  * only through this interface, JDK types and the bridge API, which both see from Poly Mod Loader's class path.
  */
@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 public interface NeoForgeLaunch {
 
     /**
-     * What {@code PolyFml.start} needs.
+     * What {@code PlexusFml.start} needs.
      *
      * @param dist FML's {@code Dist} name: {@code CLIENT} or {@code DEDICATED_SERVER}
      * @param headless whether FML runs without its early window (servers)

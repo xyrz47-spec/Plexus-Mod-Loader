@@ -71,7 +71,7 @@ val installerPayload = tasks.register<dev.plexusmodloader.devtools.gradle.releas
     libraryFiles.from(installerRuntime)
     this.polyVersion = polyModLoaderVersion
     this.minecraftVersions = supportedMinecraft
-    mainClass = "dev.plexusmodloader.bootstrap.PolyLauncherMain"
+    mainClass = "dev.plexusmodloader.bootstrap.PlexusLauncherMain"
     // Poly Mod Loader's Java agent (ADR-0024): -javaagent in the launcher profile, Launcher-Agent-Class on the server.
     agentLibrary = "$polyGroup:plexus-bootstrap:$polyModLoaderVersion"
     agentClass = "dev.plexusmodloader.bootstrap.SystemClassPathAgent"

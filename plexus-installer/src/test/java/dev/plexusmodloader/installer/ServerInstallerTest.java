@@ -176,7 +176,7 @@ class ServerInstallerTest {
         return new InstallerPayload(
                 "0.1.0",
                 List.of("26.2"),
-                "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(new InstallerPayload.Library(
                         "dev.plexusmodloader:poly-runtime-impl:0.1.0",
                         "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",

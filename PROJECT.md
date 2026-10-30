@@ -59,7 +59,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 ### 3) Near-Zero Performance Overhead
 - **Startup Time & Memory:** Memory footprint and startup duration are within measurement noise compared to vanilla and host loaders.
 - **Shader & GPU Optimization:** Full support for major graphics mods (Sodium, Iris, Lithium) with unified render pipelines.
-- **Custom Loading Screen:** Fast, modern `#0E131F` dark overlay (`PolyLoadingOverlay`) with real-time mod count overlays per loader.
+- **Custom Loading Screen:** Fast, modern `#0E131F` dark overlay (`PlexusLoadingOverlay`) with real-time mod count overlays per loader.
 
 ---
 
@@ -75,7 +75,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 | **Fabric API on Forge** | Every Fabric API module of the 26.2 corpus | **Partial** | `corpusFabricForge` on 26.2 (2026-10-27): no Fabric API module is left out next to Forge; Architectury, Balm and Lithium still are (`PLEXUS-COMPAT-224`): Forge replaced the spawn checks, the crop moisture read and parts of `Level.setBlock` they hook. |
 | **Fabric API on NeoForge** | 10 modules left out on 26.2 | **Partial** | `corpusFabricNeoForge` on 26.2 (2026-10-27): block, content-registries, crash-report-info, data-generation, entity-events, events-interaction, item, registry-sync, resource-conditions and transfer are left out (`PLEXUS-COMPAT-224`). |
 | **NeoForge Injection Points** | Every `NeoForgeInjectionPoints` entry | **Checked** | `NeoForgeInjectionPointsTest` against NeoForge 26.2.0.93's patched client and vanilla 26.2 (2026-10-27). The four 1.2.3 client entries named calls vanilla does not make; `openMenu` was corrected, the other three removed. |
-| **Custom Loading UI** | `PolyLoadingOverlay` | **Done** | Font corruption fix merged in 1.2.3; loader mod count overlay. |
+| **Custom Loading UI** | `PlexusLoadingOverlay` | **Done** | Font corruption fix merged in 1.2.3; loader mod count overlay. |
 | **Bug Reporting Flow** | GitHub Issues Direct Route | **Done** | Exceptions & crash UI direct users to official issue tracker. |
 
 ---

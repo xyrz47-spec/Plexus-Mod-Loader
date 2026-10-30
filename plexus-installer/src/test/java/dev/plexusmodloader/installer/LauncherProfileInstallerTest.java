@@ -58,7 +58,7 @@ class LauncherProfileInstallerTest {
         JsonObject version = json(minecraft.resolve("versions/polymodloader-0.1.0-26.2/polymodloader-0.1.0-26.2.json"));
         assertEquals("26.2", version.get("inheritsFrom").getAsString());
         assertEquals(
-                "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 version.get("mainClass").getAsString());
         assertEquals(
                 "-Dpoly.launchTarget=client",
@@ -143,7 +143,7 @@ class LauncherProfileInstallerTest {
         InstallerPayload damaged = new InstallerPayload(
                 "0.1.0",
                 List.of("26.2"),
-                "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(new InstallerPayload.Library(
                         "dev.plexusmodloader:poly-runtime-impl:0.1.0",
                         "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
@@ -305,7 +305,7 @@ class LauncherProfileInstallerTest {
                 () -> new InstallerPayload(
                         "0.1.0",
                         List.of("26.2"),
-                        "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                        "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                         List.of(),
                         Optional.of(new InstallerPayload.Agent(
                                 "dev.plexusmodloader:poly-bootstrap:0.1.0",
@@ -320,7 +320,7 @@ class LauncherProfileInstallerTest {
         InstallerPayload parsed =
                 InstallerPayload.parse(new StringReader("""
                 {"polyVersion": "0.1.0", "minecraftVersions": ["26.2"],
-                 "mainClass": "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                 "mainClass": "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                  "agent": {"library": "dev.plexusmodloader:poly-bootstrap:0.1.0",
                            "class": "dev.plexusmodloader.bootstrap.SystemClassPathAgent"},
                  "libraries": [{"name": "dev.plexusmodloader:poly-bootstrap:0.1.0",
@@ -343,7 +343,7 @@ class LauncherProfileInstallerTest {
         InstallerPayload parsed =
                 InstallerPayload.parse(new StringReader("""
                         {"polyVersion": "0.1.0", "minecraftVersions": ["26.1", "26.2"],
-                         "mainClass": "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                         "mainClass": "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                          "libraries": [{"name": "org.ow2.asm:asm:9.11.1", "path": "org/ow2/asm/asm/9.11.1/asm-9.11.1.jar",
                                         "sha1": "00", "size": 3}]}
                         """), path -> new ByteArrayInputStream(new byte[0]));
@@ -366,7 +366,7 @@ class LauncherProfileInstallerTest {
         return new InstallerPayload(
                 "0.1.0",
                 List.of("26.2"),
-                "dev.plexusmodloader.bootstrap.PolyLauncherMain",
+                "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(
                         new InstallerPayload.Library(
                                 "dev.plexusmodloader:poly-runtime-impl:0.1.0",

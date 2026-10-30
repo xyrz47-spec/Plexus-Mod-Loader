@@ -33,14 +33,14 @@ import java.util.function.Consumer;
  * <ul>
  *   <li>{@code MixinFacade}: the constructor only sets its fields to {@code null} (Mixin is already running);
  *       {@code finishInitialization(LoadingModList, TransformingClassLoader)} hands the mod list to {@code
- *       PolyFml.finishSharedMixin}, which finds the configurations as FML's {@code addMixins} does and reports them to
+ *       PlexusFml.finishSharedMixin}, which finds the configurations as FML's {@code addMixins} does and reports them to
  *       the shared Mixin; {@code close()} does nothing (it only detaches FML's service).
  *   <li>{@code FMLLoader.createClassProcessorSet}: the one {@code mixinFacade.getClassProcessor()} becomes {@code
- *       PolyFml.mixinClassProcessor(mixinFacade)}, a processor with FML's Mixin name that changes nothing, so that the
+ *       PlexusFml.mixinClassProcessor(mixinFacade)}, a processor with FML's Mixin name that changes nothing, so that the
  *       other processors keep their order; the shared Mixin applies in Poly Mod Loader's bridge stage. FML 12 adds
  *       {@code mixinFacade.getGeneratingClassProcessor()} to the set too, the processor that makes Mixin's synthetic
  *       classes ({@code org.spongepowered.asm.synthetic.args}, for {@code @ModifyArgs}) with FML's Mixin; it becomes
- *       {@code PolyFml.mixinGeneratingClassProcessor(mixinFacade)}, a processor with its name and order that changes
+ *       {@code PlexusFml.mixinGeneratingClassProcessor(mixinFacade)}, a processor with its name and order that changes
  *       nothing, as the shared Mixin's synthetic classes come from Poly Mod Loader's bridge stage too ({@code
  *       BridgeClassTransformer.generate}). Left as it is, FML 12 would add the {@code null} the facade now holds, and
  *       its {@code ClassProcessorSet} would fail ({@code PLEXUS-COMPAT-208}).
@@ -183,7 +183,7 @@ final class NeoForgeSharedMixinPatch {
                     && is(method, "createClassProcessorSet", CREATE_PROCESSOR_SET_TYPE)) {
                 builder.transformMethod(method, MethodTransform.transformingCode(redirect));
             } else if (element instanceof MethodModel method && is(method, "loadPlugins", LOAD_PLUGINS_TYPE)) {
-                // The plugin files, first: without another Fabric Loader (PolyFml.withoutForeignFabricLoader).
+                // The plugin files, first: without another Fabric Loader (PlexusFml.withoutForeignFabricLoader).
                 builder.transformMethod(method, MethodTransform.transformingCode(CodeTransform.ofStateful(() -> {
                     boolean[] started = {false};
                     return (code, codeElement) -> {
@@ -202,13 +202,13 @@ final class NeoForgeSharedMixinPatch {
             }
         };
         List<String> changed = new ArrayList<>();
-        changed.add("createClassProcessorSet: MixinFacade.getClassProcessor() -> PolyFml." + MIXIN_CLASS_PROCESSOR);
+        changed.add("createClassProcessorSet: MixinFacade.getClassProcessor() -> PlexusFml." + MIXIN_CLASS_PROCESSOR);
         if (generatingCalls(model) == 1) {
-            changed.add("createClassProcessorSet: MixinFacade.getGeneratingClassProcessor() -> PolyFml."
+            changed.add("createClassProcessorSet: MixinFacade.getGeneratingClassProcessor() -> PlexusFml."
                     + MIXIN_GENERATING_CLASS_PROCESSOR);
         }
         if (model.methods().stream().anyMatch(method -> is(method, "loadPlugins", LOAD_PLUGINS_TYPE))) {
-            changed.add("loadPlugins: its plugin files through PolyFml." + WITHOUT_FOREIGN_FABRIC_LOADER);
+            changed.add("loadPlugins: its plugin files through PlexusFml." + WITHOUT_FOREIGN_FABRIC_LOADER);
         }
         return new Result(classFile.transformClass(model, transform), changed, List.of());
     }
@@ -258,7 +258,7 @@ final class NeoForgeSharedMixinPatch {
                 classFile.transformClass(model, transform),
                 List.of(
                         "MixinFacade.<init>: no Mixin start of its own",
-                        "MixinFacade.finishInitialization -> PolyFml." + FINISH,
+                        "MixinFacade.finishInitialization -> PlexusFml." + FINISH,
                         "MixinFacade.close: nothing to detach"),
                 List.of());
     }

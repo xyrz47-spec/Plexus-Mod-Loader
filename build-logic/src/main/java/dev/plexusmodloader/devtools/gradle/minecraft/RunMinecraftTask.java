@@ -31,7 +31,7 @@ import org.gradle.work.DisableCachingByDefault;
 @DisableCachingByDefault(because = "Runs the game")
 public abstract class RunMinecraftTask extends JavaExec {
 
-    static final String BOOTSTRAP_MAIN_CLASS = "dev.plexusmodloader.bootstrap.PolyLauncherMain";
+    static final String BOOTSTRAP_MAIN_CLASS = "dev.plexusmodloader.bootstrap.PlexusLauncherMain";
 
     @InputFile
     @PathSensitive(PathSensitivity.NONE)

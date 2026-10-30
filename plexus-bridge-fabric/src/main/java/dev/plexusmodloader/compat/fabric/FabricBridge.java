@@ -20,7 +20,7 @@ import dev.plexusmodloader.compat.bridge.ModJarContents;
 import dev.plexusmodloader.compat.bridge.ModLoaderBridge;
 import dev.plexusmodloader.compat.fabric.loader.FabricFamilyMod;
 import dev.plexusmodloader.compat.fabric.loader.FabricLoaderRuntime;
-import dev.plexusmodloader.compat.fabric.loader.PolyFabricLauncher;
+import dev.plexusmodloader.compat.fabric.loader.PlexusFabricLauncher;
 import dev.plexusmodloader.compat.fabric.mixin.FabricMixinBootstrap;
 import dev.plexusmodloader.compat.fabric.mixin.HostInterfaceDefaults;
 import dev.plexusmodloader.compat.fabric.mixin.MixinConfigEntry;
@@ -137,7 +137,7 @@ public final class FabricBridge implements ModLoaderBridge {
         FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(fabric);
         QuiltLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(
                 QuiltLoaderRuntime.create(context, fabric, BundledVersions.QUILT_LOADER));
-        PolyFabricLauncher.install(context.gameClassLoader(), context.side());
+        PlexusFabricLauncher.install(context.gameClassLoader(), context.side());
     }
 
     /**

@@ -32,7 +32,7 @@ final class GameLaunchArguments {
         return target.toFile();
     }
 
-    /** Manifest JVM arguments plus the system properties {@code PolyLauncherMain} reads. */
+    /** Manifest JVM arguments plus the system properties {@code PlexusLauncherMain} reads. */
     static List<String> jvmArguments(
             MinecraftLaunchSpec spec,
             String launchTarget,

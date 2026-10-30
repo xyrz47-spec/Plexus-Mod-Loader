@@ -27,10 +27,10 @@ import java.util.function.Consumer;
  *
  * <ul>
  *   <li>In {@code create(Instrumentation, StartupArgs)}, the one call {@code this.buildTransformingLoader(processors,
- *       auditLog, gameContent)} becomes {@code PolyFml.buildTransformingLoader(this, processors, auditLog,
+ *       auditLog, gameContent)} becomes {@code PlexusFml.buildTransformingLoader(this, processors, auditLog,
  *       gameContent)}: the game class loader defines the game layer FML computed, and FML gets a class loader that
  *       hands everything to it.
- *   <li>In {@code runDiscovery()}, {@code new ModsFolderLocator()} becomes {@code PolyFml.modsLocator()}: FML loads the
+ *   <li>In {@code runDiscovery()}, {@code new ModsFolderLocator()} becomes {@code PlexusFml.modsLocator()}: FML loads the
  *       NeoForge mods Poly Mod Loader found and left in, not every jar of the mods folder.
  * </ul>
  *
@@ -49,7 +49,7 @@ final class NeoForgeLoaderPatch {
     static final String PACKAGE = "net.neoforged.fml.loading";
 
     /** Poly Mod Loader's host in {@code neoforge-host.jar}, a module of the same layer. */
-    static final ClassDesc HOST = ClassDesc.of("dev.plexusmodloader.compat.forge.fml.PolyFml");
+    static final ClassDesc HOST = ClassDesc.of("dev.plexusmodloader.compat.forge.fml.PlexusFml");
 
     private static final ClassDesc FML_LOADER = ClassDesc.of("net.neoforged.fml.loading.FMLLoader");
     private static final ClassDesc PROCESSOR_SET =
@@ -156,8 +156,8 @@ final class NeoForgeLoaderPatch {
         return new Result(
                 classFile.transformClass(model, transform),
                 List.of(
-                        "create: " + BUILD + " -> PolyFml." + BUILD,
-                        "runDiscovery: new ModsFolderLocator() -> PolyFml." + MODS_LOCATOR + "()"),
+                        "create: " + BUILD + " -> PlexusFml." + BUILD,
+                        "runDiscovery: new ModsFolderLocator() -> PlexusFml." + MODS_LOCATOR + "()"),
                 List.of());
     }
 

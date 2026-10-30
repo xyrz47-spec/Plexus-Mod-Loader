@@ -11,7 +11,7 @@ Poly Mod Loader bridges Minecraft and disparate mod loaders (Fabric, Forge, NeoF
 ```mermaid
 flowchart TD
     subgraph Launch["1. Bootstrap & Discovery"]
-        Entry["PolyLauncherMain (poly-bootstrap)"] --> Scanner["Mod Scanner (poly-runtime-impl)"]
+        Entry["PlexusLauncherMain (poly-bootstrap)"] --> Scanner["Mod Scanner (poly-runtime-impl)"]
         Scanner --> Metadata["Metadata Evaluator (poly-mod-metadata)"]
         Metadata --> Assess["Pre-flight Matrix Check (HostPatchCheck)"]
     end
@@ -24,14 +24,14 @@ flowchart TD
 
     subgraph Runtime["3. Virtualized Runtime Hosting"]
         Cache --> ClassLoader["GameClassLoader"]
-        ClassLoader --> MixinService["Unified PolyMixinService (Mixin 0.8.7)"]
+        ClassLoader --> MixinService["Unified PlexusMixinService (Mixin 0.8.7)"]
         ClassLoader --> ForgeHost["Forge / NeoForge FML Layer Virtualizer"]
         ClassLoader --> FabricHost["FabricLoader & QuiltLoader Emulators"]
     end
 
     subgraph Game["4. Game Execution"]
         ClassLoader --> Minecraft["Minecraft: Java Edition Engine"]
-        Minecraft --> Overlay["PolyLoadingOverlay (Custom Dark UI)"]
+        Minecraft --> Overlay["PlexusLoadingOverlay (Custom Dark UI)"]
         Minecraft --> World["Unified World & Entity Lifecycle"]
     end
 ```
@@ -41,7 +41,7 @@ flowchart TD
 ## 2. The Four-Phase Execution Lifecycle
 
 ### Phase 1: Discovery & Assessment
-1. **Scanning:** `PolyLauncherMain` passes the mods folder and development mod jars to `ModFileScanner`; `NestedJarExtractor` takes out nested jars.
+1. **Scanning:** `PlexusLauncherMain` passes the mods folder and development mod jars to `ModFileScanner`; `NestedJarExtractor` takes out nested jars.
 2. **Metadata Evaluation:**
    - Reads `poly.mod.json`, `fabric.mod.json`, `quilt.mod.json`, and `META-INF/mods.toml` / `neoforge.mods.toml`.
    - Normalizes dependencies, versions, and conflict declarations.
@@ -60,8 +60,8 @@ flowchart TD
 
 ### Phase 3: ClassLoader Topology & Unified Mixin
 Traditional mod loaders attempt to own the system or thread context classloader (e.g., Forge's ModLauncher or Fabric's Knot). Poly resolves this conflict:
-- **`GameClassLoader`:** One transforming class loader serves the entire game. It defines the game's and the mods' classes itself (child-first), so every class goes through the transformer; Poly Mod Loader's own packages, the Java platform and the libraries (LWJGL, log4j, gson, ...) come from the parent. NeoForge's FML gets `PolyTransformingClassLoader` in place of its own, which takes every class from the game class loader.
-- **Unified Mixin Engine:** Instead of letting Forge and Fabric spin up competing Mixin instances, Poly initializes a single **`PolyMixinService`** (SpongePowered Mixin 0.8.7 + MixinExtras 0.5.5) that processes Mixin configurations from Fabric, Quilt, Forge and NeoForge mods.
+- **`GameClassLoader`:** One transforming class loader serves the entire game. It defines the game's and the mods' classes itself (child-first), so every class goes through the transformer; Poly Mod Loader's own packages, the Java platform and the libraries (LWJGL, log4j, gson, ...) come from the parent. NeoForge's FML gets `PlexusTransformingClassLoader` in place of its own, which takes every class from the game class loader.
+- **Unified Mixin Engine:** Instead of letting Forge and Fabric spin up competing Mixin instances, Poly initializes a single **`PlexusMixinService`** (SpongePowered Mixin 0.8.7 + MixinExtras 0.5.5) that processes Mixin configurations from Fabric, Quilt, Forge and NeoForge mods.
 - **FML Module Layering:** Forge's BOOT, SERVICE, and PLUGIN layers are mapped directly into the transforming classloader. `cpw.mods.modlauncher` APIs are satisfied by Poly's virtualized shims without pulling in conflicting classloader hierarchies.
 
 ### Phase 4: Runtime Cross-Loader Interoperability
@@ -75,11 +75,11 @@ Traditional mod loaders attempt to own the system or thread context classloader 
 
 ---
 
-## 3. Custom Loading Screen Integration (`PolyLoadingOverlay`)
+## 3. Custom Loading Screen Integration (`PlexusLoadingOverlay`)
 
 In Minecraft 26.1, 26.2, and 26.3, third-party loaders (such as Forge's early progress window) interfere with title rendering.
 - Poly suppresses third-party splash screens and disables early graphics windows.
-- During resource reloading and mod initialization, Poly renders its own **`PolyLoadingOverlay`**:
+- During resource reloading and mod initialization, Poly renders its own **`PlexusLoadingOverlay`**:
   - Dark background (`#0E131F`) with animated progress indicator.
   - Live mod count overlay displaying loaded mod counts broken down by loader: `Fabric`, `Forge`, `NeoForge`, `Quilt`, and `Poly`.
   - Color-coded rendering using Minecraft's native `Component.literal` and `ChatFormatting` to guarantee zero font corruption across different GPU drivers.

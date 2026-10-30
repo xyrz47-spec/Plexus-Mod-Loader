@@ -28,14 +28,14 @@ class NeoForgeJarsTest {
     @Test
     void withNeoForgeModsNeoForgeRunsTheJarsForSeveralLoadersAndFmlLibraries() {
         List<Path> jars =
-                PolyRuntime.neoForgeJars(List.of(NEOFORGE, FABRIC, FABRIC_AND_NEOFORGE, EVERY_LOADER, LIBRARY, POLY));
+                PlexusRuntime.neoForgeJars(List.of(NEOFORGE, FABRIC, FABRIC_AND_NEOFORGE, EVERY_LOADER, LIBRARY, POLY));
 
         assertEquals(List.of(path(NEOFORGE), path(FABRIC_AND_NEOFORGE), path(EVERY_LOADER), path(LIBRARY)), jars);
     }
 
     @Test
     void withoutAModOnlyNeoForgeRunsTheJarsForSeveralLoadersStayFabrics() {
-        assertEquals(List.of(path(LIBRARY)), PolyRuntime.neoForgeJars(List.of(FABRIC_AND_NEOFORGE, FABRIC, LIBRARY)));
+        assertEquals(List.of(path(LIBRARY)), PlexusRuntime.neoForgeJars(List.of(FABRIC_AND_NEOFORGE, FABRIC, LIBRARY)));
     }
 
     /** Only a Fabric mod that NeoForge does not run keeps NeoForge out (one Mixin, ADR-0026 5). */
@@ -43,9 +43,9 @@ class NeoForgeJarsTest {
     void onlyFabricModsNeoForgeDoesNotRunCountAsFabricMods() {
         List<DiscoveredModFile> files = List.of(NEOFORGE, FABRIC_AND_NEOFORGE, EVERY_LOADER);
 
-        assertEquals(0, PolyRuntime.fabricModsBesides(files, PolyRuntime.neoForgeJars(files)));
+        assertEquals(0, PlexusRuntime.fabricModsBesides(files, PlexusRuntime.neoForgeJars(files)));
         List<DiscoveredModFile> withFabric = List.of(NEOFORGE, FABRIC_AND_NEOFORGE, FABRIC);
-        assertEquals(1, PolyRuntime.fabricModsBesides(withFabric, PolyRuntime.neoForgeJars(withFabric)));
+        assertEquals(1, PlexusRuntime.fabricModsBesides(withFabric, PlexusRuntime.neoForgeJars(withFabric)));
     }
 
     private static DiscoveredModFile file(String name, ModFileKind kind, ModFileKind... alsoFor) {

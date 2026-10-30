@@ -8,12 +8,12 @@ import java.util.Optional;
  * Poly Mod Loader's stand-in for ModLauncher's launcher (ADR-0021). FML and the access transformer library read only
  * {@link #INSTANCE}, {@link #environment()} and {@link #blackboard()} (checked with {@code javap} on Forge
  * 26.2-65.1.5's jars), so that is all this class has, with the private field {@code argumentHandler} that mods read
- * through reflection ({@link ArgumentHandler}); Poly Mod Loader's {@code PolyModLauncher} does the launching. Not
+ * through reflection ({@link ArgumentHandler}); Poly Mod Loader's {@code PlexusModLauncher} does the launching. Not
  * ModLauncher's code.
  */
 public final class Launcher {
 
-    /** The running launcher, as ModLauncher sets it; written once by {@code PolyModLauncher}. */
+    /** The running launcher, as ModLauncher sets it; written once by {@code PlexusModLauncher}. */
     public static Launcher INSTANCE;
 
     private final Environment environment;

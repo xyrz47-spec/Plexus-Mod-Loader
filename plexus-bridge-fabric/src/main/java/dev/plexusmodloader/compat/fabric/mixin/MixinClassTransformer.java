@@ -28,7 +28,7 @@ final class MixinClassTransformer implements BridgeClassTransformer {
 
     @Override
     public byte[] transform(String className, byte[] bytes) {
-        PolyMixinService.loading(className);
+        PlexusMixinService.loading(className);
         try {
             return transformer.transformClassBytes(className, className, bytes);
         } catch (RuntimeException | Error e) {

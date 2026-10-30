@@ -228,7 +228,7 @@ public final class Minecraft26_2Adapter implements GameVersionAdapter {
                 CLIENT_ONLY,
                 new MethodTarget("net/minecraft/client/Minecraft", "createTitle", "()Ljava/lang/String;"),
                 new InvokeHookBeforeReturn(
-                        "dev/plexusmodloader/game/layer/v26_2/client/PolyWindowTitle", "onCreateTitleReturn"),
+                        "dev/plexusmodloader/game/layer/v26_2/client/PlexusWindowTitle", "onCreateTitleReturn"),
                 TransformFailurePolicy.DISABLE_RULE);
     }
 
@@ -247,7 +247,8 @@ public final class Minecraft26_2Adapter implements GameVersionAdapter {
                         "extractRenderState",
                         "(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V"),
                 new InvokeHookBeforeReturn(
-                        "dev/plexusmodloader/game/layer/v26_2/client/PolyLoadingOverlay", "onExtractRenderStateReturn"),
+                        "dev/plexusmodloader/game/layer/v26_2/client/PlexusLoadingOverlay",
+                        "onExtractRenderStateReturn"),
                 TransformFailurePolicy.DISABLE_RULE);
     }
 

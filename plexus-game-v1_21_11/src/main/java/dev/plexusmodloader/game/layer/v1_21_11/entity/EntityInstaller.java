@@ -95,7 +95,7 @@ public final class EntityInstaller {
         }
         for (EffectDeclaration declaration : declarations.effects()) {
             EffectDefinition definition = declaration.definition();
-            MobEffect effect = new PolyMobEffect(category(definition), definition.color(), definition);
+            MobEffect effect = new PlexusMobEffect(category(definition), definition.color(), definition);
             Registry.register(BuiltInRegistries.MOB_EFFECT, Views.id(declaration.id()), effect);
             declaration.registered().run();
         }
@@ -129,8 +129,8 @@ public final class EntityInstaller {
     private static void registerEntity(EntityDeclaration declaration) {
         EntityDefinition definition = declaration.definition();
         ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, Views.id(declaration.id()));
-        EntityType<PolyMob> type = EntityType.Builder.<PolyMob>of(
-                        (entityType, level) -> PolyMob.create(entityType, level, definition), category(definition))
+        EntityType<PlexusMob> type = EntityType.Builder.<PlexusMob>of(
+                        (entityType, level) -> PlexusMob.create(entityType, level, definition), category(definition))
                 .sized(definition.width(), definition.height())
                 .clientTrackingRange(8)
                 .build(key);
@@ -157,7 +157,8 @@ public final class EntityInstaller {
     private static void registerProjectile(ProjectileDeclaration declaration) {
         ProjectileDefinition definition = declaration.definition();
         ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, Views.id(declaration.id()));
-        EntityType<PolyProjectile> type = EntityType.Builder.<PolyProjectile>of(PolyProjectile::new, MobCategory.MISC)
+        EntityType<PlexusProjectile> type = EntityType.Builder.<PlexusProjectile>of(
+                        PlexusProjectile::new, MobCategory.MISC)
                 .noLootTable()
                 .sized(definition.size(), definition.size())
                 .clientTrackingRange(4)
@@ -192,11 +193,11 @@ public final class EntityInstaller {
      * category. The game keeps the registration method private.
      */
     private static void registerSpawnPlacement(
-            EntityType<PolyMob> type, dev.plexusmodloader.api.content.entity.MobCategory category) {
+            EntityType<PlexusMob> type, dev.plexusmodloader.api.content.entity.MobCategory category) {
         SpawnPlacementType placement = category == dev.plexusmodloader.api.content.entity.MobCategory.WATER_CREATURE
                 ? SpawnPlacementTypes.IN_WATER
                 : SpawnPlacementTypes.ON_GROUND;
-        SpawnPlacements.SpawnPredicate<PolyMob> predicate = switch (category) {
+        SpawnPlacements.SpawnPredicate<PlexusMob> predicate = switch (category) {
             case CREATURE ->
                 (entityType, level, reason, pos, random) -> level.getBlockState(pos.below())
                                 .is(BlockTags.ANIMALS_SPAWNABLE_ON)
@@ -276,7 +277,7 @@ public final class EntityInstaller {
 
     /** True when {@code entity} is one of the mod mobs. */
     public static boolean isModMob(LivingEntity entity) {
-        return entity instanceof PolyMob;
+        return entity instanceof PlexusMob;
     }
 
     @SuppressWarnings("unchecked")

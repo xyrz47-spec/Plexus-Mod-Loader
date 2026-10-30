@@ -37,7 +37,7 @@
 
 | 패키지 | 핵심 클래스 | 역할 |
 | :--- | :--- | :--- |
-| `dev.plexusmodloader.runtime` | `PolyRuntime`, `LaunchConfiguration` | 런타임 부팅 오케스트레이션 및 상태 관리 |
+| `dev.plexusmodloader.runtime` | `PlexusRuntime`, `LaunchConfiguration` | 런타임 부팅 오케스트레이션 및 상태 관리 |
 | `dev.plexusmodloader.runtime` | `LoadedModCounter` | 실시간 로더별 모드 수 집계 |
 | `.discovery` | `ModFileScanner`, `NestedJarExtractor`, `ForeignModResolver` | 모드 폴더의 jar 탐색, 중첩 jar 추출, 로더 판별 |
 | `.dependency` | `ModDependencyResolver` | 모드 버전 제약식 해석 및 로드 우선순위 정렬 |
@@ -53,7 +53,7 @@
 모드팩에 Fabric 모드가 전혀 없고 Forge 모드만 존재하는 경우, 클래스패스에 잔존하는 `net.fabricmc.api.*` 클래스 때문에 멀티로더용 모드가 잘못된 로더 환경으로 오판하는 것을 방지합니다. Poly는 활성 모드가 없는 로더의 브릿지 패키지를 `GameClassLoader` 상에서 선별적으로 마스킹합니다.
 
 ### 2) 실시간 로더별 모드 수 집계 (`LoadedModCounter`)
-게임 로딩 및 타이틀 화면, 그리고 커스텀 로딩 화면(`PolyLoadingOverlay`)에 정확한 모드 수를 전달하기 위해 각 로더별(`Poly`, `Fabric`, `Forge`, `NeoForge`, `Quilt`) 실질 구동 모드 수를 중복 없이 실시간 계산합니다.
+게임 로딩 및 타이틀 화면, 그리고 커스텀 로딩 화면(`PlexusLoadingOverlay`)에 정확한 모드 수를 전달하기 위해 각 로더별(`Poly`, `Fabric`, `Forge`, `NeoForge`, `Quilt`) 실질 구동 모드 수를 중복 없이 실시간 계산합니다.
 
 ### 3) 사전 링크 검증 (`ModLinkVerifier`)
 로드 대상 모드들의 상수 풀(Constant Pool)을 조사하여 마인크래프트 또는 상위 라이브러리에 누락된 메서드나 필드를 참조하는 치명적 모드를 부팅 전에 찾아내어 크래시를 미연에 방지합니다.
@@ -69,4 +69,4 @@
 - `ModDependencyResolverTest`: 복합 종속성 트리, 순환 의존성, 선택적 의존성 검증 12종.
 - `CrossLoaderModResolverTest`: Forge + Fabric 모드 공존 시의 ID 매핑 및 브릿지 중복 해소 검증.
 - `ModLinkVerifierTest`: 클래스 바이트코드 링크 무결성 검증 14종.
-- `PolyRuntimeTest`: 합성 jar를 사용하여 1~8단계 전체 파이프라인의 엔드투엔드 부팅 검증.
+- `PlexusRuntimeTest`: 합성 jar를 사용하여 1~8단계 전체 파이프라인의 엔드투엔드 부팅 검증.

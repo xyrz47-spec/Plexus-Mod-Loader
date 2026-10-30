@@ -11,7 +11,7 @@
   - Mojang 빨간색 배경(239, 50, 61) 또는 단색 로고 옵션 활성화 시 검은색 배경.
   - 클라이언트 jar의 `assets/minecraft/textures/gui/title/mojangstudios.png`에서 직접 읽은 Mojang Studios 로고.
   - 바닐라 로딩 화면과 동일한 위치의 진행 막대.
-- 게임 계층의 `PolyLoadingOverlay`가 인게임 화면에 그리는 것과 동일한 Poly 표식을 표시합니다:
+- 게임 계층의 `PlexusLoadingOverlay`가 인게임 화면에 그리는 것과 동일한 Poly 표식을 표시합니다:
   - 오른쪽 아래: 회전하는 금색 큐브(`poly_cube.png`, 32 x 32 크기 24프레임)와 `Poly Mod Loader` 명칭.
   - 진행 막대 아래: 각 로더별로 로드된 모드 수 집계(예: `Mods: Fabric 1 · Poly 4`).
   - 왼쪽 아래: Poly 모드 로더가 수행 중인 현재 작업 내용(예: `Found 5 mod files`, `Starting NeoForge`, `Starting Minecraft 26.2`).
@@ -29,7 +29,7 @@
 - `LoadingScreenLayout`: 마인크래프트 26.1, 26.2, 26.3의 `LoadingOverlay` 및 `Window.calculateScale` 역공학 수치를 바탕으로 한 레이아웃 연산 클래스입니다.
 - `LoadingScreenPainter`: 로딩 화면 배경, 로고, 막대, 큐브 애니메이션, 텍스트를 렌더링하는 페인터입니다.
 - `LoadingScreenState`: 현재 표시할 이름, 상태 텍스트, 막대 아래 텍스트, 진행률(0~1)을 담는 레코드입니다.
-- `PixelLetters`: 게임 계층 `PolyLoadingOverlay`와 동일한 5 x 7 픽셀 폰트 렌더러입니다.
+- `PixelLetters`: 게임 계층 `PlexusLoadingOverlay`와 동일한 5 x 7 픽셀 폰트 렌더러입니다.
 - `EarlyWindowArt`: 큐브 시트(`poly_cube.png`), 아이콘(`poly_icon.png`), 클라이언트 jar 내 로고를 로드하는 유틸리티입니다.
 
 ## 무엇을 하지 않는가
@@ -72,7 +72,7 @@
 4. Poly 모드 로더가 모드를 탐색하는 동안 `status("Found 5 mod files")`와 `progress(0.15f)` 등의 명령을 보내 진행률과 상태를 갱신합니다.
 5. 모드 해석이 완료되면 `underBar` 명령을 통해 막대 아래에 로더별 모드 수(예: `Mods: Fabric 1 · Poly 4`)를 전달합니다.
 6. 호스트 로더 준비 시 `status("Starting NeoForge")` 등을 전달하고, 마인크래프트 `Main` 실행 시 `status("Starting Minecraft 26.2")`를 보낸 뒤 스냅샷 디렉터리가 지정되어 있으면 `snapshot` 명령으로 `early-window.png`를 저장합니다.
-7. 게임 창이 열리고(`opening()`, 20초 안전 타이머 시작) 게임 계층의 `PolyLoadingOverlay`가 첫 로딩 화면 프레임을 그리면 `GameWindowListener.shown()`이 호출됩니다.
+7. 게임 창이 열리고(`opening()`, 20초 안전 타이머 시작) 게임 계층의 `PlexusLoadingOverlay`가 첫 로딩 화면 프레임을 그리면 `GameWindowListener.shown()`이 호출됩니다.
 8. `shown()` 호출 0.3초 후 `close` 명령을 보내거나 표준 입력을 닫아 초기 창 프로세스를 종료하고 게임 창에 포커스를 넘깁니다(최대 3분 초과 시 자동 종료).
 
 ## 알려진 제한

@@ -1,7 +1,7 @@
 package net.fabricmc.loader.impl;
 
 import dev.plexusmodloader.compat.fabric.loader.FabricLoaderRuntime;
-import dev.plexusmodloader.compat.fabric.loader.PolyGameProvider;
+import dev.plexusmodloader.compat.fabric.loader.PlexusGameProvider;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -104,7 +104,7 @@ public final class FabricLoaderImpl implements FabricLoader {
 
     /** Fabric Loader's description of the running game; only its descriptive methods exist (see {@link GameProvider}). */
     public GameProvider getGameProvider() {
-        return new PolyGameProvider(getRawGameVersion(), getGameDir());
+        return new PlexusGameProvider(getRawGameVersion(), getGameDir());
     }
 
     /** As {@link #getGameProvider()}; Poly Mod Loader always has a game when Fabric code runs. */

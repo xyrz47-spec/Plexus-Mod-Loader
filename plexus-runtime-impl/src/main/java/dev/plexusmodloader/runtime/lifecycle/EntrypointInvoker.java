@@ -14,7 +14,7 @@ import dev.plexusmodloader.api.network.NetworkRegistrar;
 import dev.plexusmodloader.api.runtime.GameSide;
 import dev.plexusmodloader.api.system.SystemLookup;
 import dev.plexusmodloader.api.worldgen.WorldgenRegistrar;
-import dev.plexusmodloader.runtime.diagnostics.PolyLaunchException;
+import dev.plexusmodloader.runtime.diagnostics.PlexusLaunchException;
 import dev.plexusmodloader.runtime.event.EventBus;
 import dev.plexusmodloader.runtime.metadata.ModMetadata;
 import dev.plexusmodloader.runtime.nativeapi.NativeRegistrations;
@@ -103,7 +103,7 @@ public final class EntrypointInvoker {
             try {
                 call.accept(entrypoint, context);
             } catch (RuntimeException | LinkageError e) {
-                throw new PolyLaunchException(
+                throw new PlexusLaunchException(
                         RuntimePhase.LIFECYCLE_INITIALIZATION.name(),
                         "PLEXUS-ENTRYPOINT-003 mod=" + mod.id() + " entrypoint=" + className + " threw "
                                 + e.getClass().getName() + ": " + e.getMessage(),
@@ -117,14 +117,14 @@ public final class EntrypointInvoker {
         try {
             type = Class.forName(className, true, gameClassLoader);
         } catch (ClassNotFoundException | LinkageError e) {
-            throw new PolyLaunchException(
+            throw new PlexusLaunchException(
                     RuntimePhase.LIFECYCLE_INITIALIZATION.name(),
                     "PLEXUS-ENTRYPOINT-001 mod=" + mod.id() + " entrypoint class " + className
                             + " could not be loaded: " + e,
                     e);
         }
         if (!contract.isAssignableFrom(type)) {
-            throw new PolyLaunchException(
+            throw new PlexusLaunchException(
                     RuntimePhase.LIFECYCLE_INITIALIZATION.name(),
                     List.of("PLEXUS-ENTRYPOINT-002 mod=" + mod.id() + " entrypoint " + className + " must implement "
                             + contract.getName()));
@@ -132,14 +132,14 @@ public final class EntrypointInvoker {
         try {
             return contract.cast(type.getConstructor().newInstance());
         } catch (NoSuchMethodException e) {
-            throw new PolyLaunchException(
+            throw new PlexusLaunchException(
                     RuntimePhase.LIFECYCLE_INITIALIZATION.name(),
                     "PLEXUS-ENTRYPOINT-002 mod=" + mod.id() + " entrypoint " + className
                             + " needs a public no-argument constructor",
                     e);
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             Throwable cause = e instanceof InvocationTargetException ite ? ite.getCause() : e;
-            throw new PolyLaunchException(
+            throw new PlexusLaunchException(
                     RuntimePhase.LIFECYCLE_INITIALIZATION.name(),
                     "PLEXUS-ENTRYPOINT-003 mod=" + mod.id() + " entrypoint " + className + " constructor failed: "
                             + cause,

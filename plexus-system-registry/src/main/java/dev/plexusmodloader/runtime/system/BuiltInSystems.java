@@ -24,7 +24,7 @@ public final class BuiltInSystems {
                 "Game Brand",
                 GameBrandSystem.class,
                 true,
-                new PolyGameBrandProvider(),
+                new PlexusGameBrandProvider(),
                 BuiltInSystems::validateBrand);
     }
 

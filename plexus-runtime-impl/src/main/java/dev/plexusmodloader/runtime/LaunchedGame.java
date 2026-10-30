@@ -7,7 +7,7 @@ import java.io.UncheckedIOException;
 import java.net.URLClassLoader;
 
 /**
- * A game started by {@link PolyRuntime#launch}. Closing it releases the game and mod jars held open
+ * A game started by {@link PlexusRuntime#launch}. Closing it releases the game and mod jars held open
  * by the game class loader; the orderly shutdown phase (design doc §11 step 13) will build on this.
  *
  * @param gameVersion Minecraft version that was started

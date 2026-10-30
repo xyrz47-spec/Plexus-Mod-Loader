@@ -19,8 +19,8 @@ import dev.plexusmodloader.game.layer.v26_1.Networking.PolyPayload;
 import dev.plexusmodloader.game.layer.v26_1.SyncChannel;
 import dev.plexusmodloader.game.layer.v26_1.Views;
 import dev.plexusmodloader.game.layer.v26_1.content.Particles;
-import dev.plexusmodloader.game.layer.v26_1.content.PolyMenu;
-import dev.plexusmodloader.game.layer.v26_1.content.PolyMenus;
+import dev.plexusmodloader.game.layer.v26_1.content.PlexusMenu;
+import dev.plexusmodloader.game.layer.v26_1.content.PlexusMenus;
 import dev.plexusmodloader.game.layer.v26_1.entity.EntityInstaller;
 import dev.plexusmodloader.game.version.layer.ChannelEndpoint;
 import dev.plexusmodloader.game.version.layer.ConfigurationEndpoint;
@@ -229,13 +229,13 @@ public final class ClientHooks {
      * game's menus continue to the game's code.
      */
     public static boolean onCreateMenuScreen(MenuType<?> type, Minecraft minecraft, int containerId, Component title) {
-        if (PolyMenus.layout(type) == null || minecraft.player == null) {
+        if (PlexusMenus.layout(type) == null || minecraft.player == null) {
             return false;
         }
         Inventory inventory = minecraft.player.getInventory();
-        PolyMenu menu = PolyMenus.createForClient(type, containerId, inventory);
+        PlexusMenu menu = PlexusMenus.createForClient(type, containerId, inventory);
         minecraft.player.containerMenu = menu;
-        minecraft.setScreen(new PolyContainerScreen(menu, inventory, title));
+        minecraft.setScreen(new PlexusContainerScreen(menu, inventory, title));
         if (OPENED_MENUS.add(type)) {
             LOGGER.info(
                     "[Poly Mod Loader] Opened mod menu {} with {} slot(s)",
@@ -269,7 +269,7 @@ public final class ClientHooks {
                         new Class<?>[] {registration},
                         (proxy, method, arguments) -> switch (method.getName()) {
                             case "create" ->
-                                new PolyParticle.Provider((SpriteSet) arguments[0], entry.getValue(), name);
+                                new PlexusParticle.Provider((SpriteSet) arguments[0], entry.getValue(), name);
                             case "hashCode" -> System.identityHashCode(proxy);
                             case "equals" -> proxy == arguments[0];
                             case "toString" -> "PolyParticleRegistration[" + name + "]";
@@ -298,7 +298,7 @@ public final class ClientHooks {
                     .getOptional(Views.id(declaration.block()))
                     .orElseThrow(() -> new IllegalStateException(
                             "PLEXUS-CLIENT-002 " + declaration.block() + " has no block entity type"));
-            all.put(type, new PolyBlockEntityRenderer(context, declaration));
+            all.put(type, new PlexusBlockEntityRenderer(context, declaration));
         }
         LOGGER.info("[Poly Mod Loader] Added {} mod block entity renderer(s)", declarations.size());
         return Map.copyOf(all);
@@ -421,7 +421,7 @@ public final class ClientHooks {
 
         @Override
         public void openScreen(ModScreen screen) {
-            minecraft.setScreen(new PolyScreen(screen));
+            minecraft.setScreen(new PlexusScreen(screen));
         }
 
         @Override
@@ -532,13 +532,13 @@ public final class ClientHooks {
             all.put(
                     type,
                     definition != null && definition.model().isPresent()
-                            ? new PolyModelRenderer(
+                            ? new PlexusModelRenderer(
                                     context,
-                                    PolyEntityModel.create(definition.model().get()),
+                                    PlexusEntityModel.create(definition.model().get()),
                                     Views.id(texture),
                                     definition.width() * 0.5f,
                                     String.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(type)))
-                            : new PolyHumanoidRenderer(context, Views.id(texture)));
+                            : new PlexusHumanoidRenderer(context, Views.id(texture)));
         });
         projectiles.forEach(type -> all.put(type, new ThrownItemRenderer<>(context)));
         LOGGER.info("[Poly Mod Loader] Added {} mod entity renderer(s)", textures.size() + projectiles.size());

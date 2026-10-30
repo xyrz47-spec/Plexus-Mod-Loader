@@ -50,7 +50,7 @@ final class ServerInstaller {
 
     static final String LAUNCH_JAR = "polymodloader-server.jar";
     /** In the bootstrap jar of the payload; defaults the launch target to {@code dedicated_server}. */
-    static final String SERVER_MAIN_CLASS = "dev.plexusmodloader.bootstrap.PolyServerMain";
+    static final String SERVER_MAIN_CLASS = "dev.plexusmodloader.bootstrap.PlexusServerMain";
 
     static final URI VERSION_MANIFEST = URI.create("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
 

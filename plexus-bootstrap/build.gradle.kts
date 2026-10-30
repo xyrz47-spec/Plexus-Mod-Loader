@@ -463,7 +463,7 @@ if (minecraft == "26.2") {
         runsNeoForge()
         expectedOutput.set(listOf(
             "[Poly Mod Loader] NeoForge 26.2.0.93 loads 1 NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
-            "FML's FMLLoader: [create: buildTransformingLoader -> PolyFml.buildTransformingLoader, runDiscovery: new ModsFolderLocator() -> PolyFml.modsLocator()] (ADR-0026)",
+            "FML's FMLLoader: [create: buildTransformingLoader -> PlexusFml.buildTransformingLoader, runDiscovery: new ModsFolderLocator() -> PlexusFml.modsLocator()] (ADR-0026)",
             "module(s) defined by Poly Mod Loader's game class loader",
             "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge 26.2.0.93 starts the game",
             "You need to agree to the EULA in order to run the server",
@@ -522,7 +522,7 @@ if (minecraft == "26.2") {
         expectedOutput.addAll(
             "NeoForge mod file(s) and 7 Fabric or Quilt mod(s) run together; one Mixin serves both (ADR-0026 30)",
             "[Poly Mod Loader] NeoForge 26.2.0.93 loads 5 NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
-            "FML's Mixin: [createClassProcessorSet: MixinFacade.getClassProcessor() -> PolyFml.mixinClassProcessor, loadPlugins: its plugin files through PolyFml.withoutForeignFabricLoader] (ADR-0026 30)",
+            "FML's Mixin: [createClassProcessorSet: MixinFacade.getClassProcessor() -> PlexusFml.mixinClassProcessor, loadPlugins: its plugin files through PlexusFml.withoutForeignFabricLoader] (ADR-0026 30)",
             "is left out of the game layer: NeoForge's mods use the MixinExtras of the Mixin that Fabric mods share (ADR-0026 30)",
             "Mixin configuration(s) of NeoForge's mods and libraries for the Mixin Fabric mods share; FML's own Mixin does not start (ADR-0026 30)",
             "share Fabric's Mixin",

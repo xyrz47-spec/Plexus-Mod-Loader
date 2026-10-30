@@ -9,7 +9,7 @@ class StartupWindowTest {
 
     @Test
     void modsLineIsTheGameLayersLine() {
-        // PolyLoadingOverlay.countsLine writes the same line on the game's loading screen.
+        // PlexusLoadingOverlay.countsLine writes the same line on the game's loading screen.
         assertEquals("", StartupWindow.modsLine(LoadedModCounts.NONE));
         assertEquals(
                 "Mods: Fabric 34  ·  NeoForge 53  ·  Plexus 2",

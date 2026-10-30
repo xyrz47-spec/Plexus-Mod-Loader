@@ -26,19 +26,20 @@ class ForgeJarsTest {
     void withForgeModsAndNoModOnlyFabricRunsForgeRunsTheJarsForSeveralLoaders() {
         assertEquals(
                 List.of(path(FORGE), path(EVERY_LOADER), path(FORGE_AND_NEOFORGE)),
-                PolyRuntime.forgeJars(List.of(FORGE, EVERY_LOADER, FORGE_AND_NEOFORGE, NEOFORGE, POLY)));
+                PlexusRuntime.forgeJars(List.of(FORGE, EVERY_LOADER, FORGE_AND_NEOFORGE, NEOFORGE, POLY)));
     }
 
     /** With Fabric mods in the same game too (ADR-0021 G8), Forge still runs the jars for several loaders. */
     @Test
     void withAModOnlyFabricRunsForgeStillRunsTheJarsForSeveralLoaders() {
         assertEquals(
-                List.of(path(FORGE), path(EVERY_LOADER)), PolyRuntime.forgeJars(List.of(FORGE, FABRIC, EVERY_LOADER)));
+                List.of(path(FORGE), path(EVERY_LOADER)),
+                PlexusRuntime.forgeJars(List.of(FORGE, FABRIC, EVERY_LOADER)));
     }
 
     @Test
     void withoutAModOnlyForgeRunsForgeDoesNotStart() {
-        assertEquals(List.of(), PolyRuntime.forgeJars(List.of(EVERY_LOADER, FORGE_AND_NEOFORGE, FABRIC)));
+        assertEquals(List.of(), PlexusRuntime.forgeJars(List.of(EVERY_LOADER, FORGE_AND_NEOFORGE, FABRIC)));
     }
 
     private static DiscoveredModFile file(String name, ModFileKind kind, ModFileKind... alsoFor) {

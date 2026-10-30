@@ -59,8 +59,8 @@ public final class ContentInstaller {
             BlockDefinition definition = declaration.definition();
             BlockBehaviour.Properties properties = properties(definition).setId(key);
             Block block = definition.blockEntity().isPresent()
-                    ? new PolyEntityBlock(properties, definition)
-                    : new PolyBlock(properties, definition);
+                    ? new PlexusEntityBlock(properties, definition)
+                    : new PlexusBlock(properties, definition);
             Registry.register(BuiltInRegistries.BLOCK, key, block);
             // The game numbers block states and fills their caches once, in Blocks' static
             // initialiser; later blocks must do the same or their states cannot be sent to clients.
@@ -68,13 +68,13 @@ public final class ContentInstaller {
                 Block.BLOCK_STATE_REGISTRY.add(state);
                 state.initCache();
             }
-            if (block instanceof PolyEntityBlock entityBlock) {
+            if (block instanceof PlexusEntityBlock entityBlock) {
                 registerBlockEntityType(declaration.id(), entityBlock);
                 definition
                         .blockEntity()
                         .flatMap(entity -> entity.menu())
                         .ifPresent(layout ->
-                                entityBlock.setMenuType(PolyMenus.register(Views.id(declaration.id()), layout)));
+                                entityBlock.setMenuType(PlexusMenus.register(Views.id(declaration.id()), layout)));
             }
             blocks.put(declaration.id(), block);
             declaration.registered().run();
@@ -89,7 +89,7 @@ public final class ContentInstaller {
                 blockItem.registerBlocks(Item.BY_BLOCK, blockItem);
                 item = blockItem;
             } else {
-                item = new PolyItem(properties, declaration.definition().behavior());
+                item = new PlexusItem(properties, declaration.definition().behavior());
             }
             Registry.register(BuiltInRegistries.ITEM, key, item);
             declaration
@@ -108,7 +108,7 @@ public final class ContentInstaller {
         }
     }
 
-    private static void registerBlockEntityType(ResourceId id, PolyEntityBlock block) {
+    private static void registerBlockEntityType(ResourceId id, PlexusEntityBlock block) {
         BlockEntityType<BlockEntity> type = newBlockEntityType(block);
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Views.id(id), type);
         block.setType(type);
@@ -116,11 +116,11 @@ public final class ContentInstaller {
 
     /**
      * In 1.21.11 the {@code BlockEntityType} constructor and its {@code BlockEntitySupplier} interface are
-     * private (javap; 26.2 made both public), so the type is created reflectively, like {@link PolyMenus}
+     * private (javap; 26.2 made both public), so the type is created reflectively, like {@link PlexusMenus}
      * creates menu types.
      */
     @SuppressWarnings("unchecked")
-    private static BlockEntityType<BlockEntity> newBlockEntityType(PolyEntityBlock block) {
+    private static BlockEntityType<BlockEntity> newBlockEntityType(PlexusEntityBlock block) {
         try {
             Class<?> supplier = Class.forName(
                     BlockEntityType.class.getName() + "$BlockEntitySupplier",

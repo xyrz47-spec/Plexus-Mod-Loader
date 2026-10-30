@@ -11,7 +11,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 
-/** Registers mod particle types; clients draw them with {@code client.PolyParticle}. */
+/** Registers mod particle types; clients draw them with {@code client.PlexusParticle}. */
 public final class Particles {
 
     private static final Map<ParticleType<?>, ParticleDefinition> DEFINITIONS = new ConcurrentHashMap<>();

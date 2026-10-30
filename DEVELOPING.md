@@ -58,7 +58,7 @@ Poly Mod Loader is structured as a decoupled multi-project build. Each module ha
 
 ```
 Poly-Mod-Loader
-├── poly-bootstrap/                # JVM Entrypoint (PolyLauncherMain), dev launch tasks
+├── poly-bootstrap/                # JVM Entrypoint (PlexusLauncherMain), dev launch tasks
 ├── poly-runtime-api/              # Shared API base: GameSide and the @ApiStability markers
 ├── poly-runtime-impl/             # Core runtime coordinator, mod loading pipeline, dependency solver
 ├── poly-transform-api/            # Declarative bytecode transform rules (no ASM types exposed)

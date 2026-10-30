@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * Poly Mod Loader's art in the early loading window of MinecraftForge and NeoForge, which their FML opens before the
  * game's window. The window stays theirs (the game's Mojang red, the Mojang Studios logo, their progress bars and
  * startup log); its animation and logo become Poly Mod Loader's spinning gold cube, as on the game's loading screen
- * that follows (the game layers' {@code PolyLoadingOverlay}), so one look carries from the first frame to the title
+ * that follows (the game layers' {@code PlexusLoadingOverlay}), so one look carries from the first frame to the title
  * screen:
  *
  * <ul>

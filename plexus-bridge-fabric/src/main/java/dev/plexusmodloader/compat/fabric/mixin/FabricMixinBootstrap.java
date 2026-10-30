@@ -142,8 +142,8 @@ public final class FabricMixinBootstrap {
                 };
         MixinLaunch launch =
                 MixinLaunch.begin(mixinClasses, context.gameClassLoader(), context.side(), fabricLoaderVersion);
-        System.setProperty("mixin.bootstrapService", PolyMixinServiceBootstrap.class.getName());
-        System.setProperty("mixin.service", PolyMixinService.class.getName());
+        System.setProperty("mixin.bootstrapService", PlexusMixinServiceBootstrap.class.getName());
+        System.setProperty("mixin.service", PlexusMixinService.class.getName());
         if (context.host().isHosted() && System.getProperty(INITIALISER_MODE) == null) {
             // Mixin puts a mixin's field initialisers after the last call of a constructor of the target class or its
             // superclass in each target constructor ("default"), which is the delegate call in vanilla's constructors.
@@ -361,19 +361,19 @@ public final class FabricMixinBootstrap {
                                 config.compatibility().orElse(FabricUtil.COMPATIBILITY_LATEST));
             }
         }
-        PolyMixinService.hostSelection(true);
+        PlexusMixinService.hostSelection(true);
         java.util.Set<String> early;
         try {
             selectNow();
         } finally {
-            early = PolyMixinService.hostSelection(false);
+            early = PlexusMixinService.hostSelection(false);
         }
         // The host mods' mixins into classes that loaded before or while Mixin selected their configurations do not
         // apply; the rest of each configuration does (ADR-0026 43).
         java.util.Set<String> late = new java.util.TreeSet<>(early);
-        late.addAll(PolyMixinService.loadedDuringHostSelection());
+        late.addAll(PlexusMixinService.loadedDuringHostSelection());
         // Only classes Mixin asked about while it prepared the host's mixins: their targets.
-        late.retainAll(PolyMixinService.askedDuringHostSelection());
+        late.retainAll(PlexusMixinService.askedDuringHostSelection());
         for (String target : late) {
             LOGGER.warn(
                     "[Poly Mod Loader] PLEXUS-COMPAT-220 [limited] {} loaded {} Mixin selected the {} mods'"

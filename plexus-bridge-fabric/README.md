@@ -25,7 +25,7 @@
    - Quilt 모드의 경우 `@ClientOnly`, `@DedicatedServerOnly`, `@Requires` 어노테이션까지 폭넓게 처리합니다.
 2. **인터페이스 주입 (`InterfaceInjector`):**
    - `accessWidener`에 정의된 `inject-interface` 구문을 파싱하여 대상 마인크래프트 클래스에 인터페이스 구현을 주입합니다.
-3. **통합 Mixin 엔진 (`PolyMixinService`):**
+3. **통합 Mixin 엔진 (`PlexusMixinService`):**
    - SpongePowered Mixin 0.8.7 (FabricMC 포크) 및 MixinExtras 0.5.5를 단일 서비스로 가동합니다.
    - Quilt 모드의 mixin 구성도 함께 바인딩하여 단일 패스(Single-pass)로 클래스를 변환합니다.
 
@@ -40,7 +40,7 @@
 | 패키지 | 주요 클래스 | 역할 |
 | :--- | :--- | :--- |
 | `dev.plexusmodloader.compat.fabric` | `FabricBridge`, `ClassTweakerFile`, `FabricClassTransformer` | Fabric 모드 검색 및 변환 파이프라인 관리 |
-| `dev.plexusmodloader.compat.fabric.mixin` | `FabricMixinBootstrap`, `PolyMixinService`, `HostPatchAdjustments` | 통합 Mixin 구동 및 호스트 패치 자동 적응 |
+| `dev.plexusmodloader.compat.fabric.mixin` | `FabricMixinBootstrap`, `PlexusMixinService`, `HostPatchAdjustments` | 통합 Mixin 구동 및 호스트 패치 자동 적응 |
 | `dev.plexusmodloader.compat.fabric.loader` | `FabricLoaderRuntime`, `OfficialMappingResolver` | Fabric Loader 공개 API 런타임 구현 |
 | `dev.plexusmodloader.compat.quilt` | `QuiltBridge`, `QuiltModJsonReader`, `QuiltLoaderRuntime` | Quilt 메타데이터 파서 및 Quilt Loader API 구현 |
 

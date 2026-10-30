@@ -20,7 +20,7 @@ import dev.plexusmodloader.game.layer.v26_1.content.Particles;
 import dev.plexusmodloader.game.layer.v26_1.entity.EntityInstaller;
 import dev.plexusmodloader.game.layer.v26_1.gametest.GameTests;
 import dev.plexusmodloader.game.layer.v26_1.worldgen.CodeWorldgen;
-import dev.plexusmodloader.game.layer.v26_1.worldgen.PolyChunkGenerator;
+import dev.plexusmodloader.game.layer.v26_1.worldgen.PlexusChunkGenerator;
 import dev.plexusmodloader.game.version.layer.GameLayerContext;
 import dev.plexusmodloader.game.version.layer.NativeDeclarations;
 import java.net.SocketAddress;
@@ -94,7 +94,7 @@ public final class GameHooks {
         LayerState.context().ifPresent(context -> {
             ItemComponents.install(context.declarations().itemComponents());
             Particles.install(context.declarations().particles());
-            PolyChunkGenerator.install(context.declarations().chunkGenerators());
+            PlexusChunkGenerator.install(context.declarations().chunkGenerators());
             CodeWorldgen.install(
                     context.declarations().codeFeatures(),
                     context.declarations().densityFunctions(),

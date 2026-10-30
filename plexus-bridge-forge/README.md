@@ -12,7 +12,7 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
   - ModLauncher(LGPL) 코드를 복제하지 않고, 공개 인터페이스 계약을 자체 구현한 경량 가상화 서비스(`src/forgeHost`, `forge-host.jar`)를 제공합니다.
   - FML의 BOOT, SERVICE, PLUGIN, GAME 레이어를 Poly의 단일 게임 클래스로더(`GameClassLoader`)가 모듈로 정의합니다.
 - **NeoForge FML 호스팅 (26.1·26.2는 FML 11, 26.3은 FML 12):**
-  - `neoforge-host.jar`(`src/neoForgeHost`)의 `PolyFml`을 통해 `FMLLoader`의 게임 레이어 생성과 모드 검색을 인게임 바이트코드 변환 체인에 직접 통합합니다.
+  - `neoforge-host.jar`(`src/neoForgeHost`)의 `PlexusFml`을 통해 `FMLLoader`의 게임 레이어 생성과 모드 검색을 인게임 바이트코드 변환 체인에 직접 통합합니다.
 
 ### 2) Fabric / Quilt 모드와의 단일 게임 공존
 - **통합 Mixin 엔진 (`FmlSharedMixin`):**

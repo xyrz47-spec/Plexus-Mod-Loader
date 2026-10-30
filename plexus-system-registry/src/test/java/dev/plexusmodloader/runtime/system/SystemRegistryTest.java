@@ -26,7 +26,7 @@ class SystemRegistryTest {
         assertEquals("plexus", registry.get(GameBrandSystem.class).brand(GameSide.CLIENT));
         SystemRegistry.ActiveSystem active = registry.activeSystems().getFirst();
         assertTrue(active.isDefault());
-        assertEquals(PolyGameBrandProvider.class.getName(), active.providerClass());
+        assertEquals(PlexusGameBrandProvider.class.getName(), active.providerClass());
     }
 
     @Test

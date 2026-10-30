@@ -4,7 +4,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Poly Mod Loader's 5 x 7 pixel letters, the same as the game layers' {@code PolyLoadingOverlay} draws on the game's
+ * Poly Mod Loader's 5 x 7 pixel letters, the same as the game layers' {@code PlexusLoadingOverlay} draws on the game's
  * loading screen (upper case, digits, space, colon, middle dot, apostrophe, full stop, hyphen, slash; anything else is
  * drawn as a space).
  */

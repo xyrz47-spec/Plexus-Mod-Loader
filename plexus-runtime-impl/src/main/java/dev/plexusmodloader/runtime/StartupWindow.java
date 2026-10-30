@@ -138,7 +138,7 @@ final class StartupWindow implements GameWindowListener {
         closeIn(CLOSE_AFTER_SHOWN_MILLIS);
     }
 
-    /** {@code Mods: Fabric 34  ·  Plexus 2}, as the game layers' {@code PolyLoadingOverlay} writes it; empty with none. */
+    /** {@code Mods: Fabric 34  ·  Plexus 2}, as the game layers' {@code PlexusLoadingOverlay} writes it; empty with none. */
     static String modsLine(LoadedModCounts counts) {
         List<String> parts = new ArrayList<>();
         add(parts, "Fabric", counts.fabricMods());

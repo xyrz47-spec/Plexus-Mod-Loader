@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
 
 /**
  * FML set up by Poly Mod Loader's implementation of ModLauncher's contracts (ADR-0021), ready to start the game. The
- * implementation runs inside the boot layer's {@code cpw.mods.modlauncher} module ({@code PolyModLauncher}, built from
+ * implementation runs inside the boot layer's {@code cpw.mods.modlauncher} module ({@code PlexusModLauncher}, built from
  * the {@code forgeHost} source set); this side and that one meet only through this interface, JDK types and the bridge
  * API, which both see from Poly Mod Loader's class path.
  */
@@ -22,7 +22,7 @@ import java.util.function.UnaryOperator;
 public interface ForgeLaunch {
 
     /**
-     * What {@code PolyModLauncher.start} needs.
+     * What {@code PlexusModLauncher.start} needs.
      *
      * @param launchTarget Forge's launch handler: {@code forge_server}, {@code forge_client}, or Poly Mod Loader's {@code
      *     polymodloader_server_gametest}

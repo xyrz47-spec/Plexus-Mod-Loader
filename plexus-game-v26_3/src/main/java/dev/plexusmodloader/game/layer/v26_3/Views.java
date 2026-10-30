@@ -23,7 +23,7 @@ import dev.plexusmodloader.game.layer.v26_3.content.Inventories;
 import dev.plexusmodloader.game.layer.v26_3.content.ItemComponents;
 import dev.plexusmodloader.game.layer.v26_3.content.ModBlockEntity;
 import dev.plexusmodloader.game.layer.v26_3.entity.EntityInstaller;
-import dev.plexusmodloader.game.layer.v26_3.entity.PolyMob;
+import dev.plexusmodloader.game.layer.v26_3.entity.PlexusMob;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -648,8 +648,8 @@ public final class Views {
             modMob().stopAnimation(name);
         }
 
-        private PolyMob modMob() {
-            if (mob instanceof PolyMob modMob) {
+        private PlexusMob modMob() {
+            if (mob instanceof PlexusMob modMob) {
                 return modMob;
             }
             throw new IllegalArgumentException(mob + " is not a mod mob, so it has no model animations");

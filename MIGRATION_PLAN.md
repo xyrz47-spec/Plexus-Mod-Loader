@@ -195,5 +195,5 @@ flowchart LR
   - [x] `plexus.mod.json` + `poly.mod.json` 동시 지원 및 템플릿/에러 코드(`PLEXUS-`) 전환 완료
   - [x] 루트 Gradle 26개 모듈 디렉터리 `plexus-*` 전환 완료
   - [x] 패키지 리네이밍 (`dev.polymodloader.*` ➔ `dev.plexusmodloader.*`, 구 패키지를 참조하는 기존 모드는 클래스 로드 시 자동 리매핑; Maven group·플러그인 ID `dev.polymodloader.mod`는 유지)
-  - [ ] 로딩 화면 및 UI 갱신 (`PolyLoadingOverlay` 등)
+  - [ ] 로딩 화면 및 UI 갱신 (`PlexusLoadingOverlay` 등)
   - [ ] 전체 멀티버전 검증 테스트 통과 확인
