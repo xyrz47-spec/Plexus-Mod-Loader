@@ -13,12 +13,12 @@ plugins {
 // version this build runs (-PpolyMinecraft, ADR-0011), so the verification tasks check every supported
 // version with the same mods; the game members they use were checked with javap in each one. With the
 // default version nothing changes.
-val runMinecraft = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).selected(project)
+val runMinecraft = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).selected(project)
 val writtenFor = Regex("""(?<![\d.])26\.2(?![\d.])""")
 // The examples that use only the Native API declare "26.*". A run of an experimental version (ADR-0019, such as
 // 1.21.11) adds that version to their range in the built jar, so the same mods check its game layer; the
 // sources and the published examples keep "26.*", and supported versions build them unchanged.
-val runsExperimental = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).isExperimental(runMinecraft)
+val runsExperimental = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).isExperimental(runMinecraft)
 val apiOnlyExamples = setOf(":examples:minimal-native-mod", ":examples:custom-system-mod", ":examples:native-showcase-mod")
 subprojects {
     if (runsExperimental && path in apiOnlyExamples) {

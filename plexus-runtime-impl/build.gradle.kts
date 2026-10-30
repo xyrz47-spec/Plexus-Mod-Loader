@@ -17,13 +17,15 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.gson)
 
+    implementation(libs.asm)
+    implementation(libs.asm.commons)
     testImplementation(libs.asm)
 }
 
 tasks.processResources {
     val runtimeVersion = project.version.toString()
     inputs.property("runtimeVersion", runtimeVersion)
-    filesMatching("dev/polymodloader/runtime/poly-runtime.properties") {
+    filesMatching("dev/plexusmodloader/runtime/poly-runtime.properties") {
         expand("runtimeVersion" to runtimeVersion)
     }
 }

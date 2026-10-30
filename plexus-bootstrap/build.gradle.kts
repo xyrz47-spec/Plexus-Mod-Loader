@@ -13,10 +13,10 @@ val testModVersion = project.version.toString()
 
 // Runs and checks use one Minecraft version: the default, or -PpolyMinecraft=<version> (ADR-0011).
 val minecraft = extra["polyMinecraftVersion"] as String
-val minecraftVersions = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project)
+val minecraftVersions = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project)
 // A hotfix (hotfixes.<version>) runs on the modules, adapter and game layer of the version it is listed under.
 val minecraftModules = minecraftVersions.modulesVersion(minecraft)
-val gameLayer = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.gameLayerClass(minecraftModules)
+val gameLayer = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.gameLayerClass(minecraftModules)
 // The line showing that a stopping server saved every world. The game logged one up to 26.2; 26.3 logs none, so
 // there the check reads Poly Mod Loader's line from the end of MinecraftServer.stopServer (LifecycleHooks).
 val worldsSavedLine =
@@ -30,11 +30,11 @@ dependencies {
     implementation(project(":plexus-runtime-impl"))
     // The launcher carries every supported version's adapter and picks one by the game jar's version.
     for (version in minecraftVersions.supported) {
-        runtimeOnly(project(":" + dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.adapterModule(version)))
+        runtimeOnly(project(":" + dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.adapterModule(version)))
     }
     // An experimental version (ADR-0019) only when this build runs it, so the installer never carries it.
     if (minecraftVersions.isExperimental(minecraftModules)) {
-        runtimeOnly(project(":" + dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.adapterModule(minecraftModules)))
+        runtimeOnly(project(":" + dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.adapterModule(minecraftModules)))
     }
     runtimeOnly(project(":plexus-bridge-fabric"))
     runtimeOnly(project(":plexus-bridge-forge"))
@@ -58,7 +58,7 @@ dependencies {
 // the Instrumentation, to put Forge's file systems on the JVM class path when Forge mods are present.
 tasks.jar {
     manifest {
-        attributes("Premain-Class" to "dev.polymodloader.bootstrap.SystemClassPathAgent")
+        attributes("Premain-Class" to "dev.plexusmodloader.bootstrap.SystemClassPathAgent")
     }
 }
 
@@ -73,7 +73,7 @@ if (findProject(":tools:tick-probe") != null) {
         tickProbe(project(":tools:tick-probe"))
     }
 }
-tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark") {
+tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark") {
     probeAgent.from(tickProbe)
     // -PtickBenchmarkRuns=<n> and -PtickBenchmarkTicks=<n> shorten or lengthen a measurement;
     // -PtickBenchmarkHeap=<size> (such as 2g) gives both variants the same fixed heap.
@@ -84,11 +84,11 @@ tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tick
 // Profiling, for every tick benchmark: -PtickBenchmarkJfrSettings=<default|profile|file.jfc> sets the recording's
 // settings, and -PtickBenchmarkTickEvents=true makes the tick probe commit each tick as a JFR event. Every variant of a
 // run gets the same setting; the JSON then says it was a profiling run.
-tasks.withType<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>().configureEach {
+tasks.withType<dev.plexusmodloader.devtools.gradle.minecraft.TickBenchmarkTask>().configureEach {
     providers.gradleProperty("tickBenchmarkJfrSettings").orNull?.let { jfrSettings = it }
     providers.gradleProperty("tickBenchmarkTickEvents").orNull?.let { tickEvents = it.toBoolean() }
 }
-tasks.named<dev.polymodloader.devtools.gradle.minecraft.FrameBenchmarkTask>("frameBenchmark") {
+tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.FrameBenchmarkTask>("frameBenchmark") {
     probeAgent.from(tickProbe)
     // -PframeBenchmarkRuns=<n> and -PframeBenchmarkSeconds=<n> shorten or lengthen a measurement;
     // -PframeBenchmarkCooldown=<seconds> sets the pause between two client windows (default 20).
@@ -97,7 +97,7 @@ tasks.named<dev.polymodloader.devtools.gradle.minecraft.FrameBenchmarkTask>("fra
     providers.gradleProperty("frameBenchmarkCooldown").orNull?.let { cooldownSeconds = it.toInt() }
 }
 
-tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("serverBootSmokeTest") {
+tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("serverBootSmokeTest") {
     expectedOutput.addAll(
         "[Poly Mod Loader] Phase BOOTSTRAP",
         "[Poly Mod Loader] Minecraft $minecraft (DEDICATED_SERVER) via adapter minecraft-$minecraftModules",
@@ -121,7 +121,7 @@ tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("se
     )
 }
 
-tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest") {
+tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest") {
     expectedOutput.addAll(
         "[Poly Mod Loader] Minecraft $minecraft (DEDICATED_SERVER) via adapter minecraft-$minecraftModules, launch target game_test_server",
         "[Poly Mod Loader] Loaded mod minimal_native_mod 0.1.0",
@@ -153,7 +153,7 @@ tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("wo
     }
 }
 
-tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest") {
+tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest") {
     // The showcase leaves the world after its demo, so leaving is checked too.
     systemProperties.add("native_showcase.leaveAfterDemo=true")
     // Poly Mod Loader's early loading window (no host loader here): opened, drawn, closed when the game's window shows.
@@ -236,13 +236,13 @@ dependencies {
 // One installer launch scenario: every launcher profile task wires the installer jar, the client launch spec, the JDK
 // and the saved world of worldCreateSaveTest the same way; only the mods, the world name, the run folder and the
 // expected lines differ.
-fun launcherProfile(name: String, profileDirectory: String, configure: dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask.() -> Unit) {
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask>(name) {
+fun launcherProfile(name: String, profileDirectory: String, configure: dev.plexusmodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask.() -> Unit) {
+    tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.LauncherProfileLaunchTask>(name) {
         group = "verification"
-        val worldCreateSave = tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest")
+        val worldCreateSave = tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest")
         dependsOn(worldCreateSave)
         installerJar.set(layout.file(installerJarFiles.elements.map { it.single().asFile }))
-        launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
+        launchSpecFile.set(tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
             .flatMap { it.launchSpecFile })
         javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
         sourceWorld.set(worldCreateSave.flatMap { it.runDirectory.dir("universe/gametestworld") })
@@ -304,7 +304,7 @@ fun modJars(vararg projects: String): FileCollection {
         }
 }
 
-val scenarios = extensions.getByType<dev.polymodloader.devtools.gradle.minecraft.GameTestScenarios>()
+val scenarios = extensions.getByType<dev.plexusmodloader.devtools.gradle.minecraft.GameTestScenarios>()
 val native = ":examples:minimal-native-mod"
 val fabric = ":test-mods:fabric-entrypoint-only"
 val neoforge = ":test-mods:neoforge-blocked"
@@ -363,7 +363,7 @@ val quiltHelloLines = listOf(
     "[quilt_hello] sees minimal_native_mod: OTHER, group loader.poly, version 0.1.0",
     "[quilt_hello] sees minecraft: BUILTIN, group builtin, version $minecraft",
     "[quilt_hello] fabricloader is provided by quilt_loader; quilt_nested_unused is loaded: false",
-    "[quilt_hello] own metadata: version 1.0.0, group dev.polymodloader.test, name Quilt Hello, licenses [MIT], contributors [PolyDev [Owner], Helper [Tester]], homepage https://example.com/quilt_hello, settings answer = 42",
+    "[quilt_hello] own metadata: version 1.0.0, group dev.plexusmodloader.test, name Quilt Hello, licenses [MIT], contributors [PolyDev [Owner], Helper [Tester]], homepage https://example.com/quilt_hello, settings answer = 42",
     "[quilt_hello] provides [quilt_hello_api 1.0.0, quilt_hello_versioned 3.0.0]; isModLoaded(\"quilt_hello_api\") = true, quilt_hello_versioned is from quilt_hello",
     "[quilt_hello] 1 custom entrypoint(s) from quilt_hello: hello through a Quilt custom entrypoint; FabricLoader.getEntrypoints gives the same instance: true",
     "[quilt_hello] the main entrypoint QuiltLoader returns is this instance: true",
@@ -379,7 +379,7 @@ val quiltHelloLines = listOf(
 // into java.lang.invoke; Poly Mod Loader's Java agent opens it to FML's modules, as the launcher profile and the server's
 // launch jar start it. Without the agent NeoForge mods are left out (PLEXUS-COMPAT-216).
 val polyAgentJar = tasks.jar.flatMap { it.archiveFile }
-fun dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask.runsNeoForge() {
+fun dev.plexusmodloader.devtools.gradle.minecraft.VerifiedGameRunTask.runsNeoForge() {
     inputs.file(polyAgentJar).withPropertyName("agentJar").withPathSensitivity(PathSensitivity.NONE)
     jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-javaagent:${polyAgentJar.get().asFile.absolutePath}") })
     // -PpolyTransformDisable=<rule IDs or *> for diagnosing a rule that conflicts with NeoForge's patches.
@@ -949,7 +949,7 @@ val nativeApiGameTests = scenarios.gameTest("nativeApiGameTests", modJars(":exam
 // Real mods from Modrinth, fixed by compat/mod-corpus-<version>.json (mod, version, SHA-512). The jars are
 // downloaded into build/poly/mod-corpus/<version>/<loader>/ and never committed.
 val corpusRoot = layout.buildDirectory.dir("poly/mod-corpus/$minecraft")
-val modCorpus = tasks.register<dev.polymodloader.devtools.gradle.minecraft.ModCorpusTask>("modCorpus") {
+val modCorpus = tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.ModCorpusTask>("modCorpus") {
     group = "verification"
     description = "Downloads the real-mod corpus listed in compat/mod-corpus-$minecraft.json (-PmodCorpusRefresh rebuilds the list from Modrinth)."
     lockFile = layout.projectDirectory.file("compat/mod-corpus-$minecraft.json")
@@ -960,7 +960,7 @@ val modCorpus = tasks.register<dev.polymodloader.devtools.gradle.minecraft.ModCo
 }
 // Quilt full support Q5 (ADR-0027): every mod with a build for this version made for Quilt and not for Fabric, plus the
 // mods those builds require, in compat/mod-corpus-quilt-<version>.json and build/poly/mod-corpus/<version>/quilt/.
-val modCorpusQuilt = tasks.register<dev.polymodloader.devtools.gradle.minecraft.ModCorpusTask>("modCorpusQuilt") {
+val modCorpusQuilt = tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.ModCorpusTask>("modCorpusQuilt") {
     group = "verification"
     description = "Downloads the Quilt mod corpus listed in compat/mod-corpus-quilt-$minecraft.json (-PmodCorpusRefresh rebuilds the list from Modrinth)."
     lockFile = layout.projectDirectory.file("compat/mod-corpus-quilt-$minecraft.json")
@@ -1246,7 +1246,7 @@ val corpusScenarios = listOf(
             "[poly_host_patch_probe] fabric-networking-api-v1: ServerCommonPacketListenerImpl implements ServerCommonPacketListenerImplAccessor: true; getConnection() is the listener's connection: true; getServer() is the listener's server: true",
             // Forge changed the field Fabric's attribute builder accessor reads to a Map: getBuilder() wraps it, through
             // the game class loader's own copy of AttributeBuilderBridge (linked to Forge's Guava).
-            "[poly_host_patch_probe] fabric-object-builder-api-v1: AttributeSupplier\$Builder implements AttributeSupplierBuilderAccessor: true; getBuilder() returns dev.polymodloader.compat.fabric.mixin.AttributeBuilderBridge\$ForwardingBuilder",
+            "[poly_host_patch_probe] fabric-object-builder-api-v1: AttributeSupplier\$Builder implements AttributeSupplierBuilderAccessor: true; getBuilder() returns dev.plexusmodloader.compat.fabric.mixin.AttributeBuilderBridge\$ForwardingBuilder",
             "All 1 required tests passed",
             worldsSavedLine,
         )
@@ -1624,11 +1624,11 @@ fun quiltCorpusJars(quiltOnly: Boolean): FileCollection = files(corpusRoot.map {
             .map { root.dir("quilt").file(it["file"] as String).asFile }
     }
 })
-tasks.register<dev.polymodloader.devtools.gradle.minecraft.QuiltLoaderReferenceTask>("quiltLoaderReference") {
+tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.QuiltLoaderReferenceTask>("quiltLoaderReference") {
     group = "verification"
     description = "Runs real Quilt Loader on the vanilla dedicated server with each mod of the Quilt corpus (network on the first run)."
     dependsOn(modCorpusQuilt)
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftServer")
+    launchSpecFile.set(tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftServer")
         .flatMap { it.launchSpecFile })
     quiltLoaderClasspath.from(quiltLoaderReferenceClasspath)
     base.from(quiltCorpusJars(false))
@@ -1737,10 +1737,10 @@ providers.gradleProperty("modProbeDir").orNull?.let { folder ->
 // One client verification scenario: every windowed client task reloads the world saved by worldCreateSaveTest through
 // clientWorldReloadTest's launch spec, class path, JDK and transform cache; only the mods, the world name, the run
 // folder and the expected lines differ.
-fun clientWorldReload(name: String, configure: dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask.() -> Unit) {
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>(name) {
+fun clientWorldReload(name: String, configure: dev.plexusmodloader.devtools.gradle.minecraft.ClientWorldReloadTask.() -> Unit) {
+    tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.ClientWorldReloadTask>(name) {
         group = "verification"
-        val reload = tasks.named<dev.polymodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
+        val reload = tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.ClientWorldReloadTask>("clientWorldReloadTest")
         dependsOn("worldCreateSaveTest", "prepareMinecraftClient")
         launchSpecFile.set(reload.flatMap { it.launchSpecFile })
         // Through a Callable: reload.map would open clientWorldReloadTest's window first.
@@ -1934,7 +1934,7 @@ scenarios.gameTest(
     description = "Loads the client classes the corpus's NeoForge mods' Mixins target, through NeoForge on the client, without a window."
     runsNeoForge()
     systemProperty("poly.neoforge.mixinAudit", "true")
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
+    launchSpecFile.set(tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
         .flatMap { it.launchSpecFile })
     launchTarget.set("client")
     gameArgumentOverrides.set(listOf<String>())
@@ -1966,7 +1966,7 @@ scenarios.gameTest(
     description = "Loads the client classes the corpus's Fabric and NeoForge mods' Mixins target, through NeoForge on the client, without a window."
     runsNeoForge()
     systemProperty("poly.neoforge.mixinAudit", "true")
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
+    launchSpecFile.set(tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
         .flatMap { it.launchSpecFile })
     launchTarget.set("client")
     gameArgumentOverrides.set(listOf<String>())
@@ -2009,7 +2009,7 @@ scenarios.gameTest(
     runsNeoForge()
     systemProperty("poly.neoforge.headless", "true")
     systemProperty("fabric_client_bootstrap_probe.stop", "true")
-    launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
+    launchSpecFile.set(tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.PrepareMinecraftTask>("prepareMinecraftClient")
         .flatMap { it.launchSpecFile })
     launchTarget.set("client")
     gameArgumentOverrides.set(listOf<String>())
@@ -2277,7 +2277,7 @@ listOf("client", "server").forEach { side ->
         dependsOn(modCorpusQuilt)
         description = "Applies every $side mixin of the Quilt mod corpus to its targets, without starting the game."
         val prepare = if (side == "client") "prepareMinecraftClient" else "prepareMinecraftServer"
-        launchSpecFile.set(tasks.named<dev.polymodloader.devtools.gradle.minecraft.PrepareMinecraftTask>(prepare)
+        launchSpecFile.set(tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.PrepareMinecraftTask>(prepare)
             .flatMap { it.launchSpecFile })
         launchTarget.set(if (side == "client") "client" else "dedicated_server")
         // A second guard for the client: without the required --accessToken, Minecraft's client main stops at its
@@ -2312,10 +2312,10 @@ val fabricBenchmarkMods = gameTestCorpus("fabric") + modJars(gameTestHarness)
 // One benchmark comparison: the startup and tick benchmarks of every host loader wire the base task's launch spec, Poly
 // Mod Loader runtime, JDK, run count and transform cache the same way; only the mod set, the loader's own class path
 // wiring and the description differ.
-fun startupBenchmark(loader: String, mods: FileCollection, configure: dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask.() -> Unit) {
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark$loader") {
+fun startupBenchmark(loader: String, mods: FileCollection, configure: dev.plexusmodloader.devtools.gradle.minecraft.StartupBenchmarkTask.() -> Unit) {
+    tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark$loader") {
         group = "verification"
-        val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
+        val base = tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.StartupBenchmarkTask>("startupBenchmark")
         launchSpecFile.set(base.flatMap { it.launchSpecFile })
         // Through a Callable: base.map would make this task run the base benchmark too.
         polyRuntime.from(Callable { base.get().polyRuntime })
@@ -2328,10 +2328,10 @@ fun startupBenchmark(loader: String, mods: FileCollection, configure: dev.polymo
     }
 }
 
-fun tickBenchmark(loader: String, mods: FileCollection, configure: dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask.() -> Unit) {
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark$loader") {
+fun tickBenchmark(loader: String, mods: FileCollection, configure: dev.plexusmodloader.devtools.gradle.minecraft.TickBenchmarkTask.() -> Unit) {
+    tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark$loader") {
         group = "verification"
-        val base = tasks.named<dev.polymodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
+        val base = tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.TickBenchmarkTask>("tickBenchmark")
         launchSpecFile.set(base.flatMap { it.launchSpecFile })
         // Through a Callable: base.map would make this task run the base benchmark too.
         polyRuntime.from(Callable { base.get().polyRuntime })
@@ -2434,7 +2434,7 @@ tickBenchmark("Quilt", quiltBenchmarkMods) {
 // Connector loads lambdynamiclights (and the libraries it nests) on the server too, which Poly Mod Loader leaves out as
 // client-only (PLEXUS-COMPAT-108, as Fabric Loader does), so it is not in the common set either.
 if (minecraft == "26.2") {
-    val modCorpusConnector = tasks.register<dev.polymodloader.devtools.gradle.minecraft.ModCorpusTask>("modCorpusConnector") {
+    val modCorpusConnector = tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.ModCorpusTask>("modCorpusConnector") {
         group = "verification"
         description = "Downloads Sinytra Connector and the mods it requires, listed in compat/connector-reference-$minecraft.json."
         lockFile = layout.projectDirectory.file("compat/connector-reference-$minecraft.json")
@@ -2447,7 +2447,7 @@ if (minecraft == "26.2") {
     }
     val neoForgeReference = libs.versions.neoforge.get()
     val installNeoForgeReferenceServer =
-        tasks.register<dev.polymodloader.devtools.gradle.minecraft.NeoForgeServerInstallTask>("installNeoForgeReferenceServer") {
+        tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.NeoForgeServerInstallTask>("installNeoForgeReferenceServer") {
             group = "verification"
             description = "Installs a real NeoForge $neoForgeReference dedicated server with NeoForge's own installer (network), for the Connector benchmark."
             neoForgeVersion = neoForgeReference

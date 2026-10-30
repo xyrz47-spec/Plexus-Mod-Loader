@@ -1,6 +1,6 @@
 package net.fabricmc.loader.impl.util;
 
-import dev.polymodloader.compat.fabric.loader.JvmEntrypointValue;
+import dev.plexusmodloader.compat.fabric.loader.JvmEntrypointValue;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.ModContainer;

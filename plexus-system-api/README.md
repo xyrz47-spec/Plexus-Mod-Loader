@@ -4,7 +4,7 @@
 교체 가능한 Poly 모드 로더 시스템의 공개 계약을 정의합니다. 시스템 ID, 제공자, 조회, 그리고 첫 시스템 `poly:game_brand`의 계약이 있습니다.
 
 ## 무엇을 소유하는가
-`dev.polymodloader.api.system`(`SystemId`, `PolySystem`, `SystemProvider`, `SystemContext`, `SystemLookup`), `...system.brand.GameBrandSystem`
+`dev.plexusmodloader.api.system`(`SystemId`, `PolySystem`, `SystemProvider`, `SystemContext`, `SystemLookup`), `...system.brand.GameBrandSystem`
 
 ## 무엇을 하지 않는가
 교체를 결정하거나 구현체를 만들지 않습니다(그것은 `poly-system-registry`). Minecraft 타입을 노출하지 않습니다.

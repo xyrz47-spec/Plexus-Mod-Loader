@@ -42,13 +42,13 @@ val providedByMinecraft = setOf(
 )
 val polyModLoaderVersion = version.toString()
 val polyGroup = group.toString()
-val supportedMinecraft = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).runnable()
+val supportedMinecraft = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).runnable()
 // poly-bootstrap carries an experimental version's adapter when the build runs it (ADR-0019); players never get it.
-val runsExperimental = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).let {
+val runsExperimental = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).let {
     it.isExperimental(it.modulesVersion(it.selected(project)))
 }
 
-val installerPayload = tasks.register<dev.polymodloader.devtools.gradle.release.InstallerPayloadTask>("installerPayload") {
+val installerPayload = tasks.register<dev.plexusmodloader.devtools.gradle.release.InstallerPayloadTask>("installerPayload") {
     description = "Collects the Poly Mod Loader runtime jars and their index for the installer."
     doFirst {
         if (runsExperimental) {
@@ -71,10 +71,10 @@ val installerPayload = tasks.register<dev.polymodloader.devtools.gradle.release.
     libraryFiles.from(installerRuntime)
     this.polyVersion = polyModLoaderVersion
     this.minecraftVersions = supportedMinecraft
-    mainClass = "dev.polymodloader.bootstrap.PolyLauncherMain"
+    mainClass = "dev.plexusmodloader.bootstrap.PolyLauncherMain"
     // Poly Mod Loader's Java agent (ADR-0024): -javaagent in the launcher profile, Launcher-Agent-Class on the server.
     agentLibrary = "$polyGroup:plexus-bootstrap:$polyModLoaderVersion"
-    agentClass = "dev.polymodloader.bootstrap.SystemClassPathAgent"
+    agentClass = "dev.plexusmodloader.bootstrap.SystemClassPathAgent"
     outputDirectory = layout.buildDirectory.dir("installer-payload")
 }
 
@@ -95,7 +95,7 @@ val installerJar = tasks.register<Jar>("installerJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(
-            "Main-Class" to "dev.polymodloader.installer.InstallerMain",
+            "Main-Class" to "dev.plexusmodloader.installer.InstallerMain",
             "Implementation-Title" to "Poly Mod Loader installer",
             "Implementation-Version" to polyModLoaderVersion,
         )
@@ -168,7 +168,7 @@ if (testModsPresent) {
 }
 // The NeoForge release Poly Mod Loader runs for each Minecraft version: <minecraft>=<neoforge version> <installer SHA-1>.
 val neoForgeReleases = rootProject.layout.projectDirectory.file(
-    "plexus-bridge-forge/src/main/resources/dev/polymodloader/compat/forge/neoforge-releases.properties")
+    "plexus-bridge-forge/src/main/resources/dev/plexusmodloader/compat/forge/neoforge-releases.properties")
 // Phases 4 and 5 (Quilt full support Q8): the Quilt test mod quilt-hello alone (only quilt.mod.json; Quilt Loader's API,
 // Mixin, access wideners, nested Fabric and Quilt mods) on the installed server's game test server and dedicated server.
 // It runs on every supported version (its quilt.mod.json accepts 26.1.x and 26.2.x).
@@ -189,7 +189,7 @@ if (testModsPresent) {
 }
 // The Forge release Poly Mod Loader runs for each Minecraft version: <minecraft>=<forge version> <installer SHA-1>.
 val forgeReleases = rootProject.layout.projectDirectory.file(
-    "plexus-bridge-forge/src/main/resources/dev/polymodloader/compat/forge/forge-releases.properties")
+    "plexus-bridge-forge/src/main/resources/dev/plexusmodloader/compat/forge/forge-releases.properties")
 tasks.register("serverInstallTest") {
     group = "verification"
     description = "Installs a dedicated server with the installer jar and starts it: without mods up to the EULA check," +
@@ -198,7 +198,7 @@ tasks.register("serverInstallTest") {
     val jar = installerJar.flatMap { it.archiveFile }
     val java = serverJava.map { it.executablePath.asFile.absolutePath }
     val folder = layout.buildDirectory.dir("server install test/server")
-    val built = dev.polymodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).selected(project)
+    val built = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).selected(project)
     val minecraft = providers.gradleProperty("serverInstallMinecraft").orNull ?: built
     if (minecraft !in supportedMinecraft) {
         throw GradleException("serverInstallMinecraft=$minecraft is not one of $supportedMinecraft")

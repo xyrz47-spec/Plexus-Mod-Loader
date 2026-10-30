@@ -18,7 +18,7 @@ polyResources {
     }
 }
 
-tasks.named<dev.polymodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest") {
+tasks.named<dev.plexusmodloader.devtools.gradle.minecraft.VerifiedGameRunTask>("worldCreateSaveTest") {
     expectedOutput.add("[my_mod] Hello from my_mod 0.1.0")
     expectedOutput.add("[my_mod] Server started")
 }

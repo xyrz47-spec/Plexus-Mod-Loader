@@ -1,6 +1,6 @@
 package org.quiltmc.loader.impl.util;
 
-import dev.polymodloader.compat.fabric.loader.JvmEntrypointValue;
+import dev.plexusmodloader.compat.fabric.loader.JvmEntrypointValue;
 import org.quiltmc.loader.api.LanguageAdapter;
 import org.quiltmc.loader.api.LanguageAdapterException;
 import org.quiltmc.loader.api.ModContainer;

@@ -1,7 +1,7 @@
 package net.fabricmc.loader.impl;
 
-import dev.polymodloader.compat.fabric.loader.FabricLoaderRuntime;
-import dev.polymodloader.compat.fabric.loader.PolyGameProvider;
+import dev.plexusmodloader.compat.fabric.loader.FabricLoaderRuntime;
+import dev.plexusmodloader.compat.fabric.loader.PolyGameProvider;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;

@@ -26,7 +26,7 @@ dependencies {
 // installer is the same (network on first use).
 val neoForgeRelease = libs.versions.neoforge.get()
 val installNeoForgeClient =
-    tasks.register<dev.polymodloader.devtools.gradle.minecraft.NeoForgeClientInstallTask>("installNeoForgeClient") {
+    tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.NeoForgeClientInstallTask>("installNeoForgeClient") {
         description = "Installs NeoForge $neoForgeRelease's client with its own installer, for the patched game classes."
         neoForgeVersion = neoForgeRelease
         // The installer Poly Mod Loader itself checks for 26.2 (poly-bridge-forge, neoforge-releases.properties).
@@ -69,7 +69,7 @@ val hostModuleJars = hostModules.map { module ->
     val sourceSet = sourceSets.create(module.sourceSet)
     configurations.named(sourceSet.compileOnlyConfigurationName) { extendsFrom(configurations.compileOnly.get()) }
     // The patched game with the module's class tweaker applied, as Fabric's build tools compile a mod (Loom).
-    val tweaked = tasks.register<dev.polymodloader.devtools.gradle.minecraft.ClassTweakedJarTask>(
+    val tweaked = tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.ClassTweakedJarTask>(
         "${module.sourceSet}CompileGame",
     ) {
         description = "The patched game with ${module.modId}'s class tweaker applied, for compiling it."

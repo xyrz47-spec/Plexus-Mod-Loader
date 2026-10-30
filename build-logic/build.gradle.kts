@@ -42,7 +42,7 @@ tasks.processResources {
     }
     // The supported Minecraft versions, for mod projects (ADR-0011).
     from("../gradle/minecraft-versions.properties") {
-        into("dev/polymodloader/devtools/gradle/minecraft")
+        into("dev/plexusmodloader/devtools/gradle/minecraft")
     }
 }
 
@@ -50,31 +50,31 @@ gradlePlugin {
     plugins {
         create("polyJavaConventions") {
             id = "poly.java-conventions"
-            implementationClass = "dev.polymodloader.devtools.gradle.PolyJavaConventionsPlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.PolyJavaConventionsPlugin"
         }
         create("polyMinecraftDev") {
             id = "poly.minecraft-dev"
-            implementationClass = "dev.polymodloader.devtools.gradle.minecraft.MinecraftDevPlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.MinecraftDevPlugin"
         }
         create("polyMinecraftCompile") {
             id = "poly.minecraft-compile"
-            implementationClass = "dev.polymodloader.devtools.gradle.minecraft.MinecraftCompilePlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.MinecraftCompilePlugin"
         }
         create("polyMinecraftVersions") {
             id = "poly.minecraft-versions"
-            implementationClass = "dev.polymodloader.devtools.gradle.minecraft.MinecraftVersionsPlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersionsPlugin"
         }
         create("polySdkRepository") {
             id = "poly.sdk-repository"
-            implementationClass = "dev.polymodloader.devtools.gradle.release.SdkRepositoryPlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.release.SdkRepositoryPlugin"
         }
         create("polyModTemplate") {
             id = "poly.mod-template"
-            implementationClass = "dev.polymodloader.devtools.gradle.mod.ModTemplatePlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.mod.ModTemplatePlugin"
         }
         create("polyMod") {
             id = "dev.polymodloader.mod"
-            implementationClass = "dev.polymodloader.devtools.gradle.minecraft.PolyModPlugin"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.PolyModPlugin"
             displayName = "Poly Mod Loader mod development"
             description = "Builds, validates, and runs Poly Mods against Minecraft through Poly Mod Loader, and generates and checks their resource files."
         }

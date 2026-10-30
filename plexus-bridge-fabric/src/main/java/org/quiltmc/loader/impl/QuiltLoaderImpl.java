@@ -1,6 +1,6 @@
 package org.quiltmc.loader.impl;
 
-import dev.polymodloader.compat.quilt.QuiltLoaderRuntime;
+import dev.plexusmodloader.compat.quilt.QuiltLoaderRuntime;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

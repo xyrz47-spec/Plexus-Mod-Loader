@@ -4,7 +4,7 @@
 `poly.mod.json` 스키마 1을 파싱·검증하고, SemVer 2.0.0 버전과 버전 범위를 제공합니다.
 
 ## 무엇을 소유하는가
-`dev.polymodloader.runtime.metadata`(`ModMetadata`, `ModId`, `ModMetadataReader`, `MetadataProblemCode`)와 `...metadata.version`(`SemanticVersion`, `VersionRange`)
+`dev.plexusmodloader.runtime.metadata`(`ModMetadata`, `ModId`, `ModMetadataReader`, `MetadataProblemCode`)와 `...metadata.version`(`SemanticVersion`, `VersionRange`)
 
 ## 무엇을 하지 않는가
 파일 검색(discovery)과 모드 사이 관계(의존성 해석)는 다루지 않습니다.

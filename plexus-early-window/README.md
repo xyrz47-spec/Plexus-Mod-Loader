@@ -46,9 +46,9 @@
 - 그 외 다른 내부 모듈이나 외부 라이브러리, 게임 라이브러리에 컴파일 시 의존하지 않습니다.
 
 ## 주요 진입점
-- `dev.polymodloader.earlywindow.EarlyWindow`: 게임 프로세스 측에서 창 프로세스를 시작하고 제어하는 유일한 공개 진입점입니다.
-- `dev.polymodloader.earlywindow.EarlyWindowSettings`: 게임 실행 인수 및 옵션 파일로부터 초기 설정을 빌드하는 팩토리 메서드를 제공합니다.
-- `dev.polymodloader.earlywindow.EarlyWindowMain`: 보조 JVM 프로세스에서 실행되는 메인 진입점입니다.
+- `dev.plexusmodloader.earlywindow.EarlyWindow`: 게임 프로세스 측에서 창 프로세스를 시작하고 제어하는 유일한 공개 진입점입니다.
+- `dev.plexusmodloader.earlywindow.EarlyWindowSettings`: 게임 실행 인수 및 옵션 파일로부터 초기 설정을 빌드하는 팩토리 메서드를 제공합니다.
+- `dev.plexusmodloader.earlywindow.EarlyWindowMain`: 보조 JVM 프로세스에서 실행되는 메인 진입점입니다.
 
 ## 빌드·테스트
 ```powershell

@@ -4,7 +4,7 @@
 Minecraft 26.3 전용 지식을 담습니다. 클라이언트/서버 진입점과 내장 변환 규칙(브랜드, 타이틀 화면 모드 수, 레지스트리·페이로드 처리, Native API 이벤트 훅 등 수십 개)이 있습니다.
 
 ## 무엇을 소유하는가
-`dev.polymodloader.game.version.v26_3.Minecraft26_3Adapter`와 `META-INF/services` 등록
+`dev.plexusmodloader.game.version.v26_3.Minecraft26_3Adapter`와 `META-INF/services` 등록
 
 ## 무엇을 하지 않는가
 다른 버전을 지원하지 않습니다. 이 모듈 밖에 Minecraft 이름을 두지 않습니다.

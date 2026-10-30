@@ -7,7 +7,7 @@
 ## 1. 주요 역할 및 책임
 
 1. **JVM 메인 진입점 제공:**
-   - 마인크래프트 실행 시 최초로 호출되는 메인 클래스 `dev.polymodloader.bootstrap.PolyLauncherMain`을 소유합니다.
+   - 마인크래프트 실행 시 최초로 호출되는 메인 클래스 `dev.plexusmodloader.bootstrap.PolyLauncherMain`을 소유합니다.
    - 시스템 속성을 읽어 실행 설정(`poly-runtime-impl`의 `LaunchConfiguration`)을 만듭니다.
 2. **클래스로더 계층 초기화:**
    - 마인크래프트 원본 jar와 모드 jar는 `poly-runtime-impl`의 바이트코드 변환 클래스로더(`GameClassLoader`)가 정의합니다.
@@ -19,9 +19,9 @@
 
 ## 2. 주요 클래스 및 진입점
 
-- **`dev.polymodloader.bootstrap.PolyLauncherMain`**:
+- **`dev.plexusmodloader.bootstrap.PolyLauncherMain`**:
   - `main(String[] args)`: JVM 시작점. 시스템 속성을 읽어 `new PolyRuntime().launch(configuration, args)`를 호출합니다.
-- **`dev.polymodloader.runtime.LaunchConfiguration`** (`poly-runtime-impl`):
+- **`dev.plexusmodloader.runtime.LaunchConfiguration`** (`poly-runtime-impl`):
   - 실행 대상(클라이언트/서버/게임 테스트 서버), 게임 jar, 모드 폴더, 개발 모드 jar, 변환 덤프·캐시 폴더, 보고서 폴더 등을 담는 불변 실행 설정.
 
 ### 시스템 속성 (System Properties)

@@ -16,7 +16,7 @@ val fabricLoaderJar = configurations.create("fabricLoaderJar") {
 // values, logging) are packed the same way (ADR-0027). The bridge provides QuiltLoaderImpl, GameProvider and
 // DefaultLanguageAdapter itself: they lead into the loader. When Quilt Loader is upgraded, check again that the packed
 // classes refer only to each other, those three, and the packed Fabric API (jdeps -verbose:class on the patterns
-// below), and compare dev.polymodloader.compat.quilt.QuiltVersionSpecifier with V1ModMetadataReader.
+// below), and compare dev.plexusmodloader.compat.quilt.QuiltVersionSpecifier with V1ModMetadataReader.
 val quiltLoaderJar = configurations.create("quiltLoaderJar") {
     isCanBeConsumed = false
     isTransitive = false
@@ -141,7 +141,7 @@ tasks.processResources {
     val quiltLoaderVersion = libs.versions.quiltLoader.get()
     inputs.property("mixinExtrasVersion", mixinExtrasVersion)
     inputs.property("quiltLoaderVersion", quiltLoaderVersion)
-    filesMatching("dev/polymodloader/compat/fabric/fabric-bridge.properties") {
+    filesMatching("dev/plexusmodloader/compat/fabric/fabric-bridge.properties") {
         expand(
             "fabricLoaderVersion" to fabricLoaderVersion,
             "mixinExtrasVersion" to mixinExtrasVersion,

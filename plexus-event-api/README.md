@@ -4,7 +4,7 @@
 모드가 게임 이벤트를 받는 공개 API를 정의합니다. 타입이 있는 이벤트 키, 리스너 등록, 서버 생명주기 이벤트로 이루어집니다.
 
 ## 무엇을 소유하는가
-`dev.polymodloader.api.event`(`EventKey`, `EventRegistry`, `EventPriority`, `EventResult`), `...event.server`(`ServerEvents`, `ServerView`, 리스너 5종)
+`dev.plexusmodloader.api.event`(`EventKey`, `EventRegistry`, `EventPriority`, `EventResult`), `...event.server`(`ServerEvents`, `ServerView`, 리스너 5종)
 
 ## 무엇을 하지 않는가
 이벤트를 직접 발생시키지 않습니다. 발생은 버전 어댑터 훅과 `poly-runtime-impl`의 `EventBus`가 맡습니다. Minecraft 타입을 노출하지 않습니다.

@@ -39,10 +39,10 @@
 
 | 패키지 | 주요 클래스 | 역할 |
 | :--- | :--- | :--- |
-| `dev.polymodloader.compat.fabric` | `FabricBridge`, `ClassTweakerFile`, `FabricClassTransformer` | Fabric 모드 검색 및 변환 파이프라인 관리 |
-| `dev.polymodloader.compat.fabric.mixin` | `FabricMixinBootstrap`, `PolyMixinService`, `HostPatchAdjustments` | 통합 Mixin 구동 및 호스트 패치 자동 적응 |
-| `dev.polymodloader.compat.fabric.loader` | `FabricLoaderRuntime`, `OfficialMappingResolver` | Fabric Loader 공개 API 런타임 구현 |
-| `dev.polymodloader.compat.quilt` | `QuiltBridge`, `QuiltModJsonReader`, `QuiltLoaderRuntime` | Quilt 메타데이터 파서 및 Quilt Loader API 구현 |
+| `dev.plexusmodloader.compat.fabric` | `FabricBridge`, `ClassTweakerFile`, `FabricClassTransformer` | Fabric 모드 검색 및 변환 파이프라인 관리 |
+| `dev.plexusmodloader.compat.fabric.mixin` | `FabricMixinBootstrap`, `PolyMixinService`, `HostPatchAdjustments` | 통합 Mixin 구동 및 호스트 패치 자동 적응 |
+| `dev.plexusmodloader.compat.fabric.loader` | `FabricLoaderRuntime`, `OfficialMappingResolver` | Fabric Loader 공개 API 런타임 구현 |
+| `dev.plexusmodloader.compat.quilt` | `QuiltBridge`, `QuiltModJsonReader`, `QuiltLoaderRuntime` | Quilt 메타데이터 파서 및 Quilt Loader API 구현 |
 
 ---
 

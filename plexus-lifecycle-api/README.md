@@ -4,7 +4,7 @@
 모드가 구현하는 엔트리포인트 인터페이스와, Poly 모드 로더가 엔트리포인트에 넘기는 `ModContext`를 정의합니다.
 
 ## 무엇을 소유하는가
-`dev.polymodloader.api.lifecycle` 패키지
+`dev.plexusmodloader.api.lifecycle` 패키지
 
 ## 무엇을 하지 않는가
 엔트리포인트 호출 순서와 오류 처리는 다루지 않습니다. 그것은 `poly-runtime-impl`의 `EntrypointInvoker`가 맡습니다.

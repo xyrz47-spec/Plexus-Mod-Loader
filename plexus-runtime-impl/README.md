@@ -37,8 +37,8 @@
 
 | 패키지 | 핵심 클래스 | 역할 |
 | :--- | :--- | :--- |
-| `dev.polymodloader.runtime` | `PolyRuntime`, `LaunchConfiguration` | 런타임 부팅 오케스트레이션 및 상태 관리 |
-| `dev.polymodloader.runtime` | `LoadedModCounter` | 실시간 로더별 모드 수 집계 |
+| `dev.plexusmodloader.runtime` | `PolyRuntime`, `LaunchConfiguration` | 런타임 부팅 오케스트레이션 및 상태 관리 |
+| `dev.plexusmodloader.runtime` | `LoadedModCounter` | 실시간 로더별 모드 수 집계 |
 | `.discovery` | `ModFileScanner`, `NestedJarExtractor`, `ForeignModResolver` | 모드 폴더의 jar 탐색, 중첩 jar 추출, 로더 판별 |
 | `.dependency` | `ModDependencyResolver` | 모드 버전 제약식 해석 및 로드 우선순위 정렬 |
 | `.compat` | `HostPatchCheck`, `CrossLoaderModResolver` | Forge/NeoForge 패치와 Fabric Mixin 간 충돌 사전 진단 |

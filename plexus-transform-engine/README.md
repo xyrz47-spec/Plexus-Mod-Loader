@@ -43,9 +43,9 @@
 
 | 클래스 | 역할 |
 | :--- | :--- |
-| `dev.polymodloader.internal.transform.engine.ClassTransformPlanner` | 변환 규칙 검증 및 통합 실행 계획(`TransformPlan`) 생성 |
-| `dev.polymodloader.internal.transform.engine.ClassTransformExecutor` | ASM 9.11 기반 실제 클래스 바이트코드 조작 및 검증 |
-| `dev.polymodloader.internal.transform.engine.DirectoryTransformCache` | 변환된 바이트코드 디스크 캐시 및 LRU 만료 처리 |
+| `dev.plexusmodloader.internal.transform.engine.ClassTransformPlanner` | 변환 규칙 검증 및 통합 실행 계획(`TransformPlan`) 생성 |
+| `dev.plexusmodloader.internal.transform.engine.ClassTransformExecutor` | ASM 9.11 기반 실제 클래스 바이트코드 조작 및 검증 |
+| `dev.plexusmodloader.internal.transform.engine.DirectoryTransformCache` | 변환된 바이트코드 디스크 캐시 및 LRU 만료 처리 |
 
 ---
 

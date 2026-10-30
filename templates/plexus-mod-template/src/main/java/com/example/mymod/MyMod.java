@@ -1,16 +1,16 @@
 package com.example.mymod;
 
-import dev.polymodloader.api.content.CreativeTab;
-import dev.polymodloader.api.content.block.BlockDefinition;
-import dev.polymodloader.api.content.block.BlockSound;
-import dev.polymodloader.api.content.item.ItemDefinition;
-import dev.polymodloader.api.content.item.ItemRarity;
-import dev.polymodloader.api.entity.PlayerView;
-import dev.polymodloader.api.event.server.ServerEvents;
-import dev.polymodloader.api.lifecycle.CommonModInitializer;
-import dev.polymodloader.api.lifecycle.ModContext;
-import dev.polymodloader.api.resource.ResourceId;
-import dev.polymodloader.api.world.BlockPos;
+import dev.plexusmodloader.api.content.CreativeTab;
+import dev.plexusmodloader.api.content.block.BlockDefinition;
+import dev.plexusmodloader.api.content.block.BlockSound;
+import dev.plexusmodloader.api.content.item.ItemDefinition;
+import dev.plexusmodloader.api.content.item.ItemRarity;
+import dev.plexusmodloader.api.entity.PlayerView;
+import dev.plexusmodloader.api.event.server.ServerEvents;
+import dev.plexusmodloader.api.lifecycle.CommonModInitializer;
+import dev.plexusmodloader.api.lifecycle.ModContext;
+import dev.plexusmodloader.api.resource.ResourceId;
+import dev.plexusmodloader.api.world.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

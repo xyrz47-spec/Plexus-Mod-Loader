@@ -4,7 +4,7 @@
 내장 시스템 정의, 교체 충돌 해결, 제공자 생성·검증, 활성 시스템 조회를 구현합니다.
 
 ## 무엇을 소유하는가
-`dev.polymodloader.runtime.system`(`BuiltInSystems`, `SystemDefinition`, `SystemReplacementResolver`, `SystemRegistry`, `PolyGameBrandProvider`, `SystemProblemCode`)
+`dev.plexusmodloader.runtime.system`(`BuiltInSystems`, `SystemDefinition`, `SystemReplacementResolver`, `SystemRegistry`, `PolyGameBrandProvider`, `SystemProblemCode`)
 
 ## 무엇을 하지 않는가
 게임과 직접 연결되지 않습니다(그것은 버전 어댑터 훅). 모드를 검색하지 않습니다.

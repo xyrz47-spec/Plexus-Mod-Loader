@@ -53,7 +53,7 @@ flowchart TD
 ### Phase 2: Bytecode Transformation Planning
 1. **Rule Registration:**
    - Native API mods submit declarative transform rules (`poly-transform-api`).
-   - Host loader bridges submit `InjectionPointReplacement` rules (e.g., [`NeoForgeInjectionPoints.java`](poly-bridge-forge/src/main/java/dev/polymodloader/compat/forge/NeoForgeInjectionPoints.java)).
+   - Host loader bridges submit `InjectionPointReplacement` rules (e.g., [`NeoForgeInjectionPoints.java`](poly-bridge-forge/src/main/java/dev/plexusmodloader/compat/forge/NeoForgeInjectionPoints.java)).
 2. **Compile-time vs Load-time Planning:**
    - `ClassTransformPlanner` verifies bytecode signatures, instructions, and target selectors.
    - Transformed classes are stored in `DirectoryTransformCache` under a SHA-256 key of the engine, the original class bytes and the rules (default `.poly/transform-cache`, 256 MiB, least recently used entries removed first), so later launches skip the transformation.

@@ -34,15 +34,15 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
 
 | 패키지 / 클래스 | 역할 |
 | :--- | :--- |
-| `dev.polymodloader.compat.forge.NeoForgeBridge` | NeoForge 환경 감지, 설치 파일 다운로드 및 생명주기 관리 |
-| `dev.polymodloader.compat.forge.NeoForgeGameHost` | NeoForge FML 모듈 레이어 정의 및 변환 타겟 관리 |
-| `dev.polymodloader.compat.forge.NeoForgeInjectionPoints` | NeoForge 패치로 변경된 바닐라 메서드 주입점 대체 규칙 모음 |
-| `dev.polymodloader.compat.forge.MinecraftForgeBridge` | MinecraftForge 바이너리 패치 세트 적용 및 호스트 셋업 |
-| `dev.polymodloader.compat.forge.ForgeInjectionPoints` | MinecraftForge 패치 대응 주입점 대체 규칙 모음 |
-| `dev.polymodloader.compat.forge.ForeignModIndex` | 타 로더의 모드 메타데이터를 FML SPI 형식으로 변환 |
-| `dev.polymodloader.compat.forge.EarlyScreenArt` | 클라이언트에서 Forge·NeoForge 초기 로딩 창의 애니메이션(모루·여우)과 로고·아이콘을 Poly 큐브(`earlyscreen/*.png`)로 바꿈. 원본 이미지 크기가 확인한 값과 같을 때만 모듈 리더의 `find`·`open`이 `<게임 폴더>/.poly/early-screen`의 사본을 돌려주며, Poly 모드 로더 자체 초기 창이 뜨지 않을 때만(macOS, `-Dpoly.earlyWindow=off`) 적용됨 |
-| `dev.polymodloader.compat.forge.ForgeEarlyWindowOff` | Poly 모드 로더 자체 초기 창이 뜰 때 MinecraftForge의 `fmlearlydisplay` 모듈에서 `ImmediateWindowProvider` 서비스를 제거하여 FML이 자체 초기 창을 띄우지 않고 비활성화 경로(`DummyProvider`, `fml.toml`의 `earlyWindowControl = false`와 동일)를 타도록 함 |
-| `dev.polymodloader.compat.forge.EarlyWindowTitle` | 초기 로딩 창 제목을 `Minecraft* Poly <버전>`으로 바꿈(`DisplayWindow`의 제목 상수가 정확히 한 번일 때만, 상수 풀 문자열만 고쳐 코드·스택 맵은 그대로) |
+| `dev.plexusmodloader.compat.forge.NeoForgeBridge` | NeoForge 환경 감지, 설치 파일 다운로드 및 생명주기 관리 |
+| `dev.plexusmodloader.compat.forge.NeoForgeGameHost` | NeoForge FML 모듈 레이어 정의 및 변환 타겟 관리 |
+| `dev.plexusmodloader.compat.forge.NeoForgeInjectionPoints` | NeoForge 패치로 변경된 바닐라 메서드 주입점 대체 규칙 모음 |
+| `dev.plexusmodloader.compat.forge.MinecraftForgeBridge` | MinecraftForge 바이너리 패치 세트 적용 및 호스트 셋업 |
+| `dev.plexusmodloader.compat.forge.ForgeInjectionPoints` | MinecraftForge 패치 대응 주입점 대체 규칙 모음 |
+| `dev.plexusmodloader.compat.forge.ForeignModIndex` | 타 로더의 모드 메타데이터를 FML SPI 형식으로 변환 |
+| `dev.plexusmodloader.compat.forge.EarlyScreenArt` | 클라이언트에서 Forge·NeoForge 초기 로딩 창의 애니메이션(모루·여우)과 로고·아이콘을 Poly 큐브(`earlyscreen/*.png`)로 바꿈. 원본 이미지 크기가 확인한 값과 같을 때만 모듈 리더의 `find`·`open`이 `<게임 폴더>/.poly/early-screen`의 사본을 돌려주며, Poly 모드 로더 자체 초기 창이 뜨지 않을 때만(macOS, `-Dpoly.earlyWindow=off`) 적용됨 |
+| `dev.plexusmodloader.compat.forge.ForgeEarlyWindowOff` | Poly 모드 로더 자체 초기 창이 뜰 때 MinecraftForge의 `fmlearlydisplay` 모듈에서 `ImmediateWindowProvider` 서비스를 제거하여 FML이 자체 초기 창을 띄우지 않고 비활성화 경로(`DummyProvider`, `fml.toml`의 `earlyWindowControl = false`와 동일)를 타도록 함 |
+| `dev.plexusmodloader.compat.forge.EarlyWindowTitle` | 초기 로딩 창 제목을 `Minecraft* Poly <버전>`으로 바꿈(`DisplayWindow`의 제목 상수가 정확히 한 번일 때만, 상수 풀 문자열만 고쳐 코드·스택 맵은 그대로) |
 
 ---
 

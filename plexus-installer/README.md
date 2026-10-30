@@ -48,5 +48,5 @@ Poly 인스톨러는 모든 플랫폼에서 jar 하나로 빌드 및 배포됩�
 
 ## 4. 모듈 구조
 
-- **`dev.polymodloader.installer`**: Java Swing GUI 창, CLI 파서, 프로필 JSON 생성기, 라이브러리 검증기.
+- **`dev.plexusmodloader.installer`**: Java Swing GUI 창, CLI 파서, 프로필 JSON 생성기, 라이브러리 검증기.
 - 아이콘은 `ProfileIcon`이 코드로 그리고, 영어·한국어 문구는 `InstallerWindow.Language`에 있습니다(별도 리소스 파일 없음).
