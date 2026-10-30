@@ -182,17 +182,18 @@ flowchart LR
   - [ ] `polymc.net` 네임서버를 Cloudflare로 이전 후 `plexus-redirect`에 연결, Firebase 정리
   - [x] SDK Maven 저장소 R2(`plexus-maven`) 이전 (2026-10-30, 11,031개, 정적 파일 12,717개 → 1,686개)
   - [ ] Google Search Console·Naver 서치어드바이저 새 속성, AdSense 사이트 추가 (네이버 메타 태그 배포됨, 확인 대기)
-- [ ] **Phase 3: Docusaurus 웹 리브랜딩**
-  - [ ] 로고/파비콘 신규 디자인 적용
-  - [ ] `docusaurus.config.js` 및 페이지 텍스트 변경
-  - [ ] `docs/` 및 `i18n/ko/` 문서 텍스트 갱신
-  - [ ] 새 도메인 `ads.txt` 및 애드센스 신청
+- [x] **Phase 3: Docusaurus 웹 리브랜딩**
+  - [x] 로고/파비콘 신규 디자인 적용
+  - [x] `docusaurus.config.js` 및 페이지 텍스트 변경
+  - [x] `docs/` 및 `i18n/ko/` 문서 텍스트 갱신
+  - [ ] 새 도메인 `ads.txt` 및 애드센스 신청 (사이트 배포 완료, 애드센스 검토 대기)
 - [x] **Phase 4: GitHub 인프라 정비**
   - [x] 저장소 이름 변경 (`xyrz47-spec/Plexus-Mod-Loader`, GitHub 원격 URL 갱신 완료)
   - [x] 배포 워크플로우 갱신 (`docs.yml`, `release.yml`, `publish-release.py` 저장소 경로 갱신)
   - [x] 프로젝트 문서 및 가이드 링크 전역 갱신 (`README.md`, `PROJECT.md`, `DEVELOPING.md`, `RELEASE_AND_DEPLOY.md`)
 - [ ] **Phase 5: [최종 단계] 엔진 코드 리팩터링**
-  - [ ] `plexus.mod.json` + `poly.mod.json` 동시 지원
-  - [ ] 패키지/클래스명 리네이밍
-  - [ ] 로딩 화면 및 UI 갱신
+  - [x] `plexus.mod.json` + `poly.mod.json` 동시 지원 및 템플릿/에러 코드(`PLEXUS-`) 전환 완료
+  - [x] 루트 Gradle 26개 모듈 디렉터리 `plexus-*` 전환 완료
+  - [ ] 패키지/클래스명 리네이밍 (`dev.polymodloader.*` ➔ `dev.plexusmodloader.*`)
+  - [ ] 로딩 화면 및 UI 갱신 (`PolyLoadingOverlay` 등)
   - [ ] 전체 멀티버전 검증 테스트 통과 확인
