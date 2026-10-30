@@ -34,7 +34,7 @@ class ModResourceCheckerTest {
     void uppercaseFileNameIsReported() throws IOException {
         write("assets/ruby_mod/textures/item/Ruby.png", "");
 
-        String problem = only(ModResourceChecker.check(root), "POLY-RESOURCE-004");
+        String problem = only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-004");
         assertTrue(problem.contains("assets/ruby_mod/textures/item/ruby.png"), problem);
     }
 
@@ -42,7 +42,7 @@ class ModResourceCheckerTest {
     void trailingCommaIsReportedWithItsPosition() throws IOException {
         write("assets/ruby_mod/lang/en_us.json", "{\n  \"item.ruby_mod.ruby\": \"Ruby\",\n}\n");
 
-        String problem = only(ModResourceChecker.check(root), "POLY-RESOURCE-005");
+        String problem = only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-005");
         assertTrue(problem.contains("line 3"), problem);
         assertTrue(!problem.contains("setStrictness"), problem);
     }
@@ -52,7 +52,7 @@ class ModResourceCheckerTest {
         write("assets/ruby_mod/items/ruby.json", "{\"model\": {\"type\": \"minecraft:model\", \"model\": \"ruby_mod:item/rubyy\"}}");
         write("assets/ruby_mod/models/item/ruby.json", "{\"parent\": \"minecraft:item/generated\"}");
 
-        String problem = only(ModResourceChecker.check(root), "POLY-RESOURCE-006");
+        String problem = only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-006");
         assertTrue(problem.contains("assets/ruby_mod/models/item/rubyy.json"), problem);
     }
 
@@ -63,7 +63,7 @@ class ModResourceCheckerTest {
                 "{\"parent\": \"minecraft:block/cube_all\", \"textures\": {\"all\": \"ruby_mod:block/ruby_block\","
                         + " \"particle\": \"#all\"}}");
 
-        String problem = only(ModResourceChecker.check(root), "POLY-RESOURCE-007");
+        String problem = only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-007");
         assertTrue(problem.contains("assets/ruby_mod/textures/block/ruby_block.png"), problem);
     }
 
@@ -73,7 +73,7 @@ class ModResourceCheckerTest {
                 + " {\"layer0\": \"item/ruby\"}}");
         write("assets/ruby_mod/textures/item/ruby.png", "");
 
-        String problem = only(ModResourceChecker.check(root), "POLY-RESOURCE-007");
+        String problem = only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-007");
         assertTrue(problem.contains("\"ruby_mod:item/ruby\""), problem);
     }
 
@@ -84,7 +84,7 @@ class ModResourceCheckerTest {
                 "{\"multipart\": [{\"apply\": [{\"model\": \"ruby_mod:block/lamp_on\"}, {\"model\":"
                         + " \"minecraft:block/stone\"}]}]}");
 
-        String problem = only(ModResourceChecker.check(root), "POLY-RESOURCE-006");
+        String problem = only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-006");
         assertTrue(problem.contains("lamp_on"), problem);
     }
 
@@ -92,7 +92,7 @@ class ModResourceCheckerTest {
     void langValueThatIsNotTextIsReported() throws IOException {
         write("assets/ruby_mod/lang/en_us.json", "{\"item.ruby_mod.ruby\": 3}");
 
-        only(ModResourceChecker.check(root), "POLY-RESOURCE-008");
+        only(ModResourceChecker.check(root), "PLEXUS-RESOURCE-008");
     }
 
     @Test

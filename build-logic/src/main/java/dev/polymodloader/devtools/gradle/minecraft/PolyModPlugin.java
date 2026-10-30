@@ -52,13 +52,13 @@ public final class PolyModPlugin implements Plugin<Project> {
     public static final String LOCAL_SDK_PROPERTY = "polyLocalSdk";
 
     /** The module a mod compiles against ({@code compileOnly}); its API dependencies come with it. */
-    public static final String API_MODULE = "poly-lifecycle-api";
+    public static final String API_MODULE = "plexus-lifecycle-api";
 
     /** The module that starts the game for {@code runClient} and the game tests, with a version adapter. */
-    public static final String LAUNCHER_MODULE = "poly-bootstrap";
+    public static final String LAUNCHER_MODULE = "plexus-bootstrap";
 
     /** The module that checks {@code poly.mod.json} ({@code validatePolyModJson}). */
-    public static final String METADATA_MODULE = "poly-mod-metadata";
+    public static final String METADATA_MODULE = "plexus-mod-metadata";
 
     @Override
     public void apply(Project project) {

@@ -25,7 +25,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "polymodloader"
+rootProject.name = "plexus"
 
 // One version adapter and one game layer per supported Minecraft version (ADR-0011).
 val minecraftVersions = java.util.Properties().apply {
@@ -37,7 +37,7 @@ val versionsWithModules = listOf("supported", "experimental").flatMap { key ->
 }
 for (version in versionsWithModules) {
     val id = version.replace('.', '_').replace('-', '_')
-    for (module in listOf("poly-version-adapter-v$id", "poly-game-v$id")) {
+    for (module in listOf("plexus-version-adapter-v$id", "plexus-game-v$id")) {
         require(file(module).isDirectory) {
             "Minecraft $version is listed in gradle/minecraft-versions.properties but $module/ is missing; " +
                 "create it with ./gradlew newMinecraftVersion -Pfrom=<version> -Pto=$version"
@@ -54,25 +54,25 @@ fun includeIfPresent(vararg paths: String) {
 }
 
 includeIfPresent(
-    "poly-runtime-api",
-    "poly-lifecycle-api",
-    "poly-event-api",
-    "poly-game-api",
-    "poly-system-api",
-    "poly-system-registry",
-    "poly-mod-metadata",
-    "poly-transform-api",
-    "poly-transform-engine",
-    "poly-version-adapter-api",
-    "poly-early-window",
-    "poly-runtime-impl",
-    "poly-bridge-api",
-    "poly-bridge-fabric",
-    "poly-bridge-forge",
+    "plexus-runtime-api",
+    "plexus-lifecycle-api",
+    "plexus-event-api",
+    "plexus-game-api",
+    "plexus-system-api",
+    "plexus-system-registry",
+    "plexus-mod-metadata",
+    "plexus-transform-api",
+    "plexus-transform-engine",
+    "plexus-version-adapter-api",
+    "plexus-early-window",
+    "plexus-runtime-impl",
+    "plexus-bridge-api",
+    "plexus-bridge-fabric",
+    "plexus-bridge-forge",
     // Fabric API modules implemented on NeoForge 26.2 (ADR-0031).
-    "poly-fabric-api-neoforge-v26_2",
-    "poly-bootstrap",
-    "poly-installer",
+    "plexus-fabric-api-neoforge-v26_2",
+    "plexus-bootstrap",
+    "plexus-installer",
     "examples:minimal-native-mod",
     "examples:custom-system-mod",
     "examples:transform-demo-mod",

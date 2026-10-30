@@ -48,7 +48,7 @@ flowchart TD
 3. **Pre-flight Host Patch Check (`HostPatchCheck`):**
    - When Forge or NeoForge is active, the game jar is binary-patched (`ForgePatchSet` or `NeoForgePatchBundle`).
    - Poly inspects all Fabric/Quilt Mixins against the actual patched bytecode.
-   - If a mixin cannot safely bind to the host-altered method, it is flagged with `POLY-COMPAT-224` and cleanly excluded before classloading begins.
+   - If a mixin cannot safely bind to the host-altered method, it is flagged with `PLEXUS-COMPAT-224` and cleanly excluded before classloading begins.
 
 ### Phase 2: Bytecode Transformation Planning
 1. **Rule Registration:**

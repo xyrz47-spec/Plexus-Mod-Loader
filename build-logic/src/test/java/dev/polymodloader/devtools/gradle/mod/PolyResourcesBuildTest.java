@@ -106,7 +106,7 @@ class PolyResourcesBuildTest {
 
         BuildResult result = runner(project, "checkPolyResources").buildAndFail();
 
-        assertTrue(result.getOutput().contains("POLY-RESOURCE-007 assets/ruby_mod/models/item/ruby.json"), result.getOutput());
+        assertTrue(result.getOutput().contains("PLEXUS-RESOURCE-007 assets/ruby_mod/models/item/ruby.json"), result.getOutput());
         assertTrue(result.getOutput().contains("assets/ruby_mod/textures/item/ruby.png"), result.getOutput());
     }
 }

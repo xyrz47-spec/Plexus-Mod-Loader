@@ -41,24 +41,24 @@ public record ContentResourceDefinition(
     /**
      * Checks the values.
      *
-     * @throws IllegalArgumentException with {@code POLY-RESOURCE-009} for a name or texture that Minecraft
+     * @throws IllegalArgumentException with {@code PLEXUS-RESOURCE-009} for a name or texture that Minecraft
      *     would reject, an unknown tool, or tool and drop settings on an item
      */
     public ContentResourceDefinition {
         if (kind == null || name == null || !NAME.matcher(name).matches()) {
-            throw new IllegalArgumentException("POLY-RESOURCE-009 '" + name
+            throw new IllegalArgumentException("PLEXUS-RESOURCE-009 '" + name
                     + "' is not a content name: use lowercase a-z, 0-9, _ . - (the name the mod's code registers)");
         }
         if (texture != null && !TEXTURE.matcher(texture).matches()) {
-            throw new IllegalArgumentException("POLY-RESOURCE-009 texture '" + texture + "' of " + name
+            throw new IllegalArgumentException("PLEXUS-RESOURCE-009 texture '" + texture + "' of " + name
                     + " is not a texture ID: write <namespace>:<path> in lowercase, such as minecraft:block/stone");
         }
         if (minedWith != null && !TOOLS.contains(minedWith)) {
             throw new IllegalArgumentException(
-                    "POLY-RESOURCE-009 minedWith '" + minedWith + "' of " + name + " must be one of " + TOOLS);
+                    "PLEXUS-RESOURCE-009 minedWith '" + minedWith + "' of " + name + " must be one of " + TOOLS);
         }
         if (kind == Kind.ITEM && minedWith != null) {
-            throw new IllegalArgumentException("POLY-RESOURCE-009 minedWith is for blocks; " + name + " is an item");
+            throw new IllegalArgumentException("PLEXUS-RESOURCE-009 minedWith is for blocks; " + name + " is an item");
         }
     }
 

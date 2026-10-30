@@ -184,7 +184,7 @@ class ModResourceGeneratorTest {
                 () -> ModResourceGenerator.generate(
                         "ruby_mod", List.of(item("ruby"), block("ruby", null)), handWritten));
 
-        assertTrue(error.getMessage().startsWith("POLY-RESOURCE-009"), error.getMessage());
+        assertTrue(error.getMessage().startsWith("PLEXUS-RESOURCE-009"), error.getMessage());
     }
 
     @Test

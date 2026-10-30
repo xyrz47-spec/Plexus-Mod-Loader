@@ -16,7 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ModProjectScaffolderTest {
 
-    private static final Path TEMPLATE = Path.of("../templates/poly-mod-template");
+    private static final Path TEMPLATE = Path.of("../templates/plexus-mod-template");
 
     @TempDir
     Path workspace;
@@ -43,7 +43,11 @@ class ModProjectScaffolderTest {
         assertTrue(java.startsWith("package io.github.you.rubytools;"), java);
         assertTrue(java.contains("public final class RubyToolsMod implements CommonModInitializer"), java);
 
-        String metadata = Files.readString(target.resolve("src/main/resources/poly.mod.json"), StandardCharsets.UTF_8);
+        Path metaPath = target.resolve("src/main/resources/plexus.mod.json");
+        if (!Files.exists(metaPath)) {
+            metaPath = target.resolve("src/main/resources/poly.mod.json");
+        }
+        String metadata = Files.readString(metaPath, StandardCharsets.UTF_8);
         assertTrue(metadata.contains("\"id\": \"ruby_tools\""), metadata);
         assertTrue(metadata.contains("\"name\": \"Ruby Tools\""), metadata);
         assertTrue(metadata.contains("\"io.github.you.rubytools.RubyToolsMod\""), metadata);

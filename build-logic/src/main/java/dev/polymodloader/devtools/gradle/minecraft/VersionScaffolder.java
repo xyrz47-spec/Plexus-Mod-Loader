@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 /**
  * Starts support for a new Minecraft version by copying the modules of an existing one (ADR-0011):
- * {@code poly-version-adapter-v<from>} and {@code poly-game-v<from>} become {@code …-v<to>}, with the
+ * {@code plexus-version-adapter-v<from>} and {@code plexus-game-v<from>} become {@code …-v<to>}, with the
  * version renamed in paths, package and class names, and text, and the version is added to {@value
  * MinecraftVersions#FILE}. The copy then shows, by what no longer compiles or passes, what changed in
  * the game.

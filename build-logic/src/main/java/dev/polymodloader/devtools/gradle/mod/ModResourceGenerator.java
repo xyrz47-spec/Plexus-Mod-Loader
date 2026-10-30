@@ -51,8 +51,8 @@ public final class ModResourceGenerator {
      * @param modId the mod's ID from {@code poly.mod.json}; it is the namespace of every generated file
      * @param definitions the declared blocks and items
      * @param handWritten the mod's own resource directory ({@code src/main/resources}); it need not exist
-     * @throws IllegalArgumentException with {@code POLY-RESOURCE-009} if a name is declared twice, or
-     *     {@code POLY-RESOURCE-005} if a hand-written file that has to be merged is not valid JSON
+     * @throws IllegalArgumentException with {@code PLEXUS-RESOURCE-009} if a name is declared twice, or
+     *     {@code PLEXUS-RESOURCE-005} if a hand-written file that has to be merged is not valid JSON
      */
     public static Map<String, String> generate(
             String modId, List<ContentResourceDefinition> definitions, Path handWritten) {
@@ -63,7 +63,7 @@ public final class ModResourceGenerator {
         for (ContentResourceDefinition definition : definitions) {
             String name = definition.name();
             if (!names.add(name)) {
-                throw new IllegalArgumentException("POLY-RESOURCE-009 " + name
+                throw new IllegalArgumentException("PLEXUS-RESOURCE-009 " + name
                         + " is declared twice in polyResources; a block already has an item of the same name");
             }
             String id = modId + ":" + name;
@@ -214,11 +214,11 @@ public final class ModResourceGenerator {
         try {
             JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
             if (!json.isJsonObject()) {
-                throw new IllegalArgumentException("POLY-RESOURCE-005 " + path + " must be a JSON object");
+                throw new IllegalArgumentException("PLEXUS-RESOURCE-005 " + path + " must be a JSON object");
             }
             return json.getAsJsonObject();
         } catch (JsonParseException e) {
-            throw new IllegalArgumentException("POLY-RESOURCE-005 " + path + " is not valid JSON: " + e.getMessage(), e);
+            throw new IllegalArgumentException("PLEXUS-RESOURCE-005 " + path + " is not valid JSON: " + e.getMessage(), e);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

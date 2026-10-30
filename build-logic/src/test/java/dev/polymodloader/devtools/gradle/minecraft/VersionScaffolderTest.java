@@ -22,7 +22,7 @@ class VersionScaffolderTest {
     void copiesModulesWithTheVersionRenamed() throws IOException {
         writeVersions("supported=26.2\ndefault=26.2\njava.26.2=25\n");
         write(
-                "poly-version-adapter-v26_2/src/main/java/dev/polymodloader/game/version/v26_2/Minecraft26_2Adapter.java",
+                "plexus-version-adapter-v26_2/src/main/java/dev/polymodloader/game/version/v26_2/Minecraft26_2Adapter.java",
                 """
                 package dev.polymodloader.game.version.v26_2;
                 /** Adapter for Minecraft 26.2, not 26.2.1 or 0.26.2; layer v26_2.GameLayer26_2 */
@@ -33,18 +33,18 @@ class VersionScaffolderTest {
                 }
                 """);
         write(
-                "poly-version-adapter-v26_2/src/main/resources/META-INF/services/dev.polymodloader.game.version.GameVersionAdapter",
+                "plexus-version-adapter-v26_2/src/main/resources/META-INF/services/dev.polymodloader.game.version.GameVersionAdapter",
                 "dev.polymodloader.game.version.v26_2.Minecraft26_2Adapter\n");
-        write("poly-game-v26_2/build.gradle.kts", "description = \"Game layer for Minecraft 26.2\"\n");
-        write("poly-game-v26_2/src/main/java/dev/polymodloader/game/layer/v26_2/GameLayer26_2.java", "class GameLayer26_2 {}\n");
-        write("poly-game-v26_2/build/classes/Stale.class", "stale");
-        write("poly-game-v26_2/logs/latest.log", "log");
+        write("plexus-game-v26_2/build.gradle.kts", "description = \"Game layer for Minecraft 26.2\"\n");
+        write("plexus-game-v26_2/src/main/java/dev/polymodloader/game/layer/v26_2/GameLayer26_2.java", "class GameLayer26_2 {}\n");
+        write("plexus-game-v26_2/build/classes/Stale.class", "stale");
+        write("plexus-game-v26_2/logs/latest.log", "log");
 
         List<Path> created = VersionScaffolder.scaffold(root, "26.2", "26.3", 26);
 
         assertEquals(4, created.size());
         String adapter = Files.readString(root.resolve(
-                "poly-version-adapter-v26_3/src/main/java/dev/polymodloader/game/version/v26_3/Minecraft26_3Adapter.java"));
+                "plexus-version-adapter-v26_3/src/main/java/dev/polymodloader/game/version/v26_3/Minecraft26_3Adapter.java"));
         assertTrue(adapter.contains("package dev.polymodloader.game.version.v26_3;"), adapter);
         assertTrue(adapter.contains("Adapter for Minecraft 26.3, not 26.2.1 or 0.26.2; layer v26_3.GameLayer26_3"), adapter);
         assertTrue(adapter.contains("final class Minecraft26_3Adapter"), adapter);
@@ -54,11 +54,11 @@ class VersionScaffolderTest {
         assertEquals(
                 "dev.polymodloader.game.version.v26_3.Minecraft26_3Adapter\n",
                 Files.readString(root.resolve(
-                        "poly-version-adapter-v26_3/src/main/resources/META-INF/services/dev.polymodloader.game.version.GameVersionAdapter")));
+                        "plexus-version-adapter-v26_3/src/main/resources/META-INF/services/dev.polymodloader.game.version.GameVersionAdapter")));
         assertTrue(Files.exists(
-                root.resolve("poly-game-v26_3/src/main/java/dev/polymodloader/game/layer/v26_3/GameLayer26_3.java")));
-        assertFalse(Files.exists(root.resolve("poly-game-v26_3/build")));
-        assertFalse(Files.exists(root.resolve("poly-game-v26_3/logs")));
+                root.resolve("plexus-game-v26_3/src/main/java/dev/polymodloader/game/layer/v26_3/GameLayer26_3.java")));
+        assertFalse(Files.exists(root.resolve("plexus-game-v26_3/build")));
+        assertFalse(Files.exists(root.resolve("plexus-game-v26_3/logs")));
 
         MinecraftVersions versions = MinecraftVersions.read(root);
         assertEquals(List.of("26.2", "26.3"), versions.supported());
@@ -70,8 +70,8 @@ class VersionScaffolderTest {
     @Test
     void refusesUnknownSourcesAndExistingTargets() throws IOException {
         writeVersions("supported=26.2\ndefault=26.2\njava.26.2=25\n");
-        Files.createDirectories(root.resolve("poly-version-adapter-v26_2"));
-        Files.createDirectories(root.resolve("poly-game-v26_3"));
+        Files.createDirectories(root.resolve("plexus-version-adapter-v26_2"));
+        Files.createDirectories(root.resolve("plexus-game-v26_3"));
 
         assertThrows(IllegalArgumentException.class, () -> VersionScaffolder.scaffold(root, "26.1", "26.3", 25));
         assertThrows(IllegalArgumentException.class, () -> VersionScaffolder.scaffold(root, "26.2", "26.2", 25));
@@ -90,10 +90,10 @@ class VersionScaffolderTest {
         MinecraftVersions versions = MinecraftVersions.parse(properties);
 
         assertEquals(List.of("26.2", "26.3-snapshot-1"), versions.supported());
-        assertEquals("poly-game-v26_3_snapshot_1", MinecraftVersions.gameLayerModule("26.3-snapshot-1"));
+        assertEquals("plexus-game-v26_3_snapshot_1", MinecraftVersions.gameLayerModule("26.3-snapshot-1"));
         assertEquals("dev.polymodloader.game.layer.v26_2.GameLayer26_2", MinecraftVersions.gameLayerClass("26.2"));
-        assertEquals("26.3-snapshot-1", versions.versionOfModule("poly-game-v26_3_snapshot_1").orElseThrow());
-        assertTrue(versions.versionOfModule("poly-game-api").isEmpty());
+        assertEquals("26.3-snapshot-1", versions.versionOfModule("plexus-game-v26_3_snapshot_1").orElseThrow());
+        assertTrue(versions.versionOfModule("plexus-game-api").isEmpty());
 
         properties.setProperty("default", "27.1");
         assertThrows(IllegalArgumentException.class, () -> MinecraftVersions.parse(properties));
@@ -119,7 +119,7 @@ class VersionScaffolderTest {
         assertEquals("26.2", versions.modulesVersion("26.2"));
         assertEquals(25, versions.javaVersion("26.1.1"));
         // Hotfixes have no modules of their own.
-        assertTrue(versions.versionOfModule("poly-game-v26_1_1").isEmpty());
+        assertTrue(versions.versionOfModule("plexus-game-v26_1_1").isEmpty());
         assertThrows(org.gradle.api.GradleException.class, () -> versions.modulesVersion("26.1.3"));
 
         properties.setProperty("hotfixes.26.0", "26.0.1");
@@ -145,7 +145,7 @@ class VersionScaffolderTest {
         assertEquals(List.of("26.1", "26.2", "1.21.11"), versions.withModules());
         assertTrue(versions.isExperimental("1.21.11"));
         assertFalse(versions.isExperimental("26.2"));
-        assertEquals("1.21.11", versions.versionOfModule("poly-game-v1_21_11").orElseThrow());
+        assertEquals("1.21.11", versions.versionOfModule("plexus-game-v1_21_11").orElseThrow());
         assertEquals("1.21.11", versions.modulesVersion("1.21.11"));
         assertEquals(25, versions.javaVersion("1.21.11"));
 
@@ -159,8 +159,8 @@ class VersionScaffolderTest {
         assertThrows(IllegalArgumentException.class, () -> MinecraftVersions.parse(properties), "default must be supported");
 
         writeVersions("supported=26.2\ndefault=26.2\njava.26.2=25\n");
-        Files.createDirectories(root.resolve("poly-version-adapter-v26_2"));
-        Files.createDirectories(root.resolve("poly-game-v26_2"));
+        Files.createDirectories(root.resolve("plexus-version-adapter-v26_2"));
+        Files.createDirectories(root.resolve("plexus-game-v26_2"));
         VersionScaffolder.scaffold(root, "26.2", "1.21.11", 25, true);
         VersionScaffolder.addToVersionsFile(root.resolve(MinecraftVersions.FILE), "1.21.10", 25, true);
         MinecraftVersions scaffolded = MinecraftVersions.read(root);

@@ -91,7 +91,7 @@ Poly-Mod-Loader
 - Any game-specific interaction must go through `poly-game-api` or a specific version layer (`poly-game-v26_2`, etc.).
 
 ### 2) Pre-Flight Validation over Silent Failures
-- If foreign mod bytecode or Mixin declarations cannot be safely reconciled with the host loader's patches, report a structured error code (`POLY-COMPAT-...`) before launch.
+- If foreign mod bytecode or Mixin declarations cannot be safely reconciled with the host loader's patches, report a structured error code (`PLEXUS-COMPAT-...`) before launch.
 - Never wrap injectors in silent failsoft try-catch blocks that could cause world corruption later.
 
 ### 3) Spotless Java Formatting

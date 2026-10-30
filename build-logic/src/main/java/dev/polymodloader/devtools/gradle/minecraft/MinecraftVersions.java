@@ -50,8 +50,10 @@ public record MinecraftVersions(
     /** Gradle property that picks the version for one build, e.g. {@code -PpolyMinecraft=26.2}. */
     public static final String SELECT_PROPERTY = "polyMinecraft";
 
-    private static final String GAME_LAYER_PREFIX = "poly-game-v";
-    private static final String ADAPTER_PREFIX = "poly-version-adapter-v";
+    private static final String GAME_LAYER_PREFIX = "plexus-game-v";
+    private static final String LEGACY_GAME_LAYER_PREFIX = "poly-game-v";
+    private static final String ADAPTER_PREFIX = "plexus-version-adapter-v";
+    private static final String LEGACY_ADAPTER_PREFIX = "poly-version-adapter-v";
 
     public MinecraftVersions {
         supported = List.copyOf(supported);
@@ -279,6 +281,10 @@ public record MinecraftVersions(
             id = moduleName.substring(GAME_LAYER_PREFIX.length());
         } else if (moduleName.startsWith(ADAPTER_PREFIX)) {
             id = moduleName.substring(ADAPTER_PREFIX.length());
+        } else if (moduleName.startsWith(LEGACY_GAME_LAYER_PREFIX)) {
+            id = moduleName.substring(LEGACY_GAME_LAYER_PREFIX.length());
+        } else if (moduleName.startsWith(LEGACY_ADAPTER_PREFIX)) {
+            id = moduleName.substring(LEGACY_ADAPTER_PREFIX.length());
         } else {
             return Optional.empty();
         }

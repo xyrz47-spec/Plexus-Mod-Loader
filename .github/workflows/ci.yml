@@ -35,7 +35,7 @@ jobs:
       - name: build-logic tests
         run: ./gradlew.bat -p build-logic check --stacktrace
       - name: Installer jar
-        run: ./gradlew.bat :poly-installer:installerDistributions --stacktrace
+        run: ./gradlew.bat :plexus-installer:installerDistributions --stacktrace
       # The Gradle daemon keeps its cache lock files open, and setup-java cannot save a cache it cannot read.
       - name: Stop Gradle
         if: always()

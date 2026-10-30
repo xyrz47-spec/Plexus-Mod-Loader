@@ -25,10 +25,10 @@ import org.gradle.api.tasks.bundling.Zip;
 public final class ModTemplatePlugin implements Plugin<Project> {
 
     /** The template's folder in the repository. */
-    public static final String TEMPLATE_DIRECTORY = "templates/poly-mod-template";
+    public static final String TEMPLATE_DIRECTORY = "templates/plexus-mod-template";
 
     /** The template zip's base name and Maven artifact ID. */
-    public static final String TEMPLATE_ARTIFACT = "poly-mod-template";
+    public static final String TEMPLATE_ARTIFACT = "plexus-mod-template";
 
     private static final Pattern PLUGIN_VERSION = Pattern.compile("(id\\(\"dev\\.polymodloader\\.mod\"\\) version \")[^\"]*\"");
 

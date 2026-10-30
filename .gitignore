@@ -57,7 +57,7 @@ Thumbs.db
 /test-mods/
 /MinecraftFiles/
 /tools/
-/poly-bootstrap/compat/
+/plexus-bootstrap/compat/
 /.run/
 # Only the public CI workflow is tracked; the rest of .github/ stays private.
 /.github/*

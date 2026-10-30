@@ -29,12 +29,12 @@ import java.util.stream.Stream;
  * missing (purple and black) texture or a line in the log, without starting the game.
  *
  * <ul>
- *   <li>{@code POLY-RESOURCE-004}: a path Minecraft does not load (uppercase letters, spaces)
- *   <li>{@code POLY-RESOURCE-005}: a JSON file that does not parse
- *   <li>{@code POLY-RESOURCE-006}: an item definition, block state, or model parent naming a model the mod
+ *   <li>{@code PLEXUS-RESOURCE-004}: a path Minecraft does not load (uppercase letters, spaces)
+ *   <li>{@code PLEXUS-RESOURCE-005}: a JSON file that does not parse
+ *   <li>{@code PLEXUS-RESOURCE-006}: an item definition, block state, or model parent naming a model the mod
  *       does not have
- *   <li>{@code POLY-RESOURCE-007}: a model naming a texture the mod does not have
- *   <li>{@code POLY-RESOURCE-008}: a language file that is not an object of text values
+ *   <li>{@code PLEXUS-RESOURCE-007}: a model naming a texture the mod does not have
+ *   <li>{@code PLEXUS-RESOURCE-008}: a language file that is not an object of text values
  * </ul>
  *
  * <p>References are only checked inside the namespaces this mod has an {@code assets/<namespace>} folder
@@ -66,7 +66,7 @@ public final class ModResourceChecker {
             }
             if (!NAMESPACE.matcher(parts[1]).matches() || !PATH.matcher(parts[2]).matches()) {
                 problems.add(new ModResourceProblem(
-                        "POLY-RESOURCE-004",
+                        "PLEXUS-RESOURCE-004",
                         path,
                         "Minecraft only loads resource paths made of lowercase a-z, 0-9, _ . - and /, and skips"
                                 + " this file; rename it to " + suggestedPath(path)));
@@ -77,7 +77,7 @@ public final class ModResourceChecker {
                 try {
                     json.put(path, parse(Files.readString(file, StandardCharsets.UTF_8)));
                 } catch (JsonParseException | IllegalStateException e) {
-                    problems.add(new ModResourceProblem("POLY-RESOURCE-005", path, readableJsonError(e)));
+                    problems.add(new ModResourceProblem("PLEXUS-RESOURCE-005", path, readableJsonError(e)));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -182,14 +182,14 @@ public final class ModResourceChecker {
     private static void langValues(JsonElement json, String path, List<ModResourceProblem> problems) {
         if (!json.isJsonObject()) {
             problems.add(new ModResourceProblem(
-                    "POLY-RESOURCE-008", path, "a language file must be one JSON object of \"key\": \"text\""));
+                    "PLEXUS-RESOURCE-008", path, "a language file must be one JSON object of \"key\": \"text\""));
             return;
         }
         for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject().entrySet()) {
             JsonElement value = entry.getValue();
             if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
                 problems.add(new ModResourceProblem(
-                        "POLY-RESOURCE-008",
+                        "PLEXUS-RESOURCE-008",
                         path,
                         "the value of \"" + entry.getKey()
                                 + "\" is not text; the game rejects the whole file. Write it in quotes"));
@@ -246,11 +246,11 @@ public final class ModResourceChecker {
         }
 
         void model(String id, String from, List<ModResourceProblem> problems) {
-            resolve(id, "models/", ".json", "POLY-RESOURCE-006", "model", from, problems);
+            resolve(id, "models/", ".json", "PLEXUS-RESOURCE-006", "model", from, problems);
         }
 
         void texture(String id, String from, List<ModResourceProblem> problems) {
-            resolve(id, "textures/", ".png", "POLY-RESOURCE-007", "texture", from, problems);
+            resolve(id, "textures/", ".png", "PLEXUS-RESOURCE-007", "texture", from, problems);
         }
 
         private void resolve(

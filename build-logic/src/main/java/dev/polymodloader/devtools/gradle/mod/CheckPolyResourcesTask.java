@@ -52,7 +52,7 @@ public abstract class CheckPolyResourcesTask extends DefaultTask {
         if (!problems.isEmpty()) {
             throw new GradleException(problems.size() + (problems.size() == 1 ? " problem" : " problems")
                     + " in the mod's resources (src/main/resources and polyResources):\n  "
-                    + lines.replace("\n", "\n  ") + "\nError codes: POLY-RESOURCE in the Poly Mod Loader docs. Report: "
+                    + lines.replace("\n", "\n  ") + "\nError codes: PLEXUS-RESOURCE in the Poly Mod Loader docs. Report: "
                     + report);
         }
     }

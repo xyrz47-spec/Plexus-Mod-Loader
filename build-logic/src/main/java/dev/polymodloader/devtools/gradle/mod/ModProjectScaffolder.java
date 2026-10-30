@@ -134,8 +134,12 @@ public final class ModProjectScaffolder {
      *     and is not an empty directory
      */
     public static List<Path> scaffold(Path template, Path target, ModNames names) {
-        if (!Files.isRegularFile(template.resolve("src/main/resources/poly.mod.json"))) {
-            throw new IllegalArgumentException(template + " is not the Poly Mod Loader mod template");
+        Path metadata = template.resolve("src/main/resources/plexus.mod.json");
+        if (!Files.isRegularFile(metadata)) {
+            metadata = template.resolve("src/main/resources/poly.mod.json");
+        }
+        if (!Files.isRegularFile(metadata)) {
+            throw new IllegalArgumentException(template + " is not the Plexus Mod Loader mod template");
         }
         try {
             if (Files.exists(target) && (!Files.isDirectory(target) || !isEmpty(target))) {
@@ -174,9 +178,12 @@ public final class ModProjectScaffolder {
     public static List<Path> renameInPlace(Path project, ModNames names) {
         Path entryPoint = project.resolve(
                 "src/main/java/" + TEMPLATE_PACKAGE.replace('.', '/') + "/" + TEMPLATE_CLASS + ".java");
-        if (!Files.isRegularFile(project.resolve("src/main/resources/poly.mod.json"))
-                || !Files.isRegularFile(entryPoint)) {
-            throw new IllegalArgumentException(project + " is not an unchanged copy of the Poly Mod Loader mod template ("
+        Path metadata = project.resolve("src/main/resources/plexus.mod.json");
+        if (!Files.isRegularFile(metadata)) {
+            metadata = project.resolve("src/main/resources/poly.mod.json");
+        }
+        if (!Files.isRegularFile(metadata) || !Files.isRegularFile(entryPoint)) {
+            throw new IllegalArgumentException(project + " is not an unchanged copy of the Plexus Mod Loader mod template ("
                     + project.relativize(entryPoint).toString().replace('\\', '/')
                     + " is missing); it was renamed already, or is another project");
         }

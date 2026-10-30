@@ -50,11 +50,11 @@ Unlike external launcher wrappers (such as Prism, CurseForge App, or Modrinth Ap
 ### 1) True In-JVM Multi-Loader Concurrency
 Poly does not run separate games or heavy emulation layers. A single game classloader hosts Poly, Fabric, Forge, and NeoForge mod code simultaneously. Forge and NeoForge's FML services run inside Poly's managed layers, while Fabric and Quilt mods are driven through unified Mixin and ClassTweaker pipelines.
 
-### 2) Pre-flight Conflict & Patch Assessment (`POLY-COMPAT-224`)
+### 2) Pre-flight Conflict & Patch Assessment (`PLEXUS-COMPAT-224`)
 When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mixins fail because injection targets or local variable tables differ. Poly incorporates an automated **Host Patch Check (`HostPatchCheck`)**:
 - It inspects all mod mixins against the host's actual bytecode before launch.
 - If a mixin can be safely adapted (via parameter shifting, expression wrapping, or method retargeting), Poly rewrites the injection point on the fly (`HostPatchAdjustments`).
-- If an incompatible mixin is found, Poly isolates the conflicting mod before the JVM starts, outputting clear diagnostic codes (`POLY-COMPAT-224`) instead of crashing the game mid-launch.
+- If an incompatible mixin is found, Poly isolates the conflicting mod before the JVM starts, outputting clear diagnostic codes (`PLEXUS-COMPAT-224`) instead of crashing the game mid-launch.
 
 ### 3) Near-Zero Performance Overhead
 - **Startup Time & Memory:** Memory footprint and startup duration are within measurement noise compared to vanilla and host loaders.
@@ -72,8 +72,8 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 | **Quilt Mod Support** | Quilt Loader 0.31.x / `quilt.mod.json` | **Full** | 114+ Quilt-only Modrinth mods verified. |
 | **Forge Mod Support** | MinecraftForge 62.0.9 ~ 66.1.0 | **Full** | Verified on client, dedicated server, and GameTest servers. |
 | **NeoForge Mod Support** | NeoForge 26.1.0 ~ 26.3.0 | **Full** | Runs via unified FML layer; runs alongside Fabric/Quilt. |
-| **Fabric API on Forge** | Every Fabric API module of the 26.2 corpus | **Partial** | `corpusFabricForge` on 26.2 (2026-10-27): no Fabric API module is left out next to Forge; Architectury, Balm and Lithium still are (`POLY-COMPAT-224`): Forge replaced the spawn checks, the crop moisture read and parts of `Level.setBlock` they hook. |
-| **Fabric API on NeoForge** | 10 modules left out on 26.2 | **Partial** | `corpusFabricNeoForge` on 26.2 (2026-10-27): block, content-registries, crash-report-info, data-generation, entity-events, events-interaction, item, registry-sync, resource-conditions and transfer are left out (`POLY-COMPAT-224`). |
+| **Fabric API on Forge** | Every Fabric API module of the 26.2 corpus | **Partial** | `corpusFabricForge` on 26.2 (2026-10-27): no Fabric API module is left out next to Forge; Architectury, Balm and Lithium still are (`PLEXUS-COMPAT-224`): Forge replaced the spawn checks, the crop moisture read and parts of `Level.setBlock` they hook. |
+| **Fabric API on NeoForge** | 10 modules left out on 26.2 | **Partial** | `corpusFabricNeoForge` on 26.2 (2026-10-27): block, content-registries, crash-report-info, data-generation, entity-events, events-interaction, item, registry-sync, resource-conditions and transfer are left out (`PLEXUS-COMPAT-224`). |
 | **NeoForge Injection Points** | Every `NeoForgeInjectionPoints` entry | **Checked** | `NeoForgeInjectionPointsTest` against NeoForge 26.2.0.93's patched client and vanilla 26.2 (2026-10-27). The four 1.2.3 client entries named calls vanilla does not make; `openMenu` was corrected, the other three removed. |
 | **Custom Loading UI** | `PolyLoadingOverlay` | **Done** | Font corruption fix merged in 1.2.3; loader mod count overlay. |
 | **Bug Reporting Flow** | GitHub Issues Direct Route | **Done** | Exceptions & crash UI direct users to official issue tracker. |
@@ -84,7 +84,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 
 ### Milestone A: Client-Side & NeoForge Fabric API Adaptation (In Progress)
 - **Done (2026-10-27):** the NeoForge injection points are checked against NeoForge's patched client (`NeoForgeInjectionPointsTest`), and the Fabric API modules left out next to Forge (none) and NeoForge (10) were measured on 26.2.
-- **`fabric-registry-sync-v0` next to NeoForge:** now the module that keeps the most others out; `fabric-menu-api-v1` no longer meets NeoForge's patch, but needs its `RegistryEntryAddedCallback` (`POLY-COMPAT-111`).
+- **`fabric-registry-sync-v0` next to NeoForge:** now the module that keeps the most others out; `fabric-menu-api-v1` no longer meets NeoForge's patch, but needs its `RegistryEntryAddedCallback` (`PLEXUS-COMPAT-111`).
 - **`fabric-screen-api-v1`:** Retarget `GuiMixin:onExtractGui` for NeoForge client UI mods (`ModMenu`, etc.). NeoForge's `Gui.extractRenderState` no longer calls `Screen.extractRenderStateWithTooltipAndSubtitles`; find where it moved before adding a point.
 - **`fabric-data-attachment-api-v1`:** Integrate NeoForge's `AttachmentType` extensions.
 - **Rendering & Model Modules:** Adapt `fabric-renderer-api-v1`, `fabric-rendering-v1`, and `fabric-model-loading-api-v1` for client-side shaders and resource packs.
@@ -113,7 +113,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 ### 2. 핵심 기술
 1. **단일 JVM 멀티로더 공존:**
    별도의 가상머신 분리 없이 단일 클래스로더 상에서 FML(Forge/NeoForge) 모듈 레이어와 Fabric/Quilt Mixin 파이프라인을 완벽히 통합 구동합니다.
-2. **사전 호환성 정밀 진단 (`POLY-COMPAT-224`):**
+2. **사전 호환성 정밀 진단 (`PLEXUS-COMPAT-224`):**
    게임이 켜진 후 알 수 없는 오류로 튕기는 대신, 시작 전 단계에서 호스트 로더의 바이트코드 패치와 모드의 주입점을 전수 대조하여 호환되지 않는 모드를 사전에 식별하고 명확한 진단 코드를 제공합니다.
 3. **바이트코드 동적 적응 (`HostPatchAdjustments`):**
    Forge나 NeoForge가 바닐라 메서드를 변경한 경우, Fabric API 모듈들의 주입점을 런타임에 올바른 대체 지점으로 자동 연결합니다.
