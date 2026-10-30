@@ -88,8 +88,8 @@ You need JDK 25 and Git. The first build automatically downloads Minecraft from 
 git clone https://github.com/xyrz47-spec/Plexus-Mod-Loader.git polymodloader
 cd polymodloader
 .\gradlew.bat check                                   # compile, format check, tests
-.\gradlew.bat :poly-installer:installerDistributions  # installers (poly-installer/build/distributions/)
-.\gradlew.bat :poly-bootstrap:runClient               # development client
+.\gradlew.bat :plexus-installer:installerDistributions  # installers (plexus-installer/build/distributions/)
+.\gradlew.bat :plexus-bootstrap:runClient               # development client
 ```
 
 On macOS and Linux use `./gradlew`. Comprehensive module architecture, verification tasks, and contribution guidelines are detailed in **[DEVELOPING.md](DEVELOPING.md)** and **[ARCHITECTURE.md](ARCHITECTURE.md)**.
@@ -171,8 +171,8 @@ JDK 25와 Git이 필요합니다. 첫 빌드 시 Mojang 공식 서버에서 마�
 git clone https://github.com/xyrz47-spec/Plexus-Mod-Loader.git polymodloader
 cd polymodloader
 .\gradlew.bat check                                   # 컴파일, 포맷 검사, 테스트
-.\gradlew.bat :poly-installer:installerDistributions  # 설치 파일 (poly-installer/build/distributions/)
-.\gradlew.bat :poly-bootstrap:runClient               # 개발용 클라이언트 실행
+.\gradlew.bat :plexus-installer:installerDistributions  # 설치 파일 (plexus-installer/build/distributions/)
+.\gradlew.bat :plexus-bootstrap:runClient               # 개발용 클라이언트 실행
 ```
 
 macOS 및 Linux에서는 `./gradlew`를 사용합니다. 상세한 모듈 아키텍처 및 기여 가이드는 **[DEVELOPING.md](DEVELOPING.md)** 및 **[ARCHITECTURE.md](ARCHITECTURE.md)**, 그리고 프로젝트 진행 현황은 **[PROJECT.md](PROJECT.md)**를 참고하세요.

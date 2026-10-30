@@ -9,7 +9,7 @@
 | 플러그인 ID | 적용 대상 | 기능 |
 | :--- | :--- | :--- |
 | **`poly.java-conventions`** | 전체 하위 모듈 | Java 25 툴체인 설정, UTF-8 인코딩, Spotless 포맷팅 규칙 일괄 적용 |
-| **`poly.minecraft-dev`** | `poly-bootstrap` | Mojang 서버로부터 마인크래프트 클라이언트/서버 jar 및 라이브러리 다운로드, SHA-1 무결성 검증, 실행·게임 테스트 작업(`runClient`, `serverBootSmokeTest` 등) |
+| **`poly.minecraft-dev`** | `plexus-bootstrap` | Mojang 서버로부터 마인크래프트 클라이언트/서버 jar 및 라이브러리 다운로드, SHA-1 무결성 검증, 실행·게임 테스트 작업(`runClient`, `serverBootSmokeTest` 등) |
 | **`poly.minecraft-compile`** | `poly-game-*` | 모듈 이름의 마인크래프트 버전 jar와 라이브러리를 `compileOnly`로 붙이고 그 버전의 Java로 컴파일 |
 | **`poly.minecraft-versions`** | 루트 프로젝트 | `gradle/minecraft-versions.properties` 검사, `newMinecraftVersion`·`minecraftVersionDiff`·`remapMinecraft` 작업 |
 | **`poly.mod-template`** | 루트 프로젝트 | 신규 Native 모드 프로젝트 템플릿 생성(`newPolyMod`) 및 배포 패키징 |

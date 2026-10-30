@@ -1,6 +1,6 @@
-# poly-bridge-forge — MinecraftForge & NeoForge Compatibility Bridge
+# plexus-bridge-forge — MinecraftForge & NeoForge Compatibility Bridge
 
-`poly-bridge-forge`는 **MinecraftForge**와 **NeoForge** 모드를 Poly Mod Loader의 단일 JVM 런타임 위에서 가상화하고, Fabric 및 Quilt 모드와 공존할 수 있도록 바이트코드와 FML 서비스 계층을 조율하는 핵심 호환성 브릿지 모듈입니다.
+`plexus-bridge-forge`는 **MinecraftForge**와 **NeoForge** 모드를 Poly Mod Loader의 단일 JVM 런타임 위에서 가상화하고, Fabric 및 Quilt 모드와 공존할 수 있도록 바이트코드와 FML 서비스 계층을 조율하는 핵심 호환성 브릿지 모듈입니다.
 
 ---
 
@@ -50,19 +50,19 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
 
 ```powershell
 # 단위 테스트 및 주입점 대체 규칙 검증
-.\gradlew.bat :poly-bridge-forge:check
+.\gradlew.bat :plexus-bridge-forge:check
 
 # Forge 26.2 + Poly 네이티브 모드 통합 게임 테스트
-.\gradlew.bat :poly-bootstrap:forgeGameTest
+.\gradlew.bat :plexus-bootstrap:forgeGameTest
 
 # NeoForge 26.2 + 네이티브 모드 헤드리스 게임 테스트
-.\gradlew.bat :poly-bootstrap:neoForgeGameTest
+.\gradlew.bat :plexus-bootstrap:neoForgeGameTest
 
 # Forge + Fabric 복합 인기 모드 묶음(Corpus) 헤드리스 검증
-.\gradlew.bat :poly-bootstrap:corpusFabricForge
+.\gradlew.bat :plexus-bootstrap:corpusFabricForge
 ```
 
-`poly-bootstrap`의 작업들은 `test-mods/`(와 모드 묶음 목록 `poly-bootstrap/compat/`)가 필요해서, 이 공개 저장소에서는 실행되지 않습니다.
+`plexus-bootstrap`의 작업들은 `test-mods/`(와 모드 묶음 목록 `plexus-bootstrap/compat/`)가 필요해서, 이 공개 저장소에서는 실행되지 않습니다.
 
 ---
 

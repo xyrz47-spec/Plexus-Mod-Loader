@@ -2451,7 +2451,7 @@ if (minecraft == "26.2") {
             group = "verification"
             description = "Installs a real NeoForge $neoForgeReference dedicated server with NeoForge's own installer (network), for the Connector benchmark."
             neoForgeVersion = neoForgeReference
-            // The installer Poly Mod Loader itself checks for 26.2 (poly-bridge-forge, neoforge-releases.properties).
+            // The installer Poly Mod Loader itself checks for 26.2 (plexus-bridge-forge, neoforge-releases.properties).
             installerSha1 = "97205829a020fc9389f504a77f590b54157c8dde"
             javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
             serverDirectory.set(layout.buildDirectory.dir("poly/neoforge-reference/$neoForgeReference/server"))

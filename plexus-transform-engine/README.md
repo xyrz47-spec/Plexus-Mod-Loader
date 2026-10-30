@@ -1,6 +1,6 @@
-# poly-transform-engine — High-Performance ASM Bytecode Transformation Engine
+# plexus-transform-engine — High-Performance ASM Bytecode Transformation Engine
 
-`poly-transform-engine`는 `poly-transform-api`에 정의된 선언적 변환 규칙을 바탕으로, 실제 마인크래프트 클래스 바이트코드를 파싱·검증·변환하고 디스크에 캐싱하는 고성능 ASM 기반 엔진입니다.
+`plexus-transform-engine`는 `plexus-transform-api`에 정의된 선언적 변환 규칙을 바탕으로, 실제 마인크래프트 클래스 바이트코드를 파싱·검증·변환하고 디스크에 캐싱하는 고성능 ASM 기반 엔진입니다.
 
 ---
 
@@ -52,7 +52,7 @@
 ## 3. 검증 및 테스트 (Gradle Tasks)
 
 ```powershell
-.\gradlew.bat :poly-transform-engine:check
+.\gradlew.bat :plexus-transform-engine:check
 ```
 
 - **`ClassTransformPlannerTest`**: 정상 변환, 정적 훅 교체, 디스크립터 불일치, ABORT 정책, 중복 ID, 버전 필터링 등 13종 테스트.

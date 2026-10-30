@@ -1,6 +1,6 @@
-# poly-bridge-fabric — Fabric & Quilt Compatibility Bridge
+# plexus-bridge-fabric — Fabric & Quilt Compatibility Bridge
 
-`poly-bridge-fabric`는 **Fabric** 모드와 **Quilt** 모드를 Poly Mod Loader 위에서 실제 Fabric Loader / Quilt Loader와 100% 동일한 의미론과 런타임 신뢰성으로 구동할 수 있도록 지원하는 브릿지 모듈입니다.
+`plexus-bridge-fabric`는 **Fabric** 모드와 **Quilt** 모드를 Poly Mod Loader 위에서 실제 Fabric Loader / Quilt Loader와 100% 동일한 의미론과 런타임 신뢰성으로 구동할 수 있도록 지원하는 브릿지 모듈입니다.
 
 ---
 
@@ -50,16 +50,16 @@
 
 ```powershell
 # 단위 테스트 및 Quilt API 링크 검증
-.\gradlew.bat :poly-bridge-fabric:check
+.\gradlew.bat :plexus-bridge-fabric:check
 
 # 실제 26.2 서버 환경에서 Mixin, MixinExtras, 인터페이스 주입 검증
-.\gradlew.bat :poly-bootstrap:fabricMixin
+.\gradlew.bat :plexus-bootstrap:fabricMixin
 
 # 대규모 실전 인기 Fabric 모드 묶음(Corpus) 헤드리스 검증
-.\gradlew.bat :poly-bootstrap:corpusFabric
+.\gradlew.bat :plexus-bootstrap:corpusFabric
 ```
 
-`poly-bootstrap`의 작업들은 `test-mods/`(와 모드 묶음 목록 `poly-bootstrap/compat/`)가 필요해서, 이 공개 저장소에서는 실행되지 않습니다.
+`plexus-bootstrap`의 작업들은 `test-mods/`(와 모드 묶음 목록 `plexus-bootstrap/compat/`)가 필요해서, 이 공개 저장소에서는 실행되지 않습니다.
 
 ---
 

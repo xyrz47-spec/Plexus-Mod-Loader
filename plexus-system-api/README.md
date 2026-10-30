@@ -1,4 +1,4 @@
-# poly-system-api
+# plexus-system-api
 
 ## 이 모듈이 하는 일
 교체 가능한 Poly 모드 로더 시스템의 공개 계약을 정의합니다. 시스템 ID, 제공자, 조회, 그리고 첫 시스템 `poly:game_brand`의 계약이 있습니다.
@@ -7,17 +7,17 @@
 `dev.plexusmodloader.api.system`(`SystemId`, `PolySystem`, `SystemProvider`, `SystemContext`, `SystemLookup`), `...system.brand.GameBrandSystem`
 
 ## 무엇을 하지 않는가
-교체를 결정하거나 구현체를 만들지 않습니다(그것은 `poly-system-registry`). Minecraft 타입을 노출하지 않습니다.
+교체를 결정하거나 구현체를 만들지 않습니다(그것은 `plexus-system-registry`). Minecraft 타입을 노출하지 않습니다.
 
 ## 의존성
-`poly-runtime-api`(api)
+`plexus-runtime-api`(api)
 
 ## 주요 진입점
 모드: `SystemProvider<T>`를 구현하고 `poly.mod.json`의 `replacesSystems`에 선언합니다. 조회는 `ModContext.systems().get(Contract.class)`로 합니다.
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-system-api:check
+.\gradlew.bat :plexus-system-api:check
 ```
 
 ## 대표 흐름

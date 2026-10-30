@@ -13,7 +13,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 /**
- * Compiles a version module ({@code poly-game-v<id>}, ADR-0011) against the Minecraft client jar of
+ * Compiles a version module ({@code plexus-game-v<id>}, ADR-0011) against the Minecraft client jar of
  * the version in its name and that jar's libraries (ADR-0010). Minecraft 26.x
  * ships unobfuscated, so the downloaded jar is used as is; it is added as {@code compileOnly} and is
  * therefore never packaged or published. The client jar is used because it contains the server

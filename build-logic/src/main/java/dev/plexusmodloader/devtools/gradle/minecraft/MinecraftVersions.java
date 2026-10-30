@@ -19,8 +19,8 @@ import org.gradle.api.Project;
 /**
  * The Minecraft versions a Poly Mod Loader build supports, read from {@code gradle/minecraft-versions.properties}
  * (ADR-0011): the list, the default version, the Java version each one runs on, and the hotfixes each
- * one's modules also run. Version modules are named {@code poly-version-adapter-v<id>} and {@code
- * poly-game-v<id>} with {@link #moduleId}.
+ * one's modules also run. Version modules are named {@code plexus-version-adapter-v<id>} and {@code
+ * plexus-game-v<id>} with {@link #moduleId}.
  *
  * <p>A hotfix ({@code hotfixes.<version>}) has no modules of its own: its game jar runs on the modules of
  * the version it is listed under, whose adapter lists it in {@code GameVersionAdapter.gameVersions()}.
@@ -51,9 +51,9 @@ public record MinecraftVersions(
     public static final String SELECT_PROPERTY = "polyMinecraft";
 
     private static final String GAME_LAYER_PREFIX = "plexus-game-v";
-    private static final String LEGACY_GAME_LAYER_PREFIX = "poly-game-v";
+    private static final String LEGACY_GAME_LAYER_PREFIX = "plexus-game-v";
     private static final String ADAPTER_PREFIX = "plexus-version-adapter-v";
-    private static final String LEGACY_ADAPTER_PREFIX = "poly-version-adapter-v";
+    private static final String LEGACY_ADAPTER_PREFIX = "plexus-version-adapter-v";
 
     public MinecraftVersions {
         supported = List.copyOf(supported);
@@ -193,12 +193,12 @@ public record MinecraftVersions(
         return version.replace('.', '_').replace('-', '_');
     }
 
-    /** The game layer module of {@code version}, e.g. {@code poly-game-v26_2}. */
+    /** The game layer module of {@code version}, e.g. {@code plexus-game-v26_2}. */
     public static String gameLayerModule(String version) {
         return GAME_LAYER_PREFIX + moduleId(version);
     }
 
-    /** The version adapter module of {@code version}, e.g. {@code poly-version-adapter-v26_2}. */
+    /** The version adapter module of {@code version}, e.g. {@code plexus-version-adapter-v26_2}. */
     public static String adapterModule(String version) {
         return ADAPTER_PREFIX + moduleId(version);
     }
@@ -262,7 +262,7 @@ public record MinecraftVersions(
     }
 
     /**
-     * The version a version module ({@code poly-game-v<id>} or {@code poly-version-adapter-v<id>}) is
+     * The version a version module ({@code plexus-game-v<id>} or {@code plexus-version-adapter-v<id>}) is
      * for, found from its name.
      */
     public String ofModule(Project project) {

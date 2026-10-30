@@ -33,7 +33,7 @@ public abstract class MinecraftVersionDiffTask extends DefaultTask {
     @Input
     public abstract Property<String> getTo();
 
-    /** The compiled classes of {@code poly-version-adapter-v<id>} and {@code poly-game-v<id>}. */
+    /** The compiled classes of {@code plexus-version-adapter-v<id>} and {@code plexus-game-v<id>}. */
     @Internal
     public abstract ConfigurableFileCollection getModuleClasses();
 

@@ -6,7 +6,7 @@ Poly 모드를 새로 시작하기 위한 독립 Gradle 프로젝트입니다.
 
 모드 ID, 이름, Java 패키지, 엔트리포인트 클래스, 프로젝트 이름을 한 번에 바꾸는 방법이 두 가지입니다.
 
-**Poly 모드 로더 저장소 없이:** `https://www.polymc.net/maven/`에서 `poly-mod-template-<버전>.zip`을 다운로드해 압축을 풀고, 그 폴더에서 실행합니다.
+**Poly 모드 로더 저장소 없이:** `https://www.polymc.net/maven/`에서 `plexus-mod-template-<버전>.zip`을 다운로드해 압축을 풀고, 그 폴더에서 실행합니다.
 
 ```powershell
 .\gradlew.bat initPolyMod -PmodId=ruby_mod "-PmodName=Ruby Mod" "-PmodPackage=io.github.you.ruby"

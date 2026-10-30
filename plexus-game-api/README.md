@@ -1,6 +1,6 @@
-# poly-game-api — Clean Native Game Abstraction Layer
+# plexus-game-api — Clean Native Game Abstraction Layer
 
-`poly-game-api`는 마인크래프트 원본 클래스를 직접 노출하지 않고, 블록·아이템·엔티티·명령어·네트워킹·클라이언트 렌더링 기능을 다룰 수 있도록 제공하는 **Poly 전용 Native API** 인터페이스 모듈입니다.
+`plexus-game-api`는 마인크래프트 원본 클래스를 직접 노출하지 않고, 블록·아이템·엔티티·명령어·네트워킹·클라이언트 렌더링 기능을 다룰 수 있도록 제공하는 **Poly 전용 Native API** 인터페이스 모듈입니다.
 
 ---
 
@@ -35,8 +35,8 @@
 
 ```powershell
 # 단위 테스트 실행
-.\gradlew.bat :poly-game-api:check
+.\gradlew.bat :plexus-game-api:check
 
 # 실제 게임 런타임에서 Native API 모드 통합 테스트
-.\gradlew.bat :poly-bootstrap:nativeApiGameTests
+.\gradlew.bat :plexus-bootstrap:nativeApiGameTests
 ```

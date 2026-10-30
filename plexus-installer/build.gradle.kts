@@ -43,7 +43,7 @@ val providedByMinecraft = setOf(
 val polyModLoaderVersion = version.toString()
 val polyGroup = group.toString()
 val supportedMinecraft = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).runnable()
-// poly-bootstrap carries an experimental version's adapter when the build runs it (ADR-0019); players never get it.
+// plexus-bootstrap carries an experimental version's adapter when the build runs it (ADR-0019); players never get it.
 val runsExperimental = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).let {
     it.isExperimental(it.modulesVersion(it.selected(project)))
 }

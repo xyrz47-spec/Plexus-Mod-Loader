@@ -1,6 +1,6 @@
-# poly-game-v26_2 — Minecraft 26.2 Game Implementation Layer
+# plexus-game-v26_2 — Minecraft 26.2 Game Implementation Layer
 
-`poly-game-v26_2`는 Minecraft 26.2 버전에 직접 바인딩되어, `poly-game-api`의 Native API 선언을 실제 마인크래프트 게임 엔진 객체로 인스턴스화하고 바이트코드 훅(Hook)과 커스텀 렌더링 UI를 실행하는 게임 레이어 모듈입니다.
+`plexus-game-v26_2`는 Minecraft 26.2 버전에 직접 바인딩되어, `plexus-game-api`의 Native API 선언을 실제 마인크래프트 게임 엔진 객체로 인스턴스화하고 바이트코드 훅(Hook)과 커스텀 렌더링 UI를 실행하는 게임 레이어 모듈입니다.
 
 ---
 
@@ -19,7 +19,7 @@
 ### 3) 로딩 화면과 창 제목 (`PlexusLoadingOverlay`, `PlexusWindowTitle`)
 - 게임의 로딩 화면(`LoadingOverlay`)은 그대로 둡니다(Mojang 빨간 배경 또는 단색 로고 설정의 검은 배경, Mojang Studios 로고, 진행 막대, 페이드). `poly:client_loading_overlay`가 `extractRenderState` 끝에서 Poly 표시를 같은 페이드로 덧그립니다: 오른쪽 아래의 회전하는 금색 큐브(`poly_cube.png`, 32×32 프레임 24개)와 `POLY MOD LOADER`, 진행 막대 아래의 로더별 모드 수(`MODS: FABRIC 34 · NEOFORGE 53`).
 - 글자는 게임 글꼴이 아니라 5×7 픽셀 글자로 그립니다. MinecraftForge의 첫 로딩 화면은 게임이 글꼴을 읽기 전입니다.
-- MinecraftForge의 `ForgeLoadingOverlay`도 같은 화면을 그리므로 같은 표시가 붙습니다. Forge·NeoForge 초기 로딩 창의 큐브와 제목은 `poly-bridge-forge`의 `EarlyScreenArt`, `EarlyWindowTitle`이 맡습니다.
+- MinecraftForge의 `ForgeLoadingOverlay`도 같은 화면을 그리므로 같은 표시가 붙습니다. Forge·NeoForge 초기 로딩 창의 큐브와 제목은 `plexus-bridge-forge`의 `EarlyScreenArt`, `EarlyWindowTitle`이 맡습니다.
 - `poly:client_window_title`: 창 제목을 로더와 상관없이 `Minecraft* Poly 26.2`(뒤의 ` - Singleplayer` 등은 게임 그대로)로 씁니다.
 
 ---
@@ -36,8 +36,8 @@
 
 ```powershell
 # 변환 규칙 무결성 검증 (BuiltInRulesTest)
-.\gradlew.bat :poly-game-v26_2:check
+.\gradlew.bat :plexus-game-v26_2:check
 
 # 26.2 게임 런타임 네이티브 API 통합 테스트
-.\gradlew.bat :poly-bootstrap:nativeApiGameTests
+.\gradlew.bat :plexus-bootstrap:nativeApiGameTests
 ```

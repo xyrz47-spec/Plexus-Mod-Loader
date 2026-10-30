@@ -1,4 +1,4 @@
-# poly-version-adapter-v1_21_11
+# plexus-version-adapter-v1_21_11
 
 ## 이 모듈이 하는 일
 Minecraft 1.21.11 전용 지식을 담습니다. 클라이언트/서버 진입점과 내장 변환 규칙(브랜드, 타이틀 화면 모드 수, 레지스트리·페이로드 처리, Native API 이벤트 훅 등 수십 개)이 있습니다.
@@ -10,14 +10,14 @@ Minecraft 1.21.11 전용 지식을 담습니다. 클라이언트/서버 진입�
 다른 버전을 지원하지 않습니다. 이 모듈 밖에 Minecraft 이름을 두지 않습니다.
 
 ## 의존성
-`poly-version-adapter-api`. Minecraft jar에는 컴파일 의존하지 않습니다. 이름은 `javap`로 검증한 문자열입니다.
+`plexus-version-adapter-api`. Minecraft jar에는 컴파일 의존하지 않습니다. 이름은 `javap`로 검증한 문자열입니다.
 
 ## 주요 진입점
 `Minecraft1_21_11Adapter`
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-bootstrap:serverBootSmokeTest
+.\gradlew.bat :plexus-bootstrap:serverBootSmokeTest
 ```
 
 실제 1.21.11에서 규칙 승인과 적용을 확인합니다(`serverBootSmokeTest -PpolyMinecraft=1.21.11`). 클라이언트는 아직 실행하지 않았습니다.
@@ -25,11 +25,11 @@ Minecraft 1.21.11 전용 지식을 담습니다. 클라이언트/서버 진입�
 ## 대표 흐름
 `poly:client_brand`(CLIENT)와 `poly:server_brand`(양쪽)가 `"vanilla"`를 `"poly"`로 바꿉니다. 실패 정책은 DISABLE_RULE입니다.
 
-`poly:client_title_mod_counts`(CLIENT, DISABLE_RULE)는 타이틀 화면 `TitleScreen.extractRenderState`가 버전 글자를 그리는 유일한 `GuiGraphicsExtractor.text(Font, String, int, int, int)` 호출을 게임 계층의 `client.TitleScreenModCounts.onVersionText`로 바꿉니다(`RedirectCall`, ADR-0013). 훅은 그 줄을 그리고 그 위에 로더별 모드 수를 그립니다. MinecraftForge의 패치에는 이 호출이 없어서 Forge에서는 이 규칙이 꺼지고, `poly-bridge-forge`의 `poly:client_title_mod_counts_forge`가 대신 Forge 브랜딩 위에 그립니다.
+`poly:client_title_mod_counts`(CLIENT, DISABLE_RULE)는 타이틀 화면 `TitleScreen.extractRenderState`가 버전 글자를 그리는 유일한 `GuiGraphicsExtractor.text(Font, String, int, int, int)` 호출을 게임 계층의 `client.TitleScreenModCounts.onVersionText`로 바꿉니다(`RedirectCall`, ADR-0013). 훅은 그 줄을 그리고 그 위에 로더별 모드 수를 그립니다. MinecraftForge의 패치에는 이 호출이 없어서 Forge에서는 이 규칙이 꺼지고, `plexus-bridge-forge`의 `poly:client_title_mod_counts_forge`가 대신 Forge 브랜딩 위에 그립니다.
 
 ## 26.1과 다른 점
 
-**실험 버전입니다**(ADR-0019). `poly-version-adapter-v26_1`을 복사했습니다. 다시 매핑한 1.21.11 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음과 같습니다.
+**실험 버전입니다**(ADR-0019). `plexus-version-adapter-v26_1`을 복사했습니다. 다시 매핑한 1.21.11 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음과 같습니다.
 
 - `poly:use_entity`: `Player.interactOn(Entity, InteractionHand)`
 - `poly:client_hud`: `Gui.render`

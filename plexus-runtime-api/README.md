@@ -1,6 +1,6 @@
-# poly-runtime-api — Public Runtime Contracts & Stability Markers
+# plexus-runtime-api — Public Runtime Contracts & Stability Markers
 
-`poly-runtime-api`는 모든 Poly Mod Loader 공개 API와 네이티브 모드가 공통으로 의존하는 최상위 계약 및 안정성 지시자를 정의하는 순수 자바(Pure Java) 기본 모듈입니다.
+`plexus-runtime-api`는 모든 Poly Mod Loader 공개 API와 네이티브 모드가 공통으로 의존하는 최상위 계약 및 안정성 지시자를 정의하는 순수 자바(Pure Java) 기본 모듈입니다.
 
 ---
 
@@ -32,5 +32,5 @@
 ## 3. 검증 및 빌드
 
 ```powershell
-.\gradlew.bat :poly-runtime-api:check
+.\gradlew.bat :plexus-runtime-api:check
 ```

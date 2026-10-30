@@ -28,13 +28,13 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  * The mechanism behind Forge mods in an installed Poly Mod Loader (ADR-0024), in child JVMs started the two ways an
- * installation starts Poly Mod Loader: the launcher profile's {@code -javaagent:<poly-bootstrap jar>}, and the server's
+ * installation starts Poly Mod Loader: the launcher profile's {@code -javaagent:<plexus-bootstrap jar>}, and the server's
  * {@code java -jar polymodloader-server.jar}, a manifest-only jar with {@code Launcher-Agent-Class} whose agent class
  * comes from its {@code Class-Path}. A probe appends Forge's four file system jars through {@link SystemClassPathAgent}
  * and lists the file systems Java knows.
  *
- * <p>Needs {@code poly.agentJar} (the built poly-bootstrap jar) and {@code poly.forgeFileSystemJars} (securemodules,
- * unsafe, JarJarFileSystems and roimfs, separated by the path separator); {@code :poly-bootstrap:test} passes both.
+ * <p>Needs {@code poly.agentJar} (the built plexus-bootstrap jar) and {@code poly.forgeFileSystemJars} (securemodules,
+ * unsafe, JarJarFileSystems and roimfs, separated by the path separator); {@code :plexus-bootstrap:test} passes both.
  */
 @EnabledIfSystemProperty(named = "poly.agentJar", matches = ".+")
 class SystemClassPathAgentTest {

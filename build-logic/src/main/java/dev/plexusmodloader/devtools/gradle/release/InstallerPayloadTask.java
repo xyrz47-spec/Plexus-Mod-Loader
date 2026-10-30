@@ -35,7 +35,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Writes what the end-user installer ({@code poly-installer}) installs: the Poly Mod Loader runtime jars in the
+ * Writes what the end-user installer ({@code plexus-installer}) installs: the Poly Mod Loader runtime jars in the
  * Minecraft Launcher's {@code libraries/} layout below {@code META-INF/polymodloader/libraries/} and the index
  * {@code META-INF/polymodloader/installer.json} (version, supported Minecraft versions, main class, and each jar's
  * coordinates, path, SHA-1 and size). With {@link #getAgentLibrary()} and {@link #getAgentClass()} the index also names

@@ -1,4 +1,4 @@
-# poly-fabric-api-neoforge-v26_2 — NeoForge 26.2용 Fabric API 호스트 모듈
+# plexus-fabric-api-neoforge-v26_2 — NeoForge 26.2용 Fabric API 호스트 모듈
 
 Poly Mod Loader의 Mixin 브리지로도 NeoForge 옆에서 원래대로 실행할 수 없는 Fabric API 모듈을 위해, `NeoForge 26.2.0.93`의 훅 위에서 동작하는 자체 Fabric API 구현체("호스트 모듈", `ADR-0031`)를 빌드합니다.
 
@@ -24,7 +24,7 @@ Poly Mod Loader의 Mixin 브리지로도 NeoForge 옆에서 원래대로 실행�
 - NeoForge 훅에 맞춘 구현 소스 코드: `fabric-block-api-v1` 및 `fabric-item-api-v1` 구현 코드(`net.fabricmc.fabric.api.block.v1.*`, `net.fabricmc.fabric.api.item.v1.*`, `net.fabricmc.fabric.api.client.item.v1.*`, `net.fabricmc.fabric.impl.*`, `net.fabricmc.fabric.mixin.*`).
 - Gradle 빌드 작업: `installNeoForgeClient`, `<sourceSet>CompileGame`, `<sourceSet>Jar`, `hostModuleIndex`, `hostModuleResources`.
 - 빌드 산출물 jar(`META-INF/polymodloader/host-modules/neoforge-26.2.0.93/` 아래의 `fabric-block-api-v1-3.1.0+poly.neoforge.26.2.jar`, `fabric-item-api-v1-14.5.0+poly.neoforge.26.2.jar`)와 색인 파일 `META-INF/polymodloader/host-modules.properties`(`neoforge-26.2.0.93.fabric-block-api-v1`, `neoforge-26.2.0.93.fabric-item-api-v1` 키).
-- `poly-bridge-fabric`에 산출물을 전달하는 소모성 구성 `hostModuleElements`.
+- `plexus-bridge-fabric`에 산출물을 전달하는 소모성 구성 `hostModuleElements`.
 
 ## 무엇을 하지 않는가
 - NeoForge가 없거나 다른 NeoForge 릴리스에서는 아무것도 하지 않습니다.
@@ -48,18 +48,18 @@ Poly Mod Loader의 Mixin 브리지로도 NeoForge 옆에서 원래대로 실행�
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-fabric-api-neoforge-v26_2:jar
-.\gradlew.bat :poly-bootstrap:neoForgeFabricApiGameTest
-.\gradlew.bat :poly-bootstrap:corpusFabricNeoForge
+.\gradlew.bat :plexus-fabric-api-neoforge-v26_2:jar
+.\gradlew.bat :plexus-bootstrap:neoForgeFabricApiGameTest
+.\gradlew.bat :plexus-bootstrap:corpusFabricNeoForge
 ```
-- `.\gradlew.bat :poly-fabric-api-neoforge-v26_2:jar`: 호스트 모듈 jar를 빌드합니다.
-- `.\gradlew.bat :poly-bootstrap:neoForgeFabricApiGameTest`: `fabric_api_events` 테스트 모드가 블록 API 출력(`FabricBlockState.getAppearance(minecraft:stone) = minecraft:stone`, `FabricBlockState.getProvidedEnchantmentPower(minecraft:bookshelf) = 1.0`) 및 아이템 API 출력(`enchanting table offers minecraft:sharpness for minecraft:diamond_sword: false`, `enchanting table offers minecraft:sharpness for minecraft:iron_sword: true`, `default max stack size of minecraft:stick: 16`)을 출력하는지 확인합니다. 이는 Fabric 단독 실행인 `fabricApiGameTest` 및 `forgeFabricApiGameTest`와 동일한 출력입니다.
-- `.\gradlew.bat :poly-bootstrap:corpusFabricNeoForge`: 실제 모드 묶음의 Fabric 모드를 NeoForge 옆에서 실행하여 검증합니다.
-- `poly-runtime-impl`의 단위 테스트 `HostModulesTest`로 대체 로직을 검증합니다.
+- `.\gradlew.bat :plexus-fabric-api-neoforge-v26_2:jar`: 호스트 모듈 jar를 빌드합니다.
+- `.\gradlew.bat :plexus-bootstrap:neoForgeFabricApiGameTest`: `fabric_api_events` 테스트 모드가 블록 API 출력(`FabricBlockState.getAppearance(minecraft:stone) = minecraft:stone`, `FabricBlockState.getProvidedEnchantmentPower(minecraft:bookshelf) = 1.0`) 및 아이템 API 출력(`enchanting table offers minecraft:sharpness for minecraft:diamond_sword: false`, `enchanting table offers minecraft:sharpness for minecraft:iron_sword: true`, `default max stack size of minecraft:stick: 16`)을 출력하는지 확인합니다. 이는 Fabric 단독 실행인 `fabricApiGameTest` 및 `forgeFabricApiGameTest`와 동일한 출력입니다.
+- `.\gradlew.bat :plexus-bootstrap:corpusFabricNeoForge`: 실제 모드 묶음의 Fabric 모드를 NeoForge 옆에서 실행하여 검증합니다.
+- `plexus-runtime-impl`의 단위 테스트 `HostModulesTest`로 대체 로직을 검증합니다.
 
 ## 대표 흐름
-1. `hostModuleResources` 작업이 jar를 `META-INF/polymodloader/host-modules/neoforge-26.2.0.93/`에 배치하고 `META-INF/polymodloader/host-modules.properties` 색인을 작성합니다. 소모성 구성 `hostModuleElements`가 이를 `poly-bridge-fabric`에 전달하여 해당 jar에만 포함합니다.
-2. 런타임(`poly-runtime-impl`)에서 `NeoForge 26.2.0.93`이 호스트일 때, `HostPatchCheck`가 원래 모듈을 먼저 `PLEXUS-COMPAT-224`로 표시합니다.
+1. `hostModuleResources` 작업이 jar를 `META-INF/polymodloader/host-modules/neoforge-26.2.0.93/`에 배치하고 `META-INF/polymodloader/host-modules.properties` 색인을 작성합니다. 소모성 구성 `hostModuleElements`가 이를 `plexus-bridge-fabric`에 전달하여 해당 jar에만 포함합니다.
+2. 런타임(`plexus-runtime-impl`)에서 `NeoForge 26.2.0.93`이 호스트일 때, `HostPatchCheck`가 원래 모듈을 먼저 `PLEXUS-COMPAT-224`로 표시합니다.
 3. `HostModules.replaceLeftOut`이 해당 호스트 릴리스용으로 색인된 호스트 모듈을 추출하고, 일반 모드 파일처럼 평가하여 원래 모듈 자리에 넣은 뒤 교체 내역을 로그에 남깁니다.
 4. 교체된 결과에 대해 `HostPatchCheck`를 다시 실행하여 호스트 모듈 역시 패치에 맞는지 확인합니다.
 5. 링크 검증(`ModLinkVerifier`) 단계에서 바닐라 jar보다 먼저 호스트의 패치된 게임 및 로더 jar를 읽어 링크를 검증합니다.

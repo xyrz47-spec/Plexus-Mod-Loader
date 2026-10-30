@@ -34,7 +34,7 @@ import org.gradle.api.tasks.TaskProvider;
  *   <li>JavaDoc jars only for the API module and the API modules it exposes; no sources
  *   <li>{@code dev.plexusmodloader:poly-gradle-plugin} and its marker {@code dev.polymodloader.mod}, from the included
  *       build {@code build-logic} ({@code :publishSdk} there)
- *   <li>{@code dev.plexusmodloader:poly-mod-template:<version>@zip} ({@code packageModTemplate})
+ *   <li>{@code dev.plexusmodloader:plexus-mod-template:<version>@zip} ({@code packageModTemplate})
  * </ul>
  *
  * <p>The folder is {@code .poly/sdk-maven} in the repository, or {@code -PpolySdkRepo=<folder>} (relative to
@@ -55,7 +55,7 @@ public final class SdkRepositoryPlugin implements Plugin<Project> {
     public static final String MOD_PLUGIN_ID = "dev.polymodloader.mod";
 
     private static final String BUILD_LOGIC = "build-logic";
-    private static final List<String> NOT_SDK = List.of(":examples:", ":test-mods:", ":tools:", ":poly-installer");
+    private static final List<String> NOT_SDK = List.of(":examples:", ":test-mods:", ":tools:", ":plexus-installer");
 
     @Override
     public void apply(Project root) {

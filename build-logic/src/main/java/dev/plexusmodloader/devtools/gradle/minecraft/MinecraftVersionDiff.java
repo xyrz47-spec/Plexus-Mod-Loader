@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 /**
  * Compares two Minecraft versions for what one supported version's modules use (ADR-0011): the game
- * classes, fields and methods that {@code poly-version-adapter-v<id>} and {@code poly-game-v<id>} refer to,
+ * classes, fields and methods that {@code plexus-version-adapter-v<id>} and {@code plexus-game-v<id>} refer to,
  * and whether the other version's client jar still has them. It also lists what changed in the version
  * JSON (Java version, libraries, JVM arguments), which the launch and the installer depend on.
  *

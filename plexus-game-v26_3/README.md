@@ -1,4 +1,4 @@
-# poly-game-v26_3
+# plexus-game-v26_3
 
 ## 이 모듈이 하는 일
 Minecraft 26.3의 게임 계층입니다(ADR-0010). Native API 선언을 실제 게임 객체로 만들고, 변환 규칙이 호출하는 훅을 제공합니다.
@@ -10,14 +10,14 @@ Minecraft 26.3의 게임 계층입니다(ADR-0010). Native API 선언을 실제 
 - `GameHooks`(공통 훅), `InteractionHooks`(상호작용 이벤트와 취소 가능한 블록 이벤트), `LifecycleHooks`(서버·월드·리스폰·엔티티 생명주기 이벤트), `client.ClientHooks`(클라이언트 전용 훅)
 - `content`(`PlexusBlock`, `PlexusItem`, `ContentInstaller`, `ModCreativeTabs`), `GameTags`, `client.CreativeTabPaging`, `commands`, `Networking`, `ModPacks`, `GeneratedDataPack`, `gametest`
 - `Views`: 게임 객체를 API 뷰로 바꿉니다.
-- `client.TitleScreenModCounts`: 타이틀 화면 왼쪽 아래, 버전 글자 위에 로더별로 로드한 모드 수(`ModCountLines`)를 그립니다. 글자는 게임의 현재 언어에서 먼저 찾고(리소스 팩이 바꿀 수 있음), 없으면 Poly 모드 로더의 언어 파일(`poly-version-adapter-api`의 `assets/poly/lang/<언어>.json`)에서 찾습니다. Forge가 그 자리를 그릴 때는 `GameLayer26_3.brandingLines()`로 줄만 넘깁니다.
+- `client.TitleScreenModCounts`: 타이틀 화면 왼쪽 아래, 버전 글자 위에 로더별로 로드한 모드 수(`ModCountLines`)를 그립니다. 글자는 게임의 현재 언어에서 먼저 찾고(리소스 팩이 바꿀 수 있음), 없으면 Poly 모드 로더의 언어 파일(`plexus-version-adapter-api`의 `assets/poly/lang/<언어>.json`)에서 찾습니다. Forge가 그 자리를 그릴 때는 `GameLayer26_3.brandingLines()`로 줄만 넘깁니다.
 
 ## 무엇을 하지 않는가
-- 변환 규칙을 선언하지 않습니다. 규칙은 `poly-version-adapter-v26_3`의 `Minecraft26_3Adapter`에 있습니다.
-- 선언을 검증하지 않습니다. 검증은 `poly-runtime-impl`이 합니다.
+- 변환 규칙을 선언하지 않습니다. 규칙은 `plexus-version-adapter-v26_3`의 `Minecraft26_3Adapter`에 있습니다.
+- 선언을 검증하지 않습니다. 검증은 `plexus-runtime-impl`이 합니다.
 
 ## 의존성
-- `poly-version-adapter-api`(그리고 그것이 노출하는 공개 API)
+- `plexus-version-adapter-api`(그리고 그것이 노출하는 공개 API)
 - slf4j
 - Minecraft 26.3 클라이언트 jar와 라이브러리. `compileOnly`로만, `poly.minecraft-compile` 플러그인이 붙입니다.
 
@@ -28,13 +28,13 @@ Minecraft 26.3의 게임 계층입니다(ADR-0010). Native API 선언을 실제 
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-game-v26_3:check   # BuiltInRulesTest: 내장 변환 규칙을 실제 26.3 클래스에 양쪽(클라이언트·서버)으로 적용하고 훅 시그니처 확인
-.\gradlew.bat :poly-bootstrap:nativeApiGameTests :poly-bootstrap:clientWorldReloadTest
+.\gradlew.bat :plexus-game-v26_3:check   # BuiltInRulesTest: 내장 변환 규칙을 실제 26.3 클래스에 양쪽(클라이언트·서버)으로 적용하고 훅 시그니처 확인
+.\gradlew.bat :plexus-bootstrap:nativeApiGameTests :plexus-bootstrap:clientWorldReloadTest
 ```
 
 ## 26.2와 다른 점
 
-1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). `poly-game-v26_2`를 복사한 뒤 26.3에 맞게 고쳤습니다. 고친 곳과 이유는 `docs/plans/MINECRAFT_26_3.md`의 "진행 상황"에 있습니다(`docs/`는 이 공개 저장소에 없습니다). 요약하면 다음과 같습니다.
+1.2.0부터 지원 버전입니다(`gradle/minecraft-versions.properties`의 `supported`). `plexus-game-v26_2`를 복사한 뒤 26.3에 맞게 고쳤습니다. 고친 곳과 이유는 `docs/plans/MINECRAFT_26_3.md`의 "진행 상황"에 있습니다(`docs/`는 이 공개 저장소에 없습니다). 요약하면 다음과 같습니다.
 
 - 키 바인딩: `client.GameKeyCodes`가 Poly 모드 로더 키 코드(GLFW 값)를 26.3의 SDL 스캔코드로 바꿉니다(ADR-0029).
 - 몹 스폰: 바이옴의 환경 속성 `NATURAL_MOB_SPAWNS`(`WorldgenModifier.applySpawns`, `Views`, `GeneratedDataPack`).

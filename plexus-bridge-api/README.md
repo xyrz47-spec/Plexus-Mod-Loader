@@ -1,13 +1,13 @@
-# poly-bridge-api — Cross-Loader Compatibility SPI
+# plexus-bridge-api — Cross-Loader Compatibility SPI
 
-`poly-bridge-api`는 Fabric, Forge, NeoForge, Quilt 등 다양한 서드파티 모드로더를 통합하기 위한 **크로스 로더 브릿지 서비스 제공자 인터페이스(SPI)** 및 진단 데이터 모델을 정의하는 모듈입니다.
+`plexus-bridge-api`는 Fabric, Forge, NeoForge, Quilt 등 다양한 서드파티 모드로더를 통합하기 위한 **크로스 로더 브릿지 서비스 제공자 인터페이스(SPI)** 및 진단 데이터 모델을 정의하는 모듈입니다.
 
 ---
 
 ## 1. 주요 인터페이스 및 계약
 
 ### `ModLoaderBridge` (핵심 SPI)
-각 로더 브릿지(`poly-bridge-fabric`, `poly-bridge-forge`)가 구현하는 인터페이스입니다.
+각 로더 브릿지(`plexus-bridge-fabric`, `plexus-bridge-forge`)가 구현하는 인터페이스입니다.
 - **`assess(metadata, side, ModJarContents)`**: 메타데이터(와 메타데이터가 가리키는 jar 안의 파일)를 사전 분석하여 호환성 진단 결과(`BridgeAssessment`)를 반환합니다.
 - **`runtimePackages()`**: 해당 로더의 런타임 API 패키지 목록을 보고합니다 (미사용 시 은닉 처리 대상).
 - **`gameHost(GameHost.Request, modJars)`**: 게임을 직접 패치하고 시작하는 호스트 로더(Forge/NeoForge)의 `GameHost`를 만듭니다.
@@ -30,5 +30,5 @@ Forge나 NeoForge의 바이트코드 패치로 인해 이동하거나 변경된 
 ## 2. 검증 및 빌드
 
 ```powershell
-.\gradlew.bat :poly-bridge-api:check
+.\gradlew.bat :plexus-bridge-api:check
 ```

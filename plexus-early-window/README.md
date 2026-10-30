@@ -1,4 +1,4 @@
-# poly-early-window — Poly 모드 로더의 초기 로딩 창
+# plexus-early-window — Poly 모드 로더의 초기 로딩 창
 
 게임이 시작되는 동안 게임 창이 열리기 전까지 초기 로딩 창을 표시하는 모듈입니다. 게임 프로세스와 완전히 분리된 전용 Java(Swing) 프로세스로 실행되어 게임 런타임의 그래픽 컨텍스트나 헤드리스 설정에 영향을 주지 않고 로딩 화면을 보여 줍니다.
 
@@ -53,10 +53,10 @@
 ## 빌드·테스트
 ```powershell
 # 단위 테스트 및 검사
-.\gradlew.bat :poly-early-window:check
+.\gradlew.bat :plexus-early-window:check
 
 # 클라이언트 월드 재로딩 및 초기 로딩 창 동작 확인 (창이 열림)
-.\gradlew.bat :poly-bootstrap:clientWorldReloadTest
+.\gradlew.bat :plexus-bootstrap:clientWorldReloadTest
 ```
 - `EarlyWindowSettingsTest`: `--width`, `--height` 및 `options.txt` 옵션 파싱 동작 검증.
 - `EarlyWindowProtocolTest`: 표준 입력 명령 직렬화 및 구문 해석 검증.
@@ -66,7 +66,7 @@
 - 창이 열리는 검증: 26.2와 26.3의 `clientWorldReloadTest`, 26.2의 `neoForgeClient`, 26.2의 `forgeClient`.
 
 ## 대표 흐름
-1. 클라이언트 실행 시 `poly-runtime-impl`의 `StartupWindow`가 `EarlyWindowSettings.forGame`으로 창 설정을 구성하고 `EarlyWindow.start`를 호출하여 보조 프로세스를 실행합니다.
+1. 클라이언트 실행 시 `plexus-runtime-impl`의 `StartupWindow`가 `EarlyWindowSettings.forGame`으로 창 설정을 구성하고 `EarlyWindow.start`를 호출하여 보조 프로세스를 실행합니다.
 2. 보조 프로세스(`EarlyWindowMain`)는 숨겨진 상태로 시작되며, 준비가 완료되면 게임 프로세스가 `show` 명령을 전송하여 화면 중앙에 초기 창을 엽니다.
 3. FML 호스트 로더가 감지되면 NeoForge는 헤드리스 모드로 시작하고, MinecraftForge는 `ForgeEarlyWindowOff`를 통해 자체 초기 창을 비활성화합니다.
 4. Poly 모드 로더가 모드를 탐색하는 동안 `status("Found 5 mod files")`와 `progress(0.15f)` 등의 명령을 보내 진행률과 상태를 갱신합니다.

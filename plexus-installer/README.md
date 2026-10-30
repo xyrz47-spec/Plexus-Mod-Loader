@@ -1,6 +1,6 @@
-# poly-installer — Cross-Platform Installer & Launcher Integrator
+# plexus-installer — Cross-Platform Installer & Launcher Integrator
 
-`poly-installer`는 마인크래프트 공식 런처(`.minecraft`) 및 독립 서버 환경에 Poly Mod Loader를 설치·관리할 수 있는 크로스 플랫폼 설치 프로그램 모듈입니다.
+`plexus-installer`는 마인크래프트 공식 런처(`.minecraft`) 및 독립 서버 환경에 Poly Mod Loader를 설치·관리할 수 있는 크로스 플랫폼 설치 프로그램 모듈입니다.
 
 ---
 
@@ -32,16 +32,16 @@ Poly 인스톨러는 모든 플랫폼에서 jar 하나로 빌드 및 배포됩�
 
 ```powershell
 # 단위 테스트 실행
-.\gradlew.bat :poly-installer:check
+.\gradlew.bat :plexus-installer:check
 
-# 배포용 jar 빌드 (poly-installer/build/distributions/)
-.\gradlew.bat :poly-installer:installerDistributions
+# 배포용 jar 빌드 (plexus-installer/build/distributions/)
+.\gradlew.bat :plexus-installer:installerDistributions
 
 # 모의 런처 프로필 생성 및 구동 통합 테스트
-.\gradlew.bat :poly-bootstrap:launcherProfileTest
+.\gradlew.bat :plexus-bootstrap:launcherProfileTest
 
 # 헤드리스 서버 설치 및 기동 테스트
-.\gradlew.bat :poly-installer:serverInstallTest
+.\gradlew.bat :plexus-installer:serverInstallTest
 ```
 
 ---

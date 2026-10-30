@@ -29,7 +29,7 @@ val installNeoForgeClient =
     tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.NeoForgeClientInstallTask>("installNeoForgeClient") {
         description = "Installs NeoForge $neoForgeRelease's client with its own installer, for the patched game classes."
         neoForgeVersion = neoForgeRelease
-        // The installer Poly Mod Loader itself checks for 26.2 (poly-bridge-forge, neoforge-releases.properties).
+        // The installer Poly Mod Loader itself checks for 26.2 (plexus-bridge-forge, neoforge-releases.properties).
         installerSha1 = "97205829a020fc9389f504a77f590b54157c8dde"
         javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
         clientDirectory.set(
@@ -52,7 +52,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-Xlint:-unchecked")
 }
 
-// What Poly Mod Loader's Fabric bridge carries (HostModules in poly-runtime-impl): each jar under the host's key, and an
+// What Poly Mod Loader's Fabric bridge carries (HostModules in plexus-runtime-impl): each jar under the host's key, and an
 // index entry <host key>.<mod id> for it. The host key is HostModules.hostKey of the host's name ("NeoForge 26.2.0.93").
 val hostKey = "neoforge-$neoForgeRelease"
 

@@ -14,7 +14,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * {@code ./gradlew initPolyMod -PmodId=ruby_tools [-PmodName="Ruby Tools"] [-PmodPackage=io.github.you.rubytools]}
- * in an unzipped {@code poly-mod-template-<version>.zip}: renames the template's mod ID, name, Java package,
+ * in an unzipped {@code plexus-mod-template-<version>.zip}: renames the template's mod ID, name, Java package,
  * entry point class and project name in place with {@link ModProjectScaffolder#renameInPlace}, the same
  * renaming {@code newPolyMod} does in the Poly Mod Loader repository.
  */

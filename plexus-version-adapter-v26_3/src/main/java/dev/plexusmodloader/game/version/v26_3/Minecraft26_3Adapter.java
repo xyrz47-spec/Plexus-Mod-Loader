@@ -189,7 +189,7 @@ public final class Minecraft26_3Adapter implements GameVersionAdapter {
      * ({@code "Minecraft " + version}, the demo suffix and {@code menu.modded}) with its only call to {@code
      * GuiGraphicsExtractor.text(Font, String, int, int, int)}, at x 2 and {@code height - 10} in white with the screen's
      * fade (javap, offset 264); the hook draws that line and the counts above it. Cosmetic, so a mismatch turns only this
-     * rule off. MinecraftForge's patch replaces that call with its own branding, which {@code poly-bridge-forge}'s rule
+     * rule off. MinecraftForge's patch replaces that call with its own branding, which {@code plexus-bridge-forge}'s rule
      * {@code poly:client_title_mod_counts_forge} extends instead.
      */
     private static TransformRuleDefinition titleScreenModCountsRule() {

@@ -26,7 +26,7 @@ cd Poly-Mod-Loader
 .\gradlew.bat check
 
 # Build the distribution installer (.jar)
-.\gradlew.bat :poly-installer:installerDistributions
+.\gradlew.bat :plexus-installer:installerDistributions
 ```
 
 > **Note on Minecraft Assets:** On the first run, the build automatically downloads the required Minecraft client/server assets from Mojang's official servers and verifies their integrity against SHA-1 checksums. Minecraft files are cached locally in `~/.gradle/caches/poly-minecraft` and are never committed to the repository.
@@ -39,11 +39,11 @@ cd Poly-Mod-Loader
 | :--- | :--- | :--- |
 | `.\gradlew check` | Runs Spotless format checks and all unit test suites across all modules. | Mandatory before submitting any PR or commit. |
 | `.\gradlew spotlessApply` | Automatically formats all Java sources according to project style. | Uses palantir-java-format (4 spaces, 120 columns), removes unused imports. |
-| `.\gradlew :poly-installer:installerDistributions` | Builds `PolyModLoader-<version>.jar`, the only download for every platform. | Outputs to `poly-installer/build/distributions/`. |
-| `.\gradlew :poly-bootstrap:runClient` | Launches the Minecraft client in development mode with Poly active. | Minecraft 26.2 client with debug hooks. |
-| `.\gradlew :poly-bootstrap:runServer` | Launches the dedicated server in development mode. | Requires accepting `run/server/eula.txt`. |
-| `.\gradlew :poly-bootstrap:serverBootSmokeTest` | Headless smoke test: boots server, verifies Poly runtime initialization, stops. | Fast, CI-friendly check (no UI). |
-| `.\gradlew :poly-bootstrap:worldCreateSaveTest` | Creates a world, executes tick lifecycle, saves to disk, and exits cleanly. | Verifies save and data compatibility. |
+| `.\gradlew :plexus-installer:installerDistributions` | Builds `PolyModLoader-<version>.jar`, the only download for every platform. | Outputs to `plexus-installer/build/distributions/`. |
+| `.\gradlew :plexus-bootstrap:runClient` | Launches the Minecraft client in development mode with Poly active. | Minecraft 26.2 client with debug hooks. |
+| `.\gradlew :plexus-bootstrap:runServer` | Launches the dedicated server in development mode. | Requires accepting `run/server/eula.txt`. |
+| `.\gradlew :plexus-bootstrap:serverBootSmokeTest` | Headless smoke test: boots server, verifies Poly runtime initialization, stops. | Fast, CI-friendly check (no UI). |
+| `.\gradlew :plexus-bootstrap:worldCreateSaveTest` | Creates a world, executes tick lifecycle, saves to disk, and exits cleanly. | Verifies save and data compatibility. |
 | `.\gradlew publishSdk` | Builds and publishes the Poly SDK to the local Maven cache (`.poly/sdk-maven`). | Used by mod developers targeting Native API. |
 
 `serverBootSmokeTest`, `worldCreateSaveTest` and the other game tests load the mods in `examples/` and `test-mods/`, which this public repository leaves out (`settings.gradle.kts`); here they stop with a message. `check`, `spotlessApply`, `installerDistributions`, `runClient`, `runServer` and `publishSdk` work without them.
@@ -58,27 +58,27 @@ Poly Mod Loader is structured as a decoupled multi-project build. Each module ha
 
 ```
 Poly-Mod-Loader
-├── poly-bootstrap/                # JVM Entrypoint (PlexusLauncherMain), dev launch tasks
-├── poly-runtime-api/              # Shared API base: GameSide and the @ApiStability markers
-├── poly-runtime-impl/             # Core runtime coordinator, mod loading pipeline, dependency solver
-├── poly-transform-api/            # Declarative bytecode transform rules (no ASM types exposed)
-├── poly-transform-engine/         # ASM execution engine, pre-flight planner, bytecode cache
-├── poly-bridge-api/               # Cross-loader bridge SPI (ModLoaderBridge, GameHost)
-├── poly-bridge-fabric/            # Fabric & Quilt loader emulation, unified Mixin 0.8.7 service
-├── poly-bridge-forge/             # MinecraftForge & NeoForge FML virtualizer, patch retargeting
-├── poly-event-api/                # Native API: event keys, listener registration, server lifecycle events
-├── poly-game-api/                 # Native API: blocks, items, entities, commands, networking, client, game tests
-├── poly-game-v1_21_11/            # Minecraft 1.21.11 game layer (experimental, not supported)
-├── poly-game-v26_1/               # Minecraft 26.1 / 26.1.1 / 26.1.2 game layer & custom loading overlay
-├── poly-game-v26_2/               # Minecraft 26.2 game layer & custom loading overlay
-├── poly-game-v26_3/               # Minecraft 26.3 game layer & SDL keycode adapters
-├── poly-version-adapter-api/      # Version adapter and game layer contracts
-├── poly-version-adapter-v*/       # Per-version launch targets and built-in transform rules (26.1, 26.2, 26.3, 1.21.11)
-├── poly-system-api/               # Native API: replaceable systems (poly:game_brand)
-├── poly-system-registry/          # Built-in systems, replacement resolution and lookup
-├── poly-lifecycle-api/            # Mod entrypoints (common, client, server) and ModContext
-├── poly-mod-metadata/             # Parser and validator for poly.mod.json (Fabric, Quilt and FML metadata: the bridges)
-└── poly-installer/                # Cross-platform installer jar (Java Swing GUI and command line)
+├── plexus-bootstrap/                # JVM Entrypoint (PlexusLauncherMain), dev launch tasks
+├── plexus-runtime-api/              # Shared API base: GameSide and the @ApiStability markers
+├── plexus-runtime-impl/             # Core runtime coordinator, mod loading pipeline, dependency solver
+├── plexus-transform-api/            # Declarative bytecode transform rules (no ASM types exposed)
+├── plexus-transform-engine/         # ASM execution engine, pre-flight planner, bytecode cache
+├── plexus-bridge-api/               # Cross-loader bridge SPI (ModLoaderBridge, GameHost)
+├── plexus-bridge-fabric/            # Fabric & Quilt loader emulation, unified Mixin 0.8.7 service
+├── plexus-bridge-forge/             # MinecraftForge & NeoForge FML virtualizer, patch retargeting
+├── plexus-event-api/                # Native API: event keys, listener registration, server lifecycle events
+├── plexus-game-api/                 # Native API: blocks, items, entities, commands, networking, client, game tests
+├── plexus-game-v1_21_11/            # Minecraft 1.21.11 game layer (experimental, not supported)
+├── plexus-game-v26_1/               # Minecraft 26.1 / 26.1.1 / 26.1.2 game layer & custom loading overlay
+├── plexus-game-v26_2/               # Minecraft 26.2 game layer & custom loading overlay
+├── plexus-game-v26_3/               # Minecraft 26.3 game layer & SDL keycode adapters
+├── plexus-version-adapter-api/      # Version adapter and game layer contracts
+├── plexus-version-adapter-v*/       # Per-version launch targets and built-in transform rules (26.1, 26.2, 26.3, 1.21.11)
+├── plexus-system-api/               # Native API: replaceable systems (poly:game_brand)
+├── plexus-system-registry/          # Built-in systems, replacement resolution and lookup
+├── plexus-lifecycle-api/            # Mod entrypoints (common, client, server) and ModContext
+├── plexus-mod-metadata/             # Parser and validator for poly.mod.json (Fabric, Quilt and FML metadata: the bridges)
+└── plexus-installer/                # Cross-platform installer jar (Java Swing GUI and command line)
 ```
 
 ---
@@ -87,8 +87,8 @@ Poly-Mod-Loader
 
 ### 1) Strict Version Isolation (Rule of Separation)
 - **Never import Minecraft or game-version-specific classes into common modules.**
-- Modules like `poly-runtime-api`, `poly-transform-engine`, `poly-bridge-api`, and `poly-system-api` must remain 100% free of `net.minecraft.*` imports.
-- Any game-specific interaction must go through `poly-game-api` or a specific version layer (`poly-game-v26_2`, etc.).
+- Modules like `plexus-runtime-api`, `plexus-transform-engine`, `plexus-bridge-api`, and `plexus-system-api` must remain 100% free of `net.minecraft.*` imports.
+- Any game-specific interaction must go through `plexus-game-api` or a specific version layer (`plexus-game-v26_2`, etc.).
 
 ### 2) Pre-Flight Validation over Silent Failures
 - If foreign mod bytecode or Mixin declarations cannot be safely reconciled with the host loader's patches, report a structured error code (`PLEXUS-COMPAT-...`) before launch.

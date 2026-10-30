@@ -19,7 +19,7 @@ import org.gradle.api.tasks.bundling.Zip;
 /**
  * Root-project plugin of the Poly Mod Loader repository ({@code poly.mod-template}): registers {@code newPolyMod},
  * which starts a mod project from {@code templates/poly-mod-template}, and {@code packageModTemplate}, which
- * writes the template as {@code poly-mod-template-<version>.zip} for people without the repository
+ * writes the template as {@code plexus-mod-template-<version>.zip} for people without the repository
  * ({@code initPolyMod} renames an unzipped copy).
  */
 public final class ModTemplatePlugin implements Plugin<Project> {

@@ -134,7 +134,7 @@ public final class Minecraft1_21_11Adapter implements GameVersionAdapter {
      * " + version}, the demo suffix and {@code menu.modded}) with its only call to {@code GuiGraphics.drawString(Font,
      * String, int, int, int)} (javap on the remapped 1.21.11 jar, offset 310); the hook draws that line and the counts
      * above it. Cosmetic, so a mismatch turns only this rule off. MinecraftForge's patch replaces that call with its own
-     * branding, which {@code poly-bridge-forge}'s rule {@code poly:client_title_mod_counts_forge} extends instead.
+     * branding, which {@code plexus-bridge-forge}'s rule {@code poly:client_title_mod_counts_forge} extends instead.
      */
     private static TransformRuleDefinition titleScreenModCountsRule() {
         return new TransformRuleDefinition(

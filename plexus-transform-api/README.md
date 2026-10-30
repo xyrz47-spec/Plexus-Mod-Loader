@@ -1,6 +1,6 @@
-# poly-transform-api — Declarative Bytecode Transform Contract
+# plexus-transform-api — Declarative Bytecode Transform Contract
 
-`poly-transform-api`는 마인크래프트 바이트코드 변환 규칙과 접근성 확장(Access Widening), 그리고 변환 검증 오류 코드를 데이터 모델로 선언하는 내부 인터페이스 모듈입니다.
+`plexus-transform-api`는 마인크래프트 바이트코드 변환 규칙과 접근성 확장(Access Widening), 그리고 변환 검증 오류 코드를 데이터 모델로 선언하는 내부 인터페이스 모듈입니다.
 
 ---
 
@@ -10,7 +10,7 @@
    - 바이트코드를 직접 다루는 ASM 라이브러리 타입(`ClassNode`, `MethodNode` 등)을 일절 노출하지 않습니다.
    - 변환 의도(Method Hook, Static Redirect, Constant Replacement, Access Widening)를 순수 Java 불변 데이터 레코드(`Record`, `Sealed Interface`)로 추상화합니다.
 2. **선언적 변환 규칙 (Declarative Rules):**
-   - 모드와 버전 어댑터는 "어떤 클래스의 어떤 메서드에 어떤 훅을 거는가"를 불변 객체(`TransformRuleDefinition`)로 선언하며, 실제 바이트코드 조작은 `poly-transform-engine`이 전담합니다.
+   - 모드와 버전 어댑터는 "어떤 클래스의 어떤 메서드에 어떤 훅을 거는가"를 불변 객체(`TransformRuleDefinition`)로 선언하며, 실제 바이트코드 조작은 `plexus-transform-engine`이 전담합니다.
 3. **엄격한 실패 정책 (`TransformFailurePolicy`):**
    - `ABORT_STARTUP`(시작 중단), `DISABLE_RULE`(해당 규칙만 비활성화) 두 정책으로 안전한 실패(Fail-safe)를 지원합니다.
 
@@ -34,6 +34,6 @@
 ## 3. 검증 및 빌드
 
 ```powershell
-.\gradlew.bat :poly-transform-api:check
+.\gradlew.bat :plexus-transform-api:check
 ```
-실제 바이트코드 변환 엔진의 통합 테스트는 `poly-transform-engine`에서 수행됩니다.
+실제 바이트코드 변환 엔진의 통합 테스트는 `plexus-transform-engine`에서 수행됩니다.

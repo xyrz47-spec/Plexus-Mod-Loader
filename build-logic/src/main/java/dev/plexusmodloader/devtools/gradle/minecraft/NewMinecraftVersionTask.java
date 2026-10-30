@@ -76,8 +76,8 @@ public abstract class NewMinecraftVersionTask extends DefaultTask {
                           3. Update version data in the game layer: data/resource pack formats and
                              anything else the game versions.
                           4. Verify with the version picked: ./gradlew check
-                             :poly-bootstrap:nativeApiGameTests :poly-bootstrap:compatibilityMatrix
-                             :poly-bootstrap:serverBootSmokeTest -PpolyMinecraft={}
+                             :plexus-bootstrap:nativeApiGameTests :plexus-bootstrap:compatibilityMatrix
+                             :plexus-bootstrap:serverBootSmokeTest -PpolyMinecraft={}
                           5. Make it the default in {} when it is ready.""",
                         MinecraftVersions.adapterModule(to),
                         MinecraftVersions.gameLayerModule(to),

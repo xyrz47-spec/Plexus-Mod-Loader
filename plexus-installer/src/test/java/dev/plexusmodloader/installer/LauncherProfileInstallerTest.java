@@ -145,7 +145,7 @@ class LauncherProfileInstallerTest {
                 List.of("26.2"),
                 "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(new InstallerPayload.Library(
-                        "dev.plexusmodloader:poly-runtime-impl:0.1.0",
+                        "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
                         "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
                         sha1("something else".getBytes(StandardCharsets.UTF_8)),
                         RUNTIME_JAR.length)),
@@ -308,11 +308,11 @@ class LauncherProfileInstallerTest {
                         "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                         List.of(),
                         Optional.of(new InstallerPayload.Agent(
-                                "dev.plexusmodloader:poly-bootstrap:0.1.0",
+                                "dev.plexusmodloader:plexus-bootstrap:0.1.0",
                                 "dev.plexusmodloader.bootstrap.SystemClassPathAgent")),
                         path -> new ByteArrayInputStream(new byte[0])));
 
-        assertTrue(problem.getMessage().contains("poly-bootstrap"), problem.getMessage());
+        assertTrue(problem.getMessage().contains("plexus-bootstrap"), problem.getMessage());
     }
 
     @Test
@@ -321,16 +321,16 @@ class LauncherProfileInstallerTest {
                 InstallerPayload.parse(new StringReader("""
                 {"polyVersion": "0.1.0", "minecraftVersions": ["26.2"],
                  "mainClass": "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
-                 "agent": {"library": "dev.plexusmodloader:poly-bootstrap:0.1.0",
+                 "agent": {"library": "dev.plexusmodloader:plexus-bootstrap:0.1.0",
                            "class": "dev.plexusmodloader.bootstrap.SystemClassPathAgent"},
-                 "libraries": [{"name": "dev.plexusmodloader:poly-bootstrap:0.1.0",
+                 "libraries": [{"name": "dev.plexusmodloader:plexus-bootstrap:0.1.0",
                                 "path": "dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar",
                                 "sha1": "00", "size": 3}]}
                 """), path -> new ByteArrayInputStream(new byte[0]));
 
         assertEquals(
                 Optional.of(new InstallerPayload.Agent(
-                        "dev.plexusmodloader:poly-bootstrap:0.1.0",
+                        "dev.plexusmodloader:plexus-bootstrap:0.1.0",
                         "dev.plexusmodloader.bootstrap.SystemClassPathAgent")),
                 parsed.agent());
         assertEquals(
@@ -369,7 +369,7 @@ class LauncherProfileInstallerTest {
                 "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(
                         new InstallerPayload.Library(
-                                "dev.plexusmodloader:poly-runtime-impl:0.1.0",
+                                "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
                                 "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
                                 sha1(RUNTIME_JAR),
                                 RUNTIME_JAR.length),
@@ -381,21 +381,21 @@ class LauncherProfileInstallerTest {
                 path -> new ByteArrayInputStream(jars.get(path)));
     }
 
-    /** {@link #payload()} plus poly-bootstrap as the agent library. */
+    /** {@link #payload()} plus plexus-bootstrap as the agent library. */
     private static InstallerPayload payloadWithAgent() {
         InstallerPayload base = payload();
         byte[] bootstrap = "bootstrap bytes".getBytes(StandardCharsets.UTF_8);
         String path = "dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar";
         List<InstallerPayload.Library> libraries = new ArrayList<>(base.libraries());
         libraries.add(new InstallerPayload.Library(
-                "dev.plexusmodloader:poly-bootstrap:0.1.0", path, sha1(bootstrap), bootstrap.length));
+                "dev.plexusmodloader:plexus-bootstrap:0.1.0", path, sha1(bootstrap), bootstrap.length));
         return new InstallerPayload(
                 base.polyVersion(),
                 base.minecraftVersions(),
                 base.mainClass(),
                 libraries,
                 Optional.of(new InstallerPayload.Agent(
-                        "dev.plexusmodloader:poly-bootstrap:0.1.0",
+                        "dev.plexusmodloader:plexus-bootstrap:0.1.0",
                         "dev.plexusmodloader.bootstrap.SystemClassPathAgent")),
                 requested -> requested.equals(path)
                         ? new ByteArrayInputStream(bootstrap)

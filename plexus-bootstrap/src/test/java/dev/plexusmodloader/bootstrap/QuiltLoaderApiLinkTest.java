@@ -35,7 +35,7 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * The Quilt Loader API as the link check sees it, with the real Quilt bridge and the real bridge jar on the class path
  * (ADR-0027 decision 4): what the jar packs and the three stand-ins resolve; Quilt Loader classes it does not pack, and
- * stand-in members it lacks, block the mod with {@code PLEXUS-COMPAT-111}. Here rather than in {@code poly-runtime-impl},
+ * stand-in members it lacks, block the mod with {@code PLEXUS-COMPAT-111}. Here rather than in {@code plexus-runtime-impl},
  * whose tests do not have a loader bridge on their class path.
  */
 class QuiltLoaderApiLinkTest {

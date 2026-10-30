@@ -1,4 +1,4 @@
-# poly-mod-metadata
+# plexus-mod-metadata
 
 ## 이 모듈이 하는 일
 `poly.mod.json` 스키마 1을 파싱·검증하고, SemVer 2.0.0 버전과 버전 범위를 제공합니다.
@@ -17,7 +17,7 @@ Gson 2.14.0(Minecraft 26.2와 같은 버전, ADR-0005)
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-mod-metadata:check
+.\gradlew.bat :plexus-mod-metadata:check
 ```
 
 `ModMetadataReaderTest` 19개, `VersionRangeTest` 18개

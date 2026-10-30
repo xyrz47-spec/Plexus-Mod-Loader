@@ -35,11 +35,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * Assesses a corpus of real mods from Modrinth ({@code :poly-bootstrap:modCorpus}) for both sides without
+ * Assesses a corpus of real mods from Modrinth ({@code :plexus-bootstrap:modCorpus}) for both sides without
  * starting the game: every jar alone and all of them together go through discovery, the loader bridges, the
  * cross-loader dependency resolution and the link check against the real game jar and libraries. Nothing may
  * throw, every jar must end up loaded or blocked, and every blocked one must say why with a code. Run with
- * {@code :poly-bootstrap:corpusAssessment}; the verdicts are written to {@code build/reports/poly/}.
+ * {@code :plexus-bootstrap:corpusAssessment}; the verdicts are written to {@code build/reports/poly/}.
  */
 @EnabledIfSystemProperty(named = "poly.corpus", matches = ".+")
 class ModCorpusAssessmentTest {
@@ -66,7 +66,7 @@ class ModCorpusAssessmentTest {
                     .sorted()
                     .toList();
         }
-        assertFalse(jars.isEmpty(), "no jars in " + corpus + "; run :poly-bootstrap:modCorpus first");
+        assertFalse(jars.isEmpty(), "no jars in " + corpus + "; run :plexus-bootstrap:modCorpus first");
 
         try (URLClassLoader platform = new URLClassLoader(
                         libraries.toArray(URL[]::new), getClass().getClassLoader());

@@ -178,13 +178,13 @@ class ServerInstallerTest {
                 List.of("26.2"),
                 "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(new InstallerPayload.Library(
-                        "dev.plexusmodloader:poly-runtime-impl:0.1.0",
+                        "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
                         "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
                         hash(RUNTIME_JAR, "SHA-1"),
                         RUNTIME_JAR.length)),
                 // The agent class lives in this test's one library.
                 Optional.of(new InstallerPayload.Agent(
-                        "dev.plexusmodloader:poly-runtime-impl:0.1.0",
+                        "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
                         "dev.plexusmodloader.bootstrap.SystemClassPathAgent")),
                 path -> new ByteArrayInputStream(RUNTIME_JAR));
     }

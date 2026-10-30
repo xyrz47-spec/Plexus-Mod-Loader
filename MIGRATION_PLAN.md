@@ -140,7 +140,7 @@ flowchart LR
    - 기존 모드 호환 보장: 메타데이터 로더에서 `plexus.mod.json`을 1순위로 찾고, 없으면 기존 `poly.mod.json`을 읽도록 fallback 로직 구현.
 2. **Gradle 모듈 및 프로젝트 명칭 갱신**
    - `settings.gradle.kts`: `rootProject.name = "plexus"`
-   - 모듈명: `poly-core` ➔ `plexus-core`, `poly-bootstrap` ➔ `plexus-bootstrap`, `poly-game-v...` ➔ `plexus-game-v...` 등 점진적 개명 또는 내부 유지 검토.
+   - 모듈명: `poly-core` ➔ `plexus-core`, `plexus-bootstrap` ➔ `plexus-bootstrap`, `plexus-game-v...` ➔ `plexus-game-v...` 등 점진적 개명 또는 내부 유지 검토.
 3. **네임스페이스 및 패키지 이전**
    - 패키지명: `dev.polymodloader.*` ➔ `dev.plexusmodloader.*`
    - 공개 Native API 인터페이스: 기존 패키지 임포트를 사용하는 모드 개발자를 위해 `@Deprecated` 타입 별칭(Type Alias) 또는 브릿지 클래스 제공.
@@ -196,4 +196,4 @@ flowchart LR
   - [x] 루트 Gradle 26개 모듈 디렉터리 `plexus-*` 전환 완료
   - [x] 패키지 리네이밍 (`dev.polymodloader.*` ➔ `dev.plexusmodloader.*`, 구 패키지를 참조하는 기존 모드는 클래스 로드 시 자동 리매핑; Maven group·플러그인 ID `dev.polymodloader.mod`는 유지)
   - [ ] 로딩 화면 및 UI 갱신 (`PlexusLoadingOverlay` 등)
-  - [ ] 전체 멀티버전 검증 테스트 통과 확인
+  - [x] 전체 멀티버전 검증: 26.2 `check`·스모크, 26.3 `compatibilityCorpus` 통과; 26.1 `corpusFabricNeoForgeJoin`은 리네이밍 이전 커밋(3237d977)에서도 동일하게 실패(기존 문제)

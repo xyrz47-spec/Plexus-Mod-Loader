@@ -11,13 +11,13 @@ Poly Mod Loader bridges Minecraft and disparate mod loaders (Fabric, Forge, NeoF
 ```mermaid
 flowchart TD
     subgraph Launch["1. Bootstrap & Discovery"]
-        Entry["PlexusLauncherMain (poly-bootstrap)"] --> Scanner["Mod Scanner (poly-runtime-impl)"]
-        Scanner --> Metadata["Metadata Evaluator (poly-mod-metadata)"]
+        Entry["PlexusLauncherMain (plexus-bootstrap)"] --> Scanner["Mod Scanner (plexus-runtime-impl)"]
+        Scanner --> Metadata["Metadata Evaluator (plexus-mod-metadata)"]
         Metadata --> Assess["Pre-flight Matrix Check (HostPatchCheck)"]
     end
 
     subgraph Planning["2. Bytecode Transformation & Planning"]
-        Assess --> PlanEngine["ClassTransformPlanner (poly-transform-engine)"]
+        Assess --> PlanEngine["ClassTransformPlanner (plexus-transform-engine)"]
         PlanEngine --> Adjust["HostPatchAdjustments & InjectionPointReplacements"]
         Adjust --> Cache["DirectoryTransformCache (ASM 9.11)"]
     end
@@ -52,8 +52,8 @@ flowchart TD
 
 ### Phase 2: Bytecode Transformation Planning
 1. **Rule Registration:**
-   - Native API mods submit declarative transform rules (`poly-transform-api`).
-   - Host loader bridges submit `InjectionPointReplacement` rules (e.g., [`NeoForgeInjectionPoints.java`](poly-bridge-forge/src/main/java/dev/plexusmodloader/compat/forge/NeoForgeInjectionPoints.java)).
+   - Native API mods submit declarative transform rules (`plexus-transform-api`).
+   - Host loader bridges submit `InjectionPointReplacement` rules (e.g., [`NeoForgeInjectionPoints.java`](plexus-bridge-forge/src/main/java/dev/plexusmodloader/compat/forge/NeoForgeInjectionPoints.java)).
 2. **Compile-time vs Load-time Planning:**
    - `ClassTransformPlanner` verifies bytecode signatures, instructions, and target selectors.
    - Transformed classes are stored in `DirectoryTransformCache` under a SHA-256 key of the engine, the original class bytes and the rules (default `.poly/transform-cache`, 256 MiB, least recently used entries removed first), so later launches skip the transformation.

@@ -1,4 +1,4 @@
-# poly-system-registry
+# plexus-system-registry
 
 ## 이 모듈이 하는 일
 내장 시스템 정의, 교체 충돌 해결, 제공자 생성·검증, 활성 시스템 조회를 구현합니다.
@@ -10,14 +10,14 @@
 게임과 직접 연결되지 않습니다(그것은 버전 어댑터 훅). 모드를 검색하지 않습니다.
 
 ## 의존성
-`poly-system-api`(api), `poly-mod-metadata`
+`plexus-system-api`(api), `plexus-mod-metadata`
 
 ## 주요 진입점
 `new SystemReplacementResolver().resolve(mods, definitions)` → `SystemRegistry.create(definitions, result, side, modClassLoader)`
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-system-registry:check
+.\gradlew.bat :plexus-system-registry:check
 ```
 
 `SystemReplacementResolverTest` 6개, `SystemRegistryTest` 7개(잘못된 제공자 5종 포함)

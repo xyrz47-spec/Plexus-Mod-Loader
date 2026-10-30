@@ -1,4 +1,4 @@
-# poly-version-adapter-api
+# plexus-version-adapter-api
 
 ## 이 모듈이 하는 일
 Minecraft 버전마다 다른 지식(게임 진입점, 내장 변환 규칙)을 담는 어댑터 계약을 정의합니다.
@@ -12,14 +12,14 @@ Minecraft 버전마다 다른 지식(게임 진입점, 내장 변환 규칙)을 
 특정 버전의 클래스·메서드 이름을 담지 않습니다.
 
 ## 의존성
-`poly-runtime-api`, `poly-transform-api`(api)
+`plexus-runtime-api`, `plexus-transform-api`(api)
 
 ## 주요 진입점
 `GameVersionAdapter`(`ServiceLoader`로 탐색)
 
 ## 빌드·테스트
 ```powershell
-.\gradlew.bat :poly-version-adapter-api:check
+.\gradlew.bat :plexus-version-adapter-api:check
 ```
 
 계약 사용은 `PlexusRuntimeTest`의 `TestGameVersionAdapter`로 검증합니다. `ModCountLinesTest`는 두 언어의 줄과 영어 대체를 검증합니다.

@@ -1,6 +1,6 @@
-# poly-runtime-impl — Core Loading Pipeline & Runtime Coordinator
+# plexus-runtime-impl — Core Loading Pipeline & Runtime Coordinator
 
-`poly-runtime-impl`는 Poly Mod Loader의 핵심 두뇌 역할을 수행하며, 모드 탐색부터 의존성 해석, 크로스 로더 충돌 분석, 클래스로더 구성 및 게임 실행까지의 **전체 8단계 로딩 파이프라인**을 관장하는 모듈입니다.
+`plexus-runtime-impl`는 Poly Mod Loader의 핵심 두뇌 역할을 수행하며, 모드 탐색부터 의존성 해석, 크로스 로더 충돌 분석, 클래스로더 구성 및 게임 실행까지의 **전체 8단계 로딩 파이프라인**을 관장하는 모듈입니다.
 
 ---
 
@@ -63,7 +63,7 @@
 ## 4. 검증 및 테스트 (Gradle Tasks)
 
 ```powershell
-.\gradlew.bat :poly-runtime-impl:check
+.\gradlew.bat :plexus-runtime-impl:check
 ```
 
 - `ModDependencyResolverTest`: 복합 종속성 트리, 순환 의존성, 선택적 의존성 검증 12종.
