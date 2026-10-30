@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.4.2 — 2026-10-30
+
+### Highlights
+
+- Full package migration to dev.plexusmodloader.* across all modules with automatic class-loading remapping (LegacyPackageRemapper) for existing mods compiled against dev.polymodloader.
+- Renamed all 26 root Gradle modules to plexus-* and internal classes to Plexus* (PlexusLoadingOverlay, PlexusRuntime, PlexusLauncherMain, etc.).
+- Renamed all error code prefixes from POLY- to PLEXUS- across mod metadata, dependency resolution, transformation engine, and bridges.
+- Native mod projects now use plexus.mod.json as the primary metadata descriptor.
+
+### 주요 변경
+
+- 모든 모듈의 Java 패키지를 dev.plexusmodloader.*로 마이그레이션하였으며, 기존 dev.polymodloader로 컴파일된 모드를 클래스 로딩 시 자동으로 리매핑하는 LegacyPackageRemapper를 도입했습니다.
+- 26개 루트 Gradle 모듈을 plexus-*로, 내부 클래스를 Plexus*(PlexusLoadingOverlay, PlexusRuntime, PlexusLauncherMain 등)로 리네이밍했습니다.
+- 모드 메타데이터, 의존성 해결, 변환 엔진 및 브릿지 전반의 내부/공개 에러 코드 접두사를 POLY-에서 PLEXUS-로 변경했습니다.
+- 모드 프로젝트 메타데이터 파일로 plexus.mod.json을 기본 지원합니다.
+
+### Architecture & Refactoring
+
+- Root Gradle modules renamed from poly-* to plexus-* (26 modules).
+- Java package namespace shifted from dev.polymodloader.* to dev.plexusmodloader.*.
+- Added LegacyPackageRemapper in plexus-runtime-impl to remap legacy dev/polymodloader/ references in mod bytecode transparently.
+- All internal classes (PolyLoadingOverlay, PolyRuntime, PolyLauncherMain, PolyMixinService, etc.) renamed to Plexus*.
+- Error codes updated across all diagnostics (PLEXUS-METADATA-*, PLEXUS-DEPENDENCY-*, PLEXUS-COMPAT-*, PLEXUS-TRANSFORM-*, PLEXUS-SYSTEM-*, etc.).
+- Full verification passed on Minecraft 26.2 (check, serverBootSmokeTest, worldCreateSaveTest) and 26.3 (compatibilityCorpus).
+
 ## 1.4.1 — 2026-10-30
 
 ### Highlights

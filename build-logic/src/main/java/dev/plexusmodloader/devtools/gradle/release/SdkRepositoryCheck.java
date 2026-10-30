@@ -35,7 +35,7 @@ import org.xml.sax.SAXException;
 public final class SdkRepositoryCheck {
 
     /** The group of Poly Mod Loader's own artifacts; dependencies in it must be in the repository. */
-    public static final String GROUP = "dev.plexusmodloader";
+    public static final String GROUP = "dev.polymodloader";
 
     private SdkRepositoryCheck() {}
 
