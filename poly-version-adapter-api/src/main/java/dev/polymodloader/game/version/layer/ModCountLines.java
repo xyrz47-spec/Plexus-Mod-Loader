@@ -29,8 +29,10 @@ import java.util.regex.Pattern;
 @ApiStability(StabilityLevel.INTERNAL)
 public final class ModCountLines {
 
-    /** Key of the Poly mods line, {@code "Poly mods: %s"} in English. */
-    public static final String POLY_KEY = "poly.title.mod_count.poly";
+    /** Key of the Plexus mods line, {@code "Plexus mods: %s"} in English. */
+    public static final String PLEXUS_KEY = "poly.title.mod_count.poly";
+    /** Key of the Plexus mods line (legacy alias). */
+    public static final String POLY_KEY = PLEXUS_KEY;
     /** Key of the Fabric mods line, {@code "Fabric mods: %s"} in English. */
     public static final String FABRIC_KEY = "poly.title.mod_count.fabric";
     /** Key of the Quilt mods line, {@code "Quilt mods: %s"} in English. */
@@ -39,7 +41,7 @@ public final class ModCountLines {
     public static final String FORGE_KEY = "poly.title.mod_count.forge";
     /** Key of the NeoForge mods line, {@code "NeoForge mods: %s"} in English. */
     public static final String NEOFORGE_KEY = "poly.title.mod_count.neoforge";
-    /** Key of the left-out mods line, {@code "Not loaded, Poly Mod Loader can't run them yet: %s"} in English. */
+    /** Key of the left-out mods line, {@code "Not loaded, Plexus Mod Loader can't run them yet: %s"} in English. */
     public static final String HOST_INCOMPATIBLE_KEY = "poly.title.mod_count.host_incompatible";
     /** The language whose file every other language falls back to, as Minecraft's own. */
     public static final String DEFAULT_LANGUAGE = "en_us";
@@ -55,7 +57,7 @@ public final class ModCountLines {
      */
     public static List<String> lines(LoadedModCounts counts, Function<String, String> translations) {
         List<String> lines = new ArrayList<>(6);
-        add(lines, POLY_KEY, "Poly mods: %s", counts.polyMods(), translations);
+        add(lines, PLEXUS_KEY, "Plexus mods: %s", counts.polyMods(), translations);
         add(lines, FABRIC_KEY, "Fabric mods: %s", counts.fabricMods(), translations);
         add(lines, QUILT_KEY, "Quilt mods: %s", counts.quiltMods(), translations);
         add(lines, FORGE_KEY, "Forge mods: %s", counts.forgeMods(), translations);
@@ -63,7 +65,7 @@ public final class ModCountLines {
         add(
                 lines,
                 HOST_INCOMPATIBLE_KEY,
-                "Not loaded, Poly Mod Loader can't run them yet: %s",
+                "Not loaded, Plexus Mod Loader can't run them yet: %s",
                 counts.hostIncompatibleMods(),
                 translations);
         return List.copyOf(lines);

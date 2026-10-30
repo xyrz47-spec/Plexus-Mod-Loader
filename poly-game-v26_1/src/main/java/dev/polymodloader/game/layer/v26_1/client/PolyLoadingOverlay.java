@@ -100,7 +100,7 @@ public final class PolyLoadingOverlay {
                 int[] frame = cube.get((int) ((now / FRAME_MILLIS) % cube.size()));
                 drawFrame(graphics, frame, width - CUBE - 6, height - CUBE - 16, logoAlpha);
             }
-            String name = "Poly Mod Loader";
+            String name = "Plexus Mod Loader";
             pixelText(graphics, name, width - pixelWidth(name) - 6, height - 12, logoAlpha * 0.9f, 0xFFFFFF);
         }
 
@@ -114,7 +114,7 @@ public final class PolyLoadingOverlay {
                 pixelText(graphics, line, (width - pixelWidth(line)) / 2, barCentre + 10, barAlpha * 0.85f, 0xFFFFFF);
             }
             if (counts.hostIncompatibleMods() > 0) {
-                String left = counts.hostIncompatibleMods() + " not loaded: Poly Mod Loader can't run them yet";
+                String left = counts.hostIncompatibleMods() + " not loaded: Plexus Mod Loader can't run them yet";
                 pixelText(graphics, left, (width - pixelWidth(left)) / 2, barCentre + 21, barAlpha * 0.85f, 0xFFE08A);
             }
             if (REPORTED.compareAndSet(false, true)) {
@@ -123,14 +123,14 @@ public final class PolyLoadingOverlay {
         }
     }
 
-    /** {@code Mods: Fabric 34 · NeoForge 53 · Poly 2}: the loaders whose mods run; empty with none. */
+    /** {@code Mods: Fabric 34 · NeoForge 53 · Plexus 2}: the loaders whose mods run; empty with none. */
     static String countsLine(LoadedModCounts counts) {
         List<String> parts = new ArrayList<>();
         add(parts, "Fabric", counts.fabricMods());
         add(parts, "Quilt", counts.quiltMods());
         add(parts, "Forge", counts.forgeMods());
         add(parts, "NeoForge", counts.neoForgeMods());
-        add(parts, "Poly", counts.polyMods());
+        add(parts, "Plexus", counts.polyMods());
         return parts.isEmpty() ? "" : "Mods: " + String.join("  ·  ", parts);
     }
 

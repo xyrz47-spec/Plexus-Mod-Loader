@@ -71,6 +71,16 @@ class ModFileScannerTest {
     }
 
     @Test
+    void classifiesPlexusModJson() throws IOException {
+        jar("plexus.jar", null, "plexus.mod.json", "{\"id\": \"test\"}");
+
+        List<DiscoveredModFile> files = scan();
+        assertEquals(1, files.size());
+        assertEquals(ModFileKind.POLY_NATIVE, files.getFirst().kind());
+        assertTrue(files.getFirst().nativeMetadataJson().orElseThrow().contains("test"));
+    }
+
+    @Test
     void aJarWithAnFmlModTypeIsAnFmlLibrary() throws IOException {
         Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");

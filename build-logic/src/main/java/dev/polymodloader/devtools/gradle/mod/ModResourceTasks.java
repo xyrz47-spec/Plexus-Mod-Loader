@@ -29,7 +29,8 @@ public final class ModResourceTasks {
                 .getByType(SourceSetContainer.class)
                 .getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         Directory handWritten = project.getLayout().getProjectDirectory().dir("src/main/resources");
-        File polyModJson = handWritten.file("poly.mod.json").getAsFile();
+        File plexusModJson = handWritten.file("plexus.mod.json").getAsFile();
+        File polyModJson = plexusModJson.isFile() ? plexusModJson : handWritten.file("poly.mod.json").getAsFile();
         Provider<Directory> generated = project.getLayout().getBuildDirectory().dir("generated/poly-resources/main");
 
         TaskProvider<GeneratePolyResourcesTask> generate = project.getTasks()

@@ -73,6 +73,36 @@ class ModDependencyResolverTest {
     }
 
     @Test
+    void acceptsPlexusAndPolyAsRuntimeDependencies() {
+        List<ModMetadata> mods = List.of(
+                mod("modern", "1.0.0", ModEnvironment.BOTH, Map.of("plexus", ">=0.1.0")),
+                mod("legacy", "1.0.0", ModEnvironment.BOTH, Map.of("poly", ">=0.1.0")));
+
+        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER);
+
+        assertEquals(List.of(), result.problems());
+        assertEquals(2, result.loadOrder().size());
+    }
+
+    @Test
+    void rejectsPlexusAndPolyAsModId() {
+        assertEquals(
+                List.of(DependencyProblemCode.RESERVED_MOD_ID),
+                codes(resolver.resolve(
+                        List.of(mod("plexus", "1.0.0", ModEnvironment.BOTH, Map.of())),
+                        "26.2",
+                        GameSide.CLIENT,
+                        POLY_MOD_LOADER)));
+        assertEquals(
+                List.of(DependencyProblemCode.RESERVED_MOD_ID),
+                codes(resolver.resolve(
+                        List.of(mod("poly", "1.0.0", ModEnvironment.BOTH, Map.of())),
+                        "26.2",
+                        GameSide.CLIENT,
+                        POLY_MOD_LOADER)));
+    }
+
+    @Test
     void blocksClientOnlyModsOnDedicatedServer() {
         List<ModMetadata> mods = List.of(mod("shaders", "1.0.0", ModEnvironment.CLIENT, Map.of()));
 

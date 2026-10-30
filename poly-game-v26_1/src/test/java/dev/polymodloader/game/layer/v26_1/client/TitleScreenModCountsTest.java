@@ -18,7 +18,7 @@ class TitleScreenModCountsTest {
         Map<String, String> texts = TitleScreenModCounts.bundledTexts("en_us");
 
         assertEquals(
-                List.of("Poly mods: 2", "Fabric mods: 14", "Quilt mods: 5", "Forge mods: 3", "NeoForge mods: 7"),
+                List.of("Plexus mods: 2", "Fabric mods: 14", "Quilt mods: 5", "Forge mods: 3", "NeoForge mods: 7"),
                 ModCountLines.lines(COUNTS, texts::get));
     }
 
@@ -27,7 +27,7 @@ class TitleScreenModCountsTest {
         Map<String, String> texts = TitleScreenModCounts.bundledTexts("ko_kr");
 
         assertEquals(
-                List.of("Poly 모드: 2개", "Fabric 모드: 14개", "Quilt 모드: 5개", "Forge 모드: 3개", "NeoForge 모드: 7개"),
+                List.of("Plexus 모드: 2개", "Fabric 모드: 14개", "Quilt 모드: 5개", "Forge 모드: 3개", "NeoForge 모드: 7개"),
                 ModCountLines.lines(COUNTS, texts::get));
     }
 

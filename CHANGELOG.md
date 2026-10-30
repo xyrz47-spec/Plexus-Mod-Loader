@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.4.1 — 2026-10-30
+
+### Highlights
+
+- Rebranded in-game branding, early loading window titles, and game window titles to Plexus Mod Loader.
+- Native mod specification now looks for `plexus.mod.json` first, while retaining 100% backward compatibility for existing mods with `poly.mod.json`.
+- Updated game brand system ID to `plexus:game_brand`, with seamless alias fallback for `poly:game_brand` and default brand string `plexus`.
+- Runtime mod ID now recognizes `plexus` in mod dependency declarations while continuing to support `poly`.
+
+### 주요 변경
+
+- 인게임 브랜딩, 초기 로딩 창 및 게임 윈도우 타이틀을 Plexus Mod Loader로 변경했습니다.
+- 네이티브 모드 메타데이터 명세로 `plexus.mod.json`을 기본 지원하며, 기존 `poly.mod.json`을 사용하는 모드와의 100% 하위 호환성을 유지합니다.
+- 게임 브랜드 시스템 ID를 `plexus:game_brand`로 갱신하고 `poly:game_brand` 별칭 및 기본 브랜드 문자열 `plexus`를 완벽 지원합니다.
+- 모드 의존성 선언(`depends`)에서 런타임 모드 ID로 `plexus`를 공식 지원하며 기존 `poly` 선언도 그대로 동작합니다.
+
+### Rebranding & Compatibility
+
+- Updated game window titles across supported versions (26.1, 26.2, 26.3) to display `Minecraft[*] Plexus <version>`.
+- Updated early loading window and loading overlay branding to display Plexus Mod Loader, with mod loader line showing `Plexus` mod counts.
+- Updated title screen mod count translation keys to display "Plexus mods" (English) and "Plexus 모드" (Korean).
+- `GameBrandSystem.ID` is now `plexus:game_brand` with `GameBrandSystem.LEGACY_ID` (`poly:game_brand`) mapped transparently in system replacement resolution.
+- `ModFileScanner` now checks `plexus.mod.json` first and falls back to `poly.mod.json` for native mods.
+- `ModDependencyResolver` supports both `plexus` and `poly` as reserved runtime mod identifiers.
+
 ## 1.4.0 — 2026-10-30
 
 ### Highlights

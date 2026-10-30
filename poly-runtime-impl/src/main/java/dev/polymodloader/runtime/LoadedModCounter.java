@@ -24,9 +24,9 @@ final class LoadedModCounter {
     /** Loader name of the mods NeoForge's FML runs as the host ({@code GameHost.mods()}, ADR-0026). */
     static final String NEOFORGE = "NeoForge";
 
-    /** Poly Mod Loader itself, the game, Java, and the loaders' own entries in their mod lists. */
+    /** Plexus Mod Loader itself, the game, Java, and the loaders' own entries in their mod lists. */
     static final Set<String> NOT_MODS =
-            Set.of("poly", "minecraft", "java", "fabricloader", "quilt_loader", "forge", "neoforge");
+            Set.of("plexus", "poly", "minecraft", "java", "fabricloader", "quilt_loader", "forge", "neoforge");
 
     private LoadedModCounter() {}
 

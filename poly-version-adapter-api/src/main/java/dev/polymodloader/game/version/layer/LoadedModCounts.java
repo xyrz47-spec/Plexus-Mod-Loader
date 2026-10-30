@@ -26,6 +26,11 @@ public record LoadedModCounts(
     /** No mods of any loader. */
     public static final LoadedModCounts NONE = new LoadedModCounts(0, 0, 0, 0, 0, 0);
 
+    /** Alias for {@link #polyMods()} named for Plexus Mod Loader. */
+    public int plexusMods() {
+        return polyMods();
+    }
+
     public LoadedModCounts {
         if (polyMods < 0
                 || fabricMods < 0

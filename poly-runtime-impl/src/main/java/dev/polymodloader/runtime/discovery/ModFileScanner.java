@@ -1,5 +1,6 @@
 package dev.polymodloader.runtime.discovery;
 
+import dev.polymodloader.runtime.metadata.ModMetadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -59,6 +60,9 @@ public final class ModFileScanner {
                     continue;
                 }
                 ZipEntry entry = jarFile.getEntry(kind.metadataPath());
+                if (entry == null && kind == ModFileKind.POLY_NATIVE) {
+                    entry = jarFile.getEntry(ModMetadata.LEGACY_FILE_NAME);
+                }
                 if (entry == null) {
                     continue;
                 }

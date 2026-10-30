@@ -127,4 +127,4 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 Poly Mod Loader is open source under the **Mozilla Public License 2.0 (MPL-2.0)**.
 - Developer instructions, building from source, and module navigation: **[DEVELOPING.md](DEVELOPING.md)**
 - Deep dive into internal transform systems and classloader topology: **[ARCHITECTURE.md](ARCHITECTURE.md)**
-- Issue tracking & feature requests: **[GitHub Issues](https://github.com/xyrz47-spec/Poly-Mod-Loader/issues)**
+- Issue tracking & feature requests: **[GitHub Issues](https://github.com/xyrz47-spec/Plexus-Mod-Loader/issues)**

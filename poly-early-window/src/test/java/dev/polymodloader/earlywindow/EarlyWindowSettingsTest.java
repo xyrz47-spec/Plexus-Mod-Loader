@@ -19,7 +19,7 @@ class EarlyWindowSettingsTest {
         Files.writeString(
                 gameDirectory.resolve("options.txt"), "version:4000\nguiScale:3\ndarkMojangStudiosBackground:true\n");
         EarlyWindowSettings settings = EarlyWindowSettings.forGame(
-                "Minecraft* Poly 26.2",
+                "Minecraft* Plexus 26.2",
                 List.of(
                         "--username",
                         "Dev",

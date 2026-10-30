@@ -65,7 +65,7 @@ final class StartupWindow implements GameWindowListener {
             return none();
         }
         EarlyWindowSettings settings = EarlyWindowSettings.forGame(
-                "Minecraft* Poly " + gameVersion, List.of(gameArguments), Optional.of(configuration.gameJar()), logo);
+                "Minecraft* Plexus " + gameVersion, List.of(gameArguments), Optional.of(configuration.gameJar()), logo);
         EarlyWindow window = EarlyWindow.start(settings, line -> LOGGER.info("[Poly Mod Loader] {}", line));
         Optional<Path> snapshots = Optional.ofNullable(System.getProperty("poly.earlyWindow.snapshots"))
                 .map(Path::of);
@@ -138,14 +138,14 @@ final class StartupWindow implements GameWindowListener {
         closeIn(CLOSE_AFTER_SHOWN_MILLIS);
     }
 
-    /** {@code Mods: Fabric 34  ·  Poly 2}, as the game layers' {@code PolyLoadingOverlay} writes it; empty with none. */
+    /** {@code Mods: Fabric 34  ·  Plexus 2}, as the game layers' {@code PolyLoadingOverlay} writes it; empty with none. */
     static String modsLine(LoadedModCounts counts) {
         List<String> parts = new ArrayList<>();
         add(parts, "Fabric", counts.fabricMods());
         add(parts, "Quilt", counts.quiltMods());
         add(parts, "Forge", counts.forgeMods());
         add(parts, "NeoForge", counts.neoForgeMods());
-        add(parts, "Poly", counts.polyMods());
+        add(parts, "Plexus", counts.polyMods());
         return parts.isEmpty() ? "" : "Mods: " + String.join("  ·  ", parts);
     }
 

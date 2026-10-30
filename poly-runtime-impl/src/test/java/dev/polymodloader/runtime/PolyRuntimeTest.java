@@ -54,7 +54,7 @@ class PolyRuntimeTest {
             assertEquals("test-1", game.gameVersion());
         }
 
-        assertEquals("poly", System.getProperty("poly.test.brand"), "game saw the default poly:game_brand system");
+        assertEquals("plexus", System.getProperty("poly.test.brand"), "game saw the default plexus:game_brand system");
         assertEquals(
                 "poly-game",
                 System.getProperty("poly.test.loader"),
@@ -90,7 +90,7 @@ class PolyRuntimeTest {
         assertTrue(
                 failure.problems()
                         .getFirst()
-                        .startsWith("POLY-SYSTEM-001 system=poly:game_brand: mods [first_brand, " + "second_brand]"),
+                        .startsWith("POLY-SYSTEM-001 system=plexus:game_brand: mods [first_brand, " + "second_brand]"),
                 failure.getMessage());
         assertNull(System.getProperty("poly.test.brand"), "the game must not start after a conflict");
     }

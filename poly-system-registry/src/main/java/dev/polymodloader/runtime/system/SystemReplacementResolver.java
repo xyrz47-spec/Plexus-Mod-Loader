@@ -1,6 +1,7 @@
 package dev.polymodloader.runtime.system;
 
 import dev.polymodloader.api.system.SystemId;
+import dev.polymodloader.api.system.brand.GameBrandSystem;
 import dev.polymodloader.runtime.metadata.ModMetadata;
 import dev.polymodloader.runtime.metadata.SystemReplacementDeclaration;
 import java.util.ArrayDeque;
@@ -68,13 +69,14 @@ public final class SystemReplacementResolver {
         Map<SystemId, List<Candidate>> candidates = new LinkedHashMap<>();
         for (ModMetadata mod : mods) {
             for (SystemReplacementDeclaration declaration : mod.replacesSystems()) {
-                SystemId systemId = new SystemId(declaration.systemId());
+                SystemId rawSystemId = new SystemId(declaration.systemId());
+                SystemId systemId = canonicalSystemId(rawSystemId);
                 SystemDefinition<?> definition = byId.get(systemId);
                 if (definition == null) {
                     problems.add(problem(
                             SystemProblemCode.UNKNOWN_SYSTEM,
                             mod,
-                            "replaces unknown system " + systemId + "; known systems: " + byId.keySet()));
+                            "replaces unknown system " + rawSystemId + "; known systems: " + byId.keySet()));
                 } else if (!definition.replaceable()) {
                     problems.add(problem(
                             SystemProblemCode.NOT_REPLACEABLE, mod, "system " + systemId + " cannot be replaced"));
@@ -154,6 +156,13 @@ public final class SystemReplacementResolver {
     private static SelectedReplacement selection(SystemId systemId, Candidate candidate, List<String> overridden) {
         return new SelectedReplacement(
                 systemId, candidate.mod().id().value(), candidate.declaration().providerClass(), overridden);
+    }
+
+    private static SystemId canonicalSystemId(SystemId systemId) {
+        if (GameBrandSystem.LEGACY_ID.equals(systemId)) {
+            return GameBrandSystem.ID;
+        }
+        return systemId;
     }
 
     private static String problem(SystemProblemCode code, ModMetadata mod, String message) {

@@ -5,8 +5,8 @@ package dev.polymodloader.runtime.discovery;
  * 5, "Compatibility Classification").
  */
 public enum ModFileKind {
-    /** Contains {@code poly.mod.json}. */
-    POLY_NATIVE("poly.mod.json"),
+    /** Contains {@code plexus.mod.json} (or fallback {@code poly.mod.json}). */
+    POLY_NATIVE("plexus.mod.json"),
     /** Contains {@code fabric.mod.json}. */
     FABRIC("fabric.mod.json"),
     /**

@@ -12,7 +12,7 @@ class StartupWindowTest {
         // PolyLoadingOverlay.countsLine writes the same line on the game's loading screen.
         assertEquals("", StartupWindow.modsLine(LoadedModCounts.NONE));
         assertEquals(
-                "Mods: Fabric 34  ·  NeoForge 53  ·  Poly 2",
+                "Mods: Fabric 34  ·  NeoForge 53  ·  Plexus 2",
                 StartupWindow.modsLine(new LoadedModCounts(2, 34, 0, 0, 53)));
         assertEquals(
                 "Mods: Fabric 1  ·  Quilt 2  ·  Forge 3", StartupWindow.modsLine(new LoadedModCounts(0, 1, 3, 2, 0)));

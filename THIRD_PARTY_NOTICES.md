@@ -1,7 +1,7 @@
 # Third-party notices
 
 Poly Mod Loader is licensed under the Mozilla Public License 2.0 (see `LICENSE`). Its source code is at
-https://github.com/xyrz47-spec/Poly-Mod-Loader. The components below are not Poly Mod Loader's own work. They keep
+https://github.com/xyrz47-spec/Plexus-Mod-Loader. The components below are not Poly Mod Loader's own work. They keep
 their own licenses, which Poly Mod Loader's license does not change.
 
 Releases up to 1.1.0 were distributed under the PolyLoader Non-Commercial License 1.0; those copies keep that

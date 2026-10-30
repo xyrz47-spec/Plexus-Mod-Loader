@@ -51,11 +51,11 @@ final class EarlyWindowTitle {
             if (reader.find(NEOFORGE_CLASS).isPresent()) {
                 classFile = NEOFORGE_CLASS;
                 original = NEOFORGE_TITLE;
-                replacement = "Minecraft* Poly " + gameVersion;
+                replacement = "Minecraft* Plexus " + gameVersion;
             } else if (reader.find(FORGE_CLASS).isPresent()) {
                 classFile = FORGE_CLASS;
                 original = FORGE_TITLE;
-                replacement = "Minecraft* Poly ";
+                replacement = "Minecraft* Plexus ";
             } else {
                 return reference;
             }

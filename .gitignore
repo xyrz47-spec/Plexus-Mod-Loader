@@ -20,6 +20,9 @@ node_modules/
 
 # Claude Code personal settings
 .claude/settings.local.json
+skills-lock.json
+.claude/skills/*
+!.claude/skills/poly-*
 
 # OS / secrets
 .DS_Store

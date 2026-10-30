@@ -19,12 +19,12 @@ class EarlyWindowTitleTest {
     void theTitleConstantIsRewrittenAndTheClassStillRuns() throws Exception {
         byte[] original = window(EarlyWindowTitle.NEOFORGE_TITLE, "Minecraft: NeoForge");
 
-        byte[] patched = EarlyWindowTitle.replaced(original, EarlyWindowTitle.NEOFORGE_TITLE, "Minecraft* Poly 26.3");
+        byte[] patched = EarlyWindowTitle.replaced(original, EarlyWindowTitle.NEOFORGE_TITLE, "Minecraft* Plexus 26.3");
 
         Class<?> type = define(patched);
         Method title = type.getMethod("title");
         Method dialog = type.getMethod("dialog");
-        assertEquals("Minecraft* Poly 26.3", title.invoke(null));
+        assertEquals("Minecraft* Plexus 26.3", title.invoke(null));
         assertEquals("Minecraft: NeoForge", dialog.invoke(null));
     }
 
@@ -33,9 +33,9 @@ class EarlyWindowTitleTest {
         byte[] patched = EarlyWindowTitle.replaced(
                 window(EarlyWindowTitle.FORGE_TITLE, "Minecraft: Forge"),
                 EarlyWindowTitle.FORGE_TITLE,
-                "Minecraft* Poly ");
+                "Minecraft* Plexus ");
 
-        assertEquals("Minecraft* Poly ", define(patched).getMethod("title").invoke(null));
+        assertEquals("Minecraft* Plexus ", define(patched).getMethod("title").invoke(null));
     }
 
     /** A constant loaded more than once is not the shape checked: the class stays as it is. */
@@ -43,7 +43,7 @@ class EarlyWindowTitleTest {
     void aConstantLoadedTwiceIsLeftAlone() {
         byte[] original = window(EarlyWindowTitle.FORGE_TITLE, EarlyWindowTitle.FORGE_TITLE);
 
-        assertSame(original, EarlyWindowTitle.replaced(original, EarlyWindowTitle.FORGE_TITLE, "Minecraft* Poly"));
+        assertSame(original, EarlyWindowTitle.replaced(original, EarlyWindowTitle.FORGE_TITLE, "Minecraft* Plexus"));
     }
 
     /** {@code t.DisplayWindow} with {@code static String title()} and {@code static String dialog()}. */

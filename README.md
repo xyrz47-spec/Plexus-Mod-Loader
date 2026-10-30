@@ -33,7 +33,7 @@ A **Poly Mod** is a mod made with the Native API that runs on Poly Mod Loader, t
 ## Install (players)
 
 1. Run the vanilla version you want (26.1, 26.1.1, 26.1.2, 26.2 or 26.3) once in the Minecraft Launcher, quit the game, and close the launcher.
-2. Download `PolyModLoader-<version>.jar` from the [download page](https://www.polymc.net/download/) (the files are the [GitHub releases](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)). The same jar runs on Windows, macOS and Linux.
+2. Download `PolyModLoader-<version>.jar` from the [download page](https://www.plexusmc.net/download/) (the files are the [GitHub releases](https://github.com/xyrz47-spec/Plexus-Mod-Loader/releases/latest)). The same jar runs on Windows, macOS and Linux.
 3. Open it with Java 17 or newer: double-click it, or run `java -jar PolyModLoader-<version>.jar`.
 4. Click **Install**.
 5. Pick the **Poly Mod Loader <Minecraft version>** profile (for example **Poly Mod Loader 26.2**) in the launcher and play. Put mods in the launcher folder's `mods/`.
@@ -85,7 +85,7 @@ Performance is stated only from empirical measurements (see [PROJECT.md](PROJECT
 You need JDK 25 and Git. The first build automatically downloads Minecraft from Mojang's servers and verifies it against SHA-1 checksums. Minecraft assets are cached in `~/.gradle/caches/poly-minecraft` and are never redistributed in the repository.
 
 ```powershell
-git clone https://github.com/xyrz47-spec/Poly-Mod-Loader.git polymodloader
+git clone https://github.com/xyrz47-spec/Plexus-Mod-Loader.git polymodloader
 cd polymodloader
 .\gradlew.bat check                                   # compile, format check, tests
 .\gradlew.bat :poly-installer:installerDistributions  # installers (poly-installer/build/distributions/)
@@ -116,7 +116,7 @@ Poly 모드 로더는 Minecraft의 실행 기반은 그대로 두고, 그 위의
 ### 설치 (플레이어)
 
 1. Minecraft Launcher에서 쓰려는 바닐라 버전(26.1, 26.1.1, 26.1.2, 26.2, 26.3)을 한 번 실행한 뒤 런처를 닫습니다.
-2. [릴리스 페이지](https://github.com/xyrz47-spec/Poly-Mod-Loader/releases/latest)에서 `PolyModLoader-<버전>.jar`를 다운로드합니다. Windows, macOS, Linux 모두 같은 jar를 씁니다.
+2. [릴리스 페이지](https://github.com/xyrz47-spec/Plexus-Mod-Loader/releases/latest)에서 `PolyModLoader-<버전>.jar`를 다운로드합니다. Windows, macOS, Linux 모두 같은 jar를 씁니다.
 3. Java 17 이상으로 엽니다. 더블클릭하거나 `java -jar PolyModLoader-<버전>.jar`로 실행합니다.
 4. **설치**를 누릅니다.
 5. 런처에서 **Poly 모드 로더 <Minecraft 버전>** 프로필(예: **Poly 모드 로더 26.2**)을 고르고 플레이합니다. 모드는 런처 폴더의 `mods/`에 넣습니다.
@@ -168,7 +168,7 @@ Poly 모드 로더는 실행할 수 없는 모드를 게임이 시작되기 전�
 JDK 25와 Git이 필요합니다. 첫 빌드 시 Mojang 공식 서버에서 마인크래프트 원본 에셋을 받아 SHA-1으로 검증하며, 마인크래프트 파일은 저장소에 절대 포함되거나 재배포되지 않습니다.
 
 ```powershell
-git clone https://github.com/xyrz47-spec/Poly-Mod-Loader.git polymodloader
+git clone https://github.com/xyrz47-spec/Plexus-Mod-Loader.git polymodloader
 cd polymodloader
 .\gradlew.bat check                                   # 컴파일, 포맷 검사, 테스트
 .\gradlew.bat :poly-installer:installerDistributions  # 설치 파일 (poly-installer/build/distributions/)

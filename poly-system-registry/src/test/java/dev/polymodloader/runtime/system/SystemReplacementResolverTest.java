@@ -49,7 +49,24 @@ class SystemReplacementResolverTest {
         assertTrue(result.replacements().isEmpty());
         assertEquals(1, result.problems().size());
         String problem = result.problems().getFirst();
-        assertTrue(problem.startsWith("POLY-SYSTEM-001 system=poly:game_brand: mods [first, second]"), problem);
+        assertTrue(
+                problem.startsWith("POLY-SYSTEM-001 system=" + GameBrandSystem.ID + ": mods [first, second]"), problem);
+    }
+
+    @Test
+    void legacySystemIdIsResolvedToCanonical() {
+        ModMetadata legacy = metadata(
+                "legacy_mod",
+                List.of(),
+                List.of(new SystemReplacementDeclaration("poly:game_brand", "com.example.LegacyProvider", false)));
+
+        SystemReplacementResolver.Result result = resolver.resolve(List.of(legacy), definitions);
+
+        assertEquals(List.of(), result.problems());
+        SystemReplacementResolver.SelectedReplacement selected =
+                result.replacements().get(GameBrandSystem.ID);
+        assertEquals("legacy_mod", selected.modId());
+        assertEquals("com.example.LegacyProvider", selected.providerClass());
     }
 
     @Test

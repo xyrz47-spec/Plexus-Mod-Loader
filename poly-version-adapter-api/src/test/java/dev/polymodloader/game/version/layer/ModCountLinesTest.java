@@ -23,7 +23,7 @@ class ModCountLinesTest {
         Map<String, String> english = bundled("en_us");
 
         assertEquals(
-                List.of("Poly mods: 2", "Fabric mods: 14", "Quilt mods: 5", "Forge mods: 3", "NeoForge mods: 7"),
+                List.of("Plexus mods: 2", "Fabric mods: 14", "Quilt mods: 5", "Forge mods: 3", "NeoForge mods: 7"),
                 ModCountLines.lines(ALL_LOADERS, english::get));
     }
 
@@ -32,7 +32,7 @@ class ModCountLinesTest {
         Map<String, String> korean = bundled("ko_kr");
 
         assertEquals(
-                List.of("Poly 모드: 2개", "Fabric 모드: 14개", "Quilt 모드: 5개", "Forge 모드: 3개", "NeoForge 모드: 7개"),
+                List.of("Plexus 모드: 2개", "Fabric 모드: 14개", "Quilt 모드: 5개", "Forge 모드: 3개", "NeoForge 모드: 7개"),
                 ModCountLines.lines(ALL_LOADERS, korean::get));
     }
 
@@ -58,11 +58,11 @@ class ModCountLinesTest {
 
         assertEquals(List.of("Fabric mods: 1"), ModCountLines.lines(new LoadedModCounts(0, 1, 0), english::get));
         assertEquals(
-                List.of("Poly mods: 1", "Forge mods: 5"),
+                List.of("Plexus mods: 1", "Forge mods: 5"),
                 ModCountLines.lines(new LoadedModCounts(1, 0, 5), english::get));
         assertEquals(List.of("Quilt mods: 2"), ModCountLines.lines(new LoadedModCounts(0, 0, 0, 2), english::get));
         assertEquals(
-                List.of("Poly mods: 1", "NeoForge mods: 4"),
+                List.of("Plexus mods: 1", "NeoForge mods: 4"),
                 ModCountLines.lines(new LoadedModCounts(1, 0, 0, 0, 4), english::get));
         assertEquals(List.of(), ModCountLines.lines(LoadedModCounts.NONE, english::get));
     }
@@ -73,20 +73,20 @@ class ModCountLinesTest {
         LoadedModCounts counts = new LoadedModCounts(0, 3, 0, 0, 40).withHostIncompatibleMods(12);
 
         assertEquals(
-                List.of("Fabric mods: 3", "NeoForge mods: 40", "Not loaded, Poly Mod Loader can't run them yet: 12"),
+                List.of("Fabric mods: 3", "NeoForge mods: 40", "Not loaded, Plexus Mod Loader can't run them yet: 12"),
                 ModCountLines.lines(counts, bundled("en_us")::get));
         assertEquals(
-                List.of("Fabric 모드: 3개", "NeoForge 모드: 40개", "Poly Mod Loader가 아직 실행하지 못해 빠진 모드: 12개"),
+                List.of("Fabric 모드: 3개", "NeoForge 모드: 40개", "Plexus Mod Loader가 아직 실행하지 못해 빠진 모드: 12개"),
                 ModCountLines.lines(counts, bundled("ko_kr")::get));
         assertEquals(
-                List.of("Not loaded, Poly Mod Loader can't run them yet: 1"),
+                List.of("Not loaded, Plexus Mod Loader can't run them yet: 1"),
                 ModCountLines.lines(LoadedModCounts.NONE.withHostIncompatibleMods(1), key -> null));
     }
 
     @Test
     void aKeyWithoutTextFallsBackToEnglish() {
         assertEquals(
-                List.of("Poly mods: 2", "Fabric mods: 14", "Quilt mods: 5", "Forge mods: 3", "NeoForge mods: 7"),
+                List.of("Plexus mods: 2", "Fabric mods: 14", "Quilt mods: 5", "Forge mods: 3", "NeoForge mods: 7"),
                 ModCountLines.lines(ALL_LOADERS, key -> null));
     }
 

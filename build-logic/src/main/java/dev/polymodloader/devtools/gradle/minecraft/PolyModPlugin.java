@@ -121,13 +121,15 @@ public final class PolyModPlugin implements Plugin<Project> {
         project.getDependencies().add("polyMetadataValidator", "dev.polymodloader:" + METADATA_MODULE + ":" + polyVersion);
 
         JavaToolchainService toolchains = project.getExtensions().getByType(JavaToolchainService.class);
+        java.io.File plexusJson = project.file("src/main/resources/plexus.mod.json");
+        java.io.File targetJson = plexusJson.exists() ? plexusJson : project.file("src/main/resources/poly.mod.json");
         TaskProvider<JavaExec> validate = project.getTasks().register("validatePolyModJson", JavaExec.class, task -> {
             task.setGroup("verification");
-            task.setDescription("Validates src/main/resources/poly.mod.json with Poly Mod Loader's metadata reader.");
+            task.setDescription("Validates src/main/resources/plexus.mod.json or poly.mod.json with Plexus Mod Loader's metadata reader.");
             task.setClasspath(validator);
             task.getMainClass().set("dev.polymodloader.runtime.metadata.ModMetadataValidatorMain");
-            task.args(project.file("src/main/resources/poly.mod.json").getAbsolutePath());
-            task.getInputs().file(project.file("src/main/resources/poly.mod.json"));
+            task.args(targetJson.getAbsolutePath());
+            task.getInputs().file(targetJson);
             task.getJavaLauncher().set(toolchains.launcherFor(java.getToolchain()));
         });
         project.getTasks().named("check").configure(check -> check.dependsOn(validate));

@@ -41,8 +41,11 @@ public record ModMetadata(
         List<TransformDeclaration> transforms,
         List<AccessWideningDeclaration> accessWidenings) {
 
-    /** File name Poly Mod Loader looks for at the root of a mod jar. */
-    public static final String FILE_NAME = "poly.mod.json";
+    /** File name Plexus Mod Loader looks for at the root of a mod jar. */
+    public static final String FILE_NAME = "plexus.mod.json";
+
+    /** Legacy file name Poly Mod Loader looked for, supported for backward compatibility. */
+    public static final String LEGACY_FILE_NAME = "poly.mod.json";
 
     public ModMetadata {
         minecraftVersions = List.copyOf(minecraftVersions);

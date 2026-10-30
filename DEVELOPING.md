@@ -19,7 +19,7 @@ Welcome to the Poly Mod Loader contributor documentation. This guide provides al
 
 ```powershell
 # Clone the repository
-git clone https://github.com/xyrz47-spec/Poly-Mod-Loader.git
+git clone https://github.com/xyrz47-spec/Plexus-Mod-Loader.git
 cd Poly-Mod-Loader
 
 # Verify code formatting and run all unit tests

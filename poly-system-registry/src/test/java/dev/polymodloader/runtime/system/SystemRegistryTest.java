@@ -23,7 +23,7 @@ class SystemRegistryTest {
         SystemRegistry registry =
                 SystemRegistry.create(BuiltInSystems.definitions(), noReplacements(), GameSide.CLIENT, LOADER);
 
-        assertEquals("poly", registry.get(GameBrandSystem.class).brand(GameSide.CLIENT));
+        assertEquals("plexus", registry.get(GameBrandSystem.class).brand(GameSide.CLIENT));
         SystemRegistry.ActiveSystem active = registry.activeSystems().getFirst();
         assertTrue(active.isDefault());
         assertEquals(PolyGameBrandProvider.class.getName(), active.providerClass());
@@ -55,8 +55,8 @@ class SystemRegistryTest {
 
         String problem = failure.problems().getFirst();
         assertTrue(
-                problem.startsWith(
-                        "POLY-SYSTEM-003 system=poly:game_brand provider=" + provider.getName() + " mod=branding: "),
+                problem.startsWith("POLY-SYSTEM-003 system=" + GameBrandSystem.ID + " provider=" + provider.getName()
+                        + " mod=branding: "),
                 problem);
     }
 

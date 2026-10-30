@@ -39,9 +39,10 @@ public final class SystemRegistry implements SystemLookup {
             overriddenModIds = List.copyOf(overriddenModIds);
         }
 
-        /** Whether Poly Mod Loader's own default provider is active. */
+        /** Whether Plexus Mod Loader's own default provider is active. */
         public boolean isDefault() {
-            return providerModId.equals(DEFAULT_PROVIDER_MOD_ID);
+            return providerModId.equals(DEFAULT_PROVIDER_MOD_ID)
+                    || providerModId.equals(LEGACY_DEFAULT_PROVIDER_MOD_ID);
         }
     }
 
@@ -61,7 +62,8 @@ public final class SystemRegistry implements SystemLookup {
         }
     }
 
-    static final String DEFAULT_PROVIDER_MOD_ID = "poly";
+    static final String DEFAULT_PROVIDER_MOD_ID = "plexus";
+    static final String LEGACY_DEFAULT_PROVIDER_MOD_ID = "poly";
 
     private final Map<Class<?>, PolySystem> instances;
     private final List<ActiveSystem> activeSystems;
