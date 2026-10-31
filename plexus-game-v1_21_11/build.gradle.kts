@@ -1,6 +1,6 @@
 plugins {
-    id("poly.java-conventions")
-    id("poly.minecraft-compile")
+    id("plexus.java-conventions")
+    id("plexus.minecraft-compile")
 }
 
 description = "Game layer for Minecraft 1.21.11: implements the Native API with game classes; loaded by the game class loader."

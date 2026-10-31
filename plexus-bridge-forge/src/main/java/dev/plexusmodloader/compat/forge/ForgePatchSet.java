@@ -22,7 +22,7 @@ import org.tukaani.xz.LZMAInputStream;
 /**
  * Forge's binary patches for one side ({@code data/client.lzma} or {@code data/server.lzma} of the Forge installer):
  * an LZMA-compressed zip with one {@link ForgeBinaryPatch} per class (ADR-0021 G2). Builds the Forge-patched game jar
- * on the player's PC, as Forge's installer does with {@code binarypatcher}; Poly Mod Loader never ships patched classes.
+ * on the player's PC, as Forge's installer does with {@code binarypatcher}; Plexus Mod Loader never ships patched classes.
  *
  * <p>Thread: immutable after {@link #read}; {@link #patch} may run on any thread.
  */

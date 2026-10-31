@@ -28,7 +28,7 @@ final class MixinLog extends LoggerAdapterAbstract {
 
     @Override
     public String getType() {
-        return "SLF4J (Poly Mod Loader)";
+        return "SLF4J (Plexus Mod Loader)";
     }
 
     @Override

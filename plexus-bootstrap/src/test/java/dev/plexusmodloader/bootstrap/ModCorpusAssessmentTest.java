@@ -39,9 +39,9 @@ import org.junit.jupiter.params.provider.EnumSource;
  * starting the game: every jar alone and all of them together go through discovery, the loader bridges, the
  * cross-loader dependency resolution and the link check against the real game jar and libraries. Nothing may
  * throw, every jar must end up loaded or blocked, and every blocked one must say why with a code. Run with
- * {@code :plexus-bootstrap:corpusAssessment}; the verdicts are written to {@code build/reports/poly/}.
+ * {@code :plexus-bootstrap:corpusAssessment}; the verdicts are written to {@code build/reports/plexus/}.
  */
-@EnabledIfSystemProperty(named = "poly.corpus", matches = ".+")
+@EnabledIfSystemProperty(named = "plexus.corpus", matches = ".+")
 class ModCorpusAssessmentTest {
 
     private static final String JAVA = String.valueOf(Runtime.version().feature());
@@ -49,9 +49,10 @@ class ModCorpusAssessmentTest {
     @ParameterizedTest
     @EnumSource(GameSide.class)
     void everyRealModIsLoadedOrBlockedWithAReason(GameSide side) throws IOException {
-        Path corpus = Path.of(System.getProperty("poly.corpus"));
+        Path corpus = Path.of(System.getProperty("plexus.corpus"));
         JsonObject spec = JsonParser.parseString(Files.readString(
-                        Path.of(System.getProperty(side == GameSide.CLIENT ? "poly.clientSpec" : "poly.serverSpec")),
+                        Path.of(System.getProperty(
+                                side == GameSide.CLIENT ? "plexus.clientSpec" : "plexus.serverSpec")),
                         StandardCharsets.UTF_8))
                 .getAsJsonObject();
         String gameVersion = spec.get("gameVersion").getAsString();
@@ -84,7 +85,7 @@ class ModCorpusAssessmentTest {
             Map<Path, String> otherKinds = new LinkedHashMap<>();
             List<ForeignModResolver.ForeignMod> foreign = new ArrayList<>();
             for (DiscoveredModFile file : new ModFileScanner().scan(corpus.resolve("none"), jars)) {
-                if (file.kind() == ModFileKind.POLY_NATIVE
+                if (file.kind() == ModFileKind.PLEXUS_NATIVE
                         || file.kind() == ModFileKind.FML_LIBRARY
                         || file.kind() == ModFileKind.UNREADABLE
                         || file.kind() == ModFileKind.UNKNOWN) {
@@ -168,7 +169,7 @@ class ModCorpusAssessmentTest {
                             .filter(mod -> alone.get(key(mod)).status().loadable())
                             .count());
             summary.add("mods", report);
-            Path out = Path.of(System.getProperty("poly.corpusReport"))
+            Path out = Path.of(System.getProperty("plexus.corpusReport"))
                     .resolve("corpus-assessment-" + side.name().toLowerCase(java.util.Locale.ROOT) + ".json");
             Files.createDirectories(out.getParent());
             Files.writeString(

@@ -340,7 +340,7 @@ class ForgeRegistryOpeningTest {
     }
 
     @Test
-    void wrapperWriteCheckOnAFieldPolyModLoaderDoesNotOpenStopsBeforeModsRun() throws Exception {
+    void wrapperWriteCheckOnAFieldPlexusModLoaderDoesNotOpenStopsBeforeModsRun() throws Exception {
         try (URLClassLoader game = forge("sealed", IS_FROZEN, "frozen")) {
             Object blocks = add(game, "minecraft:block", true, true);
             AtomicBoolean ran = new AtomicBoolean();
@@ -357,7 +357,7 @@ class ForgeRegistryOpeningTest {
     }
 
     @Test
-    void gameRegistryWriteCheckOnAFieldPolyModLoaderDoesNotOpenStopsBeforeModsRun() throws Exception {
+    void gameRegistryWriteCheckOnAFieldPlexusModLoaderDoesNotOpenStopsBeforeModsRun() throws Exception {
         try (URLClassLoader game = forge("frozen", IS_FROZEN, "sealed")) {
             Object tabs = addVanilla(game, "minecraft:creative_mode_tab", true);
             AtomicBoolean ran = new AtomicBoolean();
@@ -392,22 +392,23 @@ class ForgeRegistryOpeningTest {
      * universal.jar>}; checked with 26.1-62.0.9, 26.1.2-64.1.5, 26.2-65.1.5 and 26.3-66.1.0).
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.forgeUniversal", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.forgeUniversal", matches = ".+")
     void forgesNamespacedWrapperHasTheCheckedWriteChecks() throws IOException {
         ClassModel wrapper = classModel(
-                System.getProperty("poly.forgeUniversal"), "net/minecraftforge/registries/NamespacedWrapper.class");
+                System.getProperty("plexus.forgeUniversal"), "net/minecraftforge/registries/NamespacedWrapper.class");
         ForgeRegistryOpening.checkWriteChecks(
                 wrapper, Set.of(ForgeRegistryOpening.LOCKED, ForgeRegistryOpening.FROZEN), true);
     }
 
     /**
      * Forge's patched {@code MappedRegistry} passes the class-file check ({@code -PforgePatchedClient=<forge-<version>-
-     * client.jar>} or {@code -PforgePatchedServer=<forge-<version>-server.jar>} from a Forge run's {@code .poly/forge/};
+     * client.jar>} or {@code -PforgePatchedServer=<forge-<version>-server.jar>} from a Forge run's {@code .plexus/forge/};
      * checked with the 26.1-62.0.9, 26.1.2-64.1.5 and 26.2-65.1.5 client jars and the 26.3-66.1.0 server jar).
      */
     @Test
     void forgesPatchedMappedRegistryHasTheCheckedWriteChecks() throws IOException {
-        String jar = System.getProperty("poly.forgePatchedClient", System.getProperty("poly.forgePatchedServer", ""));
+        String jar =
+                System.getProperty("plexus.forgePatchedClient", System.getProperty("plexus.forgePatchedServer", ""));
         assumeFalse(jar.isEmpty(), "no Forge patched game jar given");
         ClassModel mapped = classModel(jar, "net/minecraft/core/MappedRegistry.class");
         ForgeRegistryOpening.checkWriteChecks(mapped, Set.of(ForgeRegistryOpening.FROZEN), false);

@@ -16,7 +16,7 @@
 // Source: Sinytra Forgified Fabric API, branch 26.2.x, commit 40f8ce0,
 // fabric-item-api-v1/src/main/java/net/fabricmc/fabric/api/item/v1/FabricItem.java (Fabric API's file as Forgified
 // Fabric API changed it for NeoForge).
-// Poly Mod Loader (ADR-0031): reformatted; no other change.
+// Plexus Mod Loader (ADR-0031): reformatted; no other change.
 
 package net.fabricmc.fabric.api.item.v1;
 

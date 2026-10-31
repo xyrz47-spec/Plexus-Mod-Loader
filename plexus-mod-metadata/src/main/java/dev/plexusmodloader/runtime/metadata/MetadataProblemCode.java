@@ -1,6 +1,6 @@
 package dev.plexusmodloader.runtime.metadata;
 
-/** Stable error codes for {@code poly.mod.json} problems (design doc §7.2, §10). */
+/** Stable error codes for {@code plexus.mod.json} problems (design doc §7.2, §10). */
 public enum MetadataProblemCode {
     INVALID_JSON("PLEXUS-METADATA-001", Severity.ERROR),
     MISSING_FIELD("PLEXUS-METADATA-002", Severity.ERROR),

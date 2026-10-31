@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "ASM-based transformation planner and executor. Mods never depend on this module."

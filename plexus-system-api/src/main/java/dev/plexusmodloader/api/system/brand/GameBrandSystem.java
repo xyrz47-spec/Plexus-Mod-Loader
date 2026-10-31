@@ -3,11 +3,11 @@ package dev.plexusmodloader.api.system.brand;
 import dev.plexusmodloader.api.runtime.GameSide;
 import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
-import dev.plexusmodloader.api.system.PolySystem;
+import dev.plexusmodloader.api.system.PlexusSystem;
 import dev.plexusmodloader.api.system.SystemId;
 
 /**
- * System {@code plexus:game_brand} (legacy alias {@code poly:game_brand}): the mod brand the game reports about itself — shown through the
+ * System {@code plexus:game_brand} (legacy alias {@code plexus:game_brand}): the mod brand the game reports about itself — shown through the
  * window title's "modded" marker, crash reports, and the server brand sent to clients.
  *
  * <ul>
@@ -21,12 +21,12 @@ import dev.plexusmodloader.api.system.SystemId;
  * </ul>
  */
 @ApiStability(StabilityLevel.PREVIEW)
-public interface GameBrandSystem extends PolySystem {
+public interface GameBrandSystem extends PlexusSystem {
 
     /** ID of this system. */
     SystemId ID = new SystemId("plexus:game_brand");
 
-    /** Legacy ID of this system for backward compatibility with Poly mods. */
+    /** Legacy ID of this system for backward compatibility with Plexus mods. */
     SystemId LEGACY_ID = new SystemId("poly:game_brand");
 
     /** The brand reported by {@code side}. */

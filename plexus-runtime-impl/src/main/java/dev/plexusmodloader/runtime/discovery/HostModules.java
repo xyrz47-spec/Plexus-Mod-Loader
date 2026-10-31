@@ -19,9 +19,9 @@ import java.util.Optional;
 import java.util.Properties;
 
 /**
- * Poly Mod Loader's own builds of Fabric API modules for a host loader (ADR-0031): a module that cannot run as written
+ * Plexus Mod Loader's own builds of Fabric API modules for a host loader (ADR-0031): a module that cannot run as written
  * on the host's patched game ({@code PLEXUS-COMPAT-224}) is replaced by the build implemented on that host's hooks, when
- * Poly Mod Loader has one for that exact host release. The builds ship inside Poly Mod Loader's jars as resources,
+ * Plexus Mod Loader has one for that exact host release. The builds ship inside Plexus Mod Loader's jars as resources,
  * listed in {@value #INDEX}: a key {@code <host key>.<mod id>} ({@link #hostKey}) names the jar resource. A replacement
  * is a mod of its own (no container), assessed by its bridge as any mod file is; the host check then runs on it too.
  *
@@ -30,7 +30,7 @@ import java.util.Properties;
 public final class HostModules {
 
     /** The index of host modules on the class path. */
-    public static final String INDEX = "META-INF/polymodloader/host-modules.properties";
+    public static final String INDEX = "META-INF/plexusmodloader/host-modules.properties";
 
     private static final String BLOCKED = "PLEXUS-COMPAT-224";
 
@@ -130,7 +130,7 @@ public final class HostModules {
             }
             return Optional.of(target);
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to extract Poly Mod Loader's host module " + resource, e);
+            throw new UncheckedIOException("Failed to extract Plexus Mod Loader's host module " + resource, e);
         }
     }
 

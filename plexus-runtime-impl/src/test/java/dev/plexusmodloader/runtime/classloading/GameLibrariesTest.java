@@ -24,10 +24,10 @@ class GameLibrariesTest {
     @Test
     void librariesAreTakenAndTheGameJarAndSharedJarsLeftOnTheClassPath() throws IOException {
         Path library = jar("datafixerupper.jar", Map.of("com/mojang/datafixers/DSL.class", ""), null);
-        Path poly = jar("poly-runtime.jar", Map.of("dev/plexusmodloader/X.class", ""), null);
+        Path plexus = jar("plexus-runtime.jar", Map.of("dev/plexusmodloader/X.class", ""), null);
         Path game = jar("server-26.2.jar", Map.of("net/minecraft/server/Main.class", ""), null);
 
-        assertEquals(List.of(library), GameLibraries.fromClassPath(classPath(library, poly, game), game));
+        assertEquals(List.of(library), GameLibraries.fromClassPath(classPath(library, plexus, game), game));
     }
 
     /**
@@ -39,23 +39,23 @@ class GameLibrariesTest {
     @Test
     void aManifestOnlyClassPathJarStandsForItsEntries() throws IOException {
         Path library = jar("libs/datafixerupper.jar", Map.of("com/mojang/datafixers/DSL.class", ""), null);
-        Path poly = jar("libs/poly-runtime.jar", Map.of("dev/plexusmodloader/X.class", ""), null);
+        Path plexus = jar("libs/plexus-runtime.jar", Map.of("dev/plexusmodloader/X.class", ""), null);
         Path game = jar("versions/server-26.2.jar", Map.of("net/minecraft/server/Main.class", ""), null);
         Path pathing = jar(
                 "tmp/gradle-javaexec-classpath123.jar",
                 Map.of(),
-                library.toUri() + " " + poly.toUri() + " " + game.toUri());
+                library.toUri() + " " + plexus.toUri() + " " + game.toUri());
 
         assertEquals(List.of(library), GameLibraries.fromClassPath(classPath(pathing), game));
     }
 
     @Test
     void aJarWithClassesKeepsItsOwnClassPathEntriesOutOfTheGameLoader() throws IOException {
-        // An installed server's polymodloader-server.jar: Poly Mod Loader's classes and a Class-Path naming the
+        // An installed server's plexusmodloader-server.jar: Plexus Mod Loader's classes and a Class-Path naming the
         // libraries; it stays on the class path, and its Class-Path is not followed (as before).
         Path library = jar("libraries/datafixerupper.jar", Map.of("com/mojang/datafixers/DSL.class", ""), null);
         Path server = jar(
-                "polymodloader-server.jar",
+                "plexusmodloader-server.jar",
                 Map.of("dev/plexusmodloader/bootstrap/Main.class", ""),
                 "libraries/datafixerupper.jar");
         Path game = jar("server-26.2.jar", Map.of("net/minecraft/server/Main.class", ""), null);

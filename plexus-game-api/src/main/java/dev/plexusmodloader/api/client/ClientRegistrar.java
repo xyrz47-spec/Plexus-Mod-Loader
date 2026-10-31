@@ -16,7 +16,7 @@ public interface ClientRegistrar {
      * {@code key.<mod id>.<path>}; it is listed under the category {@code key.category.<mod id>}.
      *
      * @param path binding name inside the mod's namespace
-     * @param defaultKey default key, one of {@link KeyCodes} (a Poly Mod Loader key code, not the running game's)
+     * @param defaultKey default key, one of {@link KeyCodes} (a Plexus Mod Loader key code, not the running game's)
      * @throws IllegalStateException after registration closed ({@code PLEXUS-CLIENT-002})
      */
     KeyBinding keyBinding(String path, int defaultKey);

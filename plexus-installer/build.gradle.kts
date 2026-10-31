@@ -4,10 +4,10 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
-description = "End-user installer: adds a Poly Mod Loader profile to the Minecraft Launcher (PolyModLoader-<version>.jar)."
+description = "End-user installer: adds a Plexus Mod Loader profile to the Minecraft Launcher (PlexusModLoader-<version>.jar)."
 
 // The installer runs outside the game, on whatever Java the user has; Java 17 is common enough.
 tasks.compileJava {
@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.gson)
 }
 
-// The Poly Mod Loader runtime the installer copies into the launcher's libraries/ folder: the launcher main
+// The Plexus Mod Loader runtime the installer copies into the launcher's libraries/ folder: the launcher main
 // class, the runtime, every supported version's adapter and game layer, and the loader bridges.
 val installerRuntime = configurations.create("installerRuntime") {
     isCanBeConsumed = false
@@ -40,8 +40,8 @@ val providedByMinecraft = setOf(
     "org.slf4j:slf4j-api",
     "com.google.errorprone:error_prone_annotations",
 )
-val polyModLoaderVersion = version.toString()
-val polyGroup = group.toString()
+val plexusModLoaderVersion = version.toString()
+val plexusGroup = group.toString()
 val supportedMinecraft = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).runnable()
 // plexus-bootstrap carries an experimental version's adapter when the build runs it (ADR-0019); players never get it.
 val runsExperimental = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).let {
@@ -49,18 +49,18 @@ val runsExperimental = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVe
 }
 
 val installerPayload = tasks.register<dev.plexusmodloader.devtools.gradle.release.InstallerPayloadTask>("installerPayload") {
-    description = "Collects the Poly Mod Loader runtime jars and their index for the installer."
+    description = "Collects the Plexus Mod Loader runtime jars and their index for the installer."
     doFirst {
         if (runsExperimental) {
-            throw GradleException("-PpolyMinecraft picks an experimental Minecraft version; the installer is built"
-                + " only for supported versions $supportedMinecraft. Build it without -PpolyMinecraft.")
+            throw GradleException("-PplexusMinecraft picks an experimental Minecraft version; the installer is built"
+                + " only for supported versions $supportedMinecraft. Build it without -PplexusMinecraft.")
         }
     }
     val artifacts = installerRuntime.incoming.artifacts.resolvedArtifacts
     libraries.set(artifacts.map { resolved ->
         resolved.mapNotNull { artifact ->
             val coordinates = when (val id = artifact.id.componentIdentifier) {
-                is ProjectComponentIdentifier -> "$polyGroup:${id.projectName}:$polyModLoaderVersion"
+                is ProjectComponentIdentifier -> "$plexusGroup:${id.projectName}:$plexusModLoaderVersion"
                 is ModuleComponentIdentifier -> "${id.group}:${id.module}:${id.version}"
                 else -> throw GradleException("Unexpected installer runtime component $id")
             }
@@ -69,20 +69,20 @@ val installerPayload = tasks.register<dev.plexusmodloader.devtools.gradle.releas
         }.toMap()
     })
     libraryFiles.from(installerRuntime)
-    this.polyVersion = polyModLoaderVersion
+    this.plexusVersion = plexusModLoaderVersion
     this.minecraftVersions = supportedMinecraft
     mainClass = "dev.plexusmodloader.bootstrap.PlexusLauncherMain"
-    // Poly Mod Loader's Java agent (ADR-0024): -javaagent in the launcher profile, Launcher-Agent-Class on the server.
-    agentLibrary = "$polyGroup:plexus-bootstrap:$polyModLoaderVersion"
+    // Plexus Mod Loader's Java agent (ADR-0024): -javaagent in the launcher profile, Launcher-Agent-Class on the server.
+    agentLibrary = "$plexusGroup:plexus-bootstrap:$plexusModLoaderVersion"
     agentClass = "dev.plexusmodloader.bootstrap.SystemClassPathAgent"
     outputDirectory = layout.buildDirectory.dir("installer-payload")
 }
 
-// PolyModLoader-<version>.jar: the installer with gson and the payload inside; double-click or java -jar.
+// PlexusModLoader-<version>.jar: the installer with gson and the payload inside; double-click or java -jar.
 val installerJar = tasks.register<Jar>("installerJar") {
     group = "distribution"
-    description = "Builds the end-user installer PolyModLoader-<version>.jar."
-    archiveFileName = "PolyModLoader-$polyModLoaderVersion.jar"
+    description = "Builds the end-user installer PlexusModLoader-<version>.jar."
+    archiveFileName = "PlexusModLoader-$plexusModLoaderVersion.jar"
     destinationDirectory = layout.buildDirectory.dir("distributions")
     from(sourceSets.main.map { it.output })
     from(configurations.runtimeClasspath.map { classpath -> classpath.map { zipTree(it) } }) {
@@ -96,8 +96,8 @@ val installerJar = tasks.register<Jar>("installerJar") {
     manifest {
         attributes(
             "Main-Class" to "dev.plexusmodloader.installer.InstallerMain",
-            "Implementation-Title" to "Poly Mod Loader installer",
-            "Implementation-Version" to polyModLoaderVersion,
+            "Implementation-Title" to "Plexus Mod Loader installer",
+            "Implementation-Version" to plexusModLoaderVersion,
         )
     }
 }
@@ -105,7 +105,7 @@ val installerJar = tasks.register<Jar>("installerJar") {
 // The jar is the only download, on every platform.
 tasks.register("installerDistributions") {
     group = "distribution"
-    description = "Builds PolyModLoader-<version>.jar."
+    description = "Builds PlexusModLoader-<version>.jar."
     dependsOn(installerJar)
 }
 
@@ -117,8 +117,8 @@ configurations.create("installerJarElements") {
 }
 
 // The dedicated server path end to end: the installer jar installs a server (Mojang's server jar, network needed)
-// into a fresh folder, then java -jar polymodloader-server.jar starts it through Poly Mod Loader. Headless; the Minecraft
-// version is the one this build runs (the default, or -PpolyMinecraft), which the test mods are built for, or
+// into a fresh folder, then java -jar plexusmodloader-server.jar starts it through Plexus Mod Loader. Headless; the Minecraft
+// version is the one this build runs (the default, or -PplexusMinecraft), which the test mods are built for, or
 // -PserverInstallMinecraft=<version> (one the installer lists).
 //  1. no mods: up to Minecraft's EULA check, which nobody accepts here; nothing of Forge is downloaded or logged
 //  2. the Forge test mod forge-hello in mods/, on Mojang's game test server: the launch jar's Java agent puts Forge's
@@ -130,7 +130,7 @@ configurations.create("installerJarElements") {
 //     world is created and a GameTest passes
 //  7. the same mods on the dedicated server: NeoForge starts the game, up to the EULA check
 // forge-hello is built for the build's version; on another version, phases 2 and 3 run Forge without mods
-// (-Dpoly.forge=always), as forgeWorldTest does. neoforge-hello is built for the build's version; on another
+// (-Dplexus.forge=always), as forgeWorldTest does. neoforge-hello is built for the build's version; on another
 // version, phases 6 and 7 run NeoForge without it. Phase 6 also has neoforge-early-service, a mod nested in an early
 // service jar as Sodium ships, which FML loads from the mods folder.
 val serverJava = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
@@ -166,7 +166,7 @@ if (testModsPresent) {
         neoForgeTestMods(project(":test-mods:neoforge-early-service"))
     }
 }
-// The NeoForge release Poly Mod Loader runs for each Minecraft version: <minecraft>=<neoforge version> <installer SHA-1>.
+// The NeoForge release Plexus Mod Loader runs for each Minecraft version: <minecraft>=<neoforge version> <installer SHA-1>.
 val neoForgeReleases = rootProject.layout.projectDirectory.file(
     "plexus-bridge-forge/src/main/resources/dev/plexusmodloader/compat/forge/neoforge-releases.properties")
 // Phases 4 and 5 (Quilt full support Q8): the Quilt test mod quilt-hello alone (only quilt.mod.json; Quilt Loader's API,
@@ -187,7 +187,7 @@ if (testModsPresent) {
         quiltTestMod(project(":test-mods:quilt-hello"))
     }
 }
-// The Forge release Poly Mod Loader runs for each Minecraft version: <minecraft>=<forge version> <installer SHA-1>.
+// The Forge release Plexus Mod Loader runs for each Minecraft version: <minecraft>=<forge version> <installer SHA-1>.
 val forgeReleases = rootProject.layout.projectDirectory.file(
     "plexus-bridge-forge/src/main/resources/dev/plexusmodloader/compat/forge/forge-releases.properties")
 tasks.register("serverInstallTest") {
@@ -220,11 +220,11 @@ tasks.register("serverInstallTest") {
         val forgeVersion = Properties()
             .apply { forgeReleases.asFile.inputStream().use { load(it) } }
             .getProperty(minecraft)?.trim()?.split(Regex("\\s+"))?.first()
-            ?: throw GradleException("serverInstallTest: Poly Mod Loader has no Forge release for Minecraft $minecraft")
+            ?: throw GradleException("serverInstallTest: Plexus Mod Loader has no Forge release for Minecraft $minecraft")
         val neoForgeVersion = Properties()
             .apply { neoForgeReleases.asFile.inputStream().use { load(it) } }
             .getProperty(minecraft)?.trim()?.split(Regex("\\s+"))?.first()
-            ?: throw GradleException("serverInstallTest: Poly Mod Loader has no NeoForge release for Minecraft $minecraft")
+            ?: throw GradleException("serverInstallTest: Plexus Mod Loader has no NeoForge release for Minecraft $minecraft")
 
         /**
          * Runs [command] in [directory], streaming its output to [logFile]; kills it (and what it started) after
@@ -268,11 +268,11 @@ tasks.register("serverInstallTest") {
 
         // 1. No mods: no Forge download, no Forge in the log (Forge costs nothing without Forge mods).
         val plainLog = server.resolve("phase1-plain.log")
-        val (plain, plainExit) = run(server, plainLog, 300, java.get(), "-Xmx2G", "-jar", "polymodloader-server.jar", "nogui")
+        val (plain, plainExit) = run(server, plainLog, 300, java.get(), "-Xmx2G", "-jar", "plexusmodloader-server.jar", "nogui")
         check("phase 1 (no mods)", plain, plainExit, plainLog,
             listOf(
-                "[Poly Mod Loader] Phase BOOTSTRAP",
-                "[Poly Mod Loader] Minecraft $minecraft (DEDICATED_SERVER)",
+                "[Plexus Mod Loader] Phase BOOTSTRAP",
+                "[Plexus Mod Loader] Minecraft $minecraft (DEDICATED_SERVER)",
                 "You need to agree to the EULA in order to run the server",
             ),
             // Not "Forge" alone: the mod counts per loader name it ("0 Forge").
@@ -280,25 +280,25 @@ tasks.register("serverInstallTest") {
         if (!server.resolve("eula.txt").readText().contains("eula=false")) {
             throw GradleException("serverInstallTest phase 1: eula.txt is not left at eula=false")
         }
-        if (server.resolve(".poly/forge").exists()) {
+        if (server.resolve(".plexus/forge").exists()) {
             throw GradleException("serverInstallTest phase 1: Forge's files were prepared without a Forge mod")
         }
 
         // 2. A Forge mod on the game test server, started the same way.
         val forgeMods = if (withForgeMod) 1 else 0
-        val forgeAlways = if (withForgeMod) listOf() else listOf("-Dpoly.forge=always")
+        val forgeAlways = if (withForgeMod) listOf() else listOf("-Dplexus.forge=always")
         if (withForgeMod) {
             forgeMod.files.forEach { it.copyTo(server.resolve("mods").resolve(it.name)) }
         }
         val gameTestLog = server.resolve("phase2-forge-game-test.log")
         val (gameTest, gameTestExit) = run(server, gameTestLog, 600, java.get(), "-Xmx2G", *forgeAlways.toTypedArray(),
-            "-Dpoly.launchTarget=game_test_server", "-jar", "polymodloader-server.jar",
+            "-Dplexus.launchTarget=game_test_server", "-jar", "plexusmodloader-server.jar",
             "--universe", "universe", "--tests", "minecraft:always_pass")
         check("phase 2 (Forge mod, game test server)", gameTest, gameTestExit, gameTestLog,
             listOf(
-                "[Poly Mod Loader] Added Forge's file systems to the JVM class path",
-                "[Poly Mod Loader] MinecraftForge $forgeVersion loads $forgeMods Forge mod(s) itself on Poly Mod Loader's game class loader",
-                "[Poly Mod Loader] Launching target 'polymodloader_server_gametest'",
+                "[Plexus Mod Loader] Added Forge's file systems to the JVM class path",
+                "[Plexus Mod Loader] MinecraftForge $forgeVersion loads $forgeMods Forge mod(s) itself on Plexus Mod Loader's game class loader",
+                "[Plexus Mod Loader] Launching target 'plexusmodloader_server_gametest'",
                 "Forge mod loading, version ${forgeVersion.substringAfter('-')}",
                 "All 1 required tests passed",
             ) + (if (withForgeMod) listOf(
@@ -310,12 +310,12 @@ tasks.register("serverInstallTest") {
         // 3. The same mod on the dedicated server: Forge's launch handler starts it, up to the EULA check.
         val dedicatedLog = server.resolve("phase3-forge-server.log")
         val (dedicated, dedicatedExit) = run(server, dedicatedLog, 600, java.get(), "-Xmx2G", *forgeAlways.toTypedArray(),
-            "-jar", "polymodloader-server.jar", "nogui")
+            "-jar", "plexusmodloader-server.jar", "nogui")
         check("phase 3 (Forge mod, dedicated server)", dedicated, dedicatedExit, dedicatedLog,
             listOf(
-                "[Poly Mod Loader] Added Forge's file systems to the JVM class path",
-                "[Poly Mod Loader] MinecraftForge $forgeVersion loads $forgeMods Forge mod(s) itself on Poly Mod Loader's game class loader",
-                "[Poly Mod Loader] Phase GAME_LAUNCH: MinecraftForge $forgeVersion starts the game",
+                "[Plexus Mod Loader] Added Forge's file systems to the JVM class path",
+                "[Plexus Mod Loader] MinecraftForge $forgeVersion loads $forgeMods Forge mod(s) itself on Plexus Mod Loader's game class loader",
+                "[Plexus Mod Loader] Phase GAME_LAUNCH: MinecraftForge $forgeVersion starts the game",
                 "You need to agree to the EULA in order to run the server",
             ),
             listOf("PLEXUS-COMPAT-206"))
@@ -324,7 +324,7 @@ tasks.register("serverInstallTest") {
         server.resolve("mods").listFiles()?.forEach { it.delete() }
         quiltMod.files.forEach { it.copyTo(server.resolve("mods").resolve(it.name)) }
         val quiltLines = listOf(
-            "[Poly Mod Loader] Loaded mods per loader: 0 Poly, 2 Fabric, 2 Quilt, 0 Forge",
+            "[Plexus Mod Loader] Loaded mods per loader: 0 Plexus, 2 Fabric, 2 Quilt, 0 Forge",
             "[quilt_hello] entrypoint order: pre_launch -> preLaunch -> main",
             "[quilt_hello] MinecraftQuiltLoader.getEnvironmentType() = SERVER, QuiltLoader.getRawGameVersion() = $minecraft",
             "[quilt_hello] access wideners: SharedConstants.prefixDebugFlagName public = true, Mth.SIN public = true",
@@ -333,7 +333,7 @@ tasks.register("serverInstallTest") {
         val quiltAbsent = listOf("MinecraftForge", "PLEXUS-COMPAT-002", "[quilt_hello] client entrypoint ran")
         val quiltGameTestLog = server.resolve("phase4-quilt-game-test.log")
         val (quiltGameTest, quiltGameTestExit) = run(server, quiltGameTestLog, 600, java.get(), "-Xmx2G",
-            "-Dpoly.launchTarget=game_test_server", "-jar", "polymodloader-server.jar",
+            "-Dplexus.launchTarget=game_test_server", "-jar", "plexusmodloader-server.jar",
             "--universe", "universe", "--tests", "minecraft:always_pass")
         check("phase 4 (Quilt mod, game test server)", quiltGameTest, quiltGameTestExit, quiltGameTestLog,
             quiltLines + listOf(
@@ -345,7 +345,7 @@ tasks.register("serverInstallTest") {
         // 5. The same mod on the dedicated server, up to the EULA check (the mod's main entrypoint runs before it).
         val quiltDedicatedLog = server.resolve("phase5-quilt-server.log")
         val (quiltDedicated, quiltDedicatedExit) = run(server, quiltDedicatedLog, 600, java.get(), "-Xmx2G",
-            "-jar", "polymodloader-server.jar", "nogui")
+            "-jar", "plexusmodloader-server.jar", "nogui")
         check("phase 5 (Quilt mod, dedicated server)", quiltDedicated, quiltDedicatedExit, quiltDedicatedLog,
             quiltLines + listOf("You need to agree to the EULA in order to run the server"),
             quiltAbsent)
@@ -357,12 +357,12 @@ tasks.register("serverInstallTest") {
         neoForgeJars.forEach { it.copyTo(server.resolve("mods").resolve(it.name)) }
         val neoForgeGameTestLog = server.resolve("phase6-neoforge-game-test.log")
         val (neoForgeGameTest, neoForgeGameTestExit) = run(server, neoForgeGameTestLog, 600, java.get(), "-Xmx2G",
-            "-Dpoly.launchTarget=game_test_server", "-jar", "polymodloader-server.jar",
+            "-Dplexus.launchTarget=game_test_server", "-jar", "plexusmodloader-server.jar",
             "--universe", "universe", "--tests", "minecraft:always_pass")
         check("phase 6 (NeoForge mods, game test server)", neoForgeGameTest, neoForgeGameTestExit, neoForgeGameTestLog,
             listOf(
-                "[Poly Mod Loader] NeoForge $neoForgeVersion loads ${neoForgeJars.size} NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
-                "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge $neoForgeVersion starts the game",
+                "[Plexus Mod Loader] NeoForge $neoForgeVersion loads ${neoForgeJars.size} NeoForge mod file(s) itself on Plexus Mod Loader's game class loader",
+                "[Plexus Mod Loader] Phase GAME_LAUNCH: NeoForge $neoForgeVersion starts the game",
                 "[neoforge_gametest_harness] NeoForge runs in production and does not tick game tests; the harness ticks them",
                 // FML loads the early service jar from the mods folder and the mod nested in it.
                 "Found 1 early service jars",
@@ -381,11 +381,11 @@ tasks.register("serverInstallTest") {
         // 7. The same mods on the dedicated server: NeoForge starts the game, up to the EULA check.
         val neoForgeDedicatedLog = server.resolve("phase7-neoforge-server.log")
         val (neoForgeDedicated, neoForgeDedicatedExit) = run(server, neoForgeDedicatedLog, 600, java.get(), "-Xmx2G",
-            "-jar", "polymodloader-server.jar", "nogui")
+            "-jar", "plexusmodloader-server.jar", "nogui")
         check("phase 7 (NeoForge mods, dedicated server)", neoForgeDedicated, neoForgeDedicatedExit, neoForgeDedicatedLog,
             listOf(
-                "[Poly Mod Loader] NeoForge $neoForgeVersion loads ${neoForgeJars.size} NeoForge mod file(s) itself on Poly Mod Loader's game class loader",
-                "[Poly Mod Loader] Phase GAME_LAUNCH: NeoForge $neoForgeVersion starts the game",
+                "[Plexus Mod Loader] NeoForge $neoForgeVersion loads ${neoForgeJars.size} NeoForge mod file(s) itself on Plexus Mod Loader's game class loader",
+                "[Plexus Mod Loader] Phase GAME_LAUNCH: NeoForge $neoForgeVersion starts the game",
                 "You need to agree to the EULA in order to run the server",
             ),
             listOf("PLEXUS-COMPAT-216", "MinecraftForge"))

@@ -35,18 +35,18 @@ class ForeignModIndexTest {
                 {"schemaVersion": 1, "id": "sodium", "version": "0.9.2+mc26.2", "name": "Sodium",
                  "provides": ["indium"]}
                 """));
-        BridgeLaunchContext.LoadedMod poly = new BridgeLaunchContext.LoadedMod(
-                "Poly Mod Loader",
+        BridgeLaunchContext.LoadedMod plexus = new BridgeLaunchContext.LoadedMod(
+                "Plexus Mod Loader",
                 "native_lib",
                 "2.1.0",
                 "Native Library",
                 List.of(),
-                jar("poly.jar", Map.of()),
+                jar("plexus.jar", Map.of()),
                 null,
                 null);
 
         ForeignModIndex index =
-                ForeignModIndex.of(List.of(fabric("sodium", "0.9.2+mc26.2", sodium, "indium"), poly), List.of());
+                ForeignModIndex.of(List.of(fabric("sodium", "0.9.2+mc26.2", sodium, "indium"), plexus), List.of());
 
         ForeignModIndex.ForeignMod found = index.find("sodium").orElseThrow();
         assertEquals("Fabric", found.loader());

@@ -6,8 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Command-line validator for {@code poly.mod.json}, used by the {@code dev.polymodloader.mod}
- * Gradle plugin so mod authors see the same problems at build time that Poly Mod Loader reports at launch.
+ * Command-line validator for {@code plexus.mod.json}, used by the {@code dev.polymodloader.mod}
+ * Gradle plugin so mod authors see the same problems at build time that Plexus Mod Loader reports at launch.
  * Exit code 0 means no errors (warnings are printed), 1 means at least one error, 2 means usage.
  */
 public final class ModMetadataValidatorMain {
@@ -16,7 +16,7 @@ public final class ModMetadataValidatorMain {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.err.println("usage: ModMetadataValidatorMain <path to poly.mod.json>");
+            System.err.println("usage: ModMetadataValidatorMain <path to plexus.mod.json>");
             System.exit(2);
         }
         Path file = Path.of(args[0]);

@@ -221,7 +221,7 @@ class NeoForgeModRequirementsTest {
                 NeoForgeModRequirements.hostMods(List.of(versioned)).getFirst().version());
     }
 
-    /** The mods FML runs, as other loaders and Poly Mods see them: own mods first, then nested ones. */
+    /** The mods FML runs, as other loaders and Plexus Mods see them: own mods first, then nested ones. */
     @Test
     void hostModsListEveryModNestedOnesWithTheirContainer() throws Exception {
         Path bundle = jar(
@@ -330,7 +330,7 @@ class NeoForgeModRequirementsTest {
     /**
      * {@code [modproperties.<id>]} is free-form: keys such as {@code "sodium:config_api_user"} or {@code
      * "yumi:entrypoints"} (Lambda Dynamic Lights 4.12.4) are valid TOML, and FML reads such a file. From 1.2.2 to
-     * 1.2.3 Poly Mod Loader looked up {@code fabric:provides} as a dotted key, which fails on {@code :}, so every NeoForge
+     * 1.2.3 Plexus Mod Loader looked up {@code fabric:provides} as a dotted key, which fails on {@code :}, so every NeoForge
      * mod with a {@code modproperties} table was left out with PLEXUS-COMPAT-217 (JEI, Kotlin for Forge, Lithium,
      * MoreCulling, Lambda Dynamic Lights; corpusFabricNeoForge 2026-10-27).
      */

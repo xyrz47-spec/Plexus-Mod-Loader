@@ -1,6 +1,6 @@
 # plexus-bridge-fabric — Fabric & Quilt Compatibility Bridge
 
-`plexus-bridge-fabric`는 **Fabric** 모드와 **Quilt** 모드를 Poly Mod Loader 위에서 실제 Fabric Loader / Quilt Loader와 100% 동일한 의미론과 런타임 신뢰성으로 구동할 수 있도록 지원하는 브릿지 모듈입니다.
+`plexus-bridge-fabric`는 **Fabric** 모드와 **Quilt** 모드를 Plexus Mod Loader 위에서 실제 Fabric Loader / Quilt Loader와 100% 동일한 의미론과 런타임 신뢰성으로 구동할 수 있도록 지원하는 브릿지 모듈입니다.
 
 ---
 

@@ -19,7 +19,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Installs NeoForge's client with NeoForge's own installer ({@code --installClient}) into a folder laid out like a
- * launcher's, for the client jar NeoForge's installer patched ({@link #patchedClientJar}): Poly Mod Loader's NeoForge
+ * launcher's, for the client jar NeoForge's installer patched ({@link #patchedClientJar}): Plexus Mod Loader's NeoForge
  * host modules compile against it (ADR-0031). The installer comes from NeoForge's Maven and is checked against {@link
  * #getInstallerSha1()}; it downloads Minecraft's client and NeoForge's libraries and applies NeoForge's patches itself.
  * A finished installation is reused while the installer is the same. Nothing is started.
@@ -53,7 +53,7 @@ public abstract class NeoForgeClientInstallTask extends DefaultTask {
         String version = getNeoForgeVersion().get();
         String sha1 = getInstallerSha1().get();
         Path client = getClientDirectory().get().getAsFile().toPath();
-        Path stamp = client.resolve(".poly-installed");
+        Path stamp = client.resolve(".plexus-installed");
         if (Files.isRegularFile(stamp)
                 && Files.readString(stamp, StandardCharsets.UTF_8).strip().equals(sha1)
                 && Files.isRegularFile(patchedClientJar(client, version))) {

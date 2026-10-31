@@ -182,7 +182,7 @@ public final class QuiltBridge implements ModLoaderBridge {
                 .withLoadOnlyIfRequired(mod.loadOnlyIfRequired());
     }
 
-    /** The entrypoints Poly Mod Loader runs or links on {@code side}, in file order. */
+    /** The entrypoints Plexus Mod Loader runs or links on {@code side}, in file order. */
     private static List<BridgedEntrypoint> entrypoints(QuiltModDescription mod, GameSide side) {
         List<BridgedEntrypoint> entrypoints = new ArrayList<>();
         mod.entrypoints().forEach((key, declarations) -> {
@@ -220,6 +220,6 @@ public final class QuiltBridge implements ModLoaderBridge {
      */
     @Override
     public void invokeEntrypoint(BridgedEntrypoint entrypoint, ClassLoader gameClassLoader) throws Exception {
-        FabricLoaderImpl.INSTANCE.polyModLoaderRuntime().invokeModEntrypoint(entrypoint);
+        FabricLoaderImpl.INSTANCE.plexusModLoaderRuntime().invokeModEntrypoint(entrypoint);
     }
 }

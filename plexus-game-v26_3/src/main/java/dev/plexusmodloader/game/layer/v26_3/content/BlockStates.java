@@ -88,13 +88,13 @@ public final class BlockStates {
     /**
      * The game state behind a view from {@link #view}.
      *
-     * @throws IllegalArgumentException for a view Poly Mod Loader did not create
+     * @throws IllegalArgumentException for a view Plexus Mod Loader did not create
      */
     public static BlockState gameState(BlockStateView view) {
         if (view instanceof StateView(BlockState state)) {
             return state;
         }
-        throw new IllegalArgumentException("not a block state from Poly Mod Loader: " + view);
+        throw new IllegalArgumentException("not a block state from Plexus Mod Loader: " + view);
     }
 
     public static Direction toGame(dev.plexusmodloader.api.world.Direction direction) {

@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 final class PlexusBlockEntityRenderer implements BlockEntityRenderer<BlockEntity, PlexusBlockEntityRenderer.State> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private final BlockEntityRendererDeclaration declaration;
     private final ItemModelResolver items;
@@ -139,7 +139,7 @@ final class PlexusBlockEntityRenderer implements BlockEntityRenderer<BlockEntity
             failed.set(true);
             state.draws.clear();
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-CLIENT-003 block entity renderer of {} ({}) failed and is disabled",
+                    "[Plexus Mod Loader] PLEXUS-CLIENT-003 block entity renderer of {} ({}) failed and is disabled",
                     declaration.block(),
                     declaration.ownerModId(),
                     e);
@@ -186,7 +186,7 @@ final class PlexusBlockEntityRenderer implements BlockEntityRenderer<BlockEntity
         }
         if (!state.draws.isEmpty() && reported.compareAndSet(false, true)) {
             LOGGER.info(
-                    "[Poly Mod Loader] Drew block entity renderer of {} ({} draw(s))",
+                    "[Plexus Mod Loader] Drew block entity renderer of {} ({} draw(s))",
                     declaration.block(),
                     state.draws.size());
         }

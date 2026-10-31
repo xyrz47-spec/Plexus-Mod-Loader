@@ -94,7 +94,7 @@ final class HostThreadDump {
     }
 
     /**
-     * Adds the bridge {@code poly$hostCall$<handler>(ThreadInfo, Operation)String}: a {@code @WrapOperation} of
+     * Adds the bridge {@code plexus$hostCall$<handler>(ThreadInfo, Operation)String}: a {@code @WrapOperation} of
      * NeoForge's {@code getEntireStacktrace} in {@code createWatchdogCrashReport(String, long, String)}.
      */
     static void bridgeMethod(ClassBuilder builder, ClassModel mixin, MethodModel handler) {

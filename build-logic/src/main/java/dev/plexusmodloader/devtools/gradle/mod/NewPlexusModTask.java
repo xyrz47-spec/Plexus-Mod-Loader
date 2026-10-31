@@ -1,6 +1,6 @@
 package dev.plexusmodloader.devtools.gradle.mod;
 
-import dev.plexusmodloader.devtools.gradle.minecraft.PolyModPlugin;
+import dev.plexusmodloader.devtools.gradle.minecraft.PlexusModPlugin;
 import java.nio.file.Path;
 import java.util.List;
 import org.gradle.api.DefaultTask;
@@ -14,11 +14,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * {@code ./gradlew newPolyMod -PmodId=ruby_tools [-PmodName="Ruby Tools"] [-PmodPackage=io.github.you.rubytools]
+ * {@code ./gradlew newPlexusMod -PmodId=ruby_tools [-PmodName="Ruby Tools"] [-PmodPackage=io.github.you.rubytools]
  * [-PmodDir=../ruby-tools]}: creates a ready-to-build mod project with {@link ModProjectScaffolder}.
  */
 @DisableCachingByDefault(because = "Creates a project outside the build")
-public abstract class NewPolyModTask extends DefaultTask {
+public abstract class NewPlexusModTask extends DefaultTask {
 
     @Input
     @Optional
@@ -34,7 +34,7 @@ public abstract class NewPolyModTask extends DefaultTask {
     @Optional
     public abstract Property<String> getModPackage();
 
-    /** Where to create the project; defaults to a folder next to the Poly Mod Loader repository. */
+    /** Where to create the project; defaults to a folder next to the Plexus Mod Loader repository. */
     @Input
     @Optional
     public abstract Property<String> getModDirectory();
@@ -48,7 +48,7 @@ public abstract class NewPolyModTask extends DefaultTask {
     @TaskAction
     public void create() {
         if (!getModId().isPresent()) {
-            throw new GradleException("Usage: ./gradlew newPolyMod -PmodId=<mod_id> [-PmodName=\"<Name>\"]"
+            throw new GradleException("Usage: ./gradlew newPlexusMod -PmodId=<mod_id> [-PmodName=\"<Name>\"]"
                     + " [-PmodPackage=<java.package>] [-PmodDir=<folder>]");
         }
         ModProjectScaffolder.ModNames names;
@@ -73,12 +73,12 @@ public abstract class NewPolyModTask extends DefaultTask {
                         """
                         Created the mod {} ("{}", {} files) in {}
                           entry point: {}.{}
-                        Poly Mod Loader comes from {}. To try a local Poly Mod Loader build
+                        Plexus Mod Loader comes from {}. To try a local Plexus Mod Loader build
                         instead, run ./gradlew publishToMavenLocal and ./gradlew -p build-logic publishToMavenLocal
                         in this repository with a version that repository does not have.
                         Next:
                           cd {}
-                          ./gradlew build        compiles, checks poly.mod.json and the resources
+                          ./gradlew build        compiles, checks plexus.mod.json and the resources
                           ./gradlew runClient    starts the game with the mod""",
                         names.modId(),
                         names.modName(),
@@ -86,7 +86,7 @@ public abstract class NewPolyModTask extends DefaultTask {
                         target,
                         names.javaPackage(),
                         names.className(),
-                        PolyModPlugin.SDK_REPOSITORY_URL,
+                        PlexusModPlugin.SDK_REPOSITORY_URL,
                         target);
     }
 }

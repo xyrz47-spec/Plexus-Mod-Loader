@@ -74,13 +74,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Static hooks that Minecraft 26.2 code calls after Poly Mod Loader's transformation rules (see
+ * Static hooks that Minecraft 26.2 code calls after Plexus Mod Loader's transformation rules (see
  * {@code Minecraft26_2Adapter}). Each parameter list matches the rule's target exactly. Client-only
  * hooks are in {@code client.ClientHooks} so the dedicated server never loads client classes.
  */
 public final class GameHooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** The block a player is breaking on this thread, between playerWillDestroy and destroyBlock's return. */
     private static final ThreadLocal<PendingBreak> PENDING_BREAK = new ThreadLocal<>();
@@ -141,7 +141,7 @@ public final class GameHooks {
 
     /**
      * Head of {@code ServerCommonPacketListenerImpl.handleCustomPayload}, the configuration phase's
-     * handler; {@code true} when Poly Mod Loader consumed an answer to a configuration exchange.
+     * handler; {@code true} when Plexus Mod Loader consumed an answer to a configuration exchange.
      */
     public static boolean onCommonPayload(
             ServerCommonPacketListenerImpl listener, ServerboundCustomPayloadPacket packet) {
@@ -219,7 +219,7 @@ public final class GameHooks {
 
     /**
      * Head of {@code CreativeModeTabs.validate()}: {@code true} skips the game's position check when
-     * mod tabs on extra pages share positions with the game's tabs (Poly Mod Loader checks per page).
+     * mod tabs on extra pages share positions with the game's tabs (Plexus Mod Loader checks per page).
      */
     public static boolean onValidateCreativeTabs() {
         return ModCreativeTabs.validate();
@@ -249,7 +249,7 @@ public final class GameHooks {
         return EntityInstaller.hasAttributes(type);
     }
 
-    /** The entity whose damage Poly Mod Loader is re-dealing with a modified amount on this thread. */
+    /** The entity whose damage Plexus Mod Loader is re-dealing with a modified amount on this thread. */
     private static final ThreadLocal<LivingEntity> REDEALING = new ThreadLocal<>();
 
     /**
@@ -427,7 +427,7 @@ public final class GameHooks {
     }
 
     /**
-     * Head of {@code WorldDimensions.checkStability}: dimensions in the namespace of a loaded Poly Mod Loader
+     * Head of {@code WorldDimensions.checkStability}: dimensions in the namespace of a loaded Plexus Mod Loader
      * mod are installed content, not experimental data packs, so they count as stable; others keep
      * the game's verdict (null).
      */

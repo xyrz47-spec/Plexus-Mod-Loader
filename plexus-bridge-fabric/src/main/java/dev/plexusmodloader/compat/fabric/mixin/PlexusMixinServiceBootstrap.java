@@ -7,7 +7,7 @@ public final class PlexusMixinServiceBootstrap implements IMixinServiceBootstrap
 
     @Override
     public String getName() {
-        return "Poly Mod Loader";
+        return "Plexus Mod Loader";
     }
 
     @Override

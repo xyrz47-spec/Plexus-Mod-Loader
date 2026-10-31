@@ -41,10 +41,10 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.world.level.levelgen.GenerationStep;
 
 /**
- * Writes the data Poly Mod Loader derives from declarations: one {@code test_instance} per registered game test,
+ * Writes the data Plexus Mod Loader derives from declarations: one {@code test_instance} per registered game test,
  * in the format of the game's own {@code minecraft:always_pass}, one biome file per biome defined in
  * code, and one tag file per tag that mods add entries to from code. The directory is recreated on every start under the game directory
- * ({@code .poly/generated-pack}), so it can be inspected.
+ * ({@code .plexus/generated-pack}), so it can be inspected.
  */
 final class GeneratedDataPack {
 
@@ -71,7 +71,7 @@ final class GeneratedDataPack {
     record Written(Path root, String version) {}
 
     static Optional<Written> write(NativeDeclarations declarations) throws IOException {
-        Path root = Path.of(".poly", "generated-pack").toAbsolutePath();
+        Path root = Path.of(".plexus", "generated-pack").toAbsolutePath();
         deleteRecursively(root);
         List<GameTestDeclaration> tests = declarations.gameTests();
         List<BiomeDeclaration> biomes = declarations.biomes();
@@ -167,13 +167,13 @@ final class GeneratedDataPack {
         return json;
     }
 
-    /** The empty structure of a test area: the game's own for one block, else one Poly Mod Loader writes. */
+    /** The empty structure of a test area: the game's own for one block, else one Plexus Mod Loader writes. */
     private static String structure(Path root, TestArea area) throws IOException {
         if (area.equals(TestArea.SINGLE_BLOCK)) {
             return "minecraft:empty";
         }
         String name = "empty_" + area.width() + "x" + area.height() + "x" + area.depth();
-        Path file = root.resolve("data").resolve("poly").resolve("structure").resolve(name + ".nbt");
+        Path file = root.resolve("data").resolve("plexus").resolve("structure").resolve(name + ".nbt");
         if (!Files.exists(file)) {
             Files.createDirectories(file.getParent());
             CompoundTag structure = new CompoundTag();
@@ -185,14 +185,14 @@ final class GeneratedDataPack {
             structure.put("blocks", new ListTag());
             structure.put("palette", new ListTag());
             structure.put("entities", new ListTag());
-            // Poly Mod Loader starts the game layer before the game reads its version file.
+            // Plexus Mod Loader starts the game layer before the game reads its version file.
             SharedConstants.tryDetectVersion();
             structure.putInt(
                     "DataVersion",
                     SharedConstants.getCurrentVersion().dataVersion().version());
             NbtIo.writeCompressed(structure, file);
         }
-        return "poly:" + name;
+        return "plexus:" + name;
     }
 
     private static int writeFile(Path root, ResourceId id, String directory, String json) throws IOException {

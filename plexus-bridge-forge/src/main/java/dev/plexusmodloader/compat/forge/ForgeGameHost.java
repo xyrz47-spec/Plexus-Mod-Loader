@@ -29,17 +29,17 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**
- * MinecraftForge on Poly Mod Loader (ADR-0021): prepares Forge's files ({@link ForgeInstallation}), defines FML's BOOT
- * layer in the game class loader ({@link ForgeBootModules}), and hands over to Poly Mod Loader's implementation of
+ * MinecraftForge on Plexus Mod Loader (ADR-0021): prepares Forge's files ({@link ForgeInstallation}), defines FML's BOOT
+ * layer in the game class loader ({@link ForgeBootModules}), and hands over to Plexus Mod Loader's implementation of
  * ModLauncher's launch ({@code PlexusModLauncher}, inside that layer), which runs FML's own discovery and Forge's own
- * launch handler. FML sees exactly the Forge mods Poly Mod Loader found: they are resources of the game class loader, where
+ * launch handler. FML sees exactly the Forge mods Plexus Mod Loader found: they are resources of the game class loader, where
  * FML's {@code ClasspathLocator} finds them, and FML's own mods folder scan is left out ({@link ForgeBootModules}).
  *
  * <p>Thread: created and used by the launching thread only.
  */
 final class ForgeGameHost implements GameHost {
 
-    private static final String HOST_JAR = "/META-INF/polymodloader/forge-host.jar";
+    private static final String HOST_JAR = "/META-INF/plexusmodloader/forge-host.jar";
     /** The loader name of the mods FML runs, as {@link MinecraftForgeBridge#loaderName()}. */
     private static final String LOADER = "MinecraftForge";
 
@@ -71,10 +71,10 @@ final class ForgeGameHost implements GameHost {
     }
 
     /**
-     * Prepares Forge's files for {@code request}'s Minecraft version, to run {@code modJars} (the Forge mods Poly Mod Loader
+     * Prepares Forge's files for {@code request}'s Minecraft version, to run {@code modJars} (the Forge mods Plexus Mod Loader
      * found).
      *
-     * @throws IOException when Poly Mod Loader has no Forge release for that version, Forge's file systems cannot be put
+     * @throws IOException when Plexus Mod Loader has no Forge release for that version, Forge's file systems cannot be put
      *     on the JVM class path ({@link ForgeFileSystems}), or the files cannot be downloaded, checked or patched
      */
     static ForgeGameHost create(GameHost.Request request, List<Path> modJars) throws IOException {
@@ -83,7 +83,7 @@ final class ForgeGameHost implements GameHost {
         fileSystems.checkAvailable();
         ForgeInstallation.Release release = ForgeInstallation.release(request.gameVersion())
                 .orElseThrow(() -> new IOException(
-                        "Poly Mod Loader has no MinecraftForge release for Minecraft " + request.gameVersion()));
+                        "Plexus Mod Loader has no MinecraftForge release for Minecraft " + request.gameVersion()));
         ForgeInstallation.Prepared files = ForgeInstallation.prepare(
                 release,
                 request.cacheDirectory().resolve("forge"),
@@ -152,7 +152,7 @@ final class ForgeGameHost implements GameHost {
 
     /**
      * The compatibility levels of the Mixin that applies Forge mods' configurations: Forge's own, or with a shared
-     * Mixin the one on Poly Mod Loader's class path. Empty when it cannot be read (not checked then).
+     * Mixin the one on Plexus Mod Loader's class path. Empty when it cannot be read (not checked then).
      */
     private static Set<String> mixinLevels(GameHost.Request request, ForgeInstallation.Prepared files)
             throws IOException {
@@ -348,18 +348,18 @@ final class ForgeGameHost implements GameHost {
     }
 
     /**
-     * On a client, Forge's early loading window shows Poly Mod Loader's art and title ({@link EarlyScreenArt}, {@link
-     * EarlyWindowTitle}); with Poly Mod Loader's own early window over the launch, Forge opens none ({@link
+     * On a client, Forge's early loading window shows Plexus Mod Loader's art and title ({@link EarlyScreenArt}, {@link
+     * EarlyWindowTitle}); with Plexus Mod Loader's own early window over the launch, Forge opens none ({@link
      * ForgeEarlyWindowOff}).
      */
     private UnaryOperator<ModuleReference> earlyScreen() {
         if (request.side() != GameSide.CLIENT) {
             return UnaryOperator.identity();
         }
-        if (request.polyEarlyWindow()) {
+        if (request.plexusEarlyWindow()) {
             return reference -> ForgeEarlyWindowOff.of(reference, request.log());
         }
-        Path cache = request.gameDirectory().resolve(".poly").resolve("early-screen");
+        Path cache = request.gameDirectory().resolve(".plexus").resolve("early-screen");
         return reference -> EarlyWindowTitle.of(
                 EarlyScreenArt.of(reference, cache, request.log()), request.gameVersion(), request.log());
     }
@@ -378,14 +378,14 @@ final class ForgeGameHost implements GameHost {
             if (!result.changed().isEmpty()) {
                 request.log()
                         .accept("FML's ModList " + result.changed() + " also answers for " + count
-                                + " Poly Mod(s) and other loaders' mod(s) (ADR-0025)");
+                                + " Plexus Mod(s) and other loaders' mod(s) (ADR-0025)");
             }
             if (!result.unchanged().isEmpty()) {
                 request.log()
                         .accept("PLEXUS-COMPAT-211 FML's ModList " + result.unchanged()
-                                + " is not the code Poly Mod Loader"
+                                + " is not the code Plexus Mod Loader"
                                 + " checked (MinecraftForge " + files.release().forgeVersion() + "); through it, Forge"
-                                + " mods do not see the " + count + " Poly Mod(s) and other loaders' mod(s)");
+                                + " mods do not see the " + count + " Plexus Mod(s) and other loaders' mod(s)");
             }
         });
     }
@@ -401,32 +401,32 @@ final class ForgeGameHost implements GameHost {
     }
 
     /**
-     * Forge's launch handler for Poly Mod Loader's launch target: {@code ForgeProdLaunchHandler}'s for the client and the
-     * dedicated server, and Poly Mod Loader's {@code GameTestLaunchHandler} for the game test server, which Forge runs only
+     * Forge's launch handler for Plexus Mod Loader's launch target: {@code ForgeProdLaunchHandler}'s for the client and the
+     * dedicated server, and Plexus Mod Loader's {@code GameTestLaunchHandler} for the game test server, which Forge runs only
      * outside production.
      */
-    static String launchTarget(String polyTarget) {
-        return switch (polyTarget) {
+    static String launchTarget(String plexusTarget) {
+        return switch (plexusTarget) {
             case "client" -> "forge_client";
-            case "game_test_server" -> "polymodloader_server_gametest";
+            case "game_test_server" -> "plexusmodloader_server_gametest";
             default -> "forge_server";
         };
     }
 
-    /** Copies Poly Mod Loader's {@code forge-host.jar} next to Forge's files, replacing an older copy. */
+    /** Copies Plexus Mod Loader's {@code forge-host.jar} next to Forge's files, replacing an older copy. */
     private static Path extractHostJar(Path directory) throws IOException {
         byte[] bytes;
         try (InputStream in = ForgeGameHost.class.getResourceAsStream(HOST_JAR)) {
             if (in == null) {
-                throw new IOException("Poly Mod Loader's Forge bridge has no " + HOST_JAR);
+                throw new IOException("Plexus Mod Loader's Forge bridge has no " + HOST_JAR);
             }
             bytes = in.readAllBytes();
         }
-        Path target = directory.resolve("polymodloader-forge-host.jar");
+        Path target = directory.resolve("plexusmodloader-forge-host.jar");
         if (Files.isRegularFile(target) && Arrays.equals(Files.readAllBytes(target), bytes)) {
             return target;
         }
-        Path partial = directory.resolve("polymodloader-forge-host.jar.partial");
+        Path partial = directory.resolve("plexusmodloader-forge-host.jar.partial");
         Files.write(partial, bytes);
         Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         return target;

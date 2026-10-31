@@ -1,16 +1,16 @@
 # plexus-bridge-forge — MinecraftForge & NeoForge Compatibility Bridge
 
-`plexus-bridge-forge`는 **MinecraftForge**와 **NeoForge** 모드를 Poly Mod Loader의 단일 JVM 런타임 위에서 가상화하고, Fabric 및 Quilt 모드와 공존할 수 있도록 바이트코드와 FML 서비스 계층을 조율하는 핵심 호환성 브릿지 모듈입니다.
+`plexus-bridge-forge`는 **MinecraftForge**와 **NeoForge** 모드를 Plexus Mod Loader의 단일 JVM 런타임 위에서 가상화하고, Fabric 및 Quilt 모드와 공존할 수 있도록 바이트코드와 FML 서비스 계층을 조율하는 핵심 호환성 브릿지 모듈입니다.
 
 ---
 
 ## 1. 주요 역할 및 설계 아키텍처
 
 ### 1) FML(Forge Mod Loader) 런타임 가상화
-Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈 레이어)를 전제하고 설계되었습니다. Poly는 이를 다음과 같은 방식으로 가상화합니다:
+Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈 레이어)를 전제하고 설계되었습니다. Plexus는 이를 다음과 같은 방식으로 가상화합니다:
 - **`cpw.mods.modlauncher` 계약 구현:**
   - ModLauncher(LGPL) 코드를 복제하지 않고, 공개 인터페이스 계약을 자체 구현한 경량 가상화 서비스(`src/forgeHost`, `forge-host.jar`)를 제공합니다.
-  - FML의 BOOT, SERVICE, PLUGIN, GAME 레이어를 Poly의 단일 게임 클래스로더(`GameClassLoader`)가 모듈로 정의합니다.
+  - FML의 BOOT, SERVICE, PLUGIN, GAME 레이어를 Plexus의 단일 게임 클래스로더(`GameClassLoader`)가 모듈로 정의합니다.
 - **NeoForge FML 호스팅 (26.1·26.2는 FML 11, 26.3은 FML 12):**
   - `neoforge-host.jar`(`src/neoForgeHost`)의 `PlexusFml`을 통해 `FMLLoader`의 게임 레이어 생성과 모드 검색을 인게임 바이트코드 변환 체인에 직접 통합합니다.
 
@@ -18,7 +18,7 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
 - **통합 Mixin 엔진 (`FmlSharedMixin`):**
   - Forge/NeoForge가 별도의 Mixin 인스턴스를 시작하지 않도록 가로채고, FabricMC의 SpongePowered Mixin 0.8.7 엔진 하나가 모든 로더의 Mixin 구성을 통합 처리합니다.
 - **레지스트리 동적 제어 (`NeoForgeRegistryOpening`):**
-  - NeoForge는 부팅 초기에 레지스트리를 동결(`freeze`)합니다. Poly는 Fabric 모드 초기화 진입점이 실행되는 동안 루트 레지스트리를 일시적으로 안전하게 개방하여 `Registry is already frozen` 예외를 방지합니다.
+  - NeoForge는 부팅 초기에 레지스트리를 동결(`freeze`)합니다. Plexus는 Fabric 모드 초기화 진입점이 실행되는 동안 루트 레지스트리를 일시적으로 안전하게 개방하여 `Registry is already frozen` 예외를 방지합니다.
 - **호스트 패치 동적 적응 (`HostPatchAdjustments` & `NeoForgeInjectionPoints`):**
   - Forge나 NeoForge가 바닐라 클래스를 바이너리 패치하여 기존 Mixin의 인젝션 지점(Method Call, Field Access 등)이 이동한 경우, 런타임에 바이트코드 주입 대상을 올바른 대체 메서드로 리타겟합니다.
   - `fabric-content-registries-v0` 등 일부 Fabric API 모듈의 주입점은 이렇게 옮겨 그대로 동작합니다. 옮길 수 없는 믹스인이 남은 모듈은 `PLEXUS-COMPAT-224`로 제외됩니다(26.2 마지막 측정: Forge 옆 10개, NeoForge 옆 16개).
@@ -40,9 +40,9 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
 | `dev.plexusmodloader.compat.forge.MinecraftForgeBridge` | MinecraftForge 바이너리 패치 세트 적용 및 호스트 셋업 |
 | `dev.plexusmodloader.compat.forge.ForgeInjectionPoints` | MinecraftForge 패치 대응 주입점 대체 규칙 모음 |
 | `dev.plexusmodloader.compat.forge.ForeignModIndex` | 타 로더의 모드 메타데이터를 FML SPI 형식으로 변환 |
-| `dev.plexusmodloader.compat.forge.EarlyScreenArt` | 클라이언트에서 Forge·NeoForge 초기 로딩 창의 애니메이션(모루·여우)과 로고·아이콘을 Poly 큐브(`earlyscreen/*.png`)로 바꿈. 원본 이미지 크기가 확인한 값과 같을 때만 모듈 리더의 `find`·`open`이 `<게임 폴더>/.poly/early-screen`의 사본을 돌려주며, Poly 모드 로더 자체 초기 창이 뜨지 않을 때만(macOS, `-Dpoly.earlyWindow=off`) 적용됨 |
-| `dev.plexusmodloader.compat.forge.ForgeEarlyWindowOff` | Poly 모드 로더 자체 초기 창이 뜰 때 MinecraftForge의 `fmlearlydisplay` 모듈에서 `ImmediateWindowProvider` 서비스를 제거하여 FML이 자체 초기 창을 띄우지 않고 비활성화 경로(`DummyProvider`, `fml.toml`의 `earlyWindowControl = false`와 동일)를 타도록 함 |
-| `dev.plexusmodloader.compat.forge.EarlyWindowTitle` | 초기 로딩 창 제목을 `Minecraft* Poly <버전>`으로 바꿈(`DisplayWindow`의 제목 상수가 정확히 한 번일 때만, 상수 풀 문자열만 고쳐 코드·스택 맵은 그대로) |
+| `dev.plexusmodloader.compat.forge.EarlyScreenArt` | 클라이언트에서 Forge·NeoForge 초기 로딩 창의 애니메이션(모루·여우)과 로고·아이콘을 Plexus 큐브(`earlyscreen/*.png`)로 바꿈. 원본 이미지 크기가 확인한 값과 같을 때만 모듈 리더의 `find`·`open`이 `<게임 폴더>/.plexus/early-screen`의 사본을 돌려주며, Plexus 모드 로더 자체 초기 창이 뜨지 않을 때만(macOS, `-Dplexus.earlyWindow=off`) 적용됨 |
+| `dev.plexusmodloader.compat.forge.ForgeEarlyWindowOff` | Plexus 모드 로더 자체 초기 창이 뜰 때 MinecraftForge의 `fmlearlydisplay` 모듈에서 `ImmediateWindowProvider` 서비스를 제거하여 FML이 자체 초기 창을 띄우지 않고 비활성화 경로(`DummyProvider`, `fml.toml`의 `earlyWindowControl = false`와 동일)를 타도록 함 |
+| `dev.plexusmodloader.compat.forge.EarlyWindowTitle` | 초기 로딩 창 제목을 `Minecraft* Plexus <버전>`으로 바꿈(`DisplayWindow`의 제목 상수가 정확히 한 번일 때만, 상수 풀 문자열만 고쳐 코드·스택 맵은 그대로) |
 
 ---
 
@@ -52,7 +52,7 @@ Forge와 NeoForge는 고유한 클래스로더 구조(ModLauncher 및 FML 모듈
 # 단위 테스트 및 주입점 대체 규칙 검증
 .\gradlew.bat :plexus-bridge-forge:check
 
-# Forge 26.2 + Poly 네이티브 모드 통합 게임 테스트
+# Forge 26.2 + Plexus 네이티브 모드 통합 게임 테스트
 .\gradlew.bat :plexus-bootstrap:forgeGameTest
 
 # NeoForge 26.2 + 네이티브 모드 헤드리스 게임 테스트

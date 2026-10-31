@@ -17,7 +17,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 
 /**
- * The Minecraft versions a Poly Mod Loader build supports, read from {@code gradle/minecraft-versions.properties}
+ * The Minecraft versions a Plexus Mod Loader build supports, read from {@code gradle/minecraft-versions.properties}
  * (ADR-0011): the list, the default version, the Java version each one runs on, and the hotfixes each
  * one's modules also run. Version modules are named {@code plexus-version-adapter-v<id>} and {@code
  * plexus-game-v<id>} with {@link #moduleId}.
@@ -47,13 +47,13 @@ public record MinecraftVersions(
     /** The file, relative to the repository root. */
     public static final String FILE = "gradle/minecraft-versions.properties";
 
-    /** Gradle property that picks the version for one build, e.g. {@code -PpolyMinecraft=26.2}. */
-    public static final String SELECT_PROPERTY = "polyMinecraft";
+    /** Gradle property that picks the version for one build, e.g. {@code -PplexusMinecraft=26.2}. */
+    public static final String SELECT_PROPERTY = "plexusMinecraft";
 
     private static final String GAME_LAYER_PREFIX = "plexus-game-v";
-    private static final String LEGACY_GAME_LAYER_PREFIX = "plexus-game-v";
+    private static final String LEGACY_GAME_LAYER_PREFIX = "poly-game-v";
     private static final String ADAPTER_PREFIX = "plexus-version-adapter-v";
-    private static final String LEGACY_ADAPTER_PREFIX = "plexus-version-adapter-v";
+    private static final String LEGACY_ADAPTER_PREFIX = "poly-version-adapter-v";
 
     public MinecraftVersions {
         supported = List.copyOf(supported);
@@ -169,12 +169,12 @@ public record MinecraftVersions(
         }
     }
 
-    /** The versions this plugin was built with, for mod projects outside the Poly Mod Loader repository. */
+    /** The versions this plugin was built with, for mod projects outside the Plexus Mod Loader repository. */
     public static MinecraftVersions bundled() {
         Properties properties = new Properties();
         try (InputStream input = MinecraftVersions.class.getResourceAsStream("minecraft-versions.properties")) {
             if (input == null) {
-                throw new IllegalStateException("minecraft-versions.properties is missing from the Poly Mod Loader Gradle plugin");
+                throw new IllegalStateException("minecraft-versions.properties is missing from the Plexus Mod Loader Gradle plugin");
             }
             properties.load(input);
         } catch (IOException e) {
@@ -294,7 +294,7 @@ public record MinecraftVersions(
     }
 
     private GradleException unsupported(String version) {
-        return new GradleException("Minecraft " + version + " is not supported by this Poly Mod Loader build; supported: "
+        return new GradleException("Minecraft " + version + " is not supported by this Plexus Mod Loader build; supported: "
                 + runnable() + (experimental.isEmpty() ? "" : ", experimental: " + experimental) + " (" + FILE + ")");
     }
 }

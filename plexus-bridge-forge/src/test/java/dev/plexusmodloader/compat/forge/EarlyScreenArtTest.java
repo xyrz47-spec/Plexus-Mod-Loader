@@ -24,7 +24,7 @@ import java.util.jar.JarOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Poly Mod Loader's art in NeoForge's and MinecraftForge's early loading windows. */
+/** Plexus Mod Loader's art in NeoForge's and MinecraftForge's early loading windows. */
 class EarlyScreenArtTest {
 
     private static final String THEME =
@@ -34,7 +34,7 @@ class EarlyScreenArtTest {
     Path directory;
 
     @Test
-    void neoForgesFoxIconAndVersionLabelBecomePolyModLoaders() throws IOException {
+    void neoForgesFoxIconAndVersionLabelBecomePlexusModLoaders() throws IOException {
         ModuleReference reference = module(
                 "earlydisplay",
                 Map.of(
@@ -59,14 +59,14 @@ class EarlyScreenArtTest {
                     fromUri(reader, "net/neoforged/fml/earlydisplay/theme/neoforged_icon.png"));
             String theme = new String(
                     reader.open(EarlyScreenArt.NEOFORGE_THEME).orElseThrow().readAllBytes(), UTF8);
-            assertTrue(theme.contains("\"text\": \"Poly Mod Loader\"") && !theme.contains("${version}"), theme);
+            assertTrue(theme.contains("\"text\": \"Plexus Mod Loader\"") && !theme.contains("${version}"), theme);
         }
         assertEquals(1, log.size(), log.toString());
         assertTrue(log.getFirst().contains("NeoForge") && !log.getFirst().contains("kept"), log.toString());
     }
 
     @Test
-    void forgesAnvilAndLogoBecomePolyModLoaders() throws IOException {
+    void forgesAnvilAndLogoBecomePlexusModLoaders() throws IOException {
         ModuleReference reference = module(
                 "fmlearlydisplay",
                 Map.of(
@@ -84,7 +84,7 @@ class EarlyScreenArtTest {
         }
     }
 
-    /** An image of another size than Poly Mod Loader's art is drawn for stays the host's, and the log says so. */
+    /** An image of another size than Plexus Mod Loader's art is drawn for stays the host's, and the log says so. */
     @Test
     void anImageOfAnotherSizeStaysTheHosts() throws IOException {
         byte[] anvil = png(128, 2048);

@@ -12,7 +12,7 @@ import java.util.Optional;
  * How the early window looks: the game window's title, its size, the game's GUI scale and background options, and
  * where the game's Mojang Studios logo is.
  *
- * @param title the game window's title ({@code Minecraft* Poly <version>})
+ * @param title the game window's title ({@code Minecraft* Plexus <version>})
  * @param width the game window's width in pixels
  * @param height the game window's height in pixels
  * @param guiScale the game's GUI scale option ({@code 0}: automatic)

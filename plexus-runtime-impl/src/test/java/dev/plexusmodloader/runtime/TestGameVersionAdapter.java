@@ -40,7 +40,7 @@ public final class TestGameVersionAdapter implements GameVersionAdapter {
     public List<TransformRuleDefinition> builtInTransformRules() {
         return List.of(new TransformRuleDefinition(
                 "test:brand",
-                "poly",
+                "plexus",
                 GAME_VERSION,
                 EnumSet.allOf(GameSide.class),
                 new MethodTarget("fakegame/Brand", "brand", "()Ljava/lang/String;"),

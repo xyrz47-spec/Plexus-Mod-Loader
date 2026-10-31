@@ -35,13 +35,13 @@ class ClassPathGameJarLocatorTest {
         assertEquals(game, found);
     }
 
-    /** {@code java -jar polymodloader-server.jar}: the class path is the launch jar, whose manifest lists the rest. */
+    /** {@code java -jar plexusmodloader-server.jar}: the class path is the launch jar, whose manifest lists the rest. */
     @Test
     void followsTheManifestClassPathOfALaunchJar() throws IOException {
         Files.createDirectories(directory.resolve("versions/26.2"));
         Path game = jar("versions/26.2/server-26.2.jar", "version.json");
         jar("library.jar", "com/example/Library.class");
-        Path launch = directory.resolve("polymodloader-server.jar");
+        Path launch = directory.resolve("plexusmodloader-server.jar");
         Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
         manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, "library.jar versions/26.2/server-26.2.jar");

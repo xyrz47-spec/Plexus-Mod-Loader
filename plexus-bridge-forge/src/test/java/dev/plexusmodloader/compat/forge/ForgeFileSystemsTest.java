@@ -71,7 +71,7 @@ class ForgeFileSystemsTest {
         assertTrue(problem.getMessage().contains("net.minecraftforge:roimfs"), problem.getMessage());
     }
 
-    /** Without them on the class path and without Poly Mod Loader's agent, nothing is downloaded. */
+    /** Without them on the class path and without Plexus Mod Loader's agent, nothing is downloaded. */
     @Test
     void refusesWithoutTheAgentBeforeAnyDownload() throws IOException {
         try (URLClassLoader system = new URLClassLoader(new URL[0], null)) {
@@ -80,7 +80,7 @@ class ForgeFileSystemsTest {
             IOException problem = assertThrows(IOException.class, fileSystems::checkAvailable);
 
             assertTrue(problem.getMessage().contains("without its Java agent"), problem.getMessage());
-            assertTrue(problem.getMessage().contains("java -jar polymodloader-server.jar"), problem.getMessage());
+            assertTrue(problem.getMessage().contains("java -jar plexusmodloader-server.jar"), problem.getMessage());
             assertTrue(problem.getMessage().contains("install the profile again"), problem.getMessage());
         }
     }
@@ -158,7 +158,7 @@ class ForgeFileSystemsTest {
         }
     }
 
-    /** A jar with the class Poly Mod Loader looks for: securemodules' union file system provider. */
+    /** A jar with the class Plexus Mod Loader looks for: securemodules' union file system provider. */
     private Path providerJar(String name) throws IOException {
         Path jar = directory.resolve(name);
         try (OutputStream file = Files.newOutputStream(jar);

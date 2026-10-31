@@ -1,7 +1,7 @@
 package dev.plexusmodloader.runtime.lifecycle;
 
 /**
- * Poly Mod Loader's launch phases, in order. Names follow the loading pipeline of design doc §11; phases not
+ * Plexus Mod Loader's launch phases, in order. Names follow the loading pipeline of design doc §11; phases not
  * implemented yet (game validation, runtime monitoring) are added when
  * their features exist.
  */

@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "Declarations for class transformation rules (target, action, failure policy) and their errors."

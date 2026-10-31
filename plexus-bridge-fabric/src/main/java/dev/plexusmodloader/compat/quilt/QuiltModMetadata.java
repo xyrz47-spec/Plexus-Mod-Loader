@@ -182,7 +182,7 @@ public final class QuiltModMetadata implements ModMetadataToBeMovedToPlugins {
             }
             VersionRange range = range(dependency.getVersionIntervals());
             if (range.isEmpty()) {
-                // Quilt Loader leaves out a range that accepts nothing (and warns); so does Poly Mod Loader.
+                // Quilt Loader leaves out a range that accepts nothing (and warns); so does Plexus Mod Loader.
                 continue;
             }
             target.add(ModDependency.Only.of(

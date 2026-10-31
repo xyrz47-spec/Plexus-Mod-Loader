@@ -11,7 +11,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
- * A module as it is, except one class file, which its reader serves through a patch. For Forge's own modules that Poly
+ * A module as it is, except one class file, which its reader serves through a patch. For Forge's own modules that Plexus
  * Mod Loader defines without transforming their classes (FML's BOOT and PLUGIN layers, as in ModLauncher), where a
  * checked patch of one class is needed ({@link NightConfigEmptyFilePatch}, {@link ForgeModListPatch}).
  */

@@ -6,9 +6,9 @@ import java.util.Map;
 import net.neoforged.neoforgespi.language.IModFileInfo;
 
 /**
- * Poly Mod Loader's answers to NeoForge's FML mod list for the mods it runs beside NeoForge (Poly Mods and other
+ * Plexus Mod Loader's answers to NeoForge's FML mod list for the mods it runs beside NeoForge (Plexus Mods and other
  * loaders' mods; ADR-0025, ADR-0026). NeoForge's {@code ModList} calls {@link #getModFileById} and {@link #isLoaded} only
- * when its own answer is {@code null} or {@code false} (Poly Mod Loader's {@code ForgeModListPatch}, shape {@code
+ * when its own answer is {@code null} or {@code false} (Plexus Mod Loader's {@code ForgeModListPatch}, shape {@code
  * NEOFORGE}), so a NeoForge mod keeps its ID.
  *
  * <p>Lives in {@code neoforge-host.jar}'s module of the library layer, an automatic module that exports this package;
@@ -34,14 +34,14 @@ public final class ForeignModList {
     }
 
     /**
-     * The mod file of the Poly Mod or other loader's mod with this ID (its own or a provided one), or {@code null}, as
+     * The mod file of the Plexus Mod or other loader's mod with this ID (its own or a provided one), or {@code null}, as
      * {@code ModList.getModFileById} answers for a missing mod.
      */
     public static IModFileInfo getModFileById(String id) {
         return id == null ? null : files.get(id);
     }
 
-    /** Whether a Poly Mod or other loader's mod has this ID, its own or a provided one. */
+    /** Whether a Plexus Mod or other loader's mod has this ID, its own or a provided one. */
     public static boolean isLoaded(String id) {
         return id != null && files.containsKey(id);
     }

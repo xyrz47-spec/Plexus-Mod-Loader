@@ -26,7 +26,7 @@ class BuiltInRegistryFreezeTest {
 
     @Test
     void theVanillaBindingFailsOnARegistryAnotherLoaderFroze() {
-        MappedRegistry<String> frozen = registry("poly_test_frozen_vanilla");
+        MappedRegistry<String> frozen = registry("plexus_test_frozen_vanilla");
         frozen.bindAllTagsToEmpty();
         frozen.freeze();
 
@@ -36,7 +36,7 @@ class BuiltInRegistryFreezeTest {
 
     @Test
     void aSecondFreezeLeavesTheBindingOutForAFrozenRegistry() {
-        MappedRegistry<String> frozen = registry("poly_test_frozen");
+        MappedRegistry<String> frozen = registry("plexus_test_frozen");
         frozen.bindAllTagsToEmpty();
         frozen.freeze();
 
@@ -48,7 +48,7 @@ class BuiltInRegistryFreezeTest {
 
     @Test
     void aFirstFreezeBindsAsVanillaDoes() {
-        MappedRegistry<String> open = registry("poly_test_open");
+        MappedRegistry<String> open = registry("plexus_test_open");
 
         assertFalse(BuiltInRegistryFreeze.frozen(open));
         BuiltInRegistryFreeze.bindBootstrappedTagsToEmpty(open);

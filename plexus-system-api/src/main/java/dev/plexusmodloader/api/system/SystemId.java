@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * Identifier of a replaceable Poly Mod Loader system in {@code namespace:path} form, e.g. {@code poly:game_brand}.
+ * Identifier of a replaceable Plexus Mod Loader system in {@code namespace:path} form, e.g. {@code plexus:game_brand}.
  *
  * @param value the identifier text
  */

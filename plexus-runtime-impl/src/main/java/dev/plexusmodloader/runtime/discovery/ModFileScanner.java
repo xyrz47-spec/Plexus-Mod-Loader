@@ -60,7 +60,7 @@ public final class ModFileScanner {
                     continue;
                 }
                 ZipEntry entry = jarFile.getEntry(kind.metadataPath());
-                if (entry == null && kind == ModFileKind.POLY_NATIVE) {
+                if (entry == null && kind == ModFileKind.PLEXUS_NATIVE) {
                     entry = jarFile.getEntry(ModMetadata.LEGACY_FILE_NAME);
                 }
                 if (entry == null) {
@@ -71,7 +71,7 @@ public final class ModFileScanner {
                     continue;
                 }
                 found = kind;
-                if (kind == ModFileKind.POLY_NATIVE) {
+                if (kind == ModFileKind.PLEXUS_NATIVE) {
                     try (InputStream input = jarFile.getInputStream(entry)) {
                         nativeMetadata = Optional.of(new String(input.readAllBytes(), StandardCharsets.UTF_8));
                     }

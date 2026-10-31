@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * {@code unsafe} that securemodules uses. Java finds file systems and URL handlers only through the system class loader,
  * so these four jars must be there; Forge's own launcher puts them on its class path too.
  *
- * <p>Development runs have them on the class path from the start. An installed Poly Mod Loader (launcher profile,
+ * <p>Development runs have them on the class path from the start. An installed Plexus Mod Loader (launcher profile,
  * dedicated server) appends them through its Java agent ({@link SystemClassPath}), only when Forge mods are present, after
  * {@link ForgeInstallation} has downloaded them. The JVM lists its file systems once, the first time anything asks
  * ({@link FileSystemProvider#installedProviders()}): nothing may ask before the jars are appended, and this class asks
@@ -54,7 +54,7 @@ final class ForgeFileSystems {
 
     /**
      * @param systemClassLoader the loader Java finds file systems with
-     * @param systemClassPath appends to that loader, when Poly Mod Loader was started with its agent
+     * @param systemClassPath appends to that loader, when Plexus Mod Loader was started with its agent
      * @param installedSchemes the schemes of the file systems Java lists; asked only after appending
      */
     ForgeFileSystems(
@@ -76,16 +76,16 @@ final class ForgeFileSystems {
      * Checks, before anything is downloaded, that Forge's file systems are or can be put on the class path. Does not
      * ask Java for its file systems.
      *
-     * @throws IOException when the class path does not have them and Poly Mod Loader was started without its agent
+     * @throws IOException when the class path does not have them and Plexus Mod Loader was started without its agent
      */
     void checkAvailable() throws IOException {
         if (onSystemClassPath() || systemClassPath.isPresent()) {
             return;
         }
-        throw new IOException("Poly Mod Loader was started without its Java agent, so it cannot put Forge's file"
+        throw new IOException("Plexus Mod Loader was started without its Java agent, so it cannot put Forge's file"
                 + " systems (" + JARS + ") on the JVM class path, the only place Java looks for file systems. For the"
                 + " Minecraft Launcher, install the profile again with this version's installer; for a server, start it"
-                + " with java -jar polymodloader-server.jar (run.bat or run.sh)");
+                + " with java -jar plexusmodloader-server.jar (run.bat or run.sh)");
     }
 
     /**
@@ -100,12 +100,12 @@ final class ForgeFileSystems {
         boolean appended = false;
         if (!onSystemClassPath()) {
             SystemClassPath classPath = systemClassPath.orElseThrow(() -> new IOException(
-                    "Forge's file systems are not on the JVM class path and Poly Mod Loader cannot append them"));
+                    "Forge's file systems are not on the JVM class path and Plexus Mod Loader cannot append them"));
             for (Path jar : jars) {
                 classPath.append(jar);
             }
             if (!onSystemClassPath()) {
-                throw new IOException("Poly Mod Loader appended " + JARS + " to the JVM class path, but the system"
+                throw new IOException("Plexus Mod Loader appended " + JARS + " to the JVM class path, but the system"
                         + " class loader still does not see " + UNION_PROVIDER_CLASS);
             }
             appended = true;
@@ -123,7 +123,7 @@ final class ForgeFileSystems {
             return;
         }
         if (appended) {
-            throw new IOException("the JVM listed its file systems before Poly Mod Loader added " + JARS
+            throw new IOException("the JVM listed its file systems before Plexus Mod Loader added " + JARS
                     + " to its class path, so Java does not know the file systems " + missing
                     + " that FML reads mod files with; something asked for the file systems before Forge was set up");
         }

@@ -22,13 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Poly Mod Loader's own channel {@code poly:sync}: the server sends players their synchronised entity data and
+ * Plexus Mod Loader's own channel {@code plexus:sync}: the server sends players their synchronised entity data and
  * synchronised world storage; the client keeps read-only copies.
  */
 public final class SyncChannel implements ChannelEndpoint {
 
-    public static final ResourceId ID = ResourceId.of("poly", "sync");
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    public static final ResourceId ID = ResourceId.of("plexus", "sync");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final byte PLAYER_DATA = 0;
     private static final byte WORLD_STORAGE = 1;
     private static final byte ENTITY_DATA = 2;
@@ -47,7 +47,7 @@ public final class SyncChannel implements ChannelEndpoint {
 
     @Override
     public String ownerModId() {
-        return "poly";
+        return "plexus";
     }
 
     @Override
@@ -71,7 +71,7 @@ public final class SyncChannel implements ChannelEndpoint {
                         .put(parse(key.substring(separator + 1)), tree);
             }
         } catch (IOException | RuntimeException e) {
-            LOGGER.warn("[Poly Mod Loader] PLEXUS-NETWORK-004 ignored a malformed poly:sync payload", e);
+            LOGGER.warn("[Plexus Mod Loader] PLEXUS-NETWORK-004 ignored a malformed plexus:sync payload", e);
         }
     }
 
@@ -131,7 +131,8 @@ public final class SyncChannel implements ChannelEndpoint {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new ClientboundCustomPayloadPacket(new Networking.PolyPayload(Networking.type(ID), bytes.toByteArray()));
+        return new ClientboundCustomPayloadPacket(
+                new Networking.PlexusPayload(Networking.type(ID), bytes.toByteArray()));
     }
 
     private static String storageKey(ResourceId dimension, ResourceId id) {

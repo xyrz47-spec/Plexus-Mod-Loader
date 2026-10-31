@@ -1,9 +1,9 @@
 package dev.plexusmodloader.runtime.metadata;
 
 /**
- * One entry of {@code replacesSystems} in {@code poly.mod.json}.
+ * One entry of {@code replacesSystems} in {@code plexus.mod.json}.
  *
- * @param systemId ID of the system to replace, e.g. {@code poly:game_brand}
+ * @param systemId ID of the system to replace, e.g. {@code plexus:game_brand}
  * @param providerClass fully qualified class implementing {@code SystemProvider}
  * @param override true when this mod intentionally overrides a replacement from a mod it depends on
  */

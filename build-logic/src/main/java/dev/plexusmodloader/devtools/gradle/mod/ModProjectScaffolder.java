@@ -15,14 +15,14 @@ import java.util.stream.Stream;
 import javax.lang.model.SourceVersion;
 
 /**
- * Creates a new mod project from {@code templates/poly-mod-template}: copies it and renames the mod
+ * Creates a new mod project from {@code templates/plexus-mod-template}: copies it and renames the mod
  * ID, name, Java package, entry point class, and project name everywhere they appear, so the copy builds
- * as the new mod straight away ({@code newPolyMod}). {@link #renameInPlace} does the same to an unzipped
- * copy of the template ({@code initPolyMod}).
+ * as the new mod straight away ({@code newPlexusMod}). {@link #renameInPlace} does the same to an unzipped
+ * copy of the template ({@code initPlexusMod}).
  */
 public final class ModProjectScaffolder {
 
-    /** Same rule as {@code poly.mod.json} ({@code dev.plexusmodloader.runtime.metadata.ModId}). */
+    /** Same rule as {@code plexus.mod.json} ({@code dev.plexusmodloader.runtime.metadata.ModId}). */
     private static final Pattern MOD_ID = Pattern.compile("[a-z][a-z0-9_]{1,63}");
 
     private static final Set<String> SKIPPED_DIRECTORIES = Set.of("build", ".gradle", "run", "out", ".idea", "bin");
@@ -32,7 +32,7 @@ public final class ModProjectScaffolder {
     // The names the template uses, from the most specific to the least.
     static final String TEMPLATE_PACKAGE = "com.example.mymod";
     static final String TEMPLATE_CLASS = "MyMod";
-    static final String TEMPLATE_PROJECT = "my-poly-mod";
+    static final String TEMPLATE_PROJECT = "my-plexus-mod";
     static final String TEMPLATE_NAME = "My Mod";
     static final String TEMPLATE_ID = "my_mod";
     static final String TEMPLATE_GROUP_LINE = "group = \"com.example\"";
@@ -45,7 +45,7 @@ public final class ModProjectScaffolder {
         /**
          * Checks the names.
          *
-         * @throws IllegalArgumentException for a mod ID {@code poly.mod.json} rejects, a package that is not a
+         * @throws IllegalArgumentException for a mod ID {@code plexus.mod.json} rejects, a package that is not a
          *     Java package name, or a display name that cannot go into JSON as it is
          */
         public ModNames {
@@ -64,7 +64,7 @@ public final class ModProjectScaffolder {
         }
 
         /**
-         * Names with the defaults of {@code newPolyMod} and {@code initPolyMod}: the display name is the mod ID
+         * Names with the defaults of {@code newPlexusMod} and {@code initPlexusMod}: the display name is the mod ID
          * in title case, the package {@code com.example.<mod ID without _>}.
          *
          * @param modName the display name, or {@code null} for the default
@@ -167,13 +167,13 @@ public final class ModProjectScaffolder {
     }
 
     /**
-     * Renames an unzipped copy of the template in place ({@code initPolyMod}): the same replacements as {@link
+     * Renames an unzipped copy of the template in place ({@code initPlexusMod}): the same replacements as {@link
      * #scaffold}, with files moved to their renamed paths and the template's emptied folders removed. Folders
      * {@code scaffold} skips ({@code build}, {@code .gradle}, {@code run}, ...) are left alone. Returns the files
      * written or moved.
      *
      * @throws IllegalArgumentException if {@code project} is not an untouched copy of the template (its entry
-     *     point {@code com.example.mymod.MyMod} and {@code poly.mod.json} must still be there)
+     *     point {@code com.example.mymod.MyMod} and {@code plexus.mod.json} must still be there)
      */
     public static List<Path> renameInPlace(Path project, ModNames names) {
         Path entryPoint = project.resolve(

@@ -5,7 +5,7 @@ import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
  * Registers in-game tests that run on Mojang's game test server ({@code net.minecraft.gametest.Main},
- * for example through the {@code polyScenarios} Gradle tasks). Each test gets a fresh empty area; its
+ * for example through the {@code plexusScenarios} Gradle tasks). Each test gets a fresh empty area; its
  * ID is {@code <mod id>:<name>}, so {@code --tests <mod id>:*} runs all of a mod's tests. In a
  * normal world they also run with {@code /test run <mod id>:<name>}.
  *

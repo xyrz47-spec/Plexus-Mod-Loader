@@ -40,29 +40,29 @@ class NeoForgeTitleBrandingTest {
 
     private static final String FOR_EACH_LINE = "(ZZLjava/util/function/BiConsumer;)V";
     private static final List<String> NEOFORGE_TOP_TO_BOTTOM = List.of("Minecraft 26.2", "NeoForge 26.2.0.93, 50 mods");
-    private static final List<String> POLY_TOP_TO_BOTTOM = List.of("Poly mods: 2", "NeoForge mods: 40");
+    private static final List<String> PLEXUS_TOP_TO_BOTTOM = List.of("Plexus mods: 2", "NeoForge mods: 40");
 
     /**
      * The title screen asks for the list bottom to top ({@code reverse}) and draws index {@code i} above index {@code i -
-     * 1}: Poly Mod Loader's lines come after NeoForge's, bottom one first, so they sit above NeoForge's.
+     * 1}: Plexus Mod Loader's lines come after NeoForge's, bottom one first, so they sit above NeoForge's.
      */
     @Test
-    void reversedListHasPolyLinesAfterNeoForgesBottomOneFirst() {
-        NeoForgeTitleBranding.install(() -> POLY_TOP_TO_BOTTOM, message -> {});
+    void reversedListHasPlexusLinesAfterNeoForgesBottomOneFirst() {
+        NeoForgeTitleBranding.install(() -> PLEXUS_TOP_TO_BOTTOM, message -> {});
 
         List<String> lines = NeoForgeTitleBranding.withModCounts(true, true, NEOFORGE_TOP_TO_BOTTOM.reversed());
 
-        assertEquals(List.of("NeoForge 26.2.0.93", "Minecraft 26.2", "NeoForge mods: 40", "Poly mods: 2"), lines);
+        assertEquals(List.of("NeoForge 26.2.0.93", "Minecraft 26.2", "NeoForge mods: 40", "Plexus mods: 2"), lines);
     }
 
-    /** A caller that reads the list top to bottom (FancyMenu's own branding element) gets Poly Mod Loader's lines first. */
+    /** A caller that reads the list top to bottom (FancyMenu's own branding element) gets Plexus Mod Loader's lines first. */
     @Test
-    void topToBottomListHasPolyLinesFirst() {
-        NeoForgeTitleBranding.install(() -> POLY_TOP_TO_BOTTOM, message -> {});
+    void topToBottomListHasPlexusLinesFirst() {
+        NeoForgeTitleBranding.install(() -> PLEXUS_TOP_TO_BOTTOM, message -> {});
 
         List<String> lines = NeoForgeTitleBranding.withModCounts(true, false, NEOFORGE_TOP_TO_BOTTOM);
 
-        assertEquals(List.of("Poly mods: 2", "NeoForge mods: 40", "Minecraft 26.2", "NeoForge 26.2.0.93"), lines);
+        assertEquals(List.of("Plexus mods: 2", "NeoForge mods: 40", "Minecraft 26.2", "NeoForge 26.2.0.93"), lines);
     }
 
     @Test
@@ -83,7 +83,7 @@ class NeoForgeTitleBrandingTest {
         TransformRuleDefinition rule = NeoForgeTitleBranding.rule("26.2");
         InvokeHookBeforeReturn hook = (InvokeHookBeforeReturn) rule.action();
 
-        assertEquals("poly", rule.ownerModId());
+        assertEquals("plexus", rule.ownerModId());
         assertEquals(Set.of(GameSide.CLIENT), rule.sides());
         assertEquals(TransformFailurePolicy.DISABLE_RULE, rule.failurePolicy());
         assertEquals(
@@ -103,9 +103,9 @@ class NeoForgeTitleBrandingTest {
      * which the title screen and FancyMenu call, reads {@code getBrandings}.
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgeUniversal", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgeUniversal", matches = ".+")
     void ruleAppliesToNeoForgesBrandingControl() throws IOException {
-        try (JarFile universal = new JarFile(System.getProperty("poly.neoForgeUniversal"))) {
+        try (JarFile universal = new JarFile(System.getProperty("plexus.neoForgeUniversal"))) {
             TransformRuleDefinition rule = NeoForgeTitleBranding.rule("test");
             TransformPlan plan = new ClassTransformPlanner()
                     .plan(List.of(rule), "test", GameSide.CLIENT, name -> read(universal, name));
@@ -134,10 +134,10 @@ class NeoForgeTitleBrandingTest {
      * through {@code BrandingControl.forEachLine}, so it shows the hooked list.
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgePatchedClient", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgePatchedClient", matches = ".+")
     void neoForgesTitleScreenDrawsItsBrandingThroughBrandingControl() throws IOException {
         try (JarFile jar = new JarFile(
-                Path.of(System.getProperty("poly.neoForgePatchedClient")).toFile())) {
+                Path.of(System.getProperty("plexus.neoForgePatchedClient")).toFile())) {
             ClassNode titleScreen =
                     parse(read(jar, NeoForgeTitleBranding.TITLE_SCREEN).orElseThrow());
             MethodNode render = titleScreen.methods.stream()

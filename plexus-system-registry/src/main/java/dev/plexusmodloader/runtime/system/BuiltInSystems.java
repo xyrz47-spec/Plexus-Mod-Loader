@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-/** The systems Poly Mod Loader defines. New systems are added here together with their default provider. */
+/** The systems Plexus Mod Loader defines. New systems are added here together with their default provider. */
 public final class BuiltInSystems {
 
     private static final Pattern BRAND = Pattern.compile("[\\x21-\\x7e](?:[\\x20-\\x7e]{0,62}[\\x21-\\x7e])?");

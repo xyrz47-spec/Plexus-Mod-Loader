@@ -1,7 +1,7 @@
-# Poly Mod Loader — Project Overview & Status
+# Plexus Mod Loader — Project Overview & Status
 
 <p align="center">
-  <img src="logo.svg" alt="Poly Mod Loader" width="100" height="100">
+  <img src="logo.svg" alt="Plexus Mod Loader" width="100" height="100">
 </p>
 
 <p align="center">
@@ -10,17 +10,17 @@
   <a href="DEVELOPING.md">Developer Guide</a> ·
   <a href="ARCHITECTURE.md">Architecture</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
-  <a href="https://www.polymc.net">Official Website</a> ·
+  <a href="https://www.plexusmc.net">Official Website</a> ·
   <a href="#한국어">한국어 안내</a>
 </p>
 
 ---
 
-## 1. What is Poly Mod Loader?
+## 1. What is Plexus Mod Loader?
 
-**Poly Mod Loader (Poly)** is an advanced, in-engine modding platform and bytecode virtualization layer for **Minecraft: Java Edition** (supporting versions `26.1`, `26.1.1`, `26.1.2`, `26.2`, and `26.3` under **Java 25**).
+**Plexus Mod Loader (Plexus)** is an advanced, in-engine modding platform and bytecode virtualization layer for **Minecraft: Java Edition** (supporting versions `26.1`, `26.1.1`, `26.1.2`, `26.2`, and `26.3` under **Java 25**).
 
-Unlike external launcher wrappers (such as Prism, CurseForge App, or Modrinth App) that merely manage profile directories and launch separate games, Poly is an **in-game bytecode loader**:
+Unlike external launcher wrappers (such as Prism, CurseForge App, or Modrinth App) that merely manage profile directories and launch separate games, Plexus is an **in-game bytecode loader**:
 - It replaces vanilla Minecraft's startup sequence and hosts a unified classloader.
 - It dynamically adapts foreign mod bytecode (Fabric, Forge, NeoForge, Quilt) on the fly, allowing mods from different loaders to run together in the same world, server, or client session.
 - It provides its own clean **Native API** with declarative bytecode transforms, headless gametesting, and version-agnostic abstractions.
@@ -31,30 +31,30 @@ Unlike external launcher wrappers (such as Prism, CurseForge App, or Modrinth Ap
 
 ```
 +-----------------------------------------------------------------------------------+
-|                                  Poly Mod Loader                                  |
+|                                  Plexus Mod Loader                                  |
 +-----------------------------------------------------------------------------------+
 |  [ Native API ]   [ Fabric Bridge ]   [ Forge Bridge ]   [ NeoForge Bridge ]      |
 |  - System API     - FabricLoader API  - FML Virtualizer  - FML 11 Layer Bridge    |
 |  - Lifecycle API  - QuiltLoader API   - ModLauncher Shim - Shared Mixin Engine    |
 +-----------------------------------------------------------------------------------+
-|                       Poly Transform Engine (ASM 9.11)                            |
+|                       Plexus Transform Engine (ASM 9.11)                            |
 |  - Declarative Bytecode Transforms  - Dynamic Host Patch Adjustments (ADR-0030)  |
 |  - Unified Mixin 0.8.7 Service      - Granular Conflict Pre-flight Assessment     |
 +-----------------------------------------------------------------------------------+
-|                     Poly Transforming ClassLoader & JRE 25                        |
+|                     Plexus Transforming ClassLoader & JRE 25                        |
 +-----------------------------------------------------------------------------------+
 |                         Minecraft: Java Edition (26.x)                            |
 +-----------------------------------------------------------------------------------+
 ```
 
 ### 1) True In-JVM Multi-Loader Concurrency
-Poly does not run separate games or heavy emulation layers. A single game classloader hosts Poly, Fabric, Forge, and NeoForge mod code simultaneously. Forge and NeoForge's FML services run inside Poly's managed layers, while Fabric and Quilt mods are driven through unified Mixin and ClassTweaker pipelines.
+Plexus does not run separate games or heavy emulation layers. A single game classloader hosts Plexus, Fabric, Forge, and NeoForge mod code simultaneously. Forge and NeoForge's FML services run inside Plexus's managed layers, while Fabric and Quilt mods are driven through unified Mixin and ClassTweaker pipelines.
 
 ### 2) Pre-flight Conflict & Patch Assessment (`PLEXUS-COMPAT-224`)
-When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mixins fail because injection targets or local variable tables differ. Poly incorporates an automated **Host Patch Check (`HostPatchCheck`)**:
+When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mixins fail because injection targets or local variable tables differ. Plexus incorporates an automated **Host Patch Check (`HostPatchCheck`)**:
 - It inspects all mod mixins against the host's actual bytecode before launch.
-- If a mixin can be safely adapted (via parameter shifting, expression wrapping, or method retargeting), Poly rewrites the injection point on the fly (`HostPatchAdjustments`).
-- If an incompatible mixin is found, Poly isolates the conflicting mod before the JVM starts, outputting clear diagnostic codes (`PLEXUS-COMPAT-224`) instead of crashing the game mid-launch.
+- If a mixin can be safely adapted (via parameter shifting, expression wrapping, or method retargeting), Plexus rewrites the injection point on the fly (`HostPatchAdjustments`).
+- If an incompatible mixin is found, Plexus isolates the conflicting mod before the JVM starts, outputting clear diagnostic codes (`PLEXUS-COMPAT-224`) instead of crashing the game mid-launch.
 
 ### 3) Near-Zero Performance Overhead
 - **Startup Time & Memory:** Memory footprint and startup duration are within measurement noise compared to vanilla and host loaders.
@@ -95,7 +95,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 - Hardening against 26.3-specific game changes (SDL keyboard handling, shader `#include`, data pack overlay formats).
 
 ### Milestone C: Technical Benchmarking
-- Publish detailed memory, tick-rate, and startup benchmarks comparing Poly against standalone loaders.
+- Publish detailed memory, tick-rate, and startup benchmarks comparing Plexus against standalone loaders.
 
 ---
 
@@ -103,9 +103,9 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 ## 한국어 안내 (Korean Overview)
 
 ### 1. 프로젝트 개요
-**Poly Mod Loader (Poly)**는 마인크래프트 Java Edition (최신 `26.1` ~ `26.3`, **Java 25**)을 위한 차세대 인게임 바이트코드 변환 엔진이자 멀티로더 통합 플랫폼입니다.
+**Plexus Mod Loader (Plexus)**는 마인크래프트 Java Edition (최신 `26.1` ~ `26.3`, **Java 25**)을 위한 차세대 인게임 바이트코드 변환 엔진이자 멀티로더 통합 플랫폼입니다.
 
-외부에서 프로필을 분리 실행하는 일반 런처(Prism Launcher, CurseForge 등)와 달리, Poly는 **게임 프로세스 내부에서 동작하는 모드로더 엔진**입니다:
+외부에서 프로필을 분리 실행하는 일반 런처(Prism Launcher, CurseForge 등)와 달리, Plexus는 **게임 프로세스 내부에서 동작하는 모드로더 엔진**입니다:
 - Fabric, Forge, NeoForge, Quilt 모드를 하나의 마인크래프트 게임 안에서 동시에 실행할 수 있습니다.
 - 서로 다른 모드로더 간의 클래스 충돌, 믹스인(Mixin) 패치 불일치, 레지스트리 동결 시점 차이를 런타임에 바이트코드 레벨에서 자동으로 조율합니다.
 - 플랫폼에 종속되지 않는 고유의 **Native API**와 선언적 바이트코드 변환기를 제공합니다.
@@ -124,7 +124,7 @@ When Forge or NeoForge patches a vanilla Minecraft class, traditional Fabric Mix
 
 ## 5. Development & Contributions
 
-Poly Mod Loader is open source under the **Mozilla Public License 2.0 (MPL-2.0)**.
+Plexus Mod Loader is open source under the **Mozilla Public License 2.0 (MPL-2.0)**.
 - Developer instructions, building from source, and module navigation: **[DEVELOPING.md](DEVELOPING.md)**
 - Deep dive into internal transform systems and classloader topology: **[ARCHITECTURE.md](ARCHITECTURE.md)**
 - Issue tracking & feature requests: **[GitHub Issues](https://github.com/xyrz47-spec/Plexus-Mod-Loader/issues)**

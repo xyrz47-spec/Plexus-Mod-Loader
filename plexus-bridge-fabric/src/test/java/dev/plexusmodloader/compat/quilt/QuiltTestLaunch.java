@@ -23,7 +23,7 @@ import org.quiltmc.loader.api.entrypoint.PreLaunchEntrypoint;
 
 /**
  * A launch with one mod of each kind, for the Quilt Loader API tests: the Quilt mod {@code quilt_hello}, the Fabric mod
- * {@code fabric_lib} (with the nested Fabric mod {@code fabric_inner}), the Poly Mod {@code native_lib} and the mod
+ * {@code fabric_lib} (with the nested Fabric mod {@code fabric_inner}), the Plexus Mod {@code native_lib} and the mod
  * {@code forge_mod} a host loader runs.
  */
 final class QuiltTestLaunch {
@@ -170,7 +170,7 @@ final class QuiltTestLaunch {
                                 null,
                                 null),
                         new BridgeLaunchContext.LoadedMod(
-                                "Poly Mod Loader",
+                                "Plexus Mod Loader",
                                 "native_lib",
                                 "2.1.0",
                                 "Native Lib",

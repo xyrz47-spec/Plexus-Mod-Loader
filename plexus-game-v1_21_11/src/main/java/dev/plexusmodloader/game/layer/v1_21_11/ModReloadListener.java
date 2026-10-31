@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public final class ModReloadListener
         extends SimplePreparableReloadListener<Map<ReloadListenerDeclaration, Map<ResourceId, byte[]>>> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private final List<ReloadListenerDeclaration> declarations;
 
@@ -73,7 +73,7 @@ public final class ModReloadListener
                 declaration.listener().onReload(copies);
             } catch (RuntimeException e) {
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-RESOURCE-003 reload listener of {} for {} failed",
+                        "[Plexus Mod Loader] PLEXUS-RESOURCE-003 reload listener of {} for {} failed",
                         declaration.ownerModId(),
                         declaration.directory(),
                         e);

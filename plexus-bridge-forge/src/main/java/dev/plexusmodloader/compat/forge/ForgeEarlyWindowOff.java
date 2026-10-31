@@ -7,7 +7,7 @@ import java.lang.module.ModuleReference;
 import java.util.function.Consumer;
 
 /**
- * MinecraftForge's FML without its early loading window, when Poly Mod Loader shows its own over the launch. FML's
+ * MinecraftForge's FML without its early loading window, when Plexus Mod Loader shows its own over the launch. FML's
  * {@code ImmediateWindowHandler.load} looks for the window's provider ({@code ImmediateWindowProvider} named {@code
  * fmlearlywindow}) with {@code ServiceLoader}; the module that provides it, {@code fmlearlydisplay}, then provides none,
  * so FML takes its own path for a disabled early window ({@code DummyProvider}, as with {@code earlyWindowControl =
@@ -36,7 +36,7 @@ final class ForgeEarlyWindowOff {
         ModuleDescriptor without = without(descriptor);
         log.accept(String.format(
                 java.util.Locale.ROOT,
-                "Early loading window: disabled %s providing %s; Poly Mod Loader shows its own early window instead",
+                "Early loading window: disabled %s providing %s; Plexus Mod Loader shows its own early window instead",
                 descriptor.name(),
                 PROVIDER_SERVICE));
         return new ModuleReference(without, reference.location().orElse(null)) {

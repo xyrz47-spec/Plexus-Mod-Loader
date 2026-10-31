@@ -15,11 +15,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-/** The mod data a Poly Mod Loader block entity carries, and the view handed to mods; shared by both classes. */
+/** The mod data a Plexus Mod Loader block entity carries, and the view handed to mods; shared by both classes. */
 final class BlockEntityData {
 
-    private static final String KEY = "poly_data";
-    private static final String VERSION_KEY = "poly_data_version";
+    private static final String KEY = "plexus_data";
+    private static final String VERSION_KEY = "plexus_data_version";
 
     private final BlockEntity owner;
     private final BlockEntityDefinition definition;

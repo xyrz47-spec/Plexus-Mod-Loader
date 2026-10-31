@@ -69,7 +69,7 @@ class BuiltInRulesTest {
     void titleScreenRuleRedirectsTheOnlyVersionTextCall() {
         TransformRuleDefinition rule = new Minecraft26_2Adapter()
                 .builtInTransformRules().stream()
-                        .filter(candidate -> candidate.ruleId().equals("poly:client_title_mod_counts"))
+                        .filter(candidate -> candidate.ruleId().equals("plexus:client_title_mod_counts"))
                         .findFirst()
                         .orElseThrow();
         assertEquals(TransformFailurePolicy.DISABLE_RULE, rule.failurePolicy());
@@ -113,31 +113,31 @@ class BuiltInRulesTest {
      * reported in the log (optional rules as information). NeoForge's own code does what most of them did: the client
      * and server brands, the title screen branding (which {@code NeoForgeTitleBranding} draws the counts over) and the
      * creative screen's tab pages (NeoForge pages creative tabs itself, as Forge does). Not so {@code
-     * poly:payload_codecs}: NeoForge registers custom payloads its own way, so Poly Mods' network channels are not
-     * encoded through Poly Mod Loader's hook when NeoForge runs (ADR-0026).
+     * plexus:payload_codecs}: NeoForge registers custom payloads its own way, so Plexus Mods' network channels are not
+     * encoded through Plexus Mod Loader's hook when NeoForge runs (ADR-0026).
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgePatchedClient", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgePatchedClient", matches = ".+")
     void rulesNeoForgesPatchTurnsOffOnTheClient() throws IOException {
         assertEquals(
                 Set.of(
-                        "poly:client_brand",
-                        "poly:client_creative_tabs_clicked",
-                        "poly:client_creative_tabs_drawn",
-                        "poly:client_creative_tabs_hovered",
-                        "poly:client_creative_tabs_released",
-                        "poly:client_title_mod_counts",
-                        "poly:payload_codecs",
-                        "poly:server_brand"),
-                rejectedOn(Path.of(System.getProperty("poly.neoForgePatchedClient")), GameSide.CLIENT));
+                        "plexus:client_brand",
+                        "plexus:client_creative_tabs_clicked",
+                        "plexus:client_creative_tabs_drawn",
+                        "plexus:client_creative_tabs_hovered",
+                        "plexus:client_creative_tabs_released",
+                        "plexus:client_title_mod_counts",
+                        "plexus:payload_codecs",
+                        "plexus:server_brand"),
+                rejectedOn(Path.of(System.getProperty("plexus.neoForgePatchedClient")), GameSide.CLIENT));
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgePatchedServer", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgePatchedServer", matches = ".+")
     void rulesNeoForgesPatchTurnsOffOnTheServer() throws IOException {
         assertEquals(
-                Set.of("poly:payload_codecs", "poly:server_brand"),
-                rejectedOn(Path.of(System.getProperty("poly.neoForgePatchedServer")), GameSide.DEDICATED_SERVER));
+                Set.of("plexus:payload_codecs", "plexus:server_brand"),
+                rejectedOn(Path.of(System.getProperty("plexus.neoForgePatchedServer")), GameSide.DEDICATED_SERVER));
     }
 
     /** The IDs of the built-in rules for {@code side} that do not apply to {@code patchedJar}'s classes. */

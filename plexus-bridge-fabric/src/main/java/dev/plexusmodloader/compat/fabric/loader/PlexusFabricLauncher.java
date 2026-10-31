@@ -16,7 +16,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 /**
- * Fabric Loader's {@code FabricLauncher} answered by Poly Mod Loader's game class loader, for mods that use Fabric Loader's
+ * Fabric Loader's {@code FabricLauncher} answered by Plexus Mod Loader's game class loader, for mods that use Fabric Loader's
  * internal launcher ({@code FabricLauncherBase.getLauncher()}).
  *
  * <p>Thread: any, like the game class loader.

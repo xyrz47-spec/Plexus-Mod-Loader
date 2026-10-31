@@ -22,11 +22,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Poly Mod Loader's host modules (ADR-0031) in place of mods left out for not fitting the host's patch. */
+/** Plexus Mod Loader's host modules (ADR-0031) in place of mods left out for not fitting the host's patch. */
 class HostModulesTest {
 
     private static final String HOST = "NeoForge 26.2.0.93";
-    private static final String RESOURCE = "META-INF/polymodloader/host-modules/neoforge-26.2.0.93/block-host.jar";
+    private static final String RESOURCE = "META-INF/plexusmodloader/host-modules/neoforge-26.2.0.93/block-host.jar";
 
     @TempDir
     Path directory;
@@ -46,7 +46,7 @@ class HostModulesTest {
         Files.writeString(index, "neoforge-26.2.0.93.fabric-block-api-v1=" + RESOURCE + "\n");
         Path hostModule = classes.resolve(RESOURCE);
         Files.createDirectories(hostModule.getParent());
-        fabricMod(hostModule, "fabric-block-api-v1", "3.1.0+poly.neoforge.26.2");
+        fabricMod(hostModule, "fabric-block-api-v1", "3.1.0+plexus.neoforge.26.2");
         loader = new URLClassLoader(
                 new URL[] {classes.toUri().toURL()}, getClass().getClassLoader());
         bridges = new ForeignModResolver(loader);
@@ -68,7 +68,7 @@ class HostModulesTest {
         assertEquals(1, result.replaced().size());
         ForeignMod replacement = result.mods().getFirst();
         assertEquals("fabric-block-api-v1", replacement.assessment().modId());
-        assertEquals("3.1.0+poly.neoforge.26.2", replacement.assessment().version());
+        assertEquals("3.1.0+plexus.neoforge.26.2", replacement.assessment().version());
         assertTrue(
                 replacement.jar().startsWith(directory.resolve("out")),
                 replacement.jar().toString());

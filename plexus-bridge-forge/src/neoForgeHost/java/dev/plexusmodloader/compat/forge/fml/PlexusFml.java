@@ -32,8 +32,8 @@ import net.neoforged.neoforgespi.locating.IModFileCandidateLocator;
 import net.neoforged.neoforgespi.transformation.ClassProcessor;
 
 /**
- * Poly Mod Loader's host for FML 11 (ADR-0026), a module of the layer of NeoForge's loader libraries. {@link #start}
- * runs FML's own {@code FMLLoader.create}; Poly Mod Loader's patch of {@code FMLLoader} ({@code NeoForgeLoaderPatch})
+ * Plexus Mod Loader's host for FML 11 (ADR-0026), a module of the layer of NeoForge's loader libraries. {@link #start}
+ * runs FML's own {@code FMLLoader.create}; Plexus Mod Loader's patch of {@code FMLLoader} ({@code NeoForgeLoaderPatch})
  * calls {@link #buildTransformingLoader} and {@link #modsLocator} from there.
  *
  * <p>Thread: FML starts on the launching thread; one launch per JVM.
@@ -62,7 +62,7 @@ public final class PlexusFml implements NeoForgeLaunch {
      * Runs FML's startup: discovery of the game, NeoForge and {@code request}'s mods, their sorting, language
      * providers, class processors, the game layer (through {@link #buildTransformingLoader}) and Mixin.
      *
-     * @throws IllegalStateException when FML built its game layer without Poly Mod Loader's host (the patch did not
+     * @throws IllegalStateException when FML built its game layer without Plexus Mod Loader's host (the patch did not
      *     apply)
      * @throws RuntimeException whatever FML throws, such as its {@code ModLoadingException} with the discovery issues
      */
@@ -86,19 +86,19 @@ public final class PlexusFml implements NeoForgeLaunch {
         ModuleLayer layer = gameLayer;
         if (layer == null) {
             throw new IllegalStateException(
-                    "PLEXUS-COMPAT-215 FML built its game layer without Poly Mod Loader's host; its own class loader"
+                    "PLEXUS-COMPAT-215 FML built its game layer without Plexus Mod Loader's host; its own class loader"
                             + " would own the game");
         }
         request.log()
                 .accept("FML " + FMLLoader.class.getPackage().getImplementationVersion() + " loaded "
                         + loader.getLoadingModList().getMods().size() + " mod(s); game layer of "
-                        + layer.modules().size() + " module(s) in Poly Mod Loader's game class loader");
+                        + layer.modules().size() + " module(s) in Plexus Mod Loader's game class loader");
         return new PlexusFml(loader, layer);
     }
 
     /**
      * The NeoForge mods outside the mods folder, for FML's early service discovery, which looks at the mods folder and
-     * at the unclaimed class path entries only. NeoForge's own launcher has every mod in the mods folder; Poly Mod Loader
+     * at the unclaimed class path entries only. NeoForge's own launcher has every mod in the mods folder; Plexus Mod Loader
      * may run mods from elsewhere too (development runs), and FML must find their early services in the same way, so
      * that it loads such a jar as an early service and the mod nested in it from its JarJar (Sodium's NeoForge build).
      * Jars inside the mods folder FML finds itself.
@@ -127,7 +127,7 @@ public final class PlexusFml implements NeoForgeLaunch {
             List<JarContentsModule> content) {
         Request current = request;
         if (current == null) {
-            throw new IllegalStateException("Poly Mod Loader's FML host was not started");
+            throw new IllegalStateException("Plexus Mod Loader's FML host was not started");
         }
         if (current.sharedMixin()) {
             content = FmlSharedMixin.withoutMixinExtras(content, module -> mixinExtrasLeftOut = true, current.log());
@@ -160,13 +160,13 @@ public final class PlexusFml implements NeoForgeLaunch {
             resources.add(facade);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(
-                    "PLEXUS-COMPAT-215 FMLLoader's fields are not the ones Poly Mod Loader checked: " + e, e);
+                    "PLEXUS-COMPAT-215 FMLLoader's fields are not the ones Plexus Mod Loader checked: " + e, e);
         }
         gameLayer = controller.layer();
         classLoader = facade;
         Thread.currentThread().setContextClassLoader(facade);
         current.log()
-                .accept("FML's game layer: " + names.size() + " module(s) defined by Poly Mod Loader's game class"
+                .accept("FML's game layer: " + names.size() + " module(s) defined by Plexus Mod Loader's game class"
                         + " loader");
         return facade;
     }
@@ -192,7 +192,7 @@ public final class PlexusFml implements NeoForgeLaunch {
     /**
      * In place of FML 12's {@code MixinFacade.getGeneratingClassProcessor()} when Fabric's Mixin is shared ({@code
      * NeoForgeSharedMixinPatch}, ADR-0026 30): a processor with the name and order of FML's processor for Mixin's
-     * synthetic classes that handles no class. The shared Mixin's synthetic classes come from Poly Mod Loader's bridge
+     * synthetic classes that handles no class. The shared Mixin's synthetic classes come from Plexus Mod Loader's bridge
      * stage ({@code BridgeClassTransformer.generate}).
      */
     public static ClassProcessor mixinGeneratingClassProcessor(MixinFacade facade) {
@@ -208,7 +208,7 @@ public final class PlexusFml implements NeoForgeLaunch {
     public static void finishSharedMixin(LoadingModList mods, TransformingClassLoader loader) {
         Request current = request;
         if (current == null) {
-            throw new IllegalStateException("Poly Mod Loader's FML host was not started");
+            throw new IllegalStateException("Plexus Mod Loader's FML host was not started");
         }
         List<SharedMixinConfig> configs =
                 FmlSharedMixin.configurations(mods, current.otherMods(), mixinExtrasLeftOut, current.log());
@@ -218,11 +218,11 @@ public final class PlexusFml implements NeoForgeLaunch {
                         + " the Mixin Fabric mods share; FML's own Mixin does not start (ADR-0026 30)");
     }
 
-    /** In place of FML's {@code new ModsFolderLocator()}: the NeoForge mods Poly Mod Loader found and left in. */
+    /** In place of FML's {@code new ModsFolderLocator()}: the NeoForge mods Plexus Mod Loader found and left in. */
     public static IModFileCandidateLocator modsLocator() {
         Request current = request;
         if (current == null) {
-            throw new IllegalStateException("Poly Mod Loader's FML host was not started");
+            throw new IllegalStateException("Plexus Mod Loader's FML host was not started");
         }
         return new PlexusModsLocator(current.modJars());
     }

@@ -10,8 +10,8 @@ import java.util.List;
 
 /**
  * Draws the game's loading screen as it looks before its first frame (its background, the Mojang Studios logo, the
- * progress bar) with Poly Mod Loader's marks where the game layers put them on the game's screen: the spinning gold
- * cube and the name at the bottom right, the mods each loader runs under the bar. What Poly Mod Loader is doing is at
+ * progress bar) with Plexus Mod Loader's marks where the game layers put them on the game's screen: the spinning gold
+ * cube and the name at the bottom right, the mods each loader runs under the bar. What Plexus Mod Loader is doing is at
  * the bottom left. The same painter draws the window and its snapshots.
  */
 final class LoadingScreenPainter {

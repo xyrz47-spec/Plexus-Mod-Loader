@@ -220,7 +220,7 @@ public abstract class RemapMinecraftTask extends DefaultTask {
                             .toURI())
                     .toString();
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Cannot locate the Poly Gradle plugin classes", e);
+            throw new IllegalStateException("Cannot locate the Plexus Gradle plugin classes", e);
         }
     }
 

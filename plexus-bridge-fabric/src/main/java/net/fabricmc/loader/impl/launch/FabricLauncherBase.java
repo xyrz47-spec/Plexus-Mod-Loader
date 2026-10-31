@@ -3,8 +3,8 @@ package net.fabricmc.loader.impl.launch;
 import java.util.Map;
 
 /**
- * Poly Mod Loader's stand-in for Fabric Loader's internal {@code FabricLauncherBase}: the static access to the launcher
- * ({@link #getLauncher()}) that mods use, with Fabric Loader 0.19.5's signatures. The Poly Mod Loader Fabric bridge sets the
+ * Plexus Mod Loader's stand-in for Fabric Loader's internal {@code FabricLauncherBase}: the static access to the launcher
+ * ({@link #getLauncher()}) that mods use, with Fabric Loader 0.19.5's signatures. The Plexus Mod Loader Fabric bridge sets the
  * launcher before any Fabric code runs.
  */
 public abstract class FabricLauncherBase implements FabricLauncher {
@@ -32,17 +32,17 @@ public abstract class FabricLauncherBase implements FabricLauncher {
         FabricLauncher current = launcher;
         if (current == null) {
             throw new IllegalStateException(
-                    "The Fabric launcher is not ready yet (Poly Mod Loader sets it before Fabric mods run)");
+                    "The Fabric launcher is not ready yet (Plexus Mod Loader sets it before Fabric mods run)");
         }
         return current;
     }
 
-    /** Fabric Loader's launch properties; Poly Mod Loader has none. */
+    /** Fabric Loader's launch properties; Plexus Mod Loader has none. */
     public static Map<String, Object> getProperties() {
         return Map.of();
     }
 
-    /** Whether Mixin is ready: Poly Mod Loader starts it before any Fabric code runs, as Fabric Loader does. */
+    /** Whether Mixin is ready: Plexus Mod Loader starts it before any Fabric code runs, as Fabric Loader does. */
     public static boolean isMixinReady() {
         return launcher != null;
     }

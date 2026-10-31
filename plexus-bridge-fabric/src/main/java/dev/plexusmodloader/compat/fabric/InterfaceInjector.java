@@ -33,7 +33,7 @@ import org.objectweb.asm.Opcodes;
  *       interface}, unless the class already lists it
  * </ul>
  *
- * <p>Fabric Loader also checks that generic arguments only use type variables the class declares; Poly Mod Loader does not
+ * <p>Fabric Loader also checks that generic arguments only use type variables the class declares; Plexus Mod Loader does not
  * repeat that check, so a wrong signature is kept as written (it matters only to reflection).
  *
  * <p>Thread: immutable after construction; {@link #apply} is safe from any thread.

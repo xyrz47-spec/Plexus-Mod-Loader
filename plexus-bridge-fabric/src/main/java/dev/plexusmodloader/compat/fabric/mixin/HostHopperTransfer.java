@@ -86,7 +86,7 @@ final class HostHopperTransfer {
     }
 
     /**
-     * Adds the bridge {@code poly$hostCall$<handler>}: the handler's parameters with a {@code ContainerOrHandler} last,
+     * Adds the bridge {@code plexus$hostCall$<handler>}: the handler's parameters with a {@code ContainerOrHandler} last,
      * captured by type with {@code @Local}, carrying {@code inject} (the handler's, which the handler loses) retargeted
      * at {@code replacement}.
      */

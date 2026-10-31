@@ -46,8 +46,8 @@ class QuiltLoaderRuntimeTest {
         launch = new QuiltTestLaunch(directory, GameSide.DEDICATED_SERVER);
         FabricLoaderRuntime fabric =
                 FabricLoaderRuntime.create(launch.context, "0.19.5", Map.of("mixinextras", "0.5.5"));
-        FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(fabric);
-        QuiltLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(
+        FabricLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(fabric);
+        QuiltLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(
                 QuiltLoaderRuntime.create(launch.context, fabric, "0.31.0-beta.4"));
     }
 
@@ -66,7 +66,7 @@ class QuiltLoaderRuntimeTest {
         assertEquals(
                 ModContainer.BasicSourceType.NORMAL_FABRIC, mod("fabric_inner").getSourceType());
         assertEquals(ModContainer.BasicSourceType.OTHER, mod("native_lib").getSourceType());
-        assertEquals("loader.poly", mod("native_lib").metadata().group());
+        assertEquals("loader.plexus", mod("native_lib").metadata().group());
         assertEquals(ModContainer.BasicSourceType.OTHER, mod("forge_mod").getSourceType());
         assertEquals("loader.minecraftforge", mod("forge_mod").metadata().group());
         for (String builtIn : List.of("minecraft", "java", "quilt_loader", "mixinextras")) {
@@ -237,13 +237,13 @@ class QuiltLoaderRuntimeTest {
 
     @Test
     void usedBeforeTheBridgeAttachesItThrowsQuiltsMessage() {
-        QuiltLoaderRuntime attached = QuiltLoaderImpl.INSTANCE.polyModLoaderRuntime();
-        QuiltLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(null);
+        QuiltLoaderRuntime attached = QuiltLoaderImpl.INSTANCE.plexusModLoaderRuntime();
+        QuiltLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(null);
         try {
             IllegalStateException tooEarly = assertThrows(IllegalStateException.class, QuiltLoader::getAllMods);
             assertEquals("Accessed QuiltLoader too early!", tooEarly.getMessage());
         } finally {
-            QuiltLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(attached);
+            QuiltLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(attached);
         }
     }
 }

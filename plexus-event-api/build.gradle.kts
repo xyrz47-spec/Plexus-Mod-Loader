@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "Public event API: typed event keys, listener registration, and server lifecycle events."

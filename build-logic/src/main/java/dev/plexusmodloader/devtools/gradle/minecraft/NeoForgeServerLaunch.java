@@ -76,7 +76,7 @@ final class NeoForgeServerLaunch {
     /**
      * Puts {@code modJars} into the run's {@code mods/} folder and, when {@code warmCache} exists, a copy of it as the
      * run's {@link #GAME_CACHE}: every measured run then starts as a second start of the same installation does, as
-     * Poly Mod Loader's runs share their transform cache.
+     * Plexus Mod Loader's runs share their transform cache.
      */
     static void prepareRun(Path directory, Collection<File> modJars, Path warmCache) throws IOException {
         Path mods = directory.resolve("mods");

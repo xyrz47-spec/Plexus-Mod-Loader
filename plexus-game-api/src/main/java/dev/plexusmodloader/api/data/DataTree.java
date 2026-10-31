@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Typed key-value data that Poly Mod Loader saves with the world: block entity data and world storage use it.
+ * Typed key-value data that Plexus Mod Loader saves with the world: block entity data and world storage use it.
  * Values are {@code int}, {@code long}, {@code double}, {@code boolean}, {@link String},
  * {@code byte[]}, or nested trees. Reading a missing key or a key of another type returns the
  * fallback.

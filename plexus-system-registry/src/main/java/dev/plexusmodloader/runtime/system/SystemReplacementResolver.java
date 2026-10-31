@@ -19,11 +19,11 @@ import java.util.Set;
  * steps 8–9). Rules:
  *
  * <ol>
- *   <li>No replacement declared — Poly Mod Loader's default provider.
+ *   <li>No replacement declared — Plexus Mod Loader's default provider.
  *   <li>Exactly one replacement — that provider.
  *   <li>Several replacements — the one marked {@code "override": true} wins, but only if its mod
  *       depends (directly or transitively) on every other replacing mod. Anything else is a
- *       conflict; Poly Mod Loader never guesses.
+ *       conflict; Plexus Mod Loader never guesses.
  * </ol>
  */
 public final class SystemReplacementResolver {

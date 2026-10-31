@@ -1,7 +1,7 @@
 /*
  * Adapted from Fabric Loader 0.19.5, net.fabricmc.loader.impl.launch.knot.MixinServiceKnot.
  * Copyright 2016 FabricMC. Licensed under the Apache License, Version 2.0
- * (http://www.apache.org/licenses/LICENSE-2.0). Changed for Poly Mod Loader: classes come from Poly Mod Loader's game class
+ * (http://www.apache.org/licenses/LICENSE-2.0). Changed for Plexus Mod Loader: classes come from Plexus Mod Loader's game class
  * loader (GameClassBytes) instead of Knot; logging goes to SLF4J; see THIRD_PARTY_NOTICES.md.
  */
 package dev.plexusmodloader.compat.fabric.mixin;
@@ -33,11 +33,11 @@ import org.spongepowered.asm.service.ITransformerProvider;
 import org.spongepowered.asm.util.ReEntranceLock;
 
 /**
- * Mixin's view of Poly Mod Loader (ADR-0020): class bytes and classes come from the game class loader, as Fabric Loader's
+ * Mixin's view of Plexus Mod Loader (ADR-0020): class bytes and classes come from the game class loader, as Fabric Loader's
  * Knot service provides them from Knot. Mixin creates this class itself ({@code mixin.service}); it reads the launch
  * from {@link MixinLaunch}.
  *
- * <p>Class bytes handed to Mixin are those Poly Mod Loader's own transformer produced (its hooks and access widenings),
+ * <p>Class bytes handed to Mixin are those Plexus Mod Loader's own transformer produced (its hooks and access widenings),
  * as Fabric hands Mixin the bytes after its class tweaker: Mixin always runs last.
  */
 public final class PlexusMixinService
@@ -57,7 +57,7 @@ public final class PlexusMixinService
 
     /**
      * @param runTransformers ignored: Mixin asks without transformers only for its own mixin classes, which
-     *     Poly Mod Loader's transformer never changes
+     *     Plexus Mod Loader's transformer never changes
      */
     @Override
     public ClassNode getClassNode(String name, boolean runTransformers, int readerFlags)
@@ -94,7 +94,7 @@ public final class PlexusMixinService
 
     @Override
     public String getName() {
-        return "Poly Mod Loader/Fabric";
+        return "Plexus Mod Loader/Fabric";
     }
 
     @Override
@@ -169,7 +169,7 @@ public final class PlexusMixinService
                 return "the mod needs the Mixin of Fabric Loader "
                         + MixinCompatibility.minimumLoaderVersion(requiredCompatibility)
                                 .orElse("(unknown)")
-                        + " or newer; Poly Mod Loader provides the Mixin of Fabric Loader "
+                        + " or newer; Plexus Mod Loader provides the Mixin of Fabric Loader "
                         + MixinLaunch.current().fabricLoaderVersion;
             }
         };
@@ -189,7 +189,7 @@ public final class PlexusMixinService
                     .getLocation()
                     .toURI());
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Poly Mod Loader's Fabric bridge jar has no usable location", e);
+            throw new IllegalStateException("Plexus Mod Loader's Fabric bridge jar has no usable location", e);
         }
     }
 

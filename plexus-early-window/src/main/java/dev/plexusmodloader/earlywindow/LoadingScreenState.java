@@ -13,7 +13,7 @@ import java.util.List;
  */
 record LoadingScreenState(String name, String status, List<String> underBar, float progress) {
 
-    static final String NAME = "Poly Mod Loader";
+    static final String NAME = "Plexus Mod Loader";
 
     LoadingScreenState {
         underBar = List.copyOf(underBar);

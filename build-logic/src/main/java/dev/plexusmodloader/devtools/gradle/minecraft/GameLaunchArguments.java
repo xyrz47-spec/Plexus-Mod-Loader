@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Builds the JVM and program arguments every Poly Mod Loader game launch uses, so all run tasks agree. */
+/** Builds the JVM and program arguments every Plexus Mod Loader game launch uses, so all run tasks agree. */
 final class GameLaunchArguments {
 
     private GameLaunchArguments() {}
@@ -15,11 +15,11 @@ final class GameLaunchArguments {
     private static final String LOG_CONFIG_RESOURCE = "log4j2-dev.xml";
 
     /**
-     * Writes the bundled development log4j configuration into {@code runDirectory/.poly} and returns
+     * Writes the bundled development log4j configuration into {@code runDirectory/.plexus} and returns
      * it. Bundling it in the plugin lets external mod projects use the same logging as this repository.
      */
     static File developmentLogConfig(Path runDirectory) {
-        Path target = runDirectory.resolve(".poly").resolve(LOG_CONFIG_RESOURCE);
+        Path target = runDirectory.resolve(".plexus").resolve(LOG_CONFIG_RESOURCE);
         try (java.io.InputStream input = GameLaunchArguments.class.getResourceAsStream(LOG_CONFIG_RESOURCE)) {
             if (input == null) {
                 throw new IllegalStateException("Plugin resource " + LOG_CONFIG_RESOURCE + " is missing");
@@ -41,13 +41,13 @@ final class GameLaunchArguments {
             File logConfig,
             File transformCacheDirectory) {
         List<String> arguments = new ArrayList<>(spec.jvmArguments());
-        arguments.add("-Dpoly.launchTarget=" + launchTarget);
-        arguments.add("-Dpoly.gameJar=" + spec.gameJar());
-        arguments.add("-Dpoly.modsDir=" + runDirectory.resolve("mods"));
-        arguments.add("-Dpoly.devModJars="
+        arguments.add("-Dplexus.launchTarget=" + launchTarget);
+        arguments.add("-Dplexus.gameJar=" + spec.gameJar());
+        arguments.add("-Dplexus.modsDir=" + runDirectory.resolve("mods"));
+        arguments.add("-Dplexus.devModJars="
                 + devModJars.stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator)));
         arguments.add("-Dlog4j.configurationFile=" + logConfig.getAbsolutePath());
-        arguments.add("-Dpoly.transformCacheDir=" + transformCacheDirectory.getAbsolutePath());
+        arguments.add("-Dplexus.transformCacheDir=" + transformCacheDirectory.getAbsolutePath());
         return arguments;
     }
 

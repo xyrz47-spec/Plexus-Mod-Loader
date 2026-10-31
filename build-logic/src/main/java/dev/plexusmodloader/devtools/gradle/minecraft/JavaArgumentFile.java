@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Starts {@code java} with its arguments in an argument file ({@code java @file}, JDK 9+) instead of on the command
  * line. Windows refuses a command line over 32,767 characters ({@code CreateProcess error=206}); a client with the
- * whole Quilt corpus in {@code poly.devMods} and Minecraft's libraries on {@code -cp} goes over it.
+ * whole Quilt corpus in {@code plexus.devMods} and Minecraft's libraries on {@code -cp} goes over it.
  */
 final class JavaArgumentFile {
 

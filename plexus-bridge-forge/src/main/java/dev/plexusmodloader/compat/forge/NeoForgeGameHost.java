@@ -39,13 +39,13 @@ import java.util.function.UnaryOperator;
 import java.util.jar.JarFile;
 
 /**
- * NeoForge on Poly Mod Loader (ADR-0026): prepares NeoForge's files ({@link NeoForgeInstallation}), defines the layer
- * of NeoForge's loader libraries in the game class loader with Poly Mod Loader's host ({@code neoforge-host.jar}) and
+ * NeoForge on Plexus Mod Loader (ADR-0026): prepares NeoForge's files ({@link NeoForgeInstallation}), defines the layer
+ * of NeoForge's loader libraries in the game class loader with Plexus Mod Loader's host ({@code neoforge-host.jar}) and
  * the checked patch of {@code FMLLoader} ({@link NeoForgeLoaderPatch}), and runs FML's own startup there ({@code
- * PlexusFml.start}). The game class loader defines the game layer FML computes; FML sees exactly the NeoForge mods Poly
+ * PlexusFml.start}). The game class loader defines the game layer FML computes; FML sees exactly the NeoForge mods Plexus
  * Mod Loader found.
  *
- * <p>FML's {@code ModList} answers for the Poly Mods and other loaders' mods in the same game too ({@link
+ * <p>FML's {@code ModList} answers for the Plexus Mods and other loaders' mods in the same game too ({@link
  * ForgeModListPatch}, ADR-0025). With Fabric or Quilt mods in the same game, Fabric's Mixin serves NeoForge's mods
  * too, FML does not start its own ({@link NeoForgeSharedMixinPatch}), and the other loaders' mods initialize with
  * NeoForge's registries open (ADR-0026 30, 31).
@@ -54,7 +54,7 @@ import java.util.jar.JarFile;
  */
 final class NeoForgeGameHost implements GameHost {
 
-    private static final String HOST_JAR = "/META-INF/polymodloader/neoforge-host.jar";
+    private static final String HOST_JAR = "/META-INF/plexusmodloader/neoforge-host.jar";
     private static final String HOST_CLASS = "dev.plexusmodloader.compat.forge.fml.PlexusFml";
     private static final String MIXIN_BOOTSTRAP = "org/spongepowered/asm/launch/MixinBootstrap.class";
 
@@ -89,21 +89,21 @@ final class NeoForgeGameHost implements GameHost {
     }
 
     /**
-     * Prepares NeoForge's files for {@code request}'s Minecraft version, to run {@code modJars} (the NeoForge mods Poly
+     * Prepares NeoForge's files for {@code request}'s Minecraft version, to run {@code modJars} (the NeoForge mods Plexus
      * Mod Loader found).
      *
-     * @throws IOException when Poly Mod Loader has no NeoForge release for that version, Fabric mods run in the same
+     * @throws IOException when Plexus Mod Loader has no NeoForge release for that version, Fabric mods run in the same
      *     launch, or the files cannot be downloaded, checked or patched
      */
     static NeoForgeGameHost create(GameHost.Request request, List<Path> modJars) throws IOException {
         if (request.jdkModuleAccess().isEmpty()) {
             throw new IOException("NeoForge's FML needs java.lang.invoke opened to it, as NeoForge's launcher profile"
-                    + " does with --add-opens; that takes Poly Mod Loader's Java agent, and this launch was started"
+                    + " does with --add-opens; that takes Plexus Mod Loader's Java agent, and this launch was started"
                     + " without it");
         }
         NeoForgeInstallation.Release release = NeoForgeInstallation.release(request.gameVersion())
                 .orElseThrow(() -> new IOException(
-                        "Poly Mod Loader has no NeoForge release for Minecraft " + request.gameVersion()));
+                        "Plexus Mod Loader has no NeoForge release for Minecraft " + request.gameVersion()));
         NeoForgeInstallation.Prepared files = NeoForgeInstallation.prepare(
                 release,
                 request.cacheDirectory().resolve("neoforge"),
@@ -120,7 +120,7 @@ final class NeoForgeGameHost implements GameHost {
         for (Path library : files.libraries()) {
             try (JarFile jar = new JarFile(library.toFile())) {
                 // FML's Mixin service is found by class name from Mixin's own class loader, so Mixin is a module
-                // next to FML although Poly Mod Loader's class path has the same release. With Fabric mods, Fabric's
+                // next to FML although Plexus Mod Loader's class path has the same release. With Fabric mods, Fabric's
                 // Mixin on the class path serves NeoForge's mods too (ADR-0026 30), and FML uses that one.
                 if ((jar.getEntry(MIXIN_BOOTSTRAP) == null || request.sharedMixin()) && onClassPath(jar, classPath)) {
                     onClassPath.add(library);
@@ -160,7 +160,7 @@ final class NeoForgeGameHost implements GameHost {
         }
         if (!missing.isEmpty()) {
             throw new IOException("NeoForge mods do not run together with Fabric or Quilt mods on "
-                    + loader.getFileName() + ": FML's Mixin start is not the code Poly Mod Loader checked (missing: "
+                    + loader.getFileName() + ": FML's Mixin start is not the code Plexus Mod Loader checked (missing: "
                     + String.join("; ", missing) + "), and two Mixins cannot run in one game");
         }
     }
@@ -282,7 +282,7 @@ final class NeoForgeGameHost implements GameHost {
     }
 
     /**
-     * NeoForge's loader libraries that become modules ({@link #prepare}; those Poly Mod Loader's class path has already
+     * NeoForge's loader libraries that become modules ({@link #prepare}; those Plexus Mod Loader's class path has already
      * stay there) and the universal jar, which FML defines in its game layer.
      */
     @Override
@@ -322,10 +322,10 @@ final class NeoForgeGameHost implements GameHost {
                                 null,
                                 new NeoForgeLaunch.Request(
                                         request.side() == GameSide.CLIENT ? "CLIENT" : "DEDICATED_SERVER",
-                                        // With Poly Mod Loader's early window, FML opens none of its own.
+                                        // With Plexus Mod Loader's early window, FML opens none of its own.
                                         request.side() != GameSide.CLIENT
                                                 || NeoForgeLaunch.headlessClient()
-                                                || request.polyEarlyWindow(),
+                                                || request.plexusEarlyWindow(),
                                         request.gameDirectory(),
                                         arguments,
                                         files.libraryDirectory(),
@@ -343,7 +343,7 @@ final class NeoForgeGameHost implements GameHost {
                 NeoForgeLoaderPatch.Result result = patch.get();
                 if (result != null && !result.complete()) {
                     throw new IllegalStateException(
-                            "PLEXUS-COMPAT-215 FML's FMLLoader is not the code Poly Mod Loader checked (" + name()
+                            "PLEXUS-COMPAT-215 FML's FMLLoader is not the code Plexus Mod Loader checked (" + name()
                                     + "); missing: " + result.missing(),
                             e.getCause());
                 }
@@ -361,10 +361,10 @@ final class NeoForgeGameHost implements GameHost {
     }
 
     /**
-     * NeoForge's loader libraries (those Poly Mod Loader's class path does not have) and the host as modules of the
+     * NeoForge's loader libraries (those Plexus Mod Loader's class path does not have) and the host as modules of the
      * game class loader, defined as they are except {@code FMLLoader} ({@link NeoForgeLoaderPatch}). NeoForge runs these
      * libraries from the class path, so each is an automatic module here ({@link #automatic}), and every module reads
-     * Poly Mod Loader's class path, where the libraries it shares with Minecraft are.
+     * Plexus Mod Loader's class path, where the libraries it shares with Minecraft are.
      */
     private ModuleLayer defineLibraryLayer(
             GameModuleLayers layers,
@@ -379,18 +379,18 @@ final class NeoForgeGameHost implements GameHost {
         }
         Map<String, ModuleReference> rewritten = new HashMap<>();
         UnaryOperator<ModuleReference> modList = modListPatch();
-        Path earlyScreen = request.gameDirectory().resolve(".poly").resolve("early-screen");
+        Path earlyScreen = request.gameDirectory().resolve(".plexus").resolve("early-screen");
         for (Map.Entry<String, ModuleReference> entry : references.entrySet()) {
             ModuleReference reference = modList.apply(automatic(entry.getValue()));
-            if (request.side() == GameSide.CLIENT && !request.polyEarlyWindow()) {
-                // NeoForge's early loading window shows Poly Mod Loader's art and title.
+            if (request.side() == GameSide.CLIENT && !request.plexusEarlyWindow()) {
+                // NeoForge's early loading window shows Plexus Mod Loader's art and title.
                 reference = EarlyScreenArt.of(reference, earlyScreen, request.log());
                 reference = EarlyWindowTitle.of(reference, request.gameVersion(), request.log());
             }
             if (request.sharedMixin()) {
                 reference = NeoForgeSharedMixinPatch.patching(reference, hierarchy, result -> {
                     if (!result.missing().isEmpty()) {
-                        throw new IllegalStateException("PLEXUS-COMPAT-215 FML's Mixin start is not the code Poly Mod"
+                        throw new IllegalStateException("PLEXUS-COMPAT-215 FML's Mixin start is not the code Plexus Mod"
                                 + " Loader checked (" + name() + "); missing: " + result.missing());
                     }
                     if (!result.changed().isEmpty()) {
@@ -404,7 +404,7 @@ final class NeoForgeGameHost implements GameHost {
                     request.log().accept("FML's FMLLoader: " + result.changed() + " (ADR-0026)");
                 } else {
                     request.log()
-                            .accept("PLEXUS-COMPAT-215 FML's FMLLoader is not the code Poly Mod Loader checked ("
+                            .accept("PLEXUS-COMPAT-215 FML's FMLLoader is not the code Plexus Mod Loader checked ("
                                     + name() + "); missing: " + result.missing());
                 }
             }));
@@ -507,14 +507,14 @@ final class NeoForgeGameHost implements GameHost {
                     if (!result.changed().isEmpty()) {
                         request.log()
                                 .accept("FML's ModList " + result.changed() + " also answers for " + count
-                                        + " Poly Mod(s) and other loaders' mod(s) (ADR-0025)");
+                                        + " Plexus Mod(s) and other loaders' mod(s) (ADR-0025)");
                     }
                     if (!result.unchanged().isEmpty()) {
                         request.log()
                                 .accept("PLEXUS-COMPAT-218 NeoForge's FML ModList " + result.unchanged()
-                                        + " is not the code Poly Mod Loader checked (" + name() + "); through it,"
+                                        + " is not the code Plexus Mod Loader checked (" + name() + "); through it,"
                                         + " NeoForge mods do not see the " + count
-                                        + " Poly Mod(s) and other loaders' mod(s)");
+                                        + " Plexus Mod(s) and other loaders' mod(s)");
                     }
                 });
     }
@@ -576,7 +576,7 @@ final class NeoForgeGameHost implements GameHost {
         return Set.copyOf(ids);
     }
 
-    /** The mods FML runs, nested JarJar mods included, for Poly Mods' and other loaders' mod lists (ADR-0025). */
+    /** The mods FML runs, nested JarJar mods included, for Plexus Mods' and other loaders' mod lists (ADR-0025). */
     @Override
     public List<BridgeLaunchContext.LoadedMod> mods() {
         return hostMods;
@@ -635,9 +635,9 @@ final class NeoForgeGameHost implements GameHost {
         launch.launch(mainClass(request.launchTarget()));
     }
 
-    /** The game's main class for Poly Mod Loader's launch target, as FML's own entry points call it. */
-    static String mainClass(String polyTarget) {
-        return switch (polyTarget) {
+    /** The game's main class for Plexus Mod Loader's launch target, as FML's own entry points call it. */
+    static String mainClass(String plexusTarget) {
+        return switch (plexusTarget) {
             case "client" -> "net.minecraft.client.main.Main";
             case "game_test_server" -> "net.minecraft.gametest.Main";
             default -> "net.minecraft.server.Main";
@@ -652,7 +652,7 @@ final class NeoForgeGameHost implements GameHost {
         return urls;
     }
 
-    /** Whether Poly Mod Loader's class path already has this jar's classes (checked with its first class). */
+    /** Whether Plexus Mod Loader's class path already has this jar's classes (checked with its first class). */
     private static boolean onClassPath(JarFile jar, ClassLoader classPath) {
         var entries = jar.entries();
         while (entries.hasMoreElements()) {
@@ -664,20 +664,20 @@ final class NeoForgeGameHost implements GameHost {
         return false;
     }
 
-    /** Copies Poly Mod Loader's {@code neoforge-host.jar} next to NeoForge's files, replacing an older copy. */
+    /** Copies Plexus Mod Loader's {@code neoforge-host.jar} next to NeoForge's files, replacing an older copy. */
     private static Path extractHostJar(Path directory) throws IOException {
         byte[] bytes;
         try (InputStream in = NeoForgeGameHost.class.getResourceAsStream(HOST_JAR)) {
             if (in == null) {
-                throw new IOException("Poly Mod Loader's NeoForge bridge has no " + HOST_JAR);
+                throw new IOException("Plexus Mod Loader's NeoForge bridge has no " + HOST_JAR);
             }
             bytes = in.readAllBytes();
         }
-        Path target = directory.resolve("polymodloader-neoforge-host.jar");
+        Path target = directory.resolve("plexusmodloader-neoforge-host.jar");
         if (Files.isRegularFile(target) && Arrays.equals(Files.readAllBytes(target), bytes)) {
             return target;
         }
-        Path partial = directory.resolve("polymodloader-neoforge-host.jar.partial");
+        Path partial = directory.resolve("plexusmodloader-neoforge-host.jar.partial");
         Files.write(partial, bytes);
         Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         return target;

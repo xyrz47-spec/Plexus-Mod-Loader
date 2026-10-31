@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * What Poly Mod Loader does when a rule cannot be applied safely. Chosen per rule by how essential the feature
+ * What Plexus Mod Loader does when a rule cannot be applied safely. Chosen per rule by how essential the feature
  * is; a failed rule is never reported as applied (design doc §12.4).
  */
 @ApiStability(StabilityLevel.INTERNAL)

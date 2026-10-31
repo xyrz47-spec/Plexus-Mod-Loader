@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * What a bridge learns about the launch once Poly Mod Loader has decided which mods load and before any entrypoint
+ * What a bridge learns about the launch once Plexus Mod Loader has decided which mods load and before any entrypoint
  * runs ({@link ModLoaderBridge#prepareLaunch}). A bridge that emulates its loader's runtime API (such as Fabric
  * Loader's {@code FabricLoader}) builds it from this.
  *
@@ -19,7 +19,7 @@ import java.util.function.Supplier;
  * @param launchArguments the arguments the game is started with
  * @param gameClassLoader the class loader of game and mod classes
  * @param mods every loaded mod of every loader: first the mods a host loader runs ({@link LoadedMod#runByHost()},
- *     ADR-0025), then those Poly Mod Loader runs, in entrypoint order
+ *     ADR-0025), then those Plexus Mod Loader runs, in entrypoint order
  * @param gameInstance the running game object, or {@code null} before there is one: the client's {@code Minecraft}
  *     object from its constructor on, the dedicated server once it starts running (what Fabric Loader's {@code
  *     getGameInstance} returns); safe to call from any thread
@@ -93,7 +93,7 @@ public record BridgeLaunchContext(
     /**
      * One loaded mod.
      *
-     * @param loader {@code Poly Mod Loader} for a Poly Mod, otherwise the bridge's loader name
+     * @param loader {@code Plexus Mod Loader} for a Plexus Mod, otherwise the bridge's loader name
      * @param modId its ID
      * @param version its version text
      * @param name its display name
@@ -119,7 +119,7 @@ public record BridgeLaunchContext(
             providedIds = List.copyOf(providedIds);
         }
 
-        /** A mod Poly Mod Loader runs (a Poly Mod or one of a bridge's mods), not the host. */
+        /** A mod Plexus Mod Loader runs (a Plexus Mod or one of a bridge's mods), not the host. */
         public LoadedMod(
                 String loader,
                 String modId,

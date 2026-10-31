@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /** Draws a mod mob with its own box model and texture. */
 final class PlexusModelRenderer extends MobRenderer<PlexusMob, PlexusMobRenderState, PlexusEntityModel> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private final Identifier texture;
     private final String typeName;
@@ -70,7 +70,7 @@ final class PlexusModelRenderer extends MobRenderer<PlexusMob, PlexusMobRenderSt
         super.submit(state, poseStack, submitNodeCollector, camera);
         if (reported.compareAndSet(false, true)) {
             LOGGER.info(
-                    "[Poly Mod Loader] Drew mod mob model {} ({} animated part(s), {} keyframe animation(s))",
+                    "[Plexus Mod Loader] Drew mod mob model {} ({} animated part(s), {} keyframe animation(s))",
                     typeName,
                     getModel().animatedParts(),
                     getModel().keyframeAnimations());
@@ -78,7 +78,7 @@ final class PlexusModelRenderer extends MobRenderer<PlexusMob, PlexusMobRenderSt
         List<String> names = getModel().onDemandNames();
         for (int i = 0; i < state.animations.length && i < names.size(); i++) {
             if (state.animations[i].isStarted() && reportedAnimations.add(names.get(i))) {
-                LOGGER.info("[Poly Mod Loader] Played mod mob animation {} of {}", names.get(i), typeName);
+                LOGGER.info("[Plexus Mod Loader] Played mod mob animation {} of {}", names.get(i), typeName);
             }
         }
     }

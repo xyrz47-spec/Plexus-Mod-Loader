@@ -41,7 +41,7 @@ class ModCountLinesTest {
         for (String language : List.of("en_us", "ko_kr")) {
             assertEquals(
                     List.of(
-                            ModCountLines.POLY_KEY,
+                            ModCountLines.PLEXUS_KEY,
                             ModCountLines.FABRIC_KEY,
                             ModCountLines.QUILT_KEY,
                             ModCountLines.FORGE_KEY,
@@ -90,11 +90,11 @@ class ModCountLinesTest {
                 ModCountLines.lines(ALL_LOADERS, key -> null));
     }
 
-    /** A resource pack's text replaces Poly Mod Loader's; text that cannot take the count is not shown. */
+    /** A resource pack's text replaces Plexus Mod Loader's; text that cannot take the count is not shown. */
     @Test
     void textThatDoesNotFormatFallsBackToEnglish() {
         Map<String, String> pack = Map.of(
-                ModCountLines.POLY_KEY, "Native: %s",
+                ModCountLines.PLEXUS_KEY, "Native: %s",
                 ModCountLines.FABRIC_KEY, "Fabric: %d",
                 ModCountLines.FORGE_KEY, "Forge: %s and %s");
 

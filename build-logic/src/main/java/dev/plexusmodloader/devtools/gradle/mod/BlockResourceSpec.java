@@ -1,6 +1,6 @@
 package dev.plexusmodloader.devtools.gradle.mod;
 
-/** Settings of one {@code polyResources { block("name") { ... } }} entry. */
+/** Settings of one {@code plexusResources { block("name") { ... } }} entry. */
 public class BlockResourceSpec {
 
     private String displayName;

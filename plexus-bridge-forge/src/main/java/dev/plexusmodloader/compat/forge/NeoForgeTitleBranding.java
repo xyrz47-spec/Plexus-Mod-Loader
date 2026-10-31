@@ -14,9 +14,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Shows Poly Mod Loader's branding lines (how many mods each loader loaded) above NeoForge's own at the bottom left of
+ * Shows Plexus Mod Loader's branding lines (how many mods each loader loaded) above NeoForge's own at the bottom left of
  * the title screen (ADR-0026), as {@link ForgeTitleBranding} does for MinecraftForge. NeoForge's patch replaces the
- * vanilla version text, which the version adapter's rule {@code poly:client_title_mod_counts} draws the lines over, with
+ * vanilla version text, which the version adapter's rule {@code plexus:client_title_mod_counts} draws the lines over, with
  * its branding: the patched {@code TitleScreen.extractRenderState} calls {@code BrandingControl.forEachLine(true, true,
  * consumer)}, which hands the consumer each line of {@code BrandingControl.getBrandings(includeMinecraft, reverse)} with
  * its index; the title screen draws index {@code i} at {@code height - (10 + i * (lineHeight + 1))}, so with {@code
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 public final class NeoForgeTitleBranding {
 
     /** The rule that adds the lines to NeoForge's branding. */
-    public static final String RULE_ID = "poly:client_title_mod_counts_neoforge";
+    public static final String RULE_ID = "plexus:client_title_mod_counts_neoforge";
 
     static final String TITLE_SCREEN = "net/minecraft/client/gui/screens/TitleScreen";
     static final String BRANDING_CONTROL = "net/neoforged/neoforge/internal/BrandingControl";
@@ -53,7 +53,7 @@ public final class NeoForgeTitleBranding {
     static TransformRuleDefinition rule(String gameVersion) {
         return new TransformRuleDefinition(
                 RULE_ID,
-                "poly",
+                "plexus",
                 gameVersion,
                 Set.of(GameSide.CLIENT),
                 new MethodTarget(BRANDING_CONTROL, "getBrandings", GET_BRANDINGS),
@@ -72,15 +72,15 @@ public final class NeoForgeTitleBranding {
     }
 
     /**
-     * What {@code BrandingControl.getBrandings(includeMinecraft, reverse)} returns: NeoForge's lines with Poly Mod
-     * Loader's above them. NeoForge's list runs top to bottom, or bottom to top with {@code reverse}; Poly Mod Loader's
+     * What {@code BrandingControl.getBrandings(includeMinecraft, reverse)} returns: NeoForge's lines with Plexus Mod
+     * Loader's above them. NeoForge's list runs top to bottom, or bottom to top with {@code reverse}; Plexus Mod Loader's
      * lines come first in the first case and last (bottom one first) in the second.
      *
      * @param brandings NeoForge's list, as {@code getBrandings} was about to return it
      * @return a new list, or {@code brandings} itself when there are no lines to add
      */
     public static List<String> withModCounts(boolean includeMinecraft, boolean reverse, List<String> brandings) {
-        List<String> polyLines = lines.get();
+        List<String> plexusLines = lines.get();
         List<String> cleanedBrandings = new ArrayList<>(brandings.size());
         for (String b : brandings) {
             String stripped = stripModCounts(b);
@@ -88,20 +88,20 @@ public final class NeoForgeTitleBranding {
                 cleanedBrandings.add(stripped);
             }
         }
-        if (polyLines.isEmpty()) {
+        if (plexusLines.isEmpty()) {
             return List.copyOf(cleanedBrandings);
         }
-        List<String> all = new ArrayList<>(cleanedBrandings.size() + polyLines.size());
+        List<String> all = new ArrayList<>(cleanedBrandings.size() + plexusLines.size());
         if (reverse) {
             all.addAll(cleanedBrandings);
-            all.addAll(polyLines.reversed());
+            all.addAll(plexusLines.reversed());
         } else {
-            all.addAll(polyLines);
+            all.addAll(plexusLines);
             all.addAll(cleanedBrandings);
         }
         if (REPORTED.compareAndSet(false, true)) {
-            log.accept("Title screen: " + polyLines.size() + " line(s) of mod counts drawn above NeoForge's branding: "
-                    + String.join(" | ", polyLines));
+            log.accept("Title screen: " + plexusLines.size()
+                    + " line(s) of mod counts drawn above NeoForge's branding: " + String.join(" | ", plexusLines));
         }
         return List.copyOf(all);
     }

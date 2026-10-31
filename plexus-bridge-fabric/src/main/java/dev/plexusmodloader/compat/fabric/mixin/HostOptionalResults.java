@@ -49,7 +49,7 @@ import java.util.Optional;
  */
 final class HostOptionalResults {
 
-    static final String PREFIX = "poly$hostOptional$";
+    static final String PREFIX = "plexus$hostOptional$";
     static final String EITHER_NAME = "com/mojang/datafixers/util/Either";
 
     private static final ClassDesc EITHER = ClassDesc.ofInternalName(EITHER_NAME);
@@ -138,7 +138,7 @@ final class HostOptionalResults {
     }
 
     /**
-     * Adds the bridge for {@code handler}: a method {@code poly$hostOptional$<handler>} with the handler's descriptor and
+     * Adds the bridge for {@code handler}: a method {@code plexus$hostOptional$<handler>} with the handler's descriptor and
      * parameter annotations that carries {@code wrapOperation} (the handler's own, which the handler loses) and runs the
      * handler as the class comment says.
      */

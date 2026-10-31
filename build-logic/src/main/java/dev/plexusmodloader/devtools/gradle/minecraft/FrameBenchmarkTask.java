@@ -38,7 +38,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Compares client frame times of vanilla and Poly Mod Loader in the same saved world (design doc §14.1,
+ * Compares client frame times of vanilla and Plexus Mod Loader in the same saved world (design doc §14.1,
  * §14.4). Each run copies the world, opens it in the client with Quick Play, waits {@link
  * #getSettleSeconds()} after the player joins, and then times every {@code Minecraft.runTick} call for
  * {@link #getMeasureSeconds()}. The client's main loop calls {@code runTick} once per frame, and it
@@ -61,7 +61,7 @@ public abstract class FrameBenchmarkTask extends DefaultTask {
 
     static final String FRAME_TARGET = "net/minecraft/client/Minecraft.runTick(Z)V";
 
-    private static final String WORLD_NAME = "poly_frame_benchmark";
+    private static final String WORLD_NAME = "plexus_frame_benchmark";
     private static final String JOINED = "joined the game";
 
     /**
@@ -85,7 +85,7 @@ public abstract class FrameBenchmarkTask extends DefaultTask {
     public abstract RegularFileProperty getLaunchSpecFile();
 
     @Classpath
-    public abstract ConfigurableFileCollection getPolyRuntime();
+    public abstract ConfigurableFileCollection getPlexusRuntime();
 
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
@@ -162,7 +162,7 @@ public abstract class FrameBenchmarkTask extends DefaultTask {
         int runs = getRuns().get();
         Map<String, List<RunResult>> results = new LinkedHashMap<>();
         results.put("vanilla", new ArrayList<>());
-        results.put("poly", new ArrayList<>());
+        results.put("plexus", new ArrayList<>());
         Path progress = work.resolve("runs.jsonl");
         boolean first = true;
         for (int i = -1; i < runs; i++) {
@@ -184,12 +184,12 @@ public abstract class FrameBenchmarkTask extends DefaultTask {
                 List<String> command = variant.equals("vanilla")
                         ? BenchmarkLaunch.vanilla(
                                 java(), BenchmarkLaunch.Target.CLIENT, spec, directory, extraJvm, programArgs)
-                        : BenchmarkLaunch.poly(
+                        : BenchmarkLaunch.plexus(
                                 java(),
                                 BenchmarkLaunch.Target.CLIENT,
                                 spec,
                                 directory,
-                                getPolyRuntime().getFiles(),
+                                getPlexusRuntime().getFiles(),
                                 getDevModJars().getFiles(),
                                 getTransformCacheDirectory().get().getAsFile(),
                                 extraJvm,

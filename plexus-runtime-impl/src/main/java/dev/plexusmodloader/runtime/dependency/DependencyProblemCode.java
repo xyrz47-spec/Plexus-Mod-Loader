@@ -10,7 +10,7 @@ public enum DependencyProblemCode {
     WRONG_ENVIRONMENT("PLEXUS-DEPENDENCY-006"),
     UNSUPPORTED_MINECRAFT_VERSION("PLEXUS-DEPENDENCY-007"),
     RESERVED_MOD_ID("PLEXUS-DEPENDENCY-008"),
-    /** The dependency is installed, but it is a mod of another loader that Poly Mod Loader cannot load. */
+    /** The dependency is installed, but it is a mod of another loader that Plexus Mod Loader cannot load. */
     UNAVAILABLE_DEPENDENCY("PLEXUS-DEPENDENCY-009");
 
     private final String code;

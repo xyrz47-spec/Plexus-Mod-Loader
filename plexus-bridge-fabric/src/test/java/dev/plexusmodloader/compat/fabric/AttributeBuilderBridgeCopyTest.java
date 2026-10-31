@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The getBuilder() that {@link FabricClassTransformer} adds to {@code AttributeSupplier$Builder} under Forge and NeoForge
  * calls {@code AttributeBuilderBridge.wrap}, whose result is a Guava {@code ImmutableMap.Builder}. The game class
- * loader holds the host's Guava, so a bridge from Poly Mod Loader's own loader cannot link to the game's code: the JVM
+ * loader holds the host's Guava, so a bridge from Plexus Mod Loader's own loader cannot link to the game's code: the JVM
  * refused the call with a loader constraint violation on {@code ImmutableMap$Builder} (corpusFabricForge 2026-10-27,
  * fabric-host-patch-probe). The transformer gives the game class loader its own copy of the bridge instead.
  */

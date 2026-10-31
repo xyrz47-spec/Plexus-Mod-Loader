@@ -13,7 +13,7 @@ import java.util.Optional;
  * with {@link #builder()}; immutable. The tab's title is the translation of {@code
  * itemGroup.<mod id>.<path>} from the mod's language files.
  *
- * <p>The game's creative screen has room for its own tabs only, so Poly Mod Loader puts mod tabs on extra
+ * <p>The game's creative screen has room for its own tabs only, so Plexus Mod Loader puts mod tabs on extra
  * pages (ten per page, in declaration order) and adds page buttons to the screen. Items can still be
  * listed in the game's tabs with {@link CreativeTab}.
  *

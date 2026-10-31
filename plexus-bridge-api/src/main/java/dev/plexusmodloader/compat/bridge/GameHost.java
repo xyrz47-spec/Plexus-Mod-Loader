@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * A foreign loader that runs its own loading code and starts the game itself, on Poly Mod Loader's game class loader
+ * A foreign loader that runs its own loading code and starts the game itself, on Plexus Mod Loader's game class loader
  * (MinecraftForge: FML discovers and loads Forge mods, and Forge's launch handler starts Minecraft; ADR-0021). The
  * runtime still owns the game class loader and its transformations; the host decides what that loader holds.
  *
@@ -28,16 +28,16 @@ public interface GameHost {
     /**
      * What the runtime needs to set up a host.
      *
-     * @param launchTarget Poly Mod Loader's launch target ID: {@code client}, {@code dedicated_server} or {@code
+     * @param launchTarget Plexus Mod Loader's launch target ID: {@code client}, {@code dedicated_server} or {@code
      *     game_test_server}
      * @param cacheDirectory where the host may keep files it downloads or builds
      * @param sharedMixin whether another loader's mods run in this launch too, so one Mixin serves every loader: the
      *     host leaves its own Mixin out and reports its mods' configurations in {@link #sharedMixinConfigs()}
-     * @param systemClassPath the JVM's class path, when Poly Mod Loader's launcher can append to it (started with its
+     * @param systemClassPath the JVM's class path, when Plexus Mod Loader's launcher can append to it (started with its
      *     Java agent, ADR-0024); for jars Java only finds there, such as file systems
-     * @param jdkModuleAccess opens JDK packages to the host's modules, when Poly Mod Loader's launcher was started with
+     * @param jdkModuleAccess opens JDK packages to the host's modules, when Plexus Mod Loader's launcher was started with
      *     its Java agent (ADR-0026)
-     * @param polyEarlyWindow whether Poly Mod Loader shows its own early loading window over this launch: the host's
+     * @param plexusEarlyWindow whether Plexus Mod Loader shows its own early loading window over this launch: the host's
      *     loader then opens none (FML's early window stays closed), so that every loader starts with the same window
      */
     record Request(
@@ -52,14 +52,14 @@ public interface GameHost {
             boolean sharedMixin,
             Optional<SystemClassPath> systemClassPath,
             Optional<JdkModuleAccess> jdkModuleAccess,
-            boolean polyEarlyWindow) {
+            boolean plexusEarlyWindow) {
         public Request {
             gameArguments = List.copyOf(gameArguments);
             Objects.requireNonNull(systemClassPath, "systemClassPath");
             Objects.requireNonNull(jdkModuleAccess, "jdkModuleAccess");
         }
 
-        /** A launch without Poly Mod Loader's early loading window: the host's loader opens its own. */
+        /** A launch without Plexus Mod Loader's early loading window: the host's loader opens its own. */
         public Request(
                 GameSide side,
                 String launchTarget,
@@ -137,7 +137,7 @@ public interface GameHost {
                     Optional.empty());
         }
 
-        /** A launch where only this host's loader runs mods besides Poly mods. */
+        /** A launch where only this host's loader runs mods besides Plexus mods. */
         public Request(
                 GameSide side,
                 String launchTarget,
@@ -187,7 +187,7 @@ public interface GameHost {
      * class loader shows neither as resources nor defines from (NeoForge's patched game and universal jar, which FML
      * finds in its own library folder). Until the host defines them, the game class loader reads their class bytes from
      * these jars ({@link GameClassBytes}), so that a bridge preparing before the host (Fabric's Mixin and its planning
-     * against the host's patch) sees the host's classes, not the vanilla game on Poly Mod Loader's class path. Empty by
+     * against the host's patch) sees the host's classes, not the vanilla game on Plexus Mod Loader's class path. Empty by
      * default.
      */
     default List<Path> classBytesJars() {
@@ -256,7 +256,7 @@ public interface GameHost {
     }
 
     /**
-     * Tells the host every mod Poly Mod Loader runs besides it in this launch (Poly Mods and other loaders' mods),
+     * Tells the host every mod Plexus Mod Loader runs besides it in this launch (Plexus Mods and other loaders' mods),
      * once, before {@link #prepare}. The host may answer its mods' presence queries for them (Forge's {@code
      * ModList.getModFileById}, ADR-0025), but must not run them, construct them or send them its lifecycle events.
      * Ignored by default.
@@ -285,9 +285,9 @@ public interface GameHost {
     }
 
     /**
-     * Poly Mod Loader's own rules for the host's patched game, where the patch replaced code a built-in rule of the
+     * Plexus Mod Loader's own rules for the host's patched game, where the patch replaced code a built-in rule of the
      * version adapter changes (Forge draws the title screen's branding itself). The runtime plans them with the
-     * version adapter's rules against {@link #gameJar()}; their owner is {@code poly}. Known before {@link #prepare}.
+     * version adapter's rules against {@link #gameJar()}; their owner is {@code plexus}. Known before {@link #prepare}.
      * Empty by default.
      */
     default List<TransformRuleDefinition> transformRules() {
@@ -313,7 +313,7 @@ public interface GameHost {
     }
 
     /**
-     * Hands the host the lines Poly Mod Loader adds to the game's branding text at the bottom left of the title screen
+     * Hands the host the lines Plexus Mod Loader adds to the game's branding text at the bottom left of the title screen
      * (how many mods each loader loaded, in the game's language, top to bottom), for hooks of {@link
      * #transformRules()} that draw that text where the host draws its own. Called once, after {@link #prepare} and
      * before {@link #launch()}; {@code lines} is called on the render thread. The default ignores them.

@@ -32,7 +32,9 @@ public final class RuntimeLoadedMods implements LoadedMods {
     }
 
     private static String loader(BridgeLaunchContext.LoadedMod mod) {
-        return mod.loader().equals("Poly Mod Loader") ? "poly" : mod.loader().toLowerCase(Locale.ROOT);
+        return mod.loader().equals("Plexus Mod Loader")
+                ? "plexus"
+                : mod.loader().toLowerCase(Locale.ROOT);
     }
 
     @Override

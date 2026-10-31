@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.OptionalInt;
 
 /**
- * Converts Poly Mod Loader key codes to the key codes of Minecraft 26.3 (ADR-0029). Poly Mod Loader key codes are
+ * Converts Plexus Mod Loader key codes to the key codes of Minecraft 26.3 (ADR-0029). Plexus Mod Loader key codes are
  * the GLFW key tokens that 26.1 and 26.2 use; 26.3 reads the keyboard through SDL and names keys by SDL scancode.
  * The table pairs the codes the two versions give the same key name ({@code key.keyboard.*} in
  * {@code InputConstants.Type}), so a key keeps its physical place. The keypad decimal key goes to the keypad
@@ -13,7 +13,7 @@ import java.util.OptionalInt;
  */
 final class GameKeyCodes {
 
-    /** Poly Mod Loader (GLFW) key code to SDL scancode. */
+    /** Plexus Mod Loader (GLFW) key code to SDL scancode. */
     private static final Map<Integer, Integer> SCANCODES = Map.ofEntries(
             Map.entry(32, 44), // space
             Map.entry(39, 52), // apostrophe
@@ -138,14 +138,14 @@ final class GameKeyCodes {
     private GameKeyCodes() {}
 
     /**
-     * The 26.3 key code for a Poly Mod Loader key code: {@link InputConstants#UNKNOWN} for
+     * The 26.3 key code for a Plexus Mod Loader key code: {@link InputConstants#UNKNOWN} for
      * {@code KeyCodes.UNBOUND} (-1), empty when 26.3 has no such key.
      */
-    static OptionalInt toGame(int polyKey) {
-        if (polyKey == -1) {
+    static OptionalInt toGame(int plexusKey) {
+        if (plexusKey == -1) {
             return OptionalInt.of(InputConstants.UNKNOWN.getValue());
         }
-        Integer scancode = SCANCODES.get(polyKey);
+        Integer scancode = SCANCODES.get(plexusKey);
         return scancode == null ? OptionalInt.empty() : OptionalInt.of(scancode);
     }
 }

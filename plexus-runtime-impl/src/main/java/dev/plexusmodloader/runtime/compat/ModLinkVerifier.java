@@ -31,7 +31,7 @@ import java.util.jar.JarFile;
 /**
  * Checks, before a mod of another loader runs, that the classes, methods and fields its class files
  * reference exist in what this launch provides: the Minecraft jar of this version, the libraries and JDK on
- * Poly Mod Loader's class path, the parts of the foreign loader's runtime that Poly Mod Loader provides, and the other
+ * Plexus Mod Loader's class path, the parts of the foreign loader's runtime that Plexus Mod Loader provides, and the other
  * installed mods. A mod built for another Minecraft version, or one that needs Fabric Loader's runtime,
  * would otherwise fail with {@link NoSuchMethodError} or {@link NoClassDefFoundError} in the middle of a
  * game; this turns that into a reason given at startup.
@@ -39,8 +39,8 @@ import java.util.jar.JarFile;
  * <p>Findings:
  *
  * <ul>
- *   <li>{@code PLEXUS-COMPAT-111} (blocking): a class of the loader's runtime that Poly Mod Loader does not provide, or a
- *       method or field missing from a runtime class Poly Mod Loader provides only in part (its stand-ins of Fabric Loader's
+ *   <li>{@code PLEXUS-COMPAT-111} (blocking): a class of the loader's runtime that Plexus Mod Loader does not provide, or a
+ *       method or field missing from a runtime class Plexus Mod Loader provides only in part (its stand-ins of Fabric Loader's
  *       internal classes)
  *   <li>{@code PLEXUS-COMPAT-112} (blocking): a Minecraft class, method or field this game version does not have
  *   <li>{@code PLEXUS-COMPAT-113} (not blocking): classes no installed mod has, usually an optional integration
@@ -50,7 +50,7 @@ import java.util.jar.JarFile;
  *   <li>{@code PLEXUS-COMPAT-118} (blocking): class files newer than this Java runtime reads
  *   <li>{@code PLEXUS-COMPAT-119} (blocking): a declared entrypoint class that is not in any installed jar
  *   <li>{@code PLEXUS-COMPAT-128} (blocking): an access widening (Fabric class tweaker line) whose class is on
- *       Poly Mod Loader's class path but not in the game jar; Poly Mod Loader widens only game classes
+ *       Plexus Mod Loader's class path but not in the game jar; Plexus Mod Loader widens only game classes
  *   <li>{@code PLEXUS-COMPAT-137} (not blocking): an access widening or interface injection whose class or exact member
  *       this game version does not have; it is not applied, as Fabric Loader applies such a line to nothing
  *   <li>{@code PLEXUS-COMPAT-113} also covers JDK incubator classes ({@code jdk.incubator.*}), which exist only when
@@ -118,7 +118,7 @@ public final class ModLinkVerifier implements AutoCloseable {
 
     /**
      * @param gameJarPaths the Minecraft jar (and any jar with game classes) of this launch
-     * @param platform the class loader with the JDK, the game's libraries and Poly Mod Loader's own classes
+     * @param platform the class loader with the JDK, the game's libraries and Plexus Mod Loader's own classes
      * @param side which game this is; client classes are absent from a dedicated server
      */
     public ModLinkVerifier(List<Path> gameJarPaths, ClassLoader platform, GameSide side) {
@@ -275,7 +275,7 @@ public final class ModLinkVerifier implements AutoCloseable {
      *
      * @param injections the mod's interface injections ({@link
      *     dev.plexusmodloader.compat.bridge.BridgeAssessment#injectedInterfaces()}); each class must be a game class and
-     *     each interface must be in the mod, another installed mod, or on Poly Mod Loader's class path
+     *     each interface must be in the mod, another installed mod, or on Plexus Mod Loader's class path
      */
     public List<CompatibilityFinding> verify(
             Path modJar,
@@ -511,14 +511,14 @@ public final class ModLinkVerifier implements AutoCloseable {
                     + (items.size() > EXAMPLES ? ", and " + (items.size() - EXAMPLES) + " more" : "");
             String detail = switch (key[1]) {
                 case "unsupported" ->
-                    items.size() + " method(s) of the loader's API that Poly Mod Loader does not implement: "
+                    items.size() + " method(s) of the loader's API that Plexus Mod Loader does not implement: "
                             + examples;
                 case "runtime-member" ->
                     items.size()
-                            + " method(s) or field(s) of the loader's runtime that Poly Mod Loader does not provide: "
+                            + " method(s) or field(s) of the loader's runtime that Plexus Mod Loader does not provide: "
                             + examples;
                 case "runtime" ->
-                    items.size() + " class(es) of the loader's runtime that Poly Mod Loader does not" + " provide: "
+                    items.size() + " class(es) of the loader's runtime that Plexus Mod Loader does not" + " provide: "
                             + examples;
                 case "class" ->
                     items.size() + " Minecraft class(es) this game version does not have (the mod"
@@ -555,7 +555,7 @@ public final class ModLinkVerifier implements AutoCloseable {
                     items.size() + " JDK incubator class(es), present only when their module is enabled; fine if"
                             + " the mod checks first: " + examples;
                 case "not-game" ->
-                    items.size() + " access widening target(s) outside the game jar; Poly Mod Loader widens only"
+                    items.size() + " access widening target(s) outside the game jar; Plexus Mod Loader widens only"
                             + " game classes: " + examples;
                 case "client-widening" ->
                     items.size() + " access widening(s) of client classes, absent on a dedicated server and"
@@ -678,7 +678,7 @@ public final class ModLinkVerifier implements AutoCloseable {
         }
     }
 
-    /** A class of the loader's runtime that Poly Mod Loader provides and has on its class path. */
+    /** A class of the loader's runtime that Plexus Mod Loader provides and has on its class path. */
     private boolean providedRuntimeClass(String className, ModLoaderBridge bridge) {
         return bridge.runtimePackages().stream().anyMatch(className::startsWith)
                 && bridge.providedPackages().stream().anyMatch(className::startsWith)

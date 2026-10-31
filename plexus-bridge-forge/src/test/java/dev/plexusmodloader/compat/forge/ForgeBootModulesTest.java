@@ -31,7 +31,7 @@ class ForgeBootModulesTest {
     @TempDir
     Path directory;
 
-    /** FML would stop at every Fabric and Poly mod in the mods folder; Poly Mod Loader hands FML the Forge mods instead. */
+    /** FML would stop at every Fabric and Plexus mod in the mods folder; Plexus Mod Loader hands FML the Forge mods instead. */
     @Test
     void fmlDoesNotScanTheModsFolder() throws IOException {
         ModuleReference fmlLoader =

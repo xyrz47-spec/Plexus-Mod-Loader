@@ -9,7 +9,7 @@ import java.util.Optional;
  *
  * <ul>
  *   <li>{@code show}: open the window (it is prepared hidden, so that starting the process costs nothing visible);
- *   <li>{@code status <text>}: what Poly Mod Loader is doing, bottom left;
+ *   <li>{@code status <text>}: what Plexus Mod Loader is doing, bottom left;
  *   <li>{@code progress <0..1>}: the bar; it never goes back;
  *   <li>{@code under <text>[\t<text>...]}: the lines under the bar;
  *   <li>{@code snapshot <file>}: write what the window shows to a PNG file (for checks);

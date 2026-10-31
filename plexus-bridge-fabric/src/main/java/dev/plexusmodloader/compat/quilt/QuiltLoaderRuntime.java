@@ -31,15 +31,15 @@ import org.quiltmc.loader.impl.QuiltLoaderImpl;
 import org.quiltmc.loader.impl.game.GameProvider;
 
 /**
- * Poly Mod Loader's implementation of Quilt Loader's runtime API ({@code QuiltLoader}, through {@link QuiltLoaderImpl}),
- * built from the mods Poly Mod Loader decided to load (ADR-0027 decision 4). It wraps the Fabric bridge's {@link
+ * Plexus Mod Loader's implementation of Quilt Loader's runtime API ({@code QuiltLoader}, through {@link QuiltLoaderImpl}),
+ * built from the mods Plexus Mod Loader decided to load (ADR-0027 decision 4). It wraps the Fabric bridge's {@link
  * FabricLoaderRuntime}, so entrypoint instances, the shared object store ({@link ObjectShare}), the game object, folders
  * and launch arguments are the same ones the Fabric Loader API gives, as under Quilt Loader.
  *
  * <ul>
  *   <li>Mods: every loaded mod of every loader ({@link BridgeLaunchContext#mods()}) as a {@link QuiltModContainer}:
  *       Quilt mods {@code NORMAL_QUILT} with their own group, Fabric mods {@code NORMAL_FABRIC} in {@code
- *       loader.fabric}, Poly Mods and the mods a host loader runs {@code OTHER} in {@code loader.poly}, {@code
+ *       loader.fabric}, Plexus Mods and the mods a host loader runs {@code OTHER} in {@code loader.plexus}, {@code
  *       loader.minecraftforge}, ...; and the built-in {@code quilt_loader} (which provides {@code fabricloader}), {@code
  *       minecraft}, {@code java} and {@code mixinextras} ({@code BUILTIN}, {@code builtin}).
  *   <li>Entrypoints: the declarations of every Fabric and Quilt mod in mod order, with the Fabric runtime's instances.
@@ -277,7 +277,7 @@ public final class QuiltLoaderRuntime {
     /** The empty directory a built-in mod without a jar has as its root, under the cache directory. */
     private synchronized Path emptyRoot() {
         if (emptyRoot == null) {
-            Path directory = getCacheDir().resolve("poly-mod-loader").resolve("empty-mod-root");
+            Path directory = getCacheDir().resolve("plexus-mod-loader").resolve("empty-mod-root");
             try {
                 Files.createDirectories(directory);
             } catch (IOException e) {

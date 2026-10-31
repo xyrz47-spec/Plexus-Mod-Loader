@@ -13,10 +13,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * FML 11 started by Poly Mod Loader (ADR-0026), ready to start the game. FML's own {@code FMLLoader.create} runs inside
- * the layer of NeoForge's loader libraries, with Poly Mod Loader's host ({@code PlexusFml}, built from the {@code
+ * FML 11 started by Plexus Mod Loader (ADR-0026), ready to start the game. FML's own {@code FMLLoader.create} runs inside
+ * the layer of NeoForge's loader libraries, with Plexus Mod Loader's host ({@code PlexusFml}, built from the {@code
  * neoForgeHost} source set) in place of the two calls {@link NeoForgeLoaderPatch} replaces; this side and that one meet
- * only through this interface, JDK types and the bridge API, which both see from Poly Mod Loader's class path.
+ * only through this interface, JDK types and the bridge API, which both see from Plexus Mod Loader's class path.
  */
 @ApiStability(StabilityLevel.INTERNAL)
 public interface NeoForgeLaunch {
@@ -31,7 +31,7 @@ public interface NeoForgeLaunch {
      * @param libraryDirectory the folder FML's production game locator finds the patched game and NeoForge's {@code
      *     universal.jar} in
      * @param claimedFiles files FML must not pick up from the class path (the vanilla game jar)
-     * @param modJars the NeoForge mods Poly Mod Loader found and FML will load, in place of FML's own scan of the mods
+     * @param modJars the NeoForge mods Plexus Mod Loader found and FML will load, in place of FML's own scan of the mods
      *     folder
      * @param libraryLayer the layer with NeoForge's loader libraries, the host among them; the game layer's parent
      * @param layers defines the game layer in the game class loader
@@ -39,10 +39,10 @@ public interface NeoForgeLaunch {
      * @param gameClassLoader the game class loader, to which FML's class loader hands every class and resource
      * @param openJdk opens the JDK packages NeoForge's launcher profile opens ({@code java.lang.invoke}) to modules;
      *     for the game layer's modules, once defined
-     * @param otherMods the mods Poly Mod Loader runs beside NeoForge, which FML's {@code ModList} answers for when Poly
+     * @param otherMods the mods Plexus Mod Loader runs beside NeoForge, which FML's {@code ModList} answers for when Plexus
      *     Mod Loader's patch of it applied (ADR-0025)
      * @param sharedMixin whether Fabric's Mixin serves NeoForge's mods too ({@code NeoForgeSharedMixinPatch}): FML does
-     *     not start its own, and the game layer leaves out the MixinExtras that Poly Mod Loader's class path has
+     *     not start its own, and the game layer leaves out the MixinExtras that Plexus Mod Loader's class path has
      */
     record Request(
             String dist,
@@ -73,10 +73,10 @@ public interface NeoForgeLaunch {
 
     /**
      * The system property that makes {@link #launch} load every class the NeoForge mods' Mixin configurations target
-     * instead of starting the game, and report each that fails ({@code -Dpoly.neoforge.mixinAudit=true}). A diagnosis
+     * instead of starting the game, and report each that fails ({@code -Dplexus.neoforge.mixinAudit=true}). A diagnosis
      * aid: FML then starts without its early window, so the client's Mixins can be checked without opening one.
      */
-    String MIXIN_AUDIT = "poly.neoforge.mixinAudit";
+    String MIXIN_AUDIT = "plexus.neoforge.mixinAudit";
 
     /** Whether {@link #MIXIN_AUDIT} is set. */
     static boolean mixinAudit() {
@@ -85,11 +85,11 @@ public interface NeoForgeLaunch {
 
     /**
      * The system property that starts FML on the client without its early window, as on a server ({@code
-     * -Dpoly.neoforge.headless=true}). A diagnosis aid for checks that stop the client before {@code Minecraft.<init>}
+     * -Dplexus.neoforge.headless=true}). A diagnosis aid for checks that stop the client before {@code Minecraft.<init>}
      * creates the game window (the test harness {@code fabric-client-bootstrap-probe}, ADR-0026 38); a client that goes
      * on opens its window anyway.
      */
-    String HEADLESS = "poly.neoforge.headless";
+    String HEADLESS = "plexus.neoforge.headless";
 
     /** Whether FML starts without its early window on the client: {@link #HEADLESS} or {@link #MIXIN_AUDIT} is set. */
     static boolean headlessClient() {

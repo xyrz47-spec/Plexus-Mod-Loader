@@ -44,9 +44,9 @@ import java.util.Optional;
 final class HostConditionalSkip {
 
     /** {@link HostPatchAdjustments}' {@code ReplacedCall} marks: the dropped head handler and the bridged parse one. */
-    static final String SKIP = "poly:conditional-skip";
+    static final String SKIP = "plexus:conditional-skip";
 
-    static final String COMPANION = "poly:conditional-skip-parse";
+    static final String COMPANION = "plexus:conditional-skip-parse";
 
     private static final String TARGET_CLASS = "net/minecraft/server/packs/resources/SimpleJsonResourceReloadListener";
     private static final String LAMBDA = "lambda$scanDirectory$0";
@@ -243,7 +243,7 @@ final class HostConditionalSkip {
     }
 
     /**
-     * Adds {@code poly$hostCall$<companion>} with the parse handler's parameters and their annotations, carrying its
+     * Adds {@code plexus$hostCall$<companion>} with the parse handler's parameters and their annotations, carrying its
      * {@code wrapOperation}: it calls the handler and turns {@code DataResult.success(marker)} into {@code
      * DataResult.success(Optional.empty())}.
      */
@@ -287,7 +287,7 @@ final class HostConditionalSkip {
     }
 
     /**
-     * {@code poly$hostCall$<handler>$withModifier}: the same wrap of the parse in NeoForge's {@code
+     * {@code plexus$hostCall$<handler>$withModifier}: the same wrap of the parse in NeoForge's {@code
      * scanDirectoryWithModifier}, where each entry maps a resource's id to its JSON; the handler gets an entry of the
      * file's id ({@code converter.idToFile(id)}), the one key it reads.
      */

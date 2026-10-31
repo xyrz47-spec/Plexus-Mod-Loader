@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Lets Poly Mod Loader recognise and, where possible, run mods built for another loader. Bridges are found
+ * Lets Plexus Mod Loader recognise and, where possible, run mods built for another loader. Bridges are found
  * with {@link java.util.ServiceLoader}. A bridge must never pretend support: every feature it cannot
  * provide is reported as a {@link CompatibilityFinding} (design doc §13).
  */
@@ -48,12 +48,12 @@ public interface ModLoaderBridge {
     /**
      * Instantiates and calls one entrypoint of a loadable mod.
      *
-     * @throws Exception whatever the mod's entrypoint throws; Poly Mod Loader reports it with the mod ID
+     * @throws Exception whatever the mod's entrypoint throws; Plexus Mod Loader reports it with the mod ID
      */
     void invokeEntrypoint(BridgedEntrypoint entrypoint, ClassLoader gameClassLoader) throws Exception;
 
     /**
-     * Mod IDs this loader's own environment answers to, with the version Poly Mod Loader stands in for, such as
+     * Mod IDs this loader's own environment answers to, with the version Plexus Mod Loader stands in for, such as
      * Fabric's {@code fabricloader}. {@code minecraft} and {@code java} are provided by the runtime for every
      * bridge and are not listed here.
      */
@@ -62,7 +62,7 @@ public interface ModLoaderBridge {
     }
 
     /**
-     * Built-in IDs of the real loader that Poly Mod Loader does not provide, with the reason, such as Fabric's
+     * Built-in IDs of the real loader that Plexus Mod Loader does not provide, with the reason, such as Fabric's
      * {@code mixinextras}. A mod requiring one is blocked with that reason instead of "not installed".
      */
     default Map<String, String> unavailableBuiltInMods() {
@@ -78,13 +78,13 @@ public interface ModLoaderBridge {
         return List.of();
     }
 
-    /** Prefixes inside {@link #runtimePackages()} that Poly Mod Loader does provide, such as {@code net/fabricmc/api/}. */
+    /** Prefixes inside {@link #runtimePackages()} that Plexus Mod Loader does provide, such as {@code net/fabricmc/api/}. */
     default List<String> providedPackages() {
         return List.of();
     }
 
     /**
-     * Members inside {@link #providedPackages()} that Poly Mod Loader does not implement, as {@code owner.name} in
+     * Members inside {@link #providedPackages()} that Plexus Mod Loader does not implement, as {@code owner.name} in
      * internal form ({@code net/fabricmc/loader/api/FabricLoader.getGameInstance}). A bridged mod that calls
      * or reads one is blocked before it runs, instead of failing when it gets there.
      */
@@ -96,7 +96,7 @@ public interface ModLoaderBridge {
      * Called once on a game a host loader patched (ADR-0021 G8, ADR-0030), after the bridges assessed the mods and
      * before the runtime decides which of them load: the mods among {@code mods} whose code cannot work as written
      * against the host's patched classes (Fabric's mixins), each with why. The runtime does not load them, nor the mods
-     * that need them, and tells the player that Poly Mod Loader, not the mod, has to change ({@code PLEXUS-COMPAT-224}).
+     * that need them, and tells the player that Plexus Mod Loader, not the mod, has to change ({@code PLEXUS-COMPAT-224}).
      * A bridge never runs such a mod with the part that does not fit left out. The default finds none.
      *
      * @param mods every other loader's mod that was assessed as loadable so far, of any bridge (a bridge whose loader
@@ -110,7 +110,7 @@ public interface ModLoaderBridge {
     }
 
     /**
-     * Called once, after Poly Mod Loader has decided which mods load and created the game class loader, and before
+     * Called once, after Plexus Mod Loader has decided which mods load and created the game class loader, and before
      * any entrypoint runs. A bridge that provides its loader's runtime API sets it up here.
      */
     default void prepareLaunch(BridgeLaunchContext context) {}
@@ -118,28 +118,28 @@ public interface ModLoaderBridge {
     /**
      * Called once, right after {@link #prepareLaunch}, still before any game or mod class is defined. A bridge
      * whose loader transforms classes itself (Fabric's Mixin) sets that up here and returns it; the game class
-     * loader then runs it on every class it defines, after Poly Mod Loader's own transformer.
+     * loader then runs it on every class it defines, after Plexus Mod Loader's own transformer.
      *
      * @param classes read access to the classes the game class loader can see, for the whole launch
      * @return the transformation stage, or empty when this bridge has none for this launch
-     * @throws RuntimeException when the stage cannot be set up; Poly Mod Loader stops the launch and reports it
+     * @throws RuntimeException when the stage cannot be set up; Plexus Mod Loader stops the launch and reports it
      */
     default Optional<BridgeClassTransformer> classTransformer(BridgeLaunchContext context, GameClassBytes classes) {
         return Optional.empty();
     }
 
     /**
-     * Called once, after every bridge's {@link #classTransformer} is installed and before Poly Mod Loader defines any
+     * Called once, after every bridge's {@link #classTransformer} is installed and before Plexus Mod Loader defines any
      * game or mod class itself (systems, entrypoints, the game). Fabric runs its {@code preLaunch} entrypoints here,
      * as Fabric Loader runs them after Mixin is ready and before the game starts.
      *
-     * @throws Exception whatever a mod's code throws; Poly Mod Loader stops the launch and reports it with the loader
+     * @throws Exception whatever a mod's code throws; Plexus Mod Loader stops the launch and reports it with the loader
      */
     default void beforeGame(BridgeLaunchContext context) throws Exception {}
 
     /**
      * Package prefixes (binary form, {@code com.llamalad7.mixinextras.}) of libraries this bridge puts on
-     * Poly Mod Loader's class path for its mods. The game class loader always takes these from Poly Mod Loader's class
+     * Plexus Mod Loader's class path for its mods. The game class loader always takes these from Plexus Mod Loader's class
      * path, even when a mod jar carries its own copy, so that there is one copy of their static state.
      */
     default List<String> sharedLibraryPackages() {
@@ -156,8 +156,8 @@ public interface ModLoaderBridge {
 
     /**
      * For a loader whose own code loads its mods and starts the game (MinecraftForge, ADR-0021): the host that does it
-     * on Poly Mod Loader's game class loader. The runtime asks only when this loader's mods were found (or the player asked
-     * for the loader with {@code -Dpoly.forge=always}), and then does not load those mods through {@link #assess} and
+     * on Plexus Mod Loader's game class loader. The runtime asks only when this loader's mods were found (or the player asked
+     * for the loader with {@code -Dplexus.forge=always}), and then does not load those mods through {@link #assess} and
      * {@link #invokeEntrypoint}; the host's loader finds and loads them itself.
      *
      * @param modJars the jars of this loader's mods that discovery found

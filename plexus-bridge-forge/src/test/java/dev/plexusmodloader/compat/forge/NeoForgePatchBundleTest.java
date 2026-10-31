@@ -120,21 +120,21 @@ class NeoForgePatchBundleTest {
      * for the client).
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgeInstaller", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgeInstaller", matches = ".+")
     void realPatchesMatchNeoForgesInstaller(@TempDir Path directory) throws IOException {
         NeoForgePatchBundle bundle;
-        try (JarFile installer = new JarFile(System.getProperty("poly.neoForgeInstaller"));
+        try (JarFile installer = new JarFile(System.getProperty("plexus.neoForgeInstaller"));
                 InputStream lzma = installer.getInputStream(installer.getEntry("data/client.lzma"))) {
             bundle = NeoForgePatchBundle.read(lzma);
         }
         Path patched = directory.resolve("patched.jar");
         NeoForgePatchBundle.Side side = NeoForgePatchBundle.Side.valueOf(
-                System.getProperty("poly.neoForgeSide", "server").toUpperCase(java.util.Locale.ROOT));
-        List<String> changed = bundle.patch(Path.of(System.getProperty("poly.neoForgeVanillaJar")), patched, side);
+                System.getProperty("plexus.neoForgeSide", "server").toUpperCase(java.util.Locale.ROOT));
+        List<String> changed = bundle.patch(Path.of(System.getProperty("plexus.neoForgeVanillaJar")), patched, side);
 
         assertFalse(changed.isEmpty());
         Map<String, byte[]> ours = files(patched);
-        Map<String, byte[]> neoForge = files(Path.of(System.getProperty("poly.neoForgePatchedJar")));
+        Map<String, byte[]> neoForge = files(Path.of(System.getProperty("plexus.neoForgePatchedJar")));
         assertEquals(neoForge.keySet(), ours.keySet());
         for (Map.Entry<String, byte[]> expected : neoForge.entrySet()) {
             assertArrayEquals(expected.getValue(), ours.get(expected.getKey()), expected.getKey());

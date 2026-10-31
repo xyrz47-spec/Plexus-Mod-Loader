@@ -92,7 +92,7 @@ final class EnvironmentStripper {
             "com.mojang.renderpearl.",
             "com.mojang.math.",
             "com.mojang.realmsclient.");
-    /** IDs that are always loaded: the game, Java, and the loaders Poly Mod Loader stands in for. */
+    /** IDs that are always loaded: the game, Java, and the loaders Plexus Mod Loader stands in for. */
     private static final Set<String> BUILT_IN_IDS =
             Set.of("minecraft", "java", "quilt_loader", "fabricloader", "mixinextras");
 

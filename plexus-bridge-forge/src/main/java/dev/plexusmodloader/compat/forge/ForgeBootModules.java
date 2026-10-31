@@ -25,21 +25,21 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
 /**
- * FML's BOOT layer on Poly Mod Loader (ADR-0021): Forge's loader libraries as modules of the game class loader, the way
+ * FML's BOOT layer on Plexus Mod Loader (ADR-0021): Forge's loader libraries as modules of the game class loader, the way
  * Forge's {@code ForgeBootstrap} makes them modules, with these differences:
  *
  * <ul>
- *   <li>Libraries Poly Mod Loader's class path already has (Minecraft's libraries, ASM) are not duplicated; modules that
- *       require them read Poly Mod Loader's class path instead, and what they export only to such a module is exported to
+ *   <li>Libraries Plexus Mod Loader's class path already has (Minecraft's libraries, ASM) are not duplicated; modules that
+ *       require them read Plexus Mod Loader's class path instead, and what they export only to such a module is exported to
  *       the class path. Forge's Mixin is the exception: it stays a module, ahead of the Fabric fork on the class path.
  *       As in Forge's own BOOT layer (securemodules), a jar's {@code module-info} becomes an open module.
  *   <li>{@code cpw.mods.modlauncher} keeps ModLauncher's API packages but takes {@code Launcher}, {@code Environment}
- *       and the launch itself ({@code dev.plexusmodloader.compat.forge.modlauncher}) from Poly Mod Loader's {@code
+ *       and the launch itself ({@code dev.plexusmodloader.compat.forge.modlauncher}) from Plexus Mod Loader's {@code
  *       forge-host.jar}; ModLauncher's own implementation classes are left out.
  *   <li>Mod files (a {@code META-INF/mods.toml}, or an {@code FMLModType} in the manifest) are not modules here; FML
  *       finds them as resources and puts them into the PLUGIN and GAME layers itself.
- *   <li>FML does not scan the mods folder ({@code ModsFolderLocator} is not provided). Poly Mod Loader found the Forge mods
- *       there already and hands FML those as resources; FML would otherwise stop at every Fabric and Poly mod in the
+ *   <li>FML does not scan the mods folder ({@code ModsFolderLocator} is not provided). Plexus Mod Loader found the Forge mods
+ *       there already and hands FML those as resources; FML would otherwise stop at every Fabric and Plexus mod in the
  *       folder as "not a Forge mod".
  *   <li>night-config's {@code ConfigFormat} closes the file it opens for an empty config ({@link
  *       NightConfigEmptyFilePatch}); left open, Windows refuses to replace that file on the next save.
@@ -51,8 +51,8 @@ final class ForgeBootModules {
     static final String HOST_PACKAGE = "dev.plexusmodloader.compat.forge.modlauncher";
     private static final String FMLLOADER = "net.minecraftforge.fmlloader";
     /**
-     * Further BOOT modules Poly Mod Loader's part of {@code cpw.mods.modlauncher} reads when they are modules (a library
-     * on Poly Mod Loader's class path is read through it anyway): forgespi and maven-artifact (ADR-0025).
+     * Further BOOT modules Plexus Mod Loader's part of {@code cpw.mods.modlauncher} reads when they are modules (a library
+     * on Plexus Mod Loader's class path is read through it anyway): forgespi and maven-artifact (ADR-0025).
      */
     private static final List<String> HOST_READS = List.of("net.minecraftforge.forgespi", "maven.artifact");
 
@@ -71,7 +71,7 @@ final class ForgeBootModules {
      * @param modules jars that become BOOT layer modules
      * @param modLauncher ModLauncher's jar, whose API packages {@code cpw.mods.modlauncher} keeps
      * @param modFiles jars FML finds itself (Forge's {@code universal.jar}, {@code fmlcore}, language providers)
-     * @param onClassPath jars left out because Poly Mod Loader's class path has those classes (with a shared Mixin, Forge's
+     * @param onClassPath jars left out because Plexus Mod Loader's class path has those classes (with a shared Mixin, Forge's
      *     Mixin too)
      */
     record Libraries(List<Path> modules, Path modLauncher, List<Path> modFiles, List<Path> onClassPath) {
@@ -96,8 +96,8 @@ final class ForgeBootModules {
     private ForgeBootModules() {}
 
     /**
-     * Sorts {@code libraries}; {@code classPath} is Poly Mod Loader's own class loader. With {@code ownMixin} false (Fabric
-     * mods run in the same launch, ADR-0021 G8), Forge's Mixin is left out: the Mixin on Poly Mod Loader's class path serves
+     * Sorts {@code libraries}; {@code classPath} is Plexus Mod Loader's own class loader. With {@code ownMixin} false (Fabric
+     * mods run in the same launch, ADR-0021 G8), Forge's Mixin is left out: the Mixin on Plexus Mod Loader's class path serves
      * Forge mods too, because the game class loader can hold only one (for MixinExtras see {@link
      * Libraries#withSharedMixinExtras}).
      */
@@ -113,13 +113,13 @@ final class ForgeBootModules {
                 } else if (isModFile(jar)) {
                     modFiles.add(library);
                 } else if (contains(jar, "net/minecraftforge/bootstrap/ForgeBootstrap.class")) {
-                    // Forge's own entry point, which Poly Mod Loader replaces.
+                    // Forge's own entry point, which Plexus Mod Loader replaces.
                     continue;
                 } else if (contains(jar, IMPLEMENTATION_PREFIX + "Launcher.class")) {
                     modLauncher = library;
                 } else if (contains(jar, MIXIN_BOOTSTRAP)) {
                     // Forge's Mixin (the original, with its ModLauncher services) stays a module although
-                    // Poly Mod Loader's class path has Fabric's fork of the same packages: the game class loader
+                    // Plexus Mod Loader's class path has Fabric's fork of the same packages: the game class loader
                     // resolves
                     // a module's packages before its parent, so FML and Forge mods get Forge's Mixin.
                     modules.add(library);
@@ -137,9 +137,9 @@ final class ForgeBootModules {
     }
 
     /**
-     * Defines the BOOT layer in the game class loader. Every module reads Poly Mod Loader's class path ({@code classPath}'s
+     * Defines the BOOT layer in the game class loader. Every module reads Plexus Mod Loader's class path ({@code classPath}'s
      * unnamed module), where the libraries it shares with Minecraft are. {@code library} adjusts each library module as
-     * it is read (Poly Mod Loader's art in Forge's early window, {@link EarlyScreenArt}).
+     * it is read (Plexus Mod Loader's art in Forge's early window, {@link EarlyScreenArt}).
      */
     static ModuleLayer define(
             Libraries libraries,
@@ -186,7 +186,8 @@ final class ForgeBootModules {
                     List.of(classPathModule, module.getClassLoader().getUnnamedModule());
             for (Module standIn : standIns) {
                 controller.addReads(module, standIn);
-                // A package exported only to modules that Poly Mod Loader's class path stands in for is exported to the
+                // A package exported only to modules that Plexus Mod Loader's class path stands in for is exported to
+                // the
                 // class path instead.
                 for (ModuleDescriptor.Exports exports : module.getDescriptor().exports()) {
                     if (exports.isQualified() && standsIn(exports.targets(), controller.layer())) {
@@ -199,7 +200,7 @@ final class ForgeBootModules {
     }
 
     /**
-     * A module of the BOOT layer without the requires Poly Mod Loader's class path answers instead, and without the
+     * A module of the BOOT layer without the requires Plexus Mod Loader's class path answers instead, and without the
      * {@linkplain #LEFT_OUT_PROVIDERS left-out} service implementations.
      */
     static ModuleReference withRequires(ModuleReference reference, Set<String> available) {
@@ -252,7 +253,7 @@ final class ForgeBootModules {
     }
 
     /**
-     * {@code cpw.mods.modlauncher}: ModLauncher's API from its jar, and from {@code hostJar} Poly Mod Loader's {@code
+     * {@code cpw.mods.modlauncher}: ModLauncher's API from its jar, and from {@code hostJar} Plexus Mod Loader's {@code
      * Launcher}, {@code Environment} and launch. ModLauncher's own implementation classes stay out, and so do the
      * services it provides with them.
      */
@@ -268,7 +269,7 @@ final class ForgeBootModules {
         builder.exports(HOST_PACKAGE);
         descriptor.opens().forEach(builder::opens);
         descriptor.uses().forEach(builder::uses);
-        // Poly Mod Loader's game test launch handler extends FML's CommonLaunchHandler.
+        // Plexus Mod Loader's game test launch handler extends FML's CommonLaunchHandler.
         builder.requires(FMLLOADER);
         // ForeignModList shows other mods as forgespi mod files, with Maven versions (ADR-0025).
         for (String module : HOST_READS) {
@@ -301,7 +302,7 @@ final class ForgeBootModules {
     }
 
     /**
-     * Poly Mod Loader's classes first, except {@code META-INF/} (ModLauncher's manifest carries its API packages' versions,
+     * Plexus Mod Loader's classes first, except {@code META-INF/} (ModLauncher's manifest carries its API packages' versions,
      * which FML checks); ModLauncher's implementation classes ({@code cpw/mods/modlauncher/*.class}) never.
      */
     private static final class OverlayReader implements ModuleReader {
@@ -371,7 +372,7 @@ final class ForgeBootModules {
         return jar.getEntry(entry) != null;
     }
 
-    /** Whether Poly Mod Loader's class path already has this jar's classes (checked with its first class). */
+    /** Whether Plexus Mod Loader's class path already has this jar's classes (checked with its first class). */
     private static boolean onClassPath(JarFile jar, ClassLoader classPath) {
         Enumeration<? extends ZipEntry> entries = jar.entries();
         while (entries.hasMoreElements()) {

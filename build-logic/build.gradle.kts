@@ -7,9 +7,9 @@ plugins {
 }
 
 // Version and coordinates come from the main build so the published plugin matches the runtime.
-val polyProperties = Properties().apply { file("../gradle.properties").inputStream().use(::load) }
-group = polyProperties.getProperty("poly.group")
-version = polyProperties.getProperty("poly.version")
+val plexusProperties = Properties().apply { file("../gradle.properties").inputStream().use(::load) }
+group = plexusProperties.getProperty("plexus.group")
+version = plexusProperties.getProperty("plexus.version")
 
 java {
     withSourcesJar()
@@ -32,12 +32,12 @@ tasks.test {
 
 tasks.processResources {
     val values = mapOf(
-        "poly" to project.version.toString(),
+        "plexus" to project.version.toString(),
         "java" to libs.versions.java.get(),
         "slf4j" to libs.versions.slf4j.get(),
     )
     inputs.properties(values)
-    filesMatching("**/poly-plugin.properties") {
+    filesMatching("**/plexus-plugin.properties") {
         expand(values)
     }
     // The supported Minecraft versions, for mod projects (ADR-0011).
@@ -48,51 +48,58 @@ tasks.processResources {
 
 gradlePlugin {
     plugins {
-        create("polyJavaConventions") {
-            id = "poly.java-conventions"
-            implementationClass = "dev.plexusmodloader.devtools.gradle.PolyJavaConventionsPlugin"
+        create("plexusJavaConventions") {
+            id = "plexus.java-conventions"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.PlexusJavaConventionsPlugin"
         }
-        create("polyMinecraftDev") {
-            id = "poly.minecraft-dev"
+        create("plexusMinecraftDev") {
+            id = "plexus.minecraft-dev"
             implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.MinecraftDevPlugin"
         }
-        create("polyMinecraftCompile") {
-            id = "poly.minecraft-compile"
+        create("plexusMinecraftCompile") {
+            id = "plexus.minecraft-compile"
             implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.MinecraftCompilePlugin"
         }
-        create("polyMinecraftVersions") {
-            id = "poly.minecraft-versions"
+        create("plexusMinecraftVersions") {
+            id = "plexus.minecraft-versions"
             implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersionsPlugin"
         }
-        create("polySdkRepository") {
-            id = "poly.sdk-repository"
+        create("plexusSdkRepository") {
+            id = "plexus.sdk-repository"
             implementationClass = "dev.plexusmodloader.devtools.gradle.release.SdkRepositoryPlugin"
         }
-        create("polyModTemplate") {
-            id = "poly.mod-template"
+        create("plexusModTemplate") {
+            id = "plexus.mod-template"
             implementationClass = "dev.plexusmodloader.devtools.gradle.mod.ModTemplatePlugin"
         }
-        create("polyMod") {
+        create("plexusMod") {
+            id = "dev.plexusmodloader.mod"
+            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.PlexusModPlugin"
+            displayName = "Plexus Mod Loader mod development"
+            description = "Builds, validates, and runs Plexus mods against Minecraft through Plexus Mod Loader, and generates and checks their resource files."
+        }
+        // The plugin ID before the rename (ADR-0008), so existing mod projects keep building with new versions.
+        create("plexusModLegacy") {
             id = "dev.polymodloader.mod"
-            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.PolyModPlugin"
-            displayName = "Poly Mod Loader mod development"
-            description = "Builds, validates, and runs Poly Mods against Minecraft through Poly Mod Loader, and generates and checks their resource files."
+            implementationClass = "dev.plexusmodloader.devtools.gradle.minecraft.PlexusModPlugin"
+            displayName = "Plexus Mod Loader mod development (legacy ID)"
+            description = "Former ID of dev.plexusmodloader.mod; applies the same plugin."
         }
     }
 }
 
 publishing {
     publications.withType<MavenPublication>().matching { it.name == "pluginMaven" }.configureEach {
-        artifactId = "poly-gradle-plugin"
+        artifactId = "plexus-gradle-plugin"
     }
 }
 
 // The public SDK repository (ADR-0008, `./gradlew publishSdk` in the main build runs `:publishSdk` here):
-// the plugin jar without sources, and the marker of dev.polymodloader.mod only; the other plugin IDs are for
-// this repository. publishToMavenLocal still installs everything, sources included.
+// the plugin jar without sources, and the markers of dev.plexusmodloader.mod and its legacy ID
+// dev.polymodloader.mod only; the other plugin IDs are for this repository. publishToMavenLocal still installs everything, sources included.
 val sdkRepository = rootDir.resolve("..").toPath()
-    .resolve(providers.gradleProperty("polySdkRepo").getOrElse(".poly/sdk-maven")).normalize().toFile()
-val sdkComponent = serviceOf<SoftwareComponentFactory>().adhoc("polySdk")
+    .resolve(providers.gradleProperty("plexusSdkRepo").getOrElse(".plexus/sdk-maven")).normalize().toFile()
+val sdkComponent = serviceOf<SoftwareComponentFactory>().adhoc("plexusSdk")
 components.add(sdkComponent)
 // Only the jar variants; the class and resource folder variants are not publishable.
 for ((configuration, scope) in listOf("apiElements" to "compile", "runtimeElements" to "runtime")) {
@@ -103,18 +110,18 @@ for ((configuration, scope) in listOf("apiElements" to "compile", "runtimeElemen
 publishing {
     repositories {
         maven {
-            name = "polySdk"
+            name = "plexusSdk"
             url = uri(sdkRepository)
         }
     }
     publications.create<MavenPublication>("sdk") {
         from(sdkComponent)
-        artifactId = "poly-gradle-plugin"
+        artifactId = "plexus-gradle-plugin"
     }
 }
-val sdkPublications = setOf("sdk", "polyModPluginMarkerMaven")
+val sdkPublications = setOf("sdk", "plexusModPluginMarkerMaven", "plexusModLegacyPluginMarkerMaven")
 tasks.withType<PublishToMavenRepository>().configureEach {
-    val toSdk = name.endsWith("ToPolySdkRepository")
+    val toSdk = name.endsWith("ToPlexusSdkRepository")
     enabled = toSdk == sdkPublications.any { name.startsWith("publish${it.replaceFirstChar(Char::uppercase)}Publication") }
 }
 tasks.withType<PublishToMavenLocal>().configureEach {
@@ -122,6 +129,10 @@ tasks.withType<PublishToMavenLocal>().configureEach {
 }
 tasks.register("publishSdk") {
     group = "publishing"
-    description = "Publishes the dev.polymodloader.mod plugin, without sources, into the SDK repository folder."
-    dependsOn("publishSdkPublicationToPolySdkRepository", "publishPolyModPluginMarkerMavenPublicationToPolySdkRepository")
+    description = "Publishes the dev.plexusmodloader.mod plugin (and its legacy ID), without sources, into the SDK repository folder."
+    dependsOn(
+        "publishSdkPublicationToPlexusSdkRepository",
+        "publishPlexusModPluginMarkerMavenPublicationToPlexusSdkRepository",
+        "publishPlexusModLegacyPluginMarkerMavenPublicationToPlexusSdkRepository",
+    )
 }

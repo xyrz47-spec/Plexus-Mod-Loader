@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A validated {@code poly.mod.json} (schema version 1). Only produced by {@link ModMetadataReader}
+ * A validated {@code plexus.mod.json} (schema version 1). Only produced by {@link ModMetadataReader}
  * when no error-level problem was found.
  *
- * @param schemaVersion metadata schema version, independent of the Poly Mod Loader API version
+ * @param schemaVersion metadata schema version, independent of the Plexus Mod Loader API version
  * @param id technical mod ID
  * @param version mod version
  * @param name human-readable name
@@ -19,7 +19,7 @@ import java.util.Map;
  * @param minecraftVersions Minecraft versions the mod declares support for: exact IDs, wildcards or
  *     ranges ({@link dev.plexusmodloader.runtime.metadata.version.MinecraftVersionPattern})
  * @param entrypoints entrypoint classes per side
- * @param depends required mod IDs (including {@code poly}) and their version ranges
+ * @param depends required mod IDs (including {@code plexus}) and their version ranges
  * @param conflicts mod IDs that must not be loaded together with this mod
  * @param capabilities capability IDs the mod requests, e.g. {@code system.provider.replace} (design doc §5.4.1)
  * @param replacesSystems systems this mod replaces
@@ -44,7 +44,7 @@ public record ModMetadata(
     /** File name Plexus Mod Loader looks for at the root of a mod jar. */
     public static final String FILE_NAME = "plexus.mod.json";
 
-    /** Legacy file name Poly Mod Loader looked for, supported for backward compatibility. */
+    /** Legacy file name Plexus Mod Loader looked for, supported for backward compatibility. */
     public static final String LEGACY_FILE_NAME = "poly.mod.json";
 
     public ModMetadata {

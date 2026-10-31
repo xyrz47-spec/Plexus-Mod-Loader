@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  */
 final class ModShaderPipelines {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** The uniform block name mod shaders declare. */
     static final String UNIFORM_BLOCK = "ModUniforms";
@@ -175,12 +175,12 @@ final class ModShaderPipelines {
                 RenderSystem.getDevice().createCommandEncoder().writeToBuffer(block.buffer.slice(), bytes);
                 if (!block.uploadReported) {
                     block.uploadReported = true;
-                    LOGGER.info("[Poly Mod Loader] Uploaded {} of mod shader pipeline {}", UNIFORM_BLOCK, block.id);
+                    LOGGER.info("[Plexus Mod Loader] Uploaded {} of mod shader pipeline {}", UNIFORM_BLOCK, block.id);
                 }
             } catch (RuntimeException e) {
                 block.failed = true;
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-CLIENT-007 cannot upload {} of shader pipeline {} of {}; its values stay as they were",
+                        "[Plexus Mod Loader] PLEXUS-CLIENT-007 cannot upload {} of shader pipeline {} of {}; its values stay as they were",
                         UNIFORM_BLOCK,
                         block.id,
                         block.ownerModId,
@@ -205,7 +205,7 @@ final class ModShaderPipelines {
         if (!block.bindReported) {
             block.bindReported = true;
             LOGGER.info(
-                    "[Poly Mod Loader] Bound {} of mod shader pipeline {} ({} field(s), {} bytes)",
+                    "[Plexus Mod Loader] Bound {} of mod shader pipeline {} ({} field(s), {} bytes)",
                     UNIFORM_BLOCK,
                     block.id,
                     block.uniforms.size(),
@@ -239,7 +239,7 @@ final class ModShaderPipelines {
         if (!block.valueReported[index]) {
             block.valueReported[index] = true;
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-CLIENT-007 uniform {} of shader pipeline {} of {} {}; its last good value is used",
+                    "[Plexus Mod Loader] PLEXUS-CLIENT-007 uniform {} of shader pipeline {} of {} {}; its last good value is used",
                     block.uniforms.get(index).name(),
                     block.id,
                     block.ownerModId,
@@ -258,7 +258,7 @@ final class ModShaderPipelines {
                         .findFirst())
                 .orElse(null);
         if (declaration == null) {
-            LOGGER.error("[Poly Mod Loader] PLEXUS-CLIENT-006 no shader pipeline {} is declared", id);
+            LOGGER.error("[Plexus Mod Loader] PLEXUS-CLIENT-006 no shader pipeline {} is declared", id);
             return Optional.empty();
         }
         ShaderPipelineDefinition definition = declaration.definition();
@@ -298,7 +298,7 @@ final class ModShaderPipelines {
             RenderPipeline pipeline = builder.build();
             if (!RenderSystem.getDevice().precompilePipeline(pipeline).isValid()) {
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-CLIENT-006 shader pipeline {} of {} did not compile ({}.vsh/.fsh); its quads are skipped",
+                        "[Plexus Mod Loader] PLEXUS-CLIENT-006 shader pipeline {} of {} did not compile ({}.vsh/.fsh); its quads are skipped",
                         id,
                         declaration.ownerModId(),
                         definition.shader());
@@ -322,18 +322,18 @@ final class ModShaderPipelines {
             }
             if (definition.textured() || !definition.uniforms().isEmpty()) {
                 LOGGER.info(
-                        "[Poly Mod Loader] Built mod shader pipeline {} ({}) with {} texture(s) and {} uniform(s)",
+                        "[Plexus Mod Loader] Built mod shader pipeline {} ({}) with {} texture(s) and {} uniform(s)",
                         id,
                         definition.shader(),
                         definition.textures().size(),
                         definition.uniforms().size());
             } else {
-                LOGGER.info("[Poly Mod Loader] Built mod shader pipeline {} ({})", id, definition.shader());
+                LOGGER.info("[Plexus Mod Loader] Built mod shader pipeline {} ({})", id, definition.shader());
             }
             return Optional.of(new Built(type, definition.textured()));
         } catch (ReflectiveOperationException | RuntimeException e) {
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-CLIENT-006 cannot build shader pipeline {} of {}",
+                    "[Plexus Mod Loader] PLEXUS-CLIENT-006 cannot build shader pipeline {} of {}",
                     id,
                     declaration.ownerModId(),
                     e);
@@ -356,7 +356,7 @@ final class ModShaderPipelines {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             return RenderSystem.getDevice()
                     .createBuffer(
-                            () -> "Poly Mod Loader " + UNIFORM_BLOCK + " " + id,
+                            () -> "Plexus Mod Loader " + UNIFORM_BLOCK + " " + id,
                             GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST,
                             stack.calloc(bytes));
         }

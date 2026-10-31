@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
  * NeoForge* 26.2}, whichever loaders' mods run. What follows the version ({@code  - Singleplayer}, {@code  -
  * Multiplayer (LAN)}) and the game's {@code *} for a modified game stay as the game wrote them.
  *
- * <p>Called after {@code Minecraft.createTitle} ({@code poly:client_window_title}). Thread: the render thread.
+ * <p>Called after {@code Minecraft.createTitle} ({@code plexus:client_window_title}). Thread: the render thread.
  */
 public final class PlexusWindowTitle {
 

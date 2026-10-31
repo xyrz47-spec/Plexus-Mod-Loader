@@ -73,7 +73,7 @@ import java.util.zip.ZipEntry;
  * Finding}, of one of two kinds:
  *
  * <ul>
- *   <li>The mixin still works as written, because Poly Mod Loader moves it to where the host put the same thing
+ *   <li>The mixin still works as written, because Plexus Mod Loader moves it to where the host put the same thing
  *       ({@code PLEXUS-COMPAT-226}, {@code 212}, {@code 222}):
  *       <ul>
  *         <li>An injection at a call, field access or object creation that the patch moved goes to where the host says
@@ -99,14 +99,14 @@ import java.util.zip.ZipEntry;
  *   <li>The mixin cannot work as written on the patched game ({@link Finding#incompatible()}, {@code PLEXUS-COMPAT-224}):
  *       a member it uses is gone, an injection point is gone with no replacement, the handler's parameters cannot match
  *       the patched method, it would replace what the host's patch computes, an injection depends on one that cannot
- *       run, a default method or member collides with the host's. Poly Mod Loader does not run such a mod with that
- *       part left out: the runtime does not load it, says so where the player sees it, and names Poly Mod Loader, not
+ *       run, a default method or member collides with the host's. Plexus Mod Loader does not run such a mod with that
+ *       part left out: the runtime does not load it, says so where the player sees it, and names Plexus Mod Loader, not
  *       the mod, as the one to fix it.
  * </ul>
  *
  * <p>The mods' injectors keep their own {@code require} and local capture settings, as under Fabric Loader: an
  * injection that the comparison could not foresee (expressions, slices) and that finds nothing in the patched class
- * stops the game with Mixin's error, which {@link HostedMixinErrors} reports as Poly Mod Loader's ({@code
+ * stops the game with Mixin's error, which {@link HostedMixinErrors} reports as Plexus Mod Loader's ({@code
  * PLEXUS-COMPAT-225}). Mixin reads the changed classes through {@link #apply}. Without a host nothing changes: Fabric mods
  * run against the vanilla game as under Fabric Loader.
  */
@@ -175,7 +175,7 @@ final class HostPatchAdjustments {
             return new Finding(modId, config, mixin, reason, leftOut, "PLEXUS-COMPAT-224", true);
         }
 
-        /** A {@code PLEXUS-COMPAT-226} finding: Poly Mod Loader moved the mixin to the patch, and it works as written. */
+        /** A {@code PLEXUS-COMPAT-226} finding: Plexus Mod Loader moved the mixin to the patch, and it works as written. */
         static Finding adapted(String modId, String config, String mixin, String reason) {
             return new Finding(modId, config, mixin, reason, false, "PLEXUS-COMPAT-226", false);
         }
@@ -339,10 +339,10 @@ final class HostPatchAdjustments {
      */
     private record ReplacedCall(String handler, String descriptor, String replaced, String replacement) {}
 
-    private static final String BRIDGE_PREFIX = "poly$hostParameters$";
-    private static final String APPENDED_PREFIX = "poly$hostArguments$";
+    private static final String BRIDGE_PREFIX = "plexus$hostParameters$";
+    private static final String APPENDED_PREFIX = "plexus$hostArguments$";
     private static final ClassDesc APPENDED_ARGUMENTS = ClassDesc.of(AppendedArguments.class.getName());
-    private static final String WRAP_PREFIX = "poly$hostCall$";
+    private static final String WRAP_PREFIX = "plexus$hostCall$";
     private static final String HOST_MAKES_HANDLER_CALL =
             " there; the redirect only calls ItemStack.getCraftingRemainder() on that stack, matching Forge's call, so dropping the handler preserves behavior";
     private static final ClassDesc FLUID_STATE = ClassDesc.of("net.minecraft.world.level.material.FluidState");
@@ -360,8 +360,8 @@ final class HostPatchAdjustments {
     private static final String CAN_BE_ENCHANTED_WITH =
             "(Lnet/minecraft/core/Holder;Lnet/fabricmc/fabric/api/item/v1/EnchantingContext;)Z";
     private static final ClassDesc PRECOMPUTED_CALL = ClassDesc.of(PrecomputedCall.class.getName());
-    private static final String REDIRECT_PREFIX = "poly$hostRedirect$";
-    private static final String RECEIVERS_PREFIX = "poly$receivers$";
+    private static final String REDIRECT_PREFIX = "plexus$hostRedirect$";
+    private static final String RECEIVERS_PREFIX = "plexus$receivers$";
     private static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
     private static final ClassDesc OPERATION =
             ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;");

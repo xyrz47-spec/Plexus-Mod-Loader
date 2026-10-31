@@ -19,7 +19,7 @@ public final class MinecraftVersionsPlugin implements Plugin<Project> {
     public void apply(Project project) {
         MinecraftVersions versions = MinecraftVersions.of(project);
         project.getTasks().register("newMinecraftVersion", NewMinecraftVersionTask.class, task -> {
-            task.setGroup("poly minecraft");
+            task.setGroup("plexus minecraft");
             task.setDescription("Copies a supported Minecraft version's modules to start supporting a new version"
                     + " (-Pfrom=<version> -Pto=<version> [-Pjava=<version>]).");
             task.getRepositoryRoot().set(project.getLayout().getProjectDirectory());
@@ -35,7 +35,7 @@ public final class MinecraftVersionsPlugin implements Plugin<Project> {
                             .orElse(false));
         });
         project.getTasks().register("minecraftVersionDiff", MinecraftVersionDiffTask.class, task -> {
-            task.setGroup("poly minecraft");
+            task.setGroup("plexus minecraft");
             task.setDescription("Reports what a supported version's modules use that another Minecraft version changed"
                     + " (-Pfrom=<supported version> -Pto=<version>), before newMinecraftVersion or a hotfix entry.");
             String from = project.getProviders()
@@ -62,7 +62,7 @@ public final class MinecraftVersionsPlugin implements Plugin<Project> {
         project.getPluginManager().apply("jvm-toolchains");
         JavaToolchainService toolchains = project.getExtensions().getByType(JavaToolchainService.class);
         project.getTasks().register("remapMinecraft", RemapMinecraftTask.class, task -> {
-            task.setGroup("poly minecraft");
+            task.setGroup("plexus minecraft");
             task.setDescription("Remaps the client jar of a version before 26.1 to Mojang names and self-checks it"
                     + " (-Pminecraft=<version>, ADR-0019); the jar stays in the local cache.");
             task.getMinecraftVersion().set(project.getProviders().gradleProperty("minecraft"));
@@ -81,7 +81,7 @@ public final class MinecraftVersionsPlugin implements Plugin<Project> {
                                             "reports/minecraft-remap/" + version + "-" + side + ".md")));
         });
         project.getTasks().register("minecraftVersions", task -> {
-            task.setGroup("poly minecraft");
+            task.setGroup("plexus minecraft");
             task.setDescription("Lists the supported Minecraft versions and their modules.");
             task.doLast(ignored -> {
                 for (String version : versions.supported()) {
@@ -116,7 +116,7 @@ public final class MinecraftVersionsPlugin implements Plugin<Project> {
                         .getGradleUserHomeDir()
                         .toPath()
                         .resolve("caches")
-                        .resolve("poly-minecraft")
+                        .resolve("plexus-minecraft")
                         .toFile()));
     }
 }

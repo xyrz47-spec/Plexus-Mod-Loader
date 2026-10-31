@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Which Minecraft program Poly Mod Loader starts. Several targets can share one {@link GameSide}: the game test
+ * Which Minecraft program Plexus Mod Loader starts. Several targets can share one {@link GameSide}: the game test
  * server is a dedicated server that runs Mojang's GameTest framework and exits.
  */
 @ApiStability(StabilityLevel.INTERNAL)

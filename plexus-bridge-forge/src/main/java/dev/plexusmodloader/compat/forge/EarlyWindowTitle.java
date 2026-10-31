@@ -14,14 +14,14 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * The title of the early loading window of MinecraftForge and NeoForge names Poly Mod Loader, as the game window's does
- * after it ({@code Minecraft* Poly <version>}, the game layers' {@code PlexusWindowTitle}):
+ * The title of the early loading window of MinecraftForge and NeoForge names Plexus Mod Loader, as the game window's does
+ * after it ({@code Minecraft* Plexus <version>}, the game layers' {@code PlexusWindowTitle}):
  *
  * <ul>
  *   <li>NeoForge's {@code earlydisplay} (FML 11 and 12) creates its window as {@code Minecraft: NeoForge Loading...};
- *       that constant becomes {@code Minecraft* Poly <version>}.
+ *       that constant becomes {@code Minecraft* Plexus <version>}.
  *   <li>MinecraftForge's {@code fmlearlydisplay} names it {@code "Minecraft* "} (with the space) followed by the game's
- *       version; that constant becomes {@code "Minecraft* Poly "}.
+ *       version; that constant becomes {@code "Minecraft* Plexus "}.
  * </ul>
  *
  * <p>Each constant is changed only when {@code DisplayWindow} has it exactly once (checked with {@code javap} against
@@ -40,7 +40,7 @@ final class EarlyWindowTitle {
     private EarlyWindowTitle() {}
 
     /**
-     * {@code reference} with its early window titled for Poly Mod Loader when it is a host's early window module, else
+     * {@code reference} with its early window titled for Plexus Mod Loader when it is a host's early window module, else
      * {@code reference}.
      */
     static ModuleReference of(ModuleReference reference, String gameVersion, Consumer<String> log) {

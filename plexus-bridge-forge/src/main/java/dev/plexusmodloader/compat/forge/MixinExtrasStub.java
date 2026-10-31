@@ -20,7 +20,7 @@ import java.util.jar.Manifest;
  * but the MixinExtras it carries ({@code META-INF/jars/}) is an empty jar with that jar's manifest, and its Mixin
  * configuration ({@code MixinConfigs}) is gone.
  *
- * <p>MixinExtras then comes from Poly Mod Loader's class path for every mod: its injectors run there with the shared Mixin,
+ * <p>MixinExtras then comes from Plexus Mod Loader's class path for every mod: its injectors run there with the shared Mixin,
  * and it defines the classes it generates there ({@code LocalRef} implementations), which game classes must find under
  * the same package. A MixinExtras module would hold that package in the game class loader. FML still finds the jar and
  * the nested jar its jar-in-jar list names, which it requires as the MixinExtras that mods' own copies are matched
@@ -35,7 +35,7 @@ final class MixinExtrasStub {
 
     /** Writes the copy of {@code jar} to {@code directory} (replacing an older one) and returns it. */
     static Path write(Path jar, Path directory) throws IOException {
-        Path target = directory.resolve("polymodloader-shared-mixin-" + jar.getFileName());
+        Path target = directory.resolve("plexusmodloader-shared-mixin-" + jar.getFileName());
         Path partial = directory.resolve(target.getFileName() + ".partial");
         try (JarFile in = new JarFile(jar.toFile());
                 OutputStream file = Files.newOutputStream(partial)) {

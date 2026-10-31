@@ -43,7 +43,7 @@ public interface WorldgenRegistrar {
 
     /**
      * Registers a feature written in code as feature type {@code <mod id>:<path>}, and writes a
-     * configured and a placed feature with the same ID into Poly Mod Loader's generated data pack. Add it to biomes
+     * configured and a placed feature with the same ID into Plexus Mod Loader's generated data pack. Add it to biomes
      * with {@link #addFeature}, place it with {@code /place feature <id>}, or use the type in the
      * mod's own data pack.
      *
@@ -66,7 +66,7 @@ public interface WorldgenRegistrar {
     ResourceId densityFunction(String path, double minValue, double maxValue, NoiseFunction function);
 
     /**
-     * Registers a structure built in code as {@code <mod id>:<path>}, with its structure set, in Poly Mod Loader's
+     * Registers a structure built in code as {@code <mod id>:<path>}, with its structure set, in Plexus Mod Loader's
      * generated data pack. It generates in new chunks of the selected biomes; {@code /locate structure}
      * and {@code /place structure} find and place it.
      *

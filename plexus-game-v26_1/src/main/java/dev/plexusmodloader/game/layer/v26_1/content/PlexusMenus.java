@@ -15,7 +15,7 @@ import net.minecraft.world.inventory.MenuType;
 /**
  * Menu types of mod block entities with a {@link MenuLayout}, one per block, registered under the
  * block's ID so client and server agree on them. The game keeps {@code MenuType}'s constructor and
- * factory interface private; Poly Mod Loader creates the type reflectively.
+ * factory interface private; Plexus Mod Loader creates the type reflectively.
  */
 public final class PlexusMenus {
 
@@ -33,7 +33,7 @@ public final class PlexusMenus {
         return type;
     }
 
-    /** The layout of a Poly Mod Loader menu type, or null for the game's types. */
+    /** The layout of a Plexus Mod Loader menu type, or null for the game's types. */
     public static MenuLayout layout(MenuType<?> type) {
         return LAYOUTS.get(type);
     }
@@ -60,7 +60,7 @@ public final class PlexusMenus {
                         return switch (method.getName()) {
                             case "hashCode" -> System.identityHashCode(instance);
                             case "equals" -> instance == arguments[0];
-                            case "toString" -> "PolyMenuSupplier";
+                            case "toString" -> "PlexusMenuSupplier";
                             default -> throw new UnsupportedOperationException(method.getName());
                         };
                     });

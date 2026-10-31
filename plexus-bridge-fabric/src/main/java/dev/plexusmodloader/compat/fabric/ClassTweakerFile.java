@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * A Fabric class tweaker file ({@code accessWidener} in {@code fabric.mod.json}), read with the grammar of
  * Fabric Loader 0.19.5's reader ({@code ClassTweakerReaderImpl}, checked with {@code javap}), and its
- * translation into Poly Mod Loader access widenings (ADR-0018).
+ * translation into Plexus Mod Loader access widenings (ADR-0018).
  *
  * <p>Grammar, as Fabric Loader reads it:
  *
@@ -130,7 +130,7 @@ final class ClassTweakerFile {
         }
     }
 
-    /** A line Poly Mod Loader cannot accept, with Fabric Loader's wording where it has one. */
+    /** A line Plexus Mod Loader cannot accept, with Fabric Loader's wording where it has one. */
     record Problem(int line, String message) {}
 
     private final String fileName;
@@ -389,7 +389,7 @@ final class ClassTweakerFile {
         return header;
     }
 
-    /** The access lines Poly Mod Loader applies, in file order. */
+    /** The access lines Plexus Mod Loader applies, in file order. */
     List<Entry> entries() {
         return entries;
     }

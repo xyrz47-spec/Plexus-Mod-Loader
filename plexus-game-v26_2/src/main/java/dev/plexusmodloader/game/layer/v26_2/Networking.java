@@ -28,23 +28,24 @@ public final class Networking {
     private Networking() {}
 
     /** A Native API payload: the channel's type and the bytes the mod's codec produced. */
-    public record PolyPayload(CustomPacketPayload.Type<PolyPayload> type, byte[] data) implements CustomPacketPayload {}
+    public record PlexusPayload(CustomPacketPayload.Type<PlexusPayload> type, byte[] data)
+            implements CustomPacketPayload {}
 
-    static CustomPacketPayload.Type<PolyPayload> type(ResourceId channel) {
+    static CustomPacketPayload.Type<PlexusPayload> type(ResourceId channel) {
         return new CustomPacketPayload.Type<>(Views.id(channel));
     }
 
-    private static StreamCodec<FriendlyByteBuf, PolyPayload> codec(CustomPacketPayload.Type<PolyPayload> type) {
+    private static StreamCodec<FriendlyByteBuf, PlexusPayload> codec(CustomPacketPayload.Type<PlexusPayload> type) {
         return StreamCodec.of((buffer, payload) -> buffer.writeBytes(payload.data()), buffer -> {
             byte[] data = new byte[buffer.readableBytes()];
             buffer.readBytes(data);
-            return new PolyPayload(type, data);
+            return new PlexusPayload(type, data);
         });
     }
 
     /**
      * Head hook of {@code CustomPacketPayload.codec(FallbackProvider, List)}: builds the same codec
-     * with Poly Mod Loader's channels added to the list, by calling the method again with a flag that makes this
+     * with Plexus Mod Loader's channels added to the list, by calling the method again with a flag that makes this
      * hook step aside.
      */
     static <B extends FriendlyByteBuf> StreamCodec<B, CustomPacketPayload> extendCodec(
@@ -59,7 +60,7 @@ public final class Networking {
         List<ResourceId> ids = new ArrayList<>(LayerState.channels().keySet());
         ids.addAll(LayerState.configurationExchanges().keySet());
         for (ResourceId channel : ids) {
-            CustomPacketPayload.Type<PolyPayload> type = type(channel);
+            CustomPacketPayload.Type<PlexusPayload> type = type(channel);
             extended.add(new CustomPacketPayload.TypeAndCodec<>(type, codec(type)));
         }
         EXTENDING.set(Boolean.TRUE);
@@ -70,9 +71,9 @@ public final class Networking {
         }
     }
 
-    /** Head hook of the server's custom payload handler; {@code true} when Poly Mod Loader consumed the payload. */
+    /** Head hook of the server's custom payload handler; {@code true} when Plexus Mod Loader consumed the payload. */
     static boolean receiveOnServer(ServerGamePacketListenerImpl listener, ServerboundCustomPayloadPacket packet) {
-        if (!(packet.payload() instanceof PolyPayload payload)) {
+        if (!(packet.payload() instanceof PlexusPayload payload)) {
             return false;
         }
         ChannelEndpoint endpoint =
@@ -99,7 +100,7 @@ public final class Networking {
             if (!(gamePlayer instanceof ServerPlayer serverPlayer)) {
                 throw new IllegalStateException("sendToPlayer needs a server-side player, got " + player);
             }
-            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(new PolyPayload(type(channel), data)));
+            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(new PlexusPayload(type(channel), data)));
         }
 
         @Override
@@ -108,7 +109,7 @@ public final class Networking {
                 throw new IllegalStateException("sendToServer is only available on the client");
             }
             dev.plexusmodloader.game.layer.v26_2.client.ClientHooks.sendToServer(
-                    new ServerboundCustomPayloadPacket(new PolyPayload(type(channel), data)));
+                    new ServerboundCustomPayloadPacket(new PlexusPayload(type(channel), data)));
         }
     }
 }

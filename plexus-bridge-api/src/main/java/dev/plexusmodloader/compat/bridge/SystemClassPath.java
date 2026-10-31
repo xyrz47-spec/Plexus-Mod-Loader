@@ -8,7 +8,7 @@ import java.nio.file.Path;
 /**
  * The JVM's own class path (the system class loader), for the few jars Java only looks up there: file systems ({@code
  * FileSystemProvider}) and URL handlers ({@code URLStreamHandlerProvider}), such as Forge's {@code securemodules}
- * (ADR-0024). Poly Mod Loader's launcher offers it when it was started with its Java agent ({@code -javaagent} in the
+ * (ADR-0024). Plexus Mod Loader's launcher offers it when it was started with its Java agent ({@code -javaagent} in the
  * launcher profile, {@code Launcher-Agent-Class} in the server's launch jar); absent otherwise.
  *
  * <p>Thread: the launching thread, before the game starts. The JVM lists its file systems once, the first time anything

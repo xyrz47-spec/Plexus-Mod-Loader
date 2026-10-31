@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "Public Native gameplay API: content, world and entity views, commands, networking, client, and game tests."

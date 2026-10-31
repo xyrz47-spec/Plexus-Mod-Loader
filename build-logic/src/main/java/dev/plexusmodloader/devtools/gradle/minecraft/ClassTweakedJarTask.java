@@ -38,8 +38,8 @@ import org.objectweb.asm.Opcodes;
 /**
  * The game jar as Fabric's build tools give it to a mod's compiler: with the class tweakers of {@link #getClassTweakers}
  * applied ({@code accessible}, {@code extendable}, {@code mutable}, {@code inject-interface}, each maybe {@code
- * transitive-}), so that code written against widened members and injected interfaces compiles (Poly Mod Loader's
- * NeoForge host modules, ADR-0031). Only for compiling: at run time Poly Mod Loader applies the same class tweakers to
+ * transitive-}), so that code written against widened members and injected interfaces compiles (Plexus Mod Loader's
+ * NeoForge host modules, ADR-0031). Only for compiling: at run time Plexus Mod Loader applies the same class tweakers to
  * the running game. Classes are changed in their access flags and interface lists only; other entries are copied.
  */
 @CacheableTask

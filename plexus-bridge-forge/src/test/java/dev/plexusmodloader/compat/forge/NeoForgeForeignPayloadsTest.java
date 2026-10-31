@@ -83,7 +83,7 @@ class NeoForgeForeignPayloadsTest {
 
         assertEquals(5, rules.size());
         assertTrue(rules.stream()
-                .anyMatch(rule -> rule.ruleId().equals("poly:neoforge_bundle_filter")
+                .anyMatch(rule -> rule.ruleId().equals("plexus:neoforge_bundle_filter")
                         && rule.action().describe().contains("keepOtherLoadersBundledPayloads before each return")));
         assertTrue(rules.stream()
                 .allMatch(rule ->

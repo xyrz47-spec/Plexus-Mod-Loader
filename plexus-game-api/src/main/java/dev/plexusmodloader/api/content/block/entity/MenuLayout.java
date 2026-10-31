@@ -13,7 +13,7 @@ import java.util.Optional;
  * from the menu's top-left corner; a slot is 16×16 with its frame one pixel outside. The player's
  * inventory (27 + 9 slots) is placed at {@code inventoryX, inventoryY}.
  *
- * <p>Without a {@code background} texture Poly Mod Loader draws a plain panel with slot frames. With one, the
+ * <p>Without a {@code background} texture Plexus Mod Loader draws a plain panel with slot frames. With one, the
  * texture ({@code <namespace>:textures/gui/...png}, 256×256 canvas) is drawn as is and must include
  * the slot frames.
  *

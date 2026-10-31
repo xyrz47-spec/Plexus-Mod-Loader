@@ -24,8 +24,8 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 /**
- * Poly Mod Loader's change to FML's own Mixin start for a launch where Fabric or Quilt mods run next to NeoForge
- * mods (ADR-0026 30): one class loader holds one Mixin, and Fabric's (Poly Mod Loader's service, ADR-0020) serves
+ * Plexus Mod Loader's change to FML's own Mixin start for a launch where Fabric or Quilt mods run next to NeoForge
+ * mods (ADR-0026 30): one class loader holds one Mixin, and Fabric's (Plexus Mod Loader's service, ADR-0020) serves
  * every loader, as it serves Forge mods (ADR-0021 G8). FML has no setting that leaves its Mixin out: {@code
  * FMLLoader.create} always creates a {@code MixinFacade}, whose constructor names FML's Mixin service and starts Mixin,
  * and whose {@code finishInitialization} adds the mods' configurations and moves Mixin to its default phase.
@@ -37,11 +37,11 @@ import java.util.function.Consumer;
  *       the shared Mixin; {@code close()} does nothing (it only detaches FML's service).
  *   <li>{@code FMLLoader.createClassProcessorSet}: the one {@code mixinFacade.getClassProcessor()} becomes {@code
  *       PlexusFml.mixinClassProcessor(mixinFacade)}, a processor with FML's Mixin name that changes nothing, so that the
- *       other processors keep their order; the shared Mixin applies in Poly Mod Loader's bridge stage. FML 12 adds
+ *       other processors keep their order; the shared Mixin applies in Plexus Mod Loader's bridge stage. FML 12 adds
  *       {@code mixinFacade.getGeneratingClassProcessor()} to the set too, the processor that makes Mixin's synthetic
  *       classes ({@code org.spongepowered.asm.synthetic.args}, for {@code @ModifyArgs}) with FML's Mixin; it becomes
  *       {@code PlexusFml.mixinGeneratingClassProcessor(mixinFacade)}, a processor with its name and order that changes
- *       nothing, as the shared Mixin's synthetic classes come from Poly Mod Loader's bridge stage too ({@code
+ *       nothing, as the shared Mixin's synthetic classes come from Plexus Mod Loader's bridge stage too ({@code
  *       BridgeClassTransformer.generate}). Left as it is, FML 12 would add the {@code null} the facade now holds, and
  *       its {@code ClassProcessorSet} would fail ({@code PLEXUS-COMPAT-208}).
  * </ul>

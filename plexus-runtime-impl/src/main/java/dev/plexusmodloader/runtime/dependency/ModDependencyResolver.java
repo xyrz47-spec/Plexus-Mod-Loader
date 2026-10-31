@@ -28,7 +28,7 @@ public final class ModDependencyResolver {
     /** ID under which the Plexus Mod Loader runtime itself can be depended on. */
     public static final String RUNTIME_MOD_ID = "plexus";
 
-    /** Legacy runtime ID for backward compatibility with Poly mods. */
+    /** Legacy runtime ID for backward compatibility with Plexus mods. */
     public static final String LEGACY_RUNTIME_MOD_ID = "poly";
 
     private static final Set<String> RESERVED_IDS = Set.of(RUNTIME_MOD_ID, LEGACY_RUNTIME_MOD_ID, "minecraft", "java");
@@ -50,7 +50,7 @@ public final class ModDependencyResolver {
     }
 
     /**
-     * Resolves {@code mods} for {@code side} of Minecraft {@code gameVersion} running on Poly Mod Loader
+     * Resolves {@code mods} for {@code side} of Minecraft {@code gameVersion} running on Plexus Mod Loader
      * {@code runtimeVersion}.
      */
     public Result resolve(List<ModMetadata> mods, String gameVersion, GameSide side, SemanticVersion runtimeVersion) {

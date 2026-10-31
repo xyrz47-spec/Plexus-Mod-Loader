@@ -17,10 +17,10 @@
 - `HostPayloadHooks`: Forge/NeoForge와 Fabric의 커스텀 네트워크 페이로드가 단일 네트워크 채널에서 충돌하지 않도록 디코딩 및 라우팅 조율.
 
 ### 3) 로딩 화면과 창 제목 (`PlexusLoadingOverlay`, `PlexusWindowTitle`)
-- 게임의 로딩 화면(`LoadingOverlay`)은 그대로 둡니다(Mojang 빨간 배경 또는 단색 로고 설정의 검은 배경, Mojang Studios 로고, 진행 막대, 페이드). `poly:client_loading_overlay`가 `extractRenderState` 끝에서 Poly 표시를 같은 페이드로 덧그립니다: 오른쪽 아래의 회전하는 금색 큐브(`poly_cube.png`, 32×32 프레임 24개)와 `POLY MOD LOADER`, 진행 막대 아래의 로더별 모드 수(`MODS: FABRIC 34 · NEOFORGE 53`).
+- 게임의 로딩 화면(`LoadingOverlay`)은 그대로 둡니다(Mojang 빨간 배경 또는 단색 로고 설정의 검은 배경, Mojang Studios 로고, 진행 막대, 페이드). `plexus:client_loading_overlay`가 `extractRenderState` 끝에서 Plexus 표시를 같은 페이드로 덧그립니다: 오른쪽 아래의 회전하는 금색 큐브(`plexus_cube.png`, 32×32 프레임 24개)와 `PLEXUS MOD LOADER`, 진행 막대 아래의 로더별 모드 수(`MODS: FABRIC 34 · NEOFORGE 53`).
 - 글자는 게임 글꼴이 아니라 5×7 픽셀 글자로 그립니다. MinecraftForge의 첫 로딩 화면은 게임이 글꼴을 읽기 전입니다.
 - MinecraftForge의 `ForgeLoadingOverlay`도 같은 화면을 그리므로 같은 표시가 붙습니다. Forge·NeoForge 초기 로딩 창의 큐브와 제목은 `plexus-bridge-forge`의 `EarlyScreenArt`, `EarlyWindowTitle`이 맡습니다.
-- `poly:client_window_title`: 창 제목을 로더와 상관없이 `Minecraft* Poly 26.2`(뒤의 ` - Singleplayer` 등은 게임 그대로)로 씁니다.
+- `plexus:client_window_title`: 창 제목을 로더와 상관없이 `Minecraft* Plexus 26.2`(뒤의 ` - Singleplayer` 등은 게임 그대로)로 씁니다.
 
 ---
 

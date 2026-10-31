@@ -38,8 +38,8 @@ import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 
 /**
- * Poly Mod Loader's implementation of Fabric Loader's runtime API ({@code FabricLoader.getInstance()}), built from
- * the mods Poly Mod Loader decided to load (ADR-0016). Fabric mods see every loaded mod, of every loader, as a
+ * Plexus Mod Loader's implementation of Fabric Loader's runtime API ({@code FabricLoader.getInstance()}), built from
+ * the mods Plexus Mod Loader decided to load (ADR-0016). Fabric mods see every loaded mod, of every loader, as a
  * {@link ModContainer}, plus the built-in {@code minecraft}, {@code java}, {@code fabricloader} and
  * {@code mixinextras}. A Quilt mod's metadata follows Quilt Loader's rules for Fabric's view ({@code getType()} is
  * {@code quilt}, ADR-0027).
@@ -49,7 +49,7 @@ import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
  *
  * <p>Entrypoints of any key ({@code main}, {@code client}, {@code modmenu}, ...) are created on request through
  * the declared language adapter, once per mod and declaration; {@code main}/{@code client}/{@code server}
- * instances are the ones Poly Mod Loader calls, as in Fabric. The mapping resolver is Fabric Loader's without mappings
+ * instances are the ones Plexus Mod Loader calls, as in Fabric. The mapping resolver is Fabric Loader's without mappings
  * ({@link #getMappingResolver()}). {@code getGameInstance} comes from the version adapter through the launch context
  * ({@link #getGameInstance()}).
  *
@@ -112,7 +112,7 @@ public final class FabricLoaderRuntime {
 
     /**
      * Builds the runtime for {@code context}, with further built-in mods such as {@code mixinextras}, which the
-     * bridge provides on Poly Mod Loader's class path as Fabric Loader bundles it.
+     * bridge provides on Plexus Mod Loader's class path as Fabric Loader bundles it.
      *
      * @param fabricLoaderVersion the version the built-in {@code fabricloader} mod reports
      * @param builtInLibraries ID of each further built-in mod to its version
@@ -151,8 +151,8 @@ public final class FabricLoaderRuntime {
                             .orElseGet(() -> FabricModMetadata.fabric(
                                     read.fabricModJson().orElseThrow())))
                     .orElseGet(() -> FabricModMetadata.other(
-                            mod.loader().equals("Poly Mod Loader")
-                                    ? "poly"
+                            mod.loader().equals("Plexus Mod Loader")
+                                    ? "plexus"
                                     : mod.loader().toLowerCase(Locale.ROOT),
                             mod.modId(),
                             mod.version(),
@@ -257,7 +257,7 @@ public final class FabricLoaderRuntime {
     }
 
     /**
-     * The instance Poly Mod Loader calls for one of the mod entrypoints it runs ({@code main}, {@code client},
+     * The instance Plexus Mod Loader calls for one of the mod entrypoints it runs ({@code main}, {@code client},
      * {@code server}): the same instance {@link #getEntrypoints} returns for that key.
      *
      * @throws EntrypointException if no loaded Fabric or Quilt mod declares it or it cannot be created

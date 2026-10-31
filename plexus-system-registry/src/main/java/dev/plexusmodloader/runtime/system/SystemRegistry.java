@@ -1,7 +1,7 @@
 package dev.plexusmodloader.runtime.system;
 
 import dev.plexusmodloader.api.runtime.GameSide;
-import dev.plexusmodloader.api.system.PolySystem;
+import dev.plexusmodloader.api.system.PlexusSystem;
 import dev.plexusmodloader.api.system.SystemContext;
 import dev.plexusmodloader.api.system.SystemId;
 import dev.plexusmodloader.api.system.SystemLookup;
@@ -25,7 +25,7 @@ public final class SystemRegistry implements SystemLookup {
      *
      * @param systemId the system
      * @param displayName human-readable name
-     * @param providerModId {@code poly} for the default, otherwise the replacing mod
+     * @param providerModId {@code plexus} for the default, otherwise the replacing mod
      * @param providerClass provider class name
      * @param overriddenModIds mods whose replacement was overridden
      */
@@ -63,12 +63,12 @@ public final class SystemRegistry implements SystemLookup {
     }
 
     static final String DEFAULT_PROVIDER_MOD_ID = "plexus";
-    static final String LEGACY_DEFAULT_PROVIDER_MOD_ID = "poly";
+    static final String LEGACY_DEFAULT_PROVIDER_MOD_ID = "plexus";
 
-    private final Map<Class<?>, PolySystem> instances;
+    private final Map<Class<?>, PlexusSystem> instances;
     private final List<ActiveSystem> activeSystems;
 
-    private SystemRegistry(Map<Class<?>, PolySystem> instances, List<ActiveSystem> activeSystems) {
+    private SystemRegistry(Map<Class<?>, PlexusSystem> instances, List<ActiveSystem> activeSystems) {
         this.instances = Map.copyOf(instances);
         this.activeSystems = List.copyOf(activeSystems);
     }
@@ -87,14 +87,14 @@ public final class SystemRegistry implements SystemLookup {
             SystemReplacementResolver.Result replacements,
             GameSide side,
             ClassLoader modClassLoader) {
-        Map<Class<?>, PolySystem> instances = new LinkedHashMap<>();
+        Map<Class<?>, PlexusSystem> instances = new LinkedHashMap<>();
         List<ActiveSystem> active = new ArrayList<>();
         List<String> problems = new ArrayList<>();
         for (SystemDefinition<?> definition : definitions) {
             SystemReplacementResolver.SelectedReplacement replacement =
                     replacements.replacements().get(definition.id());
             try {
-                PolySystem instance = replacement == null
+                PlexusSystem instance = replacement == null
                         ? createDefault(definition, side)
                         : createReplacement(definition, replacement, side, modClassLoader);
                 instances.put(definition.contract(), instance);
@@ -124,8 +124,8 @@ public final class SystemRegistry implements SystemLookup {
     }
 
     @Override
-    public <T extends PolySystem> T get(Class<T> contract) {
-        PolySystem instance = instances.get(contract);
+    public <T extends PlexusSystem> T get(Class<T> contract) {
+        PlexusSystem instance = instances.get(contract);
         if (instance == null) {
             throw new IllegalArgumentException("No system registered for contract " + contract.getName());
         }
@@ -137,7 +137,7 @@ public final class SystemRegistry implements SystemLookup {
         return activeSystems;
     }
 
-    private static <T extends PolySystem> T createDefault(SystemDefinition<T> definition, GameSide side) {
+    private static <T extends PlexusSystem> T createDefault(SystemDefinition<T> definition, GameSide side) {
         SystemContext context = new SystemContext(definition.id(), side, DEFAULT_PROVIDER_MOD_ID);
         return checked(
                 definition,
@@ -146,7 +146,7 @@ public final class SystemRegistry implements SystemLookup {
                 definition.defaultProvider().getClass().getName());
     }
 
-    private static <T extends PolySystem> T createReplacement(
+    private static <T extends PlexusSystem> T createReplacement(
             SystemDefinition<T> definition,
             SystemReplacementResolver.SelectedReplacement replacement,
             GameSide side,
@@ -180,7 +180,7 @@ public final class SystemRegistry implements SystemLookup {
         return checked(definition, definition.contract().cast(created), modId, providerName);
     }
 
-    private static <T extends PolySystem> T checked(
+    private static <T extends PlexusSystem> T checked(
             SystemDefinition<T> definition, T instance, String modId, String provider) {
         if (instance == null) {
             throw new ProviderFailure(modId, provider, "create() returned null");

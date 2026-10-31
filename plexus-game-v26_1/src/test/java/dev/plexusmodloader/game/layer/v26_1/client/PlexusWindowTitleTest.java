@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 class PlexusWindowTitleTest {
 
     @Test
-    void everyLoadersTitleNamesPolyModLoader() {
+    void everyLoadersTitleNamesPlexusModLoader() {
         assertEquals("Minecraft* Plexus 26.2", PlexusWindowTitle.named("Minecraft* 26.2", "26.2"));
         assertEquals("Minecraft* Plexus 26.2", PlexusWindowTitle.named("Minecraft* Forge 26.2", "26.2"));
         assertEquals("Minecraft* Plexus 26.2", PlexusWindowTitle.named("Minecraft NeoForge* 26.2", "26.2"));

@@ -26,8 +26,8 @@ import org.quiltmc.loader.api.ModLicense;
 
 /**
  * {@link ModMetadata} of a loaded mod: read from {@code fabric.mod.json} for Fabric mods, from {@code quilt.mod.json}
- * for Quilt mods ({@code quilt}, {@link #quilt}), built from what Poly Mod Loader knows for Poly Mods ({@code getType()}
- * is {@code poly}) and for the built-in {@code minecraft}, {@code java} and {@code fabricloader} ({@code builtin}).
+ * for Quilt mods ({@code quilt}, {@link #quilt}), built from what Plexus Mod Loader knows for Plexus Mods ({@code getType()}
+ * is {@code plexus}) and for the built-in {@code minecraft}, {@code java} and {@code fabricloader} ({@code builtin}).
  */
 final class FabricModMetadata implements ModMetadata {
 
@@ -154,7 +154,7 @@ final class FabricModMetadata implements ModMetadata {
                 custom);
     }
 
-    /** Metadata of a mod Poly Mod Loader knows without a {@code fabric.mod.json}. */
+    /** Metadata of a mod Plexus Mod Loader knows without a {@code fabric.mod.json}. */
     static FabricModMetadata other(String type, String id, String version, String name, List<String> provides) {
         return new FabricModMetadata(
                 type,
@@ -312,7 +312,7 @@ final class FabricModMetadata implements ModMetadata {
             try {
                 bySize.put(Integer.parseInt(entry.getKey()), entry.getValue().getAsString());
             } catch (NumberFormatException | UnsupportedOperationException | IllegalStateException e) {
-                // Not a size entry; Fabric rejects such metadata, Poly Mod Loader ignores the entry.
+                // Not a size entry; Fabric rejects such metadata, Plexus Mod Loader ignores the entry.
             }
         }
         if (bySize.isEmpty()) {

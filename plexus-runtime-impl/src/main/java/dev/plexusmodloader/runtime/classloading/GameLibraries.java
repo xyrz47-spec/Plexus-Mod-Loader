@@ -18,12 +18,12 @@ import java.util.jar.Manifest;
  * DataFixerUpper's {@code TaggedChoice}), and a class can only be changed by the loader that defines it. Each library is
  * taken whole, so its classes never split between two loaders.
  *
- * <p>Left on Poly Mod Loader's class path: the game jar, Poly Mod Loader's own jars, and libraries Poly Mod Loader itself uses
- * ({@link #SHARED_PACKAGES}), which game and Poly Mod Loader must share as one copy.
+ * <p>Left on Plexus Mod Loader's class path: the game jar, Plexus Mod Loader's own jars, and libraries Plexus Mod Loader itself uses
+ * ({@link #SHARED_PACKAGES}), which game and Plexus Mod Loader must share as one copy.
  */
 public final class GameLibraries {
 
-    /** Packages Poly Mod Loader's own code uses; a jar holding any of them stays on Poly Mod Loader's class path. */
+    /** Packages Plexus Mod Loader's own code uses; a jar holding any of them stays on Plexus Mod Loader's class path. */
     static final List<String> SHARED_PACKAGES = List.of(
             "dev/plexusmodloader/",
             "com/google/gson/",
@@ -114,7 +114,7 @@ public final class GameLibraries {
                     .map(JarEntry::getName)
                     .anyMatch(name -> SHARED_PACKAGES.stream().anyMatch(name::startsWith));
         } catch (IOException e) {
-            // A jar Poly Mod Loader cannot read is left where the JVM put it.
+            // A jar Plexus Mod Loader cannot read is left where the JVM put it.
             return true;
         }
     }

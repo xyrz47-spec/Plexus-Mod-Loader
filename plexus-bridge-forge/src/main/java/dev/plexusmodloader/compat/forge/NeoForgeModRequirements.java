@@ -34,7 +34,7 @@ import org.tomlj.TomlTable;
  * loader {@code javafml} ({@code LanguageProviderLoader.findLanguage}), and each dependency on the running side
  * ({@code ModSorter.verifyDependencyVersions}): a {@code required} one must be installed in its version range, an
  * {@code optional} one that is installed must be in its range, an {@code incompatible} one that is installed must not
- * be. FML then loads only NeoForge and Minecraft and stops the launch with the errors; Poly Mod Loader leaves that mod
+ * be. FML then loads only NeoForge and Minecraft and stops the launch with the errors; Plexus Mod Loader leaves that mod
  * out before FML starts, with the reason ({@code PLEXUS-COMPAT-217}), and then the mods that need it, so the others still
  * run.
  *
@@ -43,7 +43,7 @@ import org.tomlj.TomlTable;
  * ${file.jarVersion}} is its jar's {@code Implementation-Version}, or {@code 0.0NONE}, which satisfies every range. A
  * mod of a jar nested in it (named by JarJar's {@code META-INF/jarjar/metadata.json}) is installed with its outer jar. Version ranges are Maven's, as FML
  * reads them ({@link ForgeModRequirements.VersionRanges}). A jar without {@code neoforge.mods.toml} (an FML library) is
- * passed on unchecked, and so is a mod of another language loader than {@code javafml} (whose version Poly Mod Loader
+ * passed on unchecked, and so is a mod of another language loader than {@code javafml} (whose version Plexus Mod Loader
  * does not know) or of the deprecated {@code lowcodefml}, which FML 11 no longer checks.
  *
  * <p>Not checked: a client-only mod on a server. NeoForge does not construct {@code @Mod(dist = Dist.CLIENT)} classes
@@ -202,7 +202,7 @@ final class NeoForgeModRequirements {
     }
 
     /**
-     * The mods FML runs from {@code modJars}, as other loaders and Poly Mods see them: each jar's {@code
+     * The mods FML runs from {@code modJars}, as other loaders and Plexus Mods see them: each jar's {@code
      * neoforge.mods.toml} entries, then the mods of the jars nested in it (JarJar's {@code metadata.json}), which FML installs
      * with it. A nested mod's jar is the outer one, where FML reads it from. Jars without readable metadata add nothing.
      */

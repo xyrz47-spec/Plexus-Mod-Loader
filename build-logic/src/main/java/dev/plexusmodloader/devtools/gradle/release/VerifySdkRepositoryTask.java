@@ -15,7 +15,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * {@code verifySdkRepository}, run by {@code publishSdk} after every publication: fails when the SDK repository
- * misses an artifact, carries sources or JavaDoc it must not, or holds a POM whose Poly Mod Loader dependency is not
+ * misses an artifact, carries sources or JavaDoc it must not, or holds a POM whose Plexus Mod Loader dependency is not
  * in it ({@link SdkRepositoryCheck}).
  */
 @DisableCachingByDefault(because = "Reads a repository outside the build; always checked")
@@ -60,7 +60,7 @@ public abstract class VerifySdkRepositoryTask extends DefaultTask {
         }
         getLogger()
                 .lifecycle(
-                        "SDK {} in {}: {} artifacts, no sources, every Poly Mod Loader dependency present",
+                        "SDK {} in {}: {} artifacts, no sources, every Plexus Mod Loader dependency present",
                         getVersion().get(),
                         repository,
                         expected.size());

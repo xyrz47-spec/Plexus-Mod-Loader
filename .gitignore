@@ -8,7 +8,7 @@ run/
 
 # The SDK Maven repository publishSdk fills and the website build copies to /maven/ (ADR-0008); it keeps
 # every published version, so clean does not touch it
-/.poly/
+/.plexus/
 
 # IntelliJ IDEA — shared run configurations live in .run/
 .idea/
@@ -22,7 +22,7 @@ node_modules/
 .claude/settings.local.json
 skills-lock.json
 .claude/skills/*
-!.claude/skills/poly-*
+!.claude/skills/plexus-*
 
 # OS / secrets
 .DS_Store

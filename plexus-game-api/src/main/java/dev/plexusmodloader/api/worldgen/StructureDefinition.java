@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /**
  * A structure built in code: a box placed on the terrain surface at the centre of chosen chunks,
- * filled by a {@link StructureBuilder}. Poly Mod Loader writes the structure and its structure set into the
+ * filled by a {@link StructureBuilder}. Plexus Mod Loader writes the structure and its structure set into the
  * generated data pack, so {@code /locate structure} and {@code /place structure} work with its ID.
  *
  * @param sizeX box size along x, 1–128

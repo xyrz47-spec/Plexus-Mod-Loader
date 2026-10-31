@@ -28,13 +28,13 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
 /**
- * {@code generatePolyResources}: writes the files {@link ModResourceGenerator} makes for the {@code
- * polyResources} entries into a directory the mod's resources include.
+ * {@code generatePlexusResources}: writes the files {@link ModResourceGenerator} makes for the {@code
+ * plexusResources} entries into a directory the mod's resources include.
  */
 @CacheableTask
-public abstract class GeneratePolyResourcesTask extends DefaultTask {
+public abstract class GeneratePlexusResourcesTask extends DefaultTask {
 
-    /** The mod ID; the plugin reads it from {@code poly.mod.json}. */
+    /** The mod ID; the plugin reads it from {@code plexus.mod.json}. */
     @Input
     public abstract Property<String> getModId();
 
@@ -92,25 +92,25 @@ public abstract class GeneratePolyResourcesTask extends DefaultTask {
     }
 
     /**
-     * The {@code id} of a {@code poly.mod.json}.
+     * The {@code id} of a {@code plexus.mod.json}.
      *
      * @throws GradleException if the file is missing, is not JSON, or has no text {@code id}
      */
-    public static String modId(File polyModJson) {
-        if (!polyModJson.isFile()) {
-            throw new GradleException("polyResources needs the mod ID from " + polyModJson + ", which does not exist");
+    public static String modId(File plexusModJson) {
+        if (!plexusModJson.isFile()) {
+            throw new GradleException("plexusResources needs the mod ID from " + plexusModJson + ", which does not exist");
         }
         try {
-            JsonElement json = JsonParser.parseString(Files.readString(polyModJson.toPath(), StandardCharsets.UTF_8));
+            JsonElement json = JsonParser.parseString(Files.readString(plexusModJson.toPath(), StandardCharsets.UTF_8));
             JsonElement id = json.isJsonObject() ? json.getAsJsonObject().get("id") : null;
             if (id == null || !id.isJsonPrimitive() || !id.getAsJsonPrimitive().isString()) {
-                throw new GradleException(polyModJson + " has no \"id\"; validatePolyModJson tells what is missing");
+                throw new GradleException(plexusModJson + " has no \"id\"; validatePlexusModJson tells what is missing");
             }
             return id.getAsString();
         } catch (JsonParseException e) {
-            throw new GradleException(polyModJson + " is not valid JSON: " + e.getMessage(), e);
+            throw new GradleException(plexusModJson + " is not valid JSON: " + e.getMessage(), e);
         } catch (IOException e) {
-            throw new GradleException("Cannot read " + polyModJson, e);
+            throw new GradleException("Cannot read " + plexusModJson, e);
         }
     }
 }

@@ -96,9 +96,16 @@ class FabricLoaderRuntimeTest {
                                 new BridgeLaunchContext.LoadedMod(
                                         "Fabric", "lib", "1.2.0", "lib", List.of("lib_alias"), lib, null, null),
                                 new BridgeLaunchContext.LoadedMod(
-                                        "Poly Mod Loader", "core", "2.1.0", "Core", List.of(), nativeJar, null, null))),
+                                        "Plexus Mod Loader",
+                                        "core",
+                                        "2.1.0",
+                                        "Core",
+                                        List.of(),
+                                        nativeJar,
+                                        null,
+                                        null))),
                 "0.19.5");
-        FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(runtime);
+        FabricLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(runtime);
     }
 
     @Test
@@ -107,12 +114,12 @@ class FabricLoaderRuntimeTest {
 
         assertTrue(loader.isModLoaded("lib"));
         assertTrue(loader.isModLoaded("lib_alias"));
-        assertTrue(loader.isModLoaded("core"), "a Poly Mod is visible to Fabric mods");
+        assertTrue(loader.isModLoaded("core"), "a Plexus Mod is visible to Fabric mods");
         assertTrue(loader.isModLoaded("minecraft"));
         assertTrue(loader.isModLoaded("fabricloader"));
         assertFalse(loader.isModLoaded("fabric-api"));
         assertEquals(
-                "poly",
+                "plexus",
                 loader.getModContainer("core").orElseThrow().getMetadata().getType());
         assertEquals(
                 "26.2",
@@ -249,7 +256,7 @@ class FabricLoaderRuntimeTest {
     @SuppressWarnings("deprecation")
     void gameInstanceComesFromTheLaunch(@TempDir Path directory) {
         Object[] game = {null};
-        FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(FabricLoaderRuntime.create(
+        FabricLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(FabricLoaderRuntime.create(
                 new BridgeLaunchContext(
                         GameSide.CLIENT,
                         "26.2",
@@ -276,7 +283,7 @@ class FabricLoaderRuntimeTest {
             jar.write("{}".getBytes(StandardCharsets.UTF_8));
             jar.closeEntry();
         }
-        FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(FabricLoaderRuntime.create(
+        FabricLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(FabricLoaderRuntime.create(
                 new BridgeLaunchContext(
                         GameSide.DEDICATED_SERVER,
                         "26.2",

@@ -38,14 +38,14 @@ import java.util.jar.Manifest;
  * before it is defined (ADR-0003).
  *
  * <p>Delegation: classes found in this loader's jars are defined here (child-first) so they can be
- * transformed. Poly Mod Loader's own packages and Java platform packages always come from the parent, so mods
- * and Poly Mod Loader share one copy of the Poly Mod Loader API. Libraries (LWJGL, log4j, gson, …) are not in this loader's
+ * transformed. Plexus Mod Loader's own packages and Java platform packages always come from the parent, so mods
+ * and Plexus Mod Loader share one copy of the Plexus Mod Loader API. Libraries (LWJGL, log4j, gson, …) are not in this loader's
  * jars and therefore also come from the parent; they are never transformed. The one exception to
- * the parent-only Poly Mod Loader packages is the version game layer ({@value #GAME_LAYER_PREFIX}): its jar is
+ * the parent-only Plexus Mod Loader packages is the version game layer ({@value #GAME_LAYER_PREFIX}): its jar is
  * one of this loader's jars so it can link against game classes (ADR-0010). Libraries a bridge shares with its
  * mods (Mixin, MixinExtras) also always come from the parent, even when a mod jar carries a copy.
  *
- * <p>Bridge transformers ({@link BridgeClassTransformer}, such as Fabric's Mixin, ADR-0020) run after Poly Mod Loader's
+ * <p>Bridge transformers ({@link BridgeClassTransformer}, such as Fabric's Mixin, ADR-0020) run after Plexus Mod Loader's
  * transformer on every class this loader defines, in installation order, and may create classes no jar holds.
  *
  * <p>Modules: a loader that needs JPMS modules (Forge, ADR-0021) has this loader define them with {@link
@@ -107,7 +107,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
 
     /**
      * @param jars game jar first, then mod jars; the first jar containing a class wins
-     * @param parent loader that holds Poly Mod Loader and the game libraries
+     * @param parent loader that holds Plexus Mod Loader and the game libraries
      * @param transformer validated transformation plan executor
      */
     public GameClassLoader(List<Path> jars, ClassLoader parent, ClassTransformExecutor transformer) {
@@ -116,7 +116,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
 
     /**
      * @param jars game jar first, then mod jars; the first jar containing a class wins
-     * @param parent loader that holds Poly Mod Loader and the game libraries
+     * @param parent loader that holds Plexus Mod Loader and the game libraries
      * @param transformer validated transformation plan executor
      * @param sharedLibraryPrefixes package prefixes ({@code com.llamalad7.mixinextras.}) always taken from {@code
      *     parent}, from {@link dev.plexusmodloader.compat.bridge.ModLoaderBridge#sharedLibraryPackages()}
@@ -135,7 +135,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
      * @param jars game jar first, then mod jars; the first jar containing a class wins
      * @param resourceJars jars whose resources this loader finds but whose classes it never defines from them, such as
      *     the jars a loader scans before it defines them as modules (Forge's mod files, ADR-0021)
-     * @param parent loader that holds Poly Mod Loader and the game libraries
+     * @param parent loader that holds Plexus Mod Loader and the game libraries
      * @param transformer validated transformation plan executor
      * @param sharedLibraryPrefixes package prefixes always taken from {@code parent}
      * @param skippedRedirects receives a warning for each call redirect a bridge transformer made impossible in a class
@@ -157,7 +157,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
      * @param classBytesJars jars that are neither resources nor defined from, whose class bytes {@link #classBytes}
      *     answers until a loader defines their classes as modules (NeoForge's patched game and universal jar, which FML
      *     finds in its own library folder, ADR-0026): what a bridge's Mixin reads of the game before the host starts
-     * @param parent loader that holds Poly Mod Loader and the game libraries
+     * @param parent loader that holds Plexus Mod Loader and the game libraries
      * @param transformer validated transformation plan executor
      * @param sharedLibraryPrefixes package prefixes always taken from {@code parent}
      * @param skippedRedirects receives a warning for each call redirect a bridge transformer made impossible in a class
@@ -170,7 +170,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
             ClassTransformExecutor transformer,
             List<String> sharedLibraryPrefixes,
             java.util.function.Consumer<String> skippedRedirects) {
-        super("poly-game", toUrls(concat(jars, resourceJars)), parent);
+        super("plexus-game", toUrls(concat(jars, resourceJars)), parent);
         this.transformer = transformer;
         this.sharedLibraryPrefixes = List.copyOf(sharedLibraryPrefixes);
         this.skippedRedirects = skippedRedirects;
@@ -362,7 +362,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
      * Child-first, as for classes: a resource this loader's jars or modules hold comes from them, not from a copy on the
      * JVM class path. The Minecraft Launcher and the server install put the vanilla game jar on the class path, while
      * this loader may hold another (Forge's patched game jar, which FML finds through {@code getResource} of a game
-     * class). Poly Mod Loader's own and the shared libraries' resources still come from the parent.
+     * class). Plexus Mod Loader's own and the shared libraries' resources still come from the parent.
      */
     @Override
     public URL getResource(String name) {
@@ -378,7 +378,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
 
     /**
      * Hides the parent's classes and resources under {@code internalPrefixes} (internal form, {@code net/fabricmc/})
-     * from game and mod code: a loader API on Poly Mod Loader's class path whose loader runs no mods in this launch, as
+     * from game and mod code: a loader API on Plexus Mod Loader's class path whose loader runs no mods in this launch, as
      * that loader is absent under the loader that does run. Multi-loader libraries tell the loader by such classes
      * (Yumi checks for {@code net.fabricmc.loader.api.FabricLoader}). This loader's own jars and modules are not
      * affected. Call it before game classes load, from the launching thread.
@@ -479,14 +479,14 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
         return Collections.enumeration(found);
     }
 
-    /** The class file after Poly Mod Loader's transformer and the bridges' stages. */
+    /** The class file after Plexus Mod Loader's transformer and the bridges' stages. */
     private byte[] transformed(String name, byte[] originalBytes) {
         byte[] original = LegacyPackageRemapper.remap(originalBytes);
         String internalName = name.replace('.', '/');
         if (bridgeTransformers.isEmpty()) {
             return transformer.transform(internalName, original);
         }
-        // Poly Mod Loader's call redirects come after the bridge's stage, so that its injections at those calls find
+        // Plexus Mod Loader's call redirects come after the bridge's stage, so that its injections at those calls find
         // them (ADR-0020).
         return transformer.transformLate(
                 internalName,
@@ -613,7 +613,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
 
     /** The bytes a bridge's transformer generates for {@code name}, or {@code null}. */
     private byte[] generatedBytes(String name) {
-        if (bridgeTransformers.isEmpty() || isPlatformOrPolyModLoader(name)) {
+        if (bridgeTransformers.isEmpty() || isPlatformOrPlexusModLoader(name)) {
             return null;
         }
         for (BridgeClassTransformer bridgeTransformer : bridgeTransformers) {
@@ -658,7 +658,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
         OwnedJar jar = isParentOnly(name) ? null : owningJar(path);
         if (jar == null && !isParentOnly(name)) {
             // A class of a jar a loader defines as a module later (the host's patched game, its mods): its bytes are
-            // those the class will have, not those of a copy on Poly Mod Loader's class path (the vanilla game).
+            // those the class will have, not those of a copy on Plexus Mod Loader's class path (the vanilla game).
             jar = java.util.stream.Stream.concat(resourceJars.stream(), classBytesJars.stream())
                     .filter(resource -> resource.file().getEntry(path) != null)
                     .findFirst()
@@ -674,7 +674,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
         try (InputStream input = getParent().getResourceAsStream(path)) {
             return input == null ? Optional.empty() : Optional.of(input.readAllBytes());
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to read " + path + " from Poly Mod Loader's class path", e);
+            throw new UncheckedIOException("Failed to read " + path + " from Plexus Mod Loader's class path", e);
         }
     }
 
@@ -774,7 +774,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
     }
 
     private boolean isParentOnly(String className) {
-        if (isPlatformOrPolyModLoader(className)) {
+        if (isPlatformOrPlexusModLoader(className)) {
             return true;
         }
         for (String prefix : sharedLibraryPrefixes) {
@@ -785,7 +785,7 @@ public final class GameClassLoader extends URLClassLoader implements GameClassBy
         return false;
     }
 
-    private static boolean isPlatformOrPolyModLoader(String className) {
+    private static boolean isPlatformOrPlexusModLoader(String className) {
         if (className.startsWith(GAME_LAYER_PREFIX)) {
             return false;
         }

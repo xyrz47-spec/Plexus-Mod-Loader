@@ -44,10 +44,10 @@ class ForgeTitleBrandingTest {
 
     private record Drawn(String text, int index) {}
 
-    /** Forge's lines keep their indexes; Poly Mod Loader's follow, bottom one first, so they sit above Forge's. */
+    /** Forge's lines keep their indexes; Plexus Mod Loader's follow, bottom one first, so they sit above Forge's. */
     @Test
-    void polyLinesAreDrawnAboveForgesLines() {
-        ForgeTitleBranding.install(() -> List.of("Poly mods: 2", "Fabric mods: 14", "Forge mods: 3"), message -> {});
+    void plexusLinesAreDrawnAboveForgesLines() {
+        ForgeTitleBranding.install(() -> List.of("Plexus mods: 2", "Fabric mods: 14", "Forge mods: 3"), message -> {});
         List<Drawn> drawn = new ArrayList<>();
 
         ForgeTitleBranding.forEachLine(true, true, (text, index) -> drawn.add(new Drawn(text, index)));
@@ -58,7 +58,7 @@ class ForgeTitleBrandingTest {
                         new Drawn("Forge 65.1.5", 1),
                         new Drawn("Forge mods: 3", 2),
                         new Drawn("Fabric mods: 14", 3),
-                        new Drawn("Poly mods: 2", 4)),
+                        new Drawn("Plexus mods: 2", 4)),
                 drawn);
     }
 
@@ -77,7 +77,7 @@ class ForgeTitleBrandingTest {
         TransformRuleDefinition rule = ForgeTitleBranding.rule("26.2");
         RedirectCall redirect = (RedirectCall) rule.action();
 
-        assertEquals("poly", rule.ownerModId());
+        assertEquals("plexus", rule.ownerModId());
         assertEquals(Set.of(GameSide.CLIENT), rule.sides());
         assertEquals(TransformFailurePolicy.DISABLE_RULE, rule.failurePolicy());
         assertEquals(List.of(ForgeTitleBranding.VANILLA_RULE_ID), rule.after());
@@ -98,32 +98,32 @@ class ForgeTitleBrandingTest {
      * -PforgeVanillaClient=<client-<mc>.jar>} to patch it here.
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.forgeVanillaClient", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.forgeVanillaClient", matches = ".+")
     void ruleAppliesToForgesPatchedClientFromItsInstaller(@TempDir Path directory) throws IOException {
         Path patched = directory.resolve("forge-client.jar");
         ForgePatchSet patches;
-        try (JarFile installer = new JarFile(System.getProperty("poly.forgeClientInstaller"));
+        try (JarFile installer = new JarFile(System.getProperty("plexus.forgeClientInstaller"));
                 InputStream lzma = installer.getInputStream(installer.getEntry("data/client.lzma"))) {
             patches = ForgePatchSet.read(lzma);
         }
         patches.patch(
-                Path.of(System.getProperty("poly.forgeVanillaClient")),
+                Path.of(System.getProperty("plexus.forgeVanillaClient")),
                 patched,
                 Optional.of(".forge_patched_minecraft"));
         assertRuleAppliesTo(patched);
     }
 
     @Test
-    @EnabledIfSystemProperty(named = "poly.forgePatchedClient", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.forgePatchedClient", matches = ".+")
     void ruleAppliesToForgesPatchedClient() throws IOException {
-        assertRuleAppliesTo(Path.of(System.getProperty("poly.forgePatchedClient")));
+        assertRuleAppliesTo(Path.of(System.getProperty("plexus.forgePatchedClient")));
     }
 
     /** Forge's universal jar has the method the hook calls ({@code -PforgeUniversal=<forge-<version>-universal.jar>}). */
     @Test
-    @EnabledIfSystemProperty(named = "poly.forgeUniversal", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.forgeUniversal", matches = ".+")
     void forgesBrandingControlHasTheMethodTheHookCalls() throws IOException {
-        try (JarFile universal = new JarFile(System.getProperty("poly.forgeUniversal"))) {
+        try (JarFile universal = new JarFile(System.getProperty("plexus.forgeUniversal"))) {
             ClassNode node =
                     parse(read(universal, ForgeTitleBranding.BRANDING_CONTROL).orElseThrow());
             assertTrue((node.access & Opcodes.ACC_PUBLIC) != 0, "BrandingControl is public");
@@ -143,7 +143,7 @@ class ForgeTitleBrandingTest {
         // The version adapter's rule, as Minecraft26_2Adapter declares it.
         TransformRuleDefinition vanilla = new TransformRuleDefinition(
                 ForgeTitleBranding.VANILLA_RULE_ID,
-                "poly",
+                "plexus",
                 gameVersion,
                 Set.of(GameSide.CLIENT),
                 forge.target(),

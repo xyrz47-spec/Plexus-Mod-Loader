@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Log4j configuration for development runs started by runClient / runServer / serverBootSmokeTest.
-  Log4j comes from Minecraft's own libraries. Poly Mod Loader's loader classes log through SLF4J into the same
-  context as the game, so one log shows Poly Mod Loader phases and game output in order.
+  Log4j comes from Minecraft's own libraries. Plexus Mod Loader's loader classes log through SLF4J into the same
+  context as the game, so one log shows Plexus Mod Loader phases and game output in order.
 -->
-<!-- shutdownHook="disable" keeps logging available while Poly Mod Loader shutdown tasks run. -->
+<!-- shutdownHook="disable" keeps logging available while Plexus Mod Loader shutdown tasks run. -->
 <Configuration status="WARN" shutdownHook="disable">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">

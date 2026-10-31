@@ -29,7 +29,7 @@ import org.gradle.api.logging.Logger;
 /**
  * Installs a Minecraft client or dedicated server distribution into a shared cache, following
  * Mojang's version manifest (library rules, JVM arguments, assets). All downloads are hash-verified.
- * The Minecraft jars are downloaded from Mojang at build time and are never redistributed by Poly Mod Loader.
+ * The Minecraft jars are downloaded from Mojang at build time and are never redistributed by Plexus Mod Loader.
  * Files copied by hand into a {@link LocalMinecraftFiles} directory are verified the same way and
  * copied into the cache instead of being downloaded.
  */
@@ -38,7 +38,7 @@ final class MinecraftDistributionInstaller {
     private static final URI VERSION_MANIFEST =
             URI.create("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
     private static final URI ASSET_OBJECTS = URI.create("https://resources.download.minecraft.net/");
-    static final String DEV_PLAYER_NAME = "PolyDev";
+    static final String DEV_PLAYER_NAME = "PlexusDev";
 
     private final VerifiedDownloader downloader = new VerifiedDownloader();
     private final Path cacheRoot;
@@ -106,7 +106,7 @@ final class MinecraftDistributionInstaller {
         Path nativesDir = versionDir.resolve("natives");
         Map<String, String> jvmVariables = Map.of(
                 "natives_directory", nativesDir.toString(),
-                "launcher_name", "poly-dev",
+                "launcher_name", "plexus-dev",
                 "launcher_version", gameVersion,
                 "classpath", "");
         List<String> jvmArguments = new ArrayList<>();
@@ -173,7 +173,7 @@ final class MinecraftDistributionInstaller {
 
     /**
      * Installs the dedicated server. Mojang ships it as a "bundler" jar that contains the real
-     * server jar and its libraries; Poly Mod Loader extracts them so the server jar can be loaded through Poly Mod Loader's
+     * server jar and its libraries; Plexus Mod Loader extracts them so the server jar can be loaded through Plexus Mod Loader's
      * game class loader instead of the bundler's own launcher.
      */
     MinecraftLaunchSpec installServer(String gameVersion) {
@@ -308,7 +308,7 @@ final class MinecraftDistributionInstaller {
         if (!version.has("arguments")) {
             throw new IllegalStateException("The version JSON of Minecraft " + gameVersion + " has no 'arguments'"
                     + (version.has("minecraftArguments") ? " (it uses the pre-1.13 'minecraftArguments' format)" : "")
-                    + "; Poly Mod Loader's client launcher supports only the 'arguments' format of 1.13 and later.");
+                    + "; Plexus Mod Loader's client launcher supports only the 'arguments' format of 1.13 and later.");
         }
     }
 

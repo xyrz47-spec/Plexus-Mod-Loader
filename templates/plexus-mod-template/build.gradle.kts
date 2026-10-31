@@ -1,14 +1,14 @@
 plugins {
-    id("dev.polymodloader.mod") version "0.1.0-alpha.10"
+    id("dev.plexusmodloader.mod") version "0.1.0-alpha.10"
 }
 
 group = "com.example"
 version = "0.1.0"
 
-// Standard resource files for simple content, generated at build time (generatePolyResources):
+// Standard resource files for simple content, generated at build time (generatePlexusResources):
 // item definition and model, block state, block model, loot table, English name, tool tag.
 // A file you write yourself under src/main/resources takes the place of the generated one.
-polyResources {
+plexusResources {
     // Without a texture setting these use textures/item/ruby.png and textures/block/ruby_block.png;
     // the template borrows vanilla textures so it works before you draw your own.
     item("ruby") { texture = "minecraft:item/redstone" }

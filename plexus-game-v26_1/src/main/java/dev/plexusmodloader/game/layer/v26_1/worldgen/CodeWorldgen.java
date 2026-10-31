@@ -49,9 +49,10 @@ import org.slf4j.LoggerFactory;
  */
 public final class CodeWorldgen {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** The piece type of every code structure; a piece names its structure in its saved data. */
+    // World saves name the piece type, so it keeps its 1.4.x ID: renaming it would break structures in existing worlds.
     private static final Identifier PIECE_ID = Identifier.fromNamespaceAndPath("poly", "code_structure_piece");
 
     private static final Map<ResourceId, StructureDefinition> STRUCTURES = new ConcurrentHashMap<>();
@@ -94,7 +95,7 @@ public final class CodeWorldgen {
         int total = features.size() + densityFunctions.size() + structures.size();
         if (total > 0) {
             LOGGER.info(
-                    "[Poly Mod Loader] Registered {} code feature(s), {} density function(s) and {} structure(s) from mods",
+                    "[Plexus Mod Loader] Registered {} code feature(s), {} density function(s) and {} structure(s) from mods",
                     features.size(),
                     densityFunctions.size(),
                     structures.size());
@@ -104,7 +105,7 @@ public final class CodeWorldgen {
     private static void reportFailure(ResourceId id, String what, RuntimeException e) {
         if (FAILED.add(id)) {
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-WORLDGEN-005 {} {} threw; it is skipped where it fails", what, id, e);
+                    "[Plexus Mod Loader] PLEXUS-WORLDGEN-005 {} {} threw; it is skipped where it fails", what, id, e);
         }
     }
 
@@ -309,14 +310,14 @@ public final class CodeWorldgen {
 
         CodePiece(CompoundTag tag) {
             super(pieceType, tag);
-            this.id = ResourceId.parse(tag.getStringOr("poly_structure", "poly:missing"));
-            this.seed = tag.getLongOr("poly_seed", 0);
+            this.id = ResourceId.parse(tag.getStringOr("plexus_structure", "plexus:missing"));
+            this.seed = tag.getLongOr("plexus_seed", 0);
         }
 
         @Override
         protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
-            tag.putString("poly_structure", id.toString());
-            tag.putLong("poly_seed", seed);
+            tag.putString("plexus_structure", id.toString());
+            tag.putLong("plexus_seed", seed);
         }
 
         @Override

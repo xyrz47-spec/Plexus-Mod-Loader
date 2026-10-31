@@ -7,7 +7,7 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
 /**
- * Poly Mod Loader's stand-in for Fabric Loader's default language adapter, which {@code LanguageAdapter.getDefault()}
+ * Plexus Mod Loader's stand-in for Fabric Loader's default language adapter, which {@code LanguageAdapter.getDefault()}
  * returns. A value is a class name ({@code a.Main}, created with its no-argument constructor), a static field
  * ({@code a.Main::INSTANCE}), or a method or constructor ({@code a.Main::<init>}) turned into the requested
  * functional interface ({@code a.Main::init}); an instance method is bound to a new instance made with the class's
@@ -26,7 +26,7 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
         return JvmEntrypointValue.create(
                 value,
                 type,
-                FabricLoaderImpl.INSTANCE.polyModLoaderRuntime().gameClassLoader(),
+                FabricLoaderImpl.INSTANCE.plexusModLoaderRuntime().gameClassLoader(),
                 (message, cause) -> message == null
                         ? new LanguageAdapterException(cause)
                         : new LanguageAdapterException(message, cause));

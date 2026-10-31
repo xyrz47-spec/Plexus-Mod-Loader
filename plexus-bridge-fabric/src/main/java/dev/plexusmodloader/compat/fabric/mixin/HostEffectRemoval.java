@@ -72,7 +72,7 @@ final class HostEffectRemoval {
     }
 
     /**
-     * Adds the bridge {@code poly$hostCall$<handler>(Set, Consumer, Operation)} carrying {@code wrapOperation} (the
+     * Adds the bridge {@code plexus$hostCall$<handler>(Set, Consumer, Operation)} carrying {@code wrapOperation} (the
      * handler's, which the handler loses) retargeted at NeoForge's {@code forEach}.
      */
     static void bridgeMethod(ClassBuilder builder, ClassModel mixin, MethodModel handler, Annotation wrapOperation) {

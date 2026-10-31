@@ -15,7 +15,7 @@ import dev.plexusmodloader.api.resource.ResourceId;
 import dev.plexusmodloader.api.world.WorldView;
 import dev.plexusmodloader.game.layer.v26_1.LayerState;
 import dev.plexusmodloader.game.layer.v26_1.ModReloadListener;
-import dev.plexusmodloader.game.layer.v26_1.Networking.PolyPayload;
+import dev.plexusmodloader.game.layer.v26_1.Networking.PlexusPayload;
 import dev.plexusmodloader.game.layer.v26_1.SyncChannel;
 import dev.plexusmodloader.game.layer.v26_1.Views;
 import dev.plexusmodloader.game.layer.v26_1.content.Particles;
@@ -86,7 +86,7 @@ import org.slf4j.LoggerFactory;
 /** Client-only hooks; only rules for the client side point here. */
 public final class ClientHooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Map<String, KeyMapping.Category> CATEGORIES = new HashMap<>();
     private static final Set<String> FAILED_LAYERS = ConcurrentHashMap.newKeySet();
     private static volatile boolean keyMappingsAdded;
@@ -137,9 +137,9 @@ public final class ClientHooks {
                 field.setAccessible(true);
                 field.set(options, all);
                 keyMappingsAdded = true;
-                LOGGER.info("[Poly Mod Loader] Added {} mod key binding(s) to the controls", added.size());
+                LOGGER.info("[Plexus Mod Loader] Added {} mod key binding(s) to the controls", added.size());
             } catch (ReflectiveOperationException e) {
-                LOGGER.error("[Poly Mod Loader] PLEXUS-CLIENT-004 could not add mod key bindings to the controls", e);
+                LOGGER.error("[Plexus Mod Loader] PLEXUS-CLIENT-004 could not add mod key bindings to the controls", e);
             }
         });
     }
@@ -177,7 +177,7 @@ public final class ClientHooks {
                 } catch (RuntimeException | LinkageError e) {
                     FAILED_LAYERS.add(id);
                     LOGGER.error(
-                            "[Poly Mod Loader] PLEXUS-CLIENT-003 HUD layer {} of {} failed and is disabled",
+                            "[Plexus Mod Loader] PLEXUS-CLIENT-003 HUD layer {} of {} failed and is disabled",
                             id,
                             layer.ownerModId(),
                             e);
@@ -185,41 +185,41 @@ public final class ClientHooks {
             }
             if (!hudReported) {
                 hudReported = true;
-                LOGGER.info("[Poly Mod Loader] Drawing {} mod HUD layer(s)", layers.size());
+                LOGGER.info("[Plexus Mod Loader] Drawing {} mod HUD layer(s)", layers.size());
             }
         });
     }
 
     /**
      * Head of {@code ClientConfigurationPacketListenerImpl.handleCustomPayload}: answers mods'
-     * configuration exchanges; {@code true} when Poly Mod Loader consumed the payload.
+     * configuration exchanges; {@code true} when Plexus Mod Loader consumed the payload.
      */
     public static boolean onConfigurationPayload(
             ClientConfigurationPacketListenerImpl listener, CustomPacketPayload payload) {
-        if (!(payload instanceof PolyPayload polyPayload)) {
+        if (!(payload instanceof PlexusPayload plexusPayload)) {
             return false;
         }
         ConfigurationEndpoint exchange = LayerState.configurationExchanges()
-                .get(Views.id(polyPayload.type().id()));
+                .get(Views.id(plexusPayload.type().id()));
         if (exchange == null) {
             return false;
         }
-        exchange.answer(polyPayload.data()).ifPresent(answer -> {
-            listener.send(new ServerboundCustomPayloadPacket(new PolyPayload(polyPayload.type(), answer)));
-            LOGGER.info("[Poly Mod Loader] Answered configuration exchange {}", exchange.id());
+        exchange.answer(plexusPayload.data()).ifPresent(answer -> {
+            listener.send(new ServerboundCustomPayloadPacket(new PlexusPayload(plexusPayload.type(), answer)));
+            LOGGER.info("[Plexus Mod Loader] Answered configuration exchange {}", exchange.id());
         });
         return true;
     }
 
     /** Head of {@code ClientPacketListener.handleCustomPayload(CustomPacketPayload)}. */
     public static boolean onClientPayload(ClientPacketListener listener, CustomPacketPayload payload) {
-        if (!(payload instanceof PolyPayload polyPayload)) {
+        if (!(payload instanceof PlexusPayload plexusPayload)) {
             return false;
         }
         ChannelEndpoint endpoint =
-                LayerState.channels().get(Views.id(polyPayload.type().id()));
+                LayerState.channels().get(Views.id(plexusPayload.type().id()));
         if (endpoint != null) {
-            Minecraft.getInstance().execute(() -> endpoint.receiveOnClient(polyPayload.data()));
+            Minecraft.getInstance().execute(() -> endpoint.receiveOnClient(plexusPayload.data()));
         }
         return true;
     }
@@ -238,7 +238,7 @@ public final class ClientHooks {
         minecraft.setScreen(new PlexusContainerScreen(menu, inventory, title));
         if (OPENED_MENUS.add(type)) {
             LOGGER.info(
-                    "[Poly Mod Loader] Opened mod menu {} with {} slot(s)",
+                    "[Plexus Mod Loader] Opened mod menu {} with {} slot(s)",
                     BuiltInRegistries.MENU.getKey(type),
                     menu.layout().slots().size());
         }
@@ -272,14 +272,14 @@ public final class ClientHooks {
                                 new PlexusParticle.Provider((SpriteSet) arguments[0], entry.getValue(), name);
                             case "hashCode" -> System.identityHashCode(proxy);
                             case "equals" -> proxy == arguments[0];
-                            case "toString" -> "PolyParticleRegistration[" + name + "]";
+                            case "toString" -> "PlexusParticleRegistration[" + name + "]";
                             default -> throw new UnsupportedOperationException(method.getName());
                         });
                 register.invoke(resources, entry.getKey(), factory);
             }
-            LOGGER.info("[Poly Mod Loader] Added {} mod particle provider(s)", particles.size());
+            LOGGER.info("[Plexus Mod Loader] Added {} mod particle provider(s)", particles.size());
         } catch (ReflectiveOperationException e) {
-            LOGGER.error("[Poly Mod Loader] PLEXUS-CLIENT-005 cannot add mod particle providers", e);
+            LOGGER.error("[Plexus Mod Loader] PLEXUS-CLIENT-005 cannot add mod particle providers", e);
         }
     }
 
@@ -300,7 +300,7 @@ public final class ClientHooks {
                             "PLEXUS-CLIENT-002 " + declaration.block() + " has no block entity type"));
             all.put(type, new PlexusBlockEntityRenderer(context, declaration));
         }
-        LOGGER.info("[Poly Mod Loader] Added {} mod block entity renderer(s)", declarations.size());
+        LOGGER.info("[Plexus Mod Loader] Added {} mod block entity renderer(s)", declarations.size());
         return Map.copyOf(all);
     }
 
@@ -460,7 +460,7 @@ public final class ClientHooks {
                 set.invoke(minecraft.gameRenderer, id);
                 return true;
             } catch (ReflectiveOperationException e) {
-                LOGGER.error("[Poly Mod Loader] PLEXUS-CLIENT-005 cannot apply post effect {}", effect, e);
+                LOGGER.error("[Plexus Mod Loader] PLEXUS-CLIENT-005 cannot apply post effect {}", effect, e);
                 return false;
             }
         }
@@ -541,7 +541,7 @@ public final class ClientHooks {
                             : new PlexusHumanoidRenderer(context, Views.id(texture)));
         });
         projectiles.forEach(type -> all.put(type, new ThrownItemRenderer<>(context)));
-        LOGGER.info("[Poly Mod Loader] Added {} mod entity renderer(s)", textures.size() + projectiles.size());
+        LOGGER.info("[Plexus Mod Loader] Added {} mod entity renderer(s)", textures.size() + projectiles.size());
         return Map.copyOf(all);
     }
 }

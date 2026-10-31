@@ -345,14 +345,15 @@ class FabricBridgeTest {
     @Test
     void aFabricModThatRequiresQuiltLoaderFindsIt() {
         // Quilt builds that ship fabric.mod.json and require quilt_loader (Better Shulker Boxes, MTA NYC Subway Signs,
-        // Inventory Search Storage Indexer in the Quilt corpus): Quilt Loader loads them, and Poly Mod Loader provides
+        // Inventory Search Storage Indexer in the Quilt corpus): Quilt Loader loads them, and Plexus Mod Loader
+        // provides
         // Quilt Loader's API, so the requirement is met (Quilt full support Q10).
         assertEquals(BundledVersions.QUILT_LOADER, bridge.builtInMods().get("quilt_loader"));
     }
 
     @Test
     void aFabricModThatBreaksQuiltLoaderStillRunsAsUnderFabricLoader() {
-        // Poly Mod Loader runs a Fabric mod as Fabric Loader does, where quilt_loader is never present: "breaks" or
+        // Plexus Mod Loader runs a Fabric mod as Fabric Loader does, where quilt_loader is never present: "breaks" or
         // "conflicts" on quilt_loader must not leave it out now that quilt_loader is built in.
         BridgeAssessment assessment = bridge.assess("""
                 {"schemaVersion": 1, "id": "not_on_quilt", "version": "1.0.0",
@@ -425,13 +426,13 @@ class FabricBridgeTest {
                 .orElseThrow();
         assertFalse(skip.blocking());
         assertTrue(
-                skip.toString().contains("mixer.mixins.json needs Mixin 0.9.1; Poly Mod Loader has 0.8.7"),
+                skip.toString().contains("mixer.mixins.json needs Mixin 0.9.1; Plexus Mod Loader has 0.8.7"),
                 skip.toString());
         assertTrue(skip.toString().contains("mixer.client.mixins.json is not a JSON object"), skip.toString());
         assertEquals(CompatibilityStatus.BLOCKED, blocked.status());
         assertEquals(
                 "PLEXUS-COMPAT-132 [blocking] mixins: 1 required Mixin configuration(s) Mixin would stop the game for:"
-                        + " mixer.mixins.json needs Mixin 0.9.1; Poly Mod Loader has 0.8.7",
+                        + " mixer.mixins.json needs Mixin 0.9.1; Plexus Mod Loader has 0.8.7",
                 blocked.findings().getFirst().toString());
         assertTrue(bridge.assess(MIXIN_MOD, GameSide.CLIENT, ModJarContents.NONE).findings().stream()
                 .anyMatch(finding -> finding.toString()
@@ -582,7 +583,7 @@ class FabricBridgeTest {
                         .toList());
     }
 
-    /** Fabric Loader bundles MixinExtras; Poly Mod Loader provides it, so mods may require it. */
+    /** Fabric Loader bundles MixinExtras; Plexus Mod Loader provides it, so mods may require it. */
     @Test
     void mixinExtrasIsBuiltInAndShared() {
         assertTrue(bridge.builtInMods().containsKey("mixinextras"));

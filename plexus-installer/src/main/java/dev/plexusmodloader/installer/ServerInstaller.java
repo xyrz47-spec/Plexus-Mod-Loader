@@ -31,15 +31,15 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
 /**
- * Installs a Poly Mod Loader dedicated server into a folder:
+ * Installs a Plexus Mod Loader dedicated server into a folder:
  *
  * <ol>
  *   <li>Mojang's server jar for the Minecraft version, found through Mojang's version manifest and checked by
  *       SHA-1. Mojang ships it as a bundler; the server jar and libraries inside go to {@code versions/} and
  *       {@code libraries/}, each checked by the SHA-256 the bundler lists, as the bundler itself would do
- *   <li>the Poly Mod Loader jars into {@code libraries/} (checked by SHA-1)
- *   <li>{@value #LAUNCH_JAR}, which starts Poly Mod Loader's server main class with all of them on its manifest class
- *       path, so {@code java -jar polymodloader-server.jar nogui} works as on any server host
+ *   <li>the Plexus Mod Loader jars into {@code libraries/} (checked by SHA-1)
+ *   <li>{@value #LAUNCH_JAR}, which starts Plexus Mod Loader's server main class with all of them on its manifest class
+ *       path, so {@code java -jar plexusmodloader-server.jar nogui} works as on any server host
  *   <li>{@code run.bat} and {@code run.sh} with the memory setting, and {@code mods/}
  * </ol>
  *
@@ -48,7 +48,7 @@ import java.util.zip.ZipEntry;
  */
 final class ServerInstaller {
 
-    static final String LAUNCH_JAR = "polymodloader-server.jar";
+    static final String LAUNCH_JAR = "plexusmodloader-server.jar";
     /** In the bootstrap jar of the payload; defaults the launch target to {@code dedicated_server}. */
     static final String SERVER_MAIN_CLASS = "dev.plexusmodloader.bootstrap.PlexusServerMain";
 
@@ -81,7 +81,7 @@ final class ServerInstaller {
     List<String> install(Path directory, String minecraftVersion, JavaMemory memory, Consumer<String> progress)
             throws InstallerException, IOException {
         if (!payload.minecraftVersions().contains(minecraftVersion)) {
-            throw new InstallerException("Poly Mod Loader " + payload.polyVersion() + " does not support Minecraft "
+            throw new InstallerException("Plexus Mod Loader " + payload.plexusVersion() + " does not support Minecraft "
                     + minecraftVersion + "; it supports " + String.join(", ", payload.minecraftVersions()) + ".");
         }
         if (Files.exists(directory) && !Files.isDirectory(directory)) {
@@ -107,7 +107,7 @@ final class ServerInstaller {
             LauncherProfileInstaller.installLibrary(payload, libraries, library);
             classPath.add("libraries/" + library.path());
         }
-        progress.accept(payload.libraries().size() + " Poly Mod Loader libraries are in " + libraries);
+        progress.accept(payload.libraries().size() + " Plexus Mod Loader libraries are in " + libraries);
         String serverJar;
         try (JarFile jar = new JarFile(bundler.toFile())) {
             for (String library : unbundle(jar, "META-INF/libraries.list", root.resolve("libraries"))) {
@@ -116,7 +116,7 @@ final class ServerInstaller {
             List<String> servers = unbundle(jar, "META-INF/versions.list", root.resolve("versions"));
             if (servers.size() != 1) {
                 throw new InstallerException("Mojang's server jar for " + minecraftVersion + " holds " + servers.size()
-                        + " game jars instead of one; Poly Mod Loader cannot use it.");
+                        + " game jars instead of one; Plexus Mod Loader cannot use it.");
             }
             serverJar = "versions/" + servers.get(0);
         }
@@ -194,7 +194,7 @@ final class ServerInstaller {
             throws InstallerException, IOException {
         ZipEntry index = bundler.getEntry(list);
         if (index == null) {
-            throw new InstallerException("Mojang's server jar has no " + list + "; Poly Mod Loader cannot use it.");
+            throw new InstallerException("Mojang's server jar has no " + list + "; Plexus Mod Loader cannot use it.");
         }
         String folder = list.substring(0, list.lastIndexOf('.')) + "/";
         List<String> paths = new ArrayList<>();
@@ -244,18 +244,18 @@ final class ServerInstaller {
         return paths;
     }
 
-    /** A jar with only a manifest: Poly Mod Loader's server main class and every jar it needs, relative to the folder. */
+    /** A jar with only a manifest: Plexus Mod Loader's server main class and every jar it needs, relative to the folder. */
     private void writeLaunchJar(Path jar, List<String> classPath) throws IOException {
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
         attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
         attributes.put(Attributes.Name.MAIN_CLASS, SERVER_MAIN_CLASS);
         attributes.put(Attributes.Name.CLASS_PATH, String.join(" ", classPath));
-        // java -jar starts Poly Mod Loader's agent before the main class, loaded from the Class-Path (ADR-0024).
+        // java -jar starts Plexus Mod Loader's agent before the main class, loaded from the Class-Path (ADR-0024).
         payload.agent()
                 .ifPresent(agent -> attributes.put(new Attributes.Name("Launcher-Agent-Class"), agent.agentClass()));
-        attributes.put(Attributes.Name.IMPLEMENTATION_TITLE, "Poly Mod Loader server");
-        attributes.put(Attributes.Name.IMPLEMENTATION_VERSION, payload.polyVersion());
+        attributes.put(Attributes.Name.IMPLEMENTATION_TITLE, "Plexus Mod Loader server");
+        attributes.put(Attributes.Name.IMPLEMENTATION_VERSION, payload.plexusVersion());
         // Minecraft's server libraries (JNA) call native code; Java 22 and newer warn about that without this.
         attributes.put(new Attributes.Name("Enable-Native-Access"), "ALL-UNNAMED");
         Path partial = Files.createTempFile(jar.getParent(), jar.getFileName().toString(), ".partial");
@@ -280,7 +280,7 @@ final class ServerInstaller {
         command.add("-jar");
         command.add(LAUNCH_JAR);
         command.add("nogui");
-        String about = "Poly Mod Loader " + payload.polyVersion() + " server for Minecraft " + minecraftVersion
+        String about = "Plexus Mod Loader " + payload.plexusVersion() + " server for Minecraft " + minecraftVersion
                 + ". Needs Java " + java + " or newer.";
         LauncherProfileInstaller.writeAtomically(
                 root.resolve("run.bat"),
@@ -316,7 +316,7 @@ final class ServerInstaller {
         return (uri, target) -> {
             HttpRequest request = HttpRequest.newBuilder(uri)
                     .timeout(Duration.ofMinutes(5))
-                    .header("User-Agent", "PolyModLoader-Installer")
+                    .header("User-Agent", "PlexusModLoader-Installer")
                     .build();
             HttpResponse<Path> response;
             try {
@@ -343,7 +343,7 @@ final class ServerInstaller {
         JsonElement value = parent.get(key);
         if (value == null || !value.isJsonObject()) {
             throw new InstallerException(
-                    "Mojang's version data has no \"" + key + "\"; Poly Mod Loader cannot use it.");
+                    "Mojang's version data has no \"" + key + "\"; Plexus Mod Loader cannot use it.");
         }
         return value.getAsJsonObject();
     }
@@ -352,7 +352,7 @@ final class ServerInstaller {
         JsonElement value = parent.get(key);
         if (value == null || !value.isJsonPrimitive()) {
             throw new InstallerException(
-                    "Mojang's version data has no \"" + key + "\"; Poly Mod Loader cannot use it.");
+                    "Mojang's version data has no \"" + key + "\"; Plexus Mod Loader cannot use it.");
         }
         return value.getAsString();
     }

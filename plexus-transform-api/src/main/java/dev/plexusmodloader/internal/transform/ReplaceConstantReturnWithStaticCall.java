@@ -6,7 +6,7 @@ import java.util.Objects;
 
 /**
  * Replaces a method that returns a constant with a call to a static hook that computes the value,
- * so a game method can be routed to a Poly Mod Loader system.
+ * so a game method can be routed to a Plexus Mod Loader system.
  *
  * <p><b>Precondition:</b> the method body, ignoring labels, line numbers, and frames, is exactly
  * {@code LDC expectedConstant; ARETURN}.

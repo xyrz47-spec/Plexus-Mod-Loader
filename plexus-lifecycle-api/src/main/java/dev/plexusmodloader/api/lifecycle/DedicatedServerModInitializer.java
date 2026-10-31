@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * Entrypoint listed under {@code entrypoints.server} in {@code poly.mod.json}. Runs only on a
+ * Entrypoint listed under {@code entrypoints.server} in {@code plexus.mod.json}. Runs only on a
  * dedicated server, after every {@link CommonModInitializer}. Same timing and failure rules as
  * {@link CommonModInitializer}.
  */

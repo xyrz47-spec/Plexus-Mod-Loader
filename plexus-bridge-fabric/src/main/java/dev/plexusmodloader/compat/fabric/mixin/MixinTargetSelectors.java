@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.selectors.TargetSelector;
  * Injection points whose {@code target} Mixin's own selector parser refuses ({@link TargetSelector#parseAndValidate}),
  * the call Mixin makes when it creates the injector, as its target class loads. Mixin then fails that class (for a
  * required configuration) or skips the mixin. Fabric Loader and Quilt Loader use the same Mixin, so the outcome is
- * theirs too; Poly Mod Loader reads it from the jar before the game starts (Quilt full support Q6: Even Better Moon and
+ * theirs too; Plexus Mod Loader reads it from the jar before the game starts (Quilt full support Q6: Even Better Moon and
  * Sun's {@code "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose:()V"}).
  *
  * <p>Only the points that read a member target are checked ({@code INVOKE}, {@code INVOKE_ASSIGN}, {@code

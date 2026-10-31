@@ -7,7 +7,7 @@ import java.nio.file.Path;
 /**
  * A mod jar exposed as a resource pack ({@code assets/}) and a data pack ({@code data/}).
  *
- * @param modId mod ID, used as the pack ID {@code poly/<mod id>}
+ * @param modId mod ID, used as the pack ID {@code plexus/<mod id>}
  * @param name display name
  * @param version mod version
  * @param jar the mod jar

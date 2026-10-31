@@ -7,7 +7,7 @@ import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.loader.impl.QuiltLoaderImpl;
 
 /**
- * Poly Mod Loader's stand-in for Quilt Loader's default language adapter, which {@code LanguageAdapter.getDefault()}
+ * Plexus Mod Loader's stand-in for Quilt Loader's default language adapter, which {@code LanguageAdapter.getDefault()}
  * returns. Values use the JVM notation of RFC 0002 (a class, {@code Class::field}, {@code Class::method}) with the same
  * meaning as Fabric's default adapter and the same creation code ({@link JvmEntrypointValue}, ADR-0027 decision 4).
  * Classes are loaded with the game class loader.
@@ -24,7 +24,7 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
         return JvmEntrypointValue.create(
                 value,
                 type,
-                QuiltLoaderImpl.INSTANCE.polyModLoaderRuntime().gameClassLoader(),
+                QuiltLoaderImpl.INSTANCE.plexusModLoaderRuntime().gameClassLoader(),
                 (message, cause) -> message == null
                         ? new LanguageAdapterException(cause)
                         : new LanguageAdapterException(message, cause));

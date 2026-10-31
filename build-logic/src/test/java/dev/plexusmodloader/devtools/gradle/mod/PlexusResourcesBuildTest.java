@@ -18,19 +18,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 /**
- * Runs a real build of a mod project with the {@code dev.polymodloader.mod} plugin: the Kotlin DSL, the
+ * Runs a real build of a mod project with the {@code dev.plexusmodloader.mod} plugin: the Kotlin DSL, the
  * generated files reaching the jar's resources, the merge of a hand-written language file, and {@code
- * checkPolyResources} failing on a broken reference. Projects live under {@code build/testkit} (not a JUnit
+ * checkPlexusResources} failing on a broken reference. Projects live under {@code build/testkit} (not a JUnit
  * temporary directory, which the Gradle daemon can keep locked on Windows).
  */
-class PolyResourcesBuildTest {
+class PlexusResourcesBuildTest {
 
     private static final String BUILD_SCRIPT = """
             plugins {
-                id("dev.polymodloader.mod")
+                id("dev.plexusmodloader.mod")
             }
 
-            polyResources {
+            plexusResources {
                 item("ruby")
                 block("ruby_block") {
                     texture = "minecraft:block/redstone_block"
@@ -77,9 +77,9 @@ class PolyResourcesBuildTest {
         Path project = project(test);
         write(project, "src/main/resources/assets/ruby_mod/textures/item/ruby.png", "");
 
-        BuildResult result = runner(project, "checkPolyResources").build();
+        BuildResult result = runner(project, "checkPlexusResources").build();
 
-        assertEquals(TaskOutcome.SUCCESS, result.task(":checkPolyResources").getOutcome());
+        assertEquals(TaskOutcome.SUCCESS, result.task(":checkPlexusResources").getOutcome());
         Path resources = project.resolve("build/resources/main");
         for (String path : new String[] {
             "assets/ruby_mod/items/ruby.json",
@@ -104,7 +104,7 @@ class PolyResourcesBuildTest {
     void missingTextureFailsTheCheck(TestInfo test) throws IOException {
         Path project = project(test);
 
-        BuildResult result = runner(project, "checkPolyResources").buildAndFail();
+        BuildResult result = runner(project, "checkPlexusResources").buildAndFail();
 
         assertTrue(result.getOutput().contains("PLEXUS-RESOURCE-007 assets/ruby_mod/models/item/ruby.json"), result.getOutput());
         assertTrue(result.getOutput().contains("assets/ruby_mod/textures/item/ruby.png"), result.getOutput());

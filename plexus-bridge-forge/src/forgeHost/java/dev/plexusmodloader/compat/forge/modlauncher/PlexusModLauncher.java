@@ -39,8 +39,8 @@ import net.minecraftforge.fml.loading.ModDirTransformerDiscoverer;
 import net.minecraftforge.securemodules.SecureModuleFinder;
 
 /**
- * Poly Mod Loader's implementation of ModLauncher's launch (ADR-0021 G3b): finds FML's services in the boot layer and runs
- * them in the order ModLauncher's {@code Launcher.run} does, but defines every module layer in Poly Mod Loader's game class
+ * Plexus Mod Loader's implementation of ModLauncher's launch (ADR-0021 G3b): finds FML's services in the boot layer and runs
+ * them in the order ModLauncher's {@code Launcher.run} does, but defines every module layer in Plexus Mod Loader's game class
  * loader instead of ModLauncher's class loaders:
  *
  * <ol>
@@ -53,14 +53,14 @@ import net.minecraftforge.securemodules.SecureModuleFinder;
  *   <li>on {@link #launch()}: {@code initializeLaunch} for every plugin, then the launch handler.
  * </ol>
  *
- * Written for Poly Mod Loader from ModLauncher's public API and its documented order; not ModLauncher's code.
+ * Written for Plexus Mod Loader from ModLauncher's public API and its documented order; not ModLauncher's code.
  */
 public final class PlexusModLauncher implements ForgeLaunch, IModuleLayerManager {
 
     /** The ModLauncher version whose API this implements; FML logs it and reads it as the launcher version. */
     private static final String MODLAUNCHER_VERSION = "10.2.6";
     /** {@link GameTestLaunchHandler}'s name. */
-    private static final String GAME_TEST_TARGET = "polymodloader_server_gametest";
+    private static final String GAME_TEST_TARGET = "plexusmodloader_server_gametest";
 
     private final Request request;
     private final Map<Layer, ModuleLayer> layers = new EnumMap<>(Layer.class);
@@ -85,7 +85,7 @@ public final class PlexusModLauncher implements ForgeLaunch, IModuleLayerManager
     }
 
     /**
-     * Sets up FML up to the GAME layer; called by Poly Mod Loader's Forge bridge through reflection, because this class lives
+     * Sets up FML up to the GAME layer; called by Plexus Mod Loader's Forge bridge through reflection, because this class lives
      * in the boot layer's {@code cpw.mods.modlauncher} module.
      */
     public static ForgeLaunch start(Request request) throws Exception {
@@ -129,11 +129,13 @@ public final class PlexusModLauncher implements ForgeLaunch, IModuleLayerManager
                 .accept("ModLauncher services: launch plugins " + plugins.keySet() + ", launch handlers "
                         + handlers.keySet());
 
-        // SERVICE layer: the Forge mods Poly Mod Loader found that provide a transformation service, a mod locator or a
+        // SERVICE layer: the Forge mods Plexus Mod Loader found that provide a transformation service, a mod locator or
+        // a
         // dependency locator, which Forge's ModDirTransformerDiscoverer would take from mods/ (and FML's
-        // ClasspathLocator then leaves out). Its own scan of mods/ would also take jars Poly Mod Loader left out or
+        // ClasspathLocator then leaves out). Its own scan of mods/ would also take jars Plexus Mod Loader left out or
         // gave to
-        // another loader, and misses mods Poly Mod Loader reads from elsewhere; it still runs, as it loads FML's paths
+        // another loader, and misses mods Plexus Mod Loader reads from elsewhere; it still runs, as it loads FML's
+        // paths
         // and
         // config.
         List<ITransformerDiscoveryService> discovery = load(boot, ITransformerDiscoveryService.class);
@@ -189,7 +191,7 @@ public final class PlexusModLauncher implements ForgeLaunch, IModuleLayerManager
         }
         List<SecureJar> gameJars = scanned.getOrDefault(Layer.GAME, List.of());
         if (request.sharedMixin()) {
-            // ForgeLaunch comes from Poly Mod Loader's class path, as the shared Mixin and MixinExtras do.
+            // ForgeLaunch comes from Plexus Mod Loader's class path, as the shared Mixin and MixinExtras do.
             gameJars = SharedMixinExtras.withoutMixinExtras(
                     gameJars,
                     ForgeLaunch.class.getClassLoader().getResource(SharedMixinExtras.MIXIN_EXTRAS) != null,
@@ -327,7 +329,7 @@ public final class PlexusModLauncher implements ForgeLaunch, IModuleLayerManager
     }
 
     /**
-     * A layer's modules as {@code finder} finds them, each passed once through Poly Mod Loader's {@code layerModules}
+     * A layer's modules as {@code finder} finds them, each passed once through Plexus Mod Loader's {@code layerModules}
      * (checked patches of FML's own classes, ADR-0025); the same reference for a name every time.
      */
     private static final class PatchingFinder implements ModuleFinder {

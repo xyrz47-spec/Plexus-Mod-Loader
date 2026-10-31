@@ -16,7 +16,7 @@
 // Source: Sinytra Forgified Fabric API, branch 26.2.x, commit 40f8ce0,
 // fabric-item-api-v1/src/client/java/net/fabricmc/fabric/impl/client/item/ClientItemEventHooks.java (written in
 // Forgified Fabric API).
-// Poly Mod Loader (ADR-0031): reformatted; a Fabric ClientModInitializer that adds the listener to NeoForge.EVENT_BUS
+// Plexus Mod Loader (ADR-0031): reformatted; a Fabric ClientModInitializer that adds the listener to NeoForge.EVENT_BUS
 // in place of @EventBusSubscriber.
 package net.fabricmc.fabric.impl.client.item;
 

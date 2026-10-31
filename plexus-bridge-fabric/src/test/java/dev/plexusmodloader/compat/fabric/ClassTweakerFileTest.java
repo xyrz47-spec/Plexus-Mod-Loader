@@ -120,7 +120,7 @@ class ClassTweakerFileTest {
                 problems("accessWidener v2 official\naccessible method\fnet/minecraft/A f ()V\n"));
     }
 
-    /** Fabric Loader refuses these lines; so does Poly Mod Loader, with the same reason and the line number. */
+    /** Fabric Loader refuses these lines; so does Plexus Mod Loader, with the same reason and the line number. */
     @Test
     void invalidLinesAreReportedWithLineNumbers() {
         List<String> problems = problems("""

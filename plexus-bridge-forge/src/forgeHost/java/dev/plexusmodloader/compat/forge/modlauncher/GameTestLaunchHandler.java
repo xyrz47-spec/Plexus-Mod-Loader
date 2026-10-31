@@ -5,7 +5,7 @@ import java.util.List;
 import net.minecraftforge.fml.loading.targets.CommonLaunchHandler;
 
 /**
- * Mojang's game test server for an installed (production) Forge, as Poly Mod Loader's launch target {@code
+ * Mojang's game test server for an installed (production) Forge, as Plexus Mod Loader's launch target {@code
  * game_test_server}. Forge runs game tests only outside production: {@code ForgeGameTestHooks.isGametestEnabled()}
  * is false when {@code FMLLoader.isProduction()}, and Forge's patched server then never ticks the tests. Forge's own
  * {@code server_gametest} handlers are development ones that look for Minecraft on a development class path. This
@@ -15,7 +15,7 @@ import net.minecraftforge.fml.loading.targets.CommonLaunchHandler;
 public final class GameTestLaunchHandler extends CommonLaunchHandler {
 
     public GameTestLaunchHandler() {
-        super(SERVER_GAMETEST, "polymodloader_");
+        super(SERVER_GAMETEST, "plexusmodloader_");
     }
 
     @Override

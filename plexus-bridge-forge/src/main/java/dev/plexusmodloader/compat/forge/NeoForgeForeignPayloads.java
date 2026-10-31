@@ -54,21 +54,21 @@ final class NeoForgeForeignPayloads {
         String hooks = gameLayerPackage + "/HostPayloadHooks";
         return List.of(
                 rule(
-                        "poly:neoforge_send_check_clientbound",
+                        "plexus:neoforge_send_check_clientbound",
                         gameVersion,
                         Set.of(GameSide.CLIENT, GameSide.DEDICATED_SERVER),
                         new MethodTarget(NETWORK_REGISTRY, "checkPacket", "(" + PACKET + SERVER_LISTENER + ")V"),
                         hooks,
                         "otherLoadersClientboundPayload"),
                 rule(
-                        "poly:neoforge_send_check_serverbound",
+                        "plexus:neoforge_send_check_serverbound",
                         gameVersion,
                         Set.of(GameSide.CLIENT),
                         new MethodTarget(NETWORK_REGISTRY, "checkPacket", "(" + PACKET + CLIENT_LISTENER + ")V"),
                         hooks,
                         "otherLoadersServerboundPayload"),
                 rule(
-                        "poly:neoforge_modded_payload_server",
+                        "plexus:neoforge_modded_payload_server",
                         gameVersion,
                         Set.of(GameSide.CLIENT, GameSide.DEDICATED_SERVER),
                         new MethodTarget(
@@ -76,7 +76,7 @@ final class NeoForgeForeignPayloads {
                         hooks,
                         "dropOtherLoadersPayload"),
                 rule(
-                        "poly:neoforge_modded_payload_client",
+                        "plexus:neoforge_modded_payload_client",
                         gameVersion,
                         Set.of(GameSide.CLIENT),
                         new MethodTarget(
@@ -86,8 +86,8 @@ final class NeoForgeForeignPayloads {
                         hooks,
                         "dropOtherLoadersPayload"),
                 new TransformRuleDefinition(
-                        "poly:neoforge_bundle_filter",
-                        "poly",
+                        "plexus:neoforge_bundle_filter",
+                        "plexus",
                         gameVersion,
                         Set.of(GameSide.CLIENT, GameSide.DEDICATED_SERVER),
                         new MethodTarget(
@@ -102,7 +102,7 @@ final class NeoForgeForeignPayloads {
             String id, String gameVersion, Set<GameSide> sides, MethodTarget target, String hooks, String hook) {
         return new TransformRuleDefinition(
                 id,
-                "poly",
+                "plexus",
                 gameVersion,
                 sides,
                 target,

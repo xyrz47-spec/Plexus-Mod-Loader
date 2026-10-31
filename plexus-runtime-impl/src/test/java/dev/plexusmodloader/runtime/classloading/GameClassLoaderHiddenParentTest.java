@@ -14,7 +14,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /**
- * A loader's API that Poly Mod Loader's class path carries for its bridge (Fabric Loader's) is not visible to game and
+ * A loader's API that Plexus Mod Loader's class path carries for its bridge (Fabric Loader's) is not visible to game and
  * mod code in a launch where that loader runs no mods, as under the loader that does run (NeoForge has no Fabric
  * Loader). Multi-loader libraries tell the loader by such classes: Yumi, which Lambda Dynamic Lights uses, took the
  * NeoForge client for a Fabric one and looked for its configuration file through Fabric Loader (2026-10-24).

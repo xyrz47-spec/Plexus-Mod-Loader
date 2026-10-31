@@ -15,22 +15,22 @@ public final class ServerEvents {
 
     /** The server is starting: registries and data packs are loaded, worlds are about to be created. */
     public static final EventKey<ServerStartingListener> STARTING =
-            EventKey.of("poly:server/starting", ServerStartingListener.class);
+            EventKey.of("plexus:server/starting", ServerStartingListener.class);
 
     /** The server finished starting and is about to process its first tick. */
     public static final EventKey<ServerStartedListener> STARTED =
-            EventKey.of("poly:server/started", ServerStartedListener.class);
+            EventKey.of("plexus:server/started", ServerStartedListener.class);
 
     /** A server tick begins. */
-    public static final EventKey<ServerTickListener> TICK = EventKey.of("poly:server/tick", ServerTickListener.class);
+    public static final EventKey<ServerTickListener> TICK = EventKey.of("plexus:server/tick", ServerTickListener.class);
 
     /** The server begins to stop. */
     public static final EventKey<ServerStoppingListener> STOPPING =
-            EventKey.of("poly:server/stopping", ServerStoppingListener.class);
+            EventKey.of("plexus:server/stopping", ServerStoppingListener.class);
 
     /** The server stopped: players and worlds were saved and the worlds closed. */
     public static final EventKey<ServerStoppedListener> STOPPED =
-            EventKey.of("poly:server/stopped", ServerStoppedListener.class);
+            EventKey.of("plexus:server/stopped", ServerStoppedListener.class);
 
     private ServerEvents() {}
 }

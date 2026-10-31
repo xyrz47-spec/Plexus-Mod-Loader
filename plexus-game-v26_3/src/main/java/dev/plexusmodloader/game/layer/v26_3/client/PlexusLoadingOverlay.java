@@ -20,23 +20,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Poly Mod Loader's marks on the game's loading screen ({@code LoadingOverlay}), for every loader Poly Mod Loader runs.
+ * Plexus Mod Loader's marks on the game's loading screen ({@code LoadingOverlay}), for every loader Plexus Mod Loader runs.
  * The screen stays the game's own: its background (Mojang red, or black with the monochrome logo option), the Mojang
- * Studios logo, the progress bar and their fades. Poly Mod Loader adds, with the same fades, its spinning gold cube and
- * name at the bottom right (where NeoForge's early window, which Poly Mod Loader gives the same cube, has them) and the
+ * Studios logo, the progress bar and their fades. Plexus Mod Loader adds, with the same fades, its spinning gold cube and
+ * name at the bottom right (where NeoForge's early window, which Plexus Mod Loader gives the same cube, has them) and the
  * mods each loader runs under the progress bar.
  *
- * <p>Called after {@code LoadingOverlay.extractRenderState} ({@code poly:client_loading_overlay}), also for a host
+ * <p>Called after {@code LoadingOverlay.extractRenderState} ({@code plexus:client_loading_overlay}), also for a host
  * loader's overlay (MinecraftForge's {@code ForgeLoadingOverlay}, which draws the game's screen and keeps its fades).
  * Thread: the render thread.
  */
 public final class PlexusLoadingOverlay {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final AtomicBoolean REPORTED = new AtomicBoolean();
     private static final AtomicBoolean FAILED = new AtomicBoolean();
 
-    /** The cube's frames: 24 of 32 x 32 pixels, a quarter turn ({@code poly_cube.png}, Poly Mod Loader's own art). */
+    /** The cube's frames: 24 of 32 x 32 pixels, a quarter turn ({@code plexus_cube.png}, Plexus Mod Loader's own art). */
     private static final int CUBE = 32;
 
     private static final int FRAME_MILLIS = 60;
@@ -53,10 +53,10 @@ public final class PlexusLoadingOverlay {
 
     private PlexusLoadingOverlay() {}
 
-    /** After the game drew {@code overlay} into {@code graphics}: Poly Mod Loader's marks, faded as the screen. */
+    /** After the game drew {@code overlay} into {@code graphics}: Plexus Mod Loader's marks, faded as the screen. */
     public static void onExtractRenderStateReturn(
             LoadingOverlay overlay, GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        // The game's window shows its loading screen: Poly Mod Loader's early window closes.
+        // The game's window shows its loading screen: Plexus Mod Loader's early window closes.
         LayerState.context().ifPresent(context -> context.gameWindow().shown());
         if (FAILED.get() || FADE_IN == null || FADE_IN_START == null || FADE_OUT_START == null) {
             return;
@@ -66,7 +66,7 @@ public final class PlexusLoadingOverlay {
         } catch (RuntimeException | ReflectiveOperationException e) {
             // The game's screen is complete without the marks; draw them no more rather than fail every frame.
             if (FAILED.compareAndSet(false, true)) {
-                LOGGER.warn("[Poly Mod Loader] Loading screen marks left out: {}", e.toString());
+                LOGGER.warn("[Plexus Mod Loader] Loading screen marks left out: {}", e.toString());
             }
         }
     }
@@ -118,7 +118,7 @@ public final class PlexusLoadingOverlay {
                 pixelText(graphics, left, (width - pixelWidth(left)) / 2, barCentre + 21, barAlpha * 0.85f, 0xFFE08A);
             }
             if (REPORTED.compareAndSet(false, true)) {
-                LOGGER.info("[Poly Mod Loader] Loading screen marks: {}", line.isEmpty() ? "no mods" : line);
+                LOGGER.info("[Plexus Mod Loader] Loading screen marks: {}", line.isEmpty() ? "no mods" : line);
             }
         }
     }
@@ -130,7 +130,7 @@ public final class PlexusLoadingOverlay {
         add(parts, "Quilt", counts.quiltMods());
         add(parts, "Forge", counts.forgeMods());
         add(parts, "NeoForge", counts.neoForgeMods());
-        add(parts, "Plexus", counts.polyMods());
+        add(parts, "Plexus", counts.plexusMods());
         return parts.isEmpty() ? "" : "Mods: " + String.join("  ·  ", parts);
     }
 
@@ -163,7 +163,7 @@ public final class PlexusLoadingOverlay {
     }
 
     /**
-     * {@code text} in Poly Mod Loader's 5 x 7 pixel letters (upper case; digits; space, colon, middle dot, apostrophe,
+     * {@code text} in Plexus Mod Loader's 5 x 7 pixel letters (upper case; digits; space, colon, middle dot, apostrophe,
      * full stop, hyphen, slash), with a shadow one pixel down and right as the game's text has. The game's font is not
      * used: MinecraftForge's first loading screen comes before the game loads it.
      */
@@ -199,7 +199,7 @@ public final class PlexusLoadingOverlay {
         }
     }
 
-    /** The width of {@code text} in Poly Mod Loader's pixel letters. */
+    /** The width of {@code text} in Plexus Mod Loader's pixel letters. */
     static int pixelWidth(String text) {
         return text.isEmpty() ? 0 : text.length() * LETTER_ADVANCE - 1;
     }
@@ -255,16 +255,16 @@ public final class PlexusLoadingOverlay {
         return Map.entry(letter, rows);
     }
 
-    /** The cube's frames from {@code poly_cube.png} beside this class; none when it cannot be read. */
+    /** The cube's frames from {@code plexus_cube.png} beside this class; none when it cannot be read. */
     private static List<int[]> frames() {
         List<int[]> loaded = frames;
         if (loaded != null) {
             return loaded;
         }
         List<int[]> read = new ArrayList<>();
-        try (InputStream in = PlexusLoadingOverlay.class.getResourceAsStream("poly_cube.png")) {
+        try (InputStream in = PlexusLoadingOverlay.class.getResourceAsStream("plexus_cube.png")) {
             if (in == null) {
-                LOGGER.warn("[Poly Mod Loader] poly_cube.png is missing; no cube on the loading screen");
+                LOGGER.warn("[Plexus Mod Loader] plexus_cube.png is missing; no cube on the loading screen");
             } else {
                 try (NativeImage sheet = NativeImage.read(in)) {
                     if (sheet.getWidth() == CUBE && sheet.getHeight() % CUBE == 0) {
@@ -279,12 +279,12 @@ public final class PlexusLoadingOverlay {
                         }
                     } else {
                         LOGGER.warn(
-                                "[Poly Mod Loader] poly_cube.png is not 32 pixels wide; no cube on the loading screen");
+                                "[Plexus Mod Loader] plexus_cube.png is not 32 pixels wide; no cube on the loading screen");
                     }
                 }
             }
         } catch (IOException e) {
-            LOGGER.warn("[Poly Mod Loader] poly_cube.png could not be read: {}", e.toString());
+            LOGGER.warn("[Plexus Mod Loader] plexus_cube.png could not be read: {}", e.toString());
         }
         loaded = List.copyOf(read);
         frames = loaded;
@@ -302,7 +302,7 @@ public final class PlexusLoadingOverlay {
             field.setAccessible(true);
             return field;
         } catch (NoSuchFieldException | RuntimeException e) {
-            LOGGER.warn("[Poly Mod Loader] LoadingOverlay has no field {}; no marks on the loading screen", name);
+            LOGGER.warn("[Plexus Mod Loader] LoadingOverlay has no field {}; no marks on the loading screen", name);
             return null;
         }
     }

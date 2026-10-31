@@ -12,8 +12,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Poly Mod Loader's implementation of ModLauncher's environment (ADR-0021), written from the public {@link IEnvironment}
- * contract: properties in a {@link TypesafeMap} owned by {@code IEnvironment}, and lookups that Poly Mod Loader's {@code
+ * Plexus Mod Loader's implementation of ModLauncher's environment (ADR-0021), written from the public {@link IEnvironment}
+ * contract: properties in a {@link TypesafeMap} owned by {@code IEnvironment}, and lookups that Plexus Mod Loader's {@code
  * PlexusModLauncher} answers. FML (`fmlloader`) and the access transformer library reach it as {@code
  * Launcher.INSTANCE.environment()}, so it keeps ModLauncher's class name and members. Not ModLauncher's code.
  */

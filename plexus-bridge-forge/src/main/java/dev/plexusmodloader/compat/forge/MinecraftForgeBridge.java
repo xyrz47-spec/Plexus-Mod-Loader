@@ -19,7 +19,7 @@ public final class MinecraftForgeBridge extends FmlModsTomlBridge {
         return "META-INF/mods.toml";
     }
 
-    /** FML loads Forge mods itself on Poly Mod Loader's game class loader (ADR-0021). */
+    /** FML loads Forge mods itself on Plexus Mod Loader's game class loader (ADR-0021). */
     @Override
     public Optional<GameHost> gameHost(GameHost.Request request, List<Path> modJars) throws IOException {
         return Optional.of(ForgeGameHost.create(request, modJars));

@@ -368,16 +368,16 @@ final class ForgeRegistryOpening {
         unknown.removeAll(opened);
         if (!unknown.isEmpty()) {
             throw unknownShape(type + "'s register/validateWrite check " + String.join(", ", unknown)
-                    + ", which Poly Mod Loader does not open (it opens " + String.join(", ", new TreeSet<>(opened))
+                    + ", which Plexus Mod Loader does not open (it opens " + String.join(", ", new TreeSet<>(opened))
                     + ")");
         }
         if (!unfreezeWrites.equals(Set.of(FROZEN))) {
             throw unknownShape(
-                    type + ".unfreeze() writes " + unfreezeWrites + ", where Poly Mod Loader expects " + FROZEN);
+                    type + ".unfreeze() writes " + unfreezeWrites + ", where Plexus Mod Loader expects " + FROZEN);
         }
         if (isFrozen && !isFrozenReads.equals(Set.of(FROZEN))) {
             throw unknownShape(
-                    type + ".isFrozen() reads " + isFrozenReads + ", where Poly Mod Loader expects " + FROZEN);
+                    type + ".isFrozen() reads " + isFrozenReads + ", where Plexus Mod Loader expects " + FROZEN);
         }
     }
 
@@ -403,11 +403,11 @@ final class ForgeRegistryOpening {
 
     private static IllegalStateException unknownShape(String detail) {
         return new IllegalStateException(
-                "PLEXUS-COMPAT-227 MinecraftForge's registries are not the code Poly Mod Loader"
+                "PLEXUS-COMPAT-227 MinecraftForge's registries are not the code Plexus Mod Loader"
                         + " checked (" + detail
-                        + "), so Poly Mod Loader cannot open them for Fabric and Quilt mods to register"
-                        + " into, and stops before those mods run. This is a limitation of Poly Mod Loader with this Forge"
-                        + " release: report it to Poly Mod Loader, or play without the Fabric and Quilt mods (Forge mods run"
+                        + "), so Plexus Mod Loader cannot open them for Fabric and Quilt mods to register"
+                        + " into, and stops before those mods run. This is a limitation of Plexus Mod Loader with this Forge"
+                        + " release: report it to Plexus Mod Loader, or play without the Fabric and Quilt mods (Forge mods run"
                         + " alone).");
     }
 }

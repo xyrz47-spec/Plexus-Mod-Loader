@@ -20,7 +20,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Installs a real NeoForge dedicated server with NeoForge's own installer ({@code --installServer}), as a server owner
- * does, for comparisons with NeoForge itself, not with Poly Mod Loader (the Sinytra Connector benchmark,
+ * does, for comparisons with NeoForge itself, not with Plexus Mod Loader (the Sinytra Connector benchmark,
  * docs/PERFORMANCE.md). The installer comes from NeoForge's Maven and is checked against {@link #getInstallerSha1()};
  * it downloads Minecraft's server and NeoForge's libraries and applies NeoForge's patches itself. A finished
  * installation is reused while the installer is the same. Nothing is started, so no EULA is accepted: the installer
@@ -49,7 +49,7 @@ public abstract class NeoForgeServerInstallTask extends DefaultTask {
         String version = getNeoForgeVersion().get();
         String sha1 = getInstallerSha1().get();
         Path server = getServerDirectory().get().getAsFile().toPath();
-        Path stamp = server.resolve(".poly-installed");
+        Path stamp = server.resolve(".plexus-installed");
         if (Files.isRegularFile(stamp)
                 && Files.readString(stamp, StandardCharsets.UTF_8).strip().equals(sha1)
                 && Files.isRegularFile(NeoForgeServerLaunch.argumentsFile(server, version))) {

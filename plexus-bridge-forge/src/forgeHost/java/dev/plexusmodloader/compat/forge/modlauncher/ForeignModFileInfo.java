@@ -10,7 +10,7 @@ import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.forgespi.locating.IModFile;
 
 /**
- * A Poly Mod or other loader's mod as an FML mod file (ADR-0025): one mod, its version as the file's version, no
+ * A Plexus Mod or other loader's mod as an FML mod file (ADR-0025): one mod, its version as the file's version, no
  * language loader, no resource or data pack (its own loader serves its resources), and no {@code mods.toml}
  * configuration.
  *
@@ -76,7 +76,7 @@ final class ForeignModFileInfo implements IModFileInfo {
         return "";
     }
 
-    /** FML names a mod file's module; a Poly Mod or other loader's mod is in no module, so this is its mod ID. */
+    /** FML names a mod file's module; a Plexus Mod or other loader's mod is in no module, so this is its mod ID. */
     @Override
     public String moduleName() {
         return mod.modId();

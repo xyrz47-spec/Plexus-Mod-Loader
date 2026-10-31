@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import net.fabricmc.loader.impl.game.GameProvider;
 
 /**
- * Fabric Loader's {@code GameProvider} for the game Poly Mod Loader started: Minecraft, its version and its directory.
+ * Fabric Loader's {@code GameProvider} for the game Plexus Mod Loader started: Minecraft, its version and its directory.
  *
  * @param rawGameVersion the Minecraft version as the game names it
  * @param launchDirectory the game directory
@@ -26,7 +26,7 @@ public record PlexusGameProvider(String rawGameVersion, Path launchDirectory) im
         return rawGameVersion;
     }
 
-    /** The release versions Poly Mod Loader supports are already in the normalized form. */
+    /** The release versions Plexus Mod Loader supports are already in the normalized form. */
     @Override
     public String getNormalizedGameVersion() {
         return rawGameVersion;

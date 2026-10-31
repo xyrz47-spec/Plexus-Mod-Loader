@@ -14,7 +14,7 @@ import dev.plexusmodloader.api.world.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Entry point of the mod; listed under entrypoints.common in poly.mod.json. */
+/** Entry point of the mod; listed under entrypoints.common in plexus.mod.json. */
 public final class MyMod implements CommonModInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("my_mod");
@@ -27,7 +27,7 @@ public final class MyMod implements CommonModInitializer {
                         ServerEvents.STARTED,
                         server -> LOGGER.info("[{}] Server started at tick {}", context.modId(), server.tickCount()));
 
-        // An item and a block. Their models, names and the block's drop come from polyResources in
+        // An item and a block. Their models, names and the block's drop come from plexusResources in
         // build.gradle.kts, so no JSON file is needed for them.
         ResourceId ruby = context.content()
                 .item(
@@ -50,7 +50,7 @@ public final class MyMod implements CommonModInitializer {
                                 .build())
                 .id();
 
-        // In-game tests; run them with `./gradlew gameTests -PpolyTests=my_mod:*`.
+        // In-game tests; run them with `./gradlew gameTests -PplexusTests=my_mod:*`.
         context.gameTests().register("ruby_can_be_given", test -> {
             PlayerView player = test.createMockPlayer();
             player.give(ruby, 2);

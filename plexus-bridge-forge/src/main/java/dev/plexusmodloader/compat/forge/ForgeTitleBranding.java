@@ -17,9 +17,9 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 
 /**
- * Shows Poly Mod Loader's branding lines (how many mods each loader loaded) above MinecraftForge's own at the bottom
+ * Shows Plexus Mod Loader's branding lines (how many mods each loader loaded) above MinecraftForge's own at the bottom
  * left of the title screen. Forge's patch replaces the vanilla version text, which the version adapter's rule {@code
- * poly:client_title_mod_counts} draws the lines over, with its branding: the patched {@code
+ * plexus:client_title_mod_counts} draws the lines over, with its branding: the patched {@code
  * TitleScreen.extractRenderState} hands a consumer that draws one line to {@code BrandingControl.forEachLine(boolean,
  * boolean, ObjIntConsumer)}, which calls it with each line and its index counted up from the bottom; the consumer draws
  * index {@code i} at {@code height - (10 + i * (lineHeight + 1))}, at x = 2, with the title screen's fade. Checked with
@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  * that call once, with {@code (true, true, consumer)}.
  *
  * <p>The rule {@link #RULE_ID} redirects that call to {@link #forEachLine}, which lets Forge draw its lines and then
- * hands Forge's consumer Poly Mod Loader's lines with the next indexes, so they sit right above Forge's, look like them
+ * hands Forge's consumer Plexus Mod Loader's lines with the next indexes, so they sit right above Forge's, look like them
  * and never overlap them. The rule is optional ({@link TransformFailurePolicy#DISABLE_RULE}): if a Forge release draws
  * its branding differently, the rule is off and the title screen shows Forge's lines only.
  *
@@ -37,10 +37,10 @@ import java.util.function.Supplier;
 public final class ForgeTitleBranding {
 
     /** The rule that redirects Forge's branding call. */
-    public static final String RULE_ID = "poly:client_title_mod_counts_forge";
+    public static final String RULE_ID = "plexus:client_title_mod_counts_forge";
 
     /** The version adapter's rule on the same method, for vanilla's version text; it does not apply to Forge's patch. */
-    static final String VANILLA_RULE_ID = "poly:client_title_mod_counts";
+    static final String VANILLA_RULE_ID = "plexus:client_title_mod_counts";
 
     static final String TITLE_SCREEN = "net/minecraft/client/gui/screens/TitleScreen";
     static final String BRANDING_CONTROL = "net/minecraftforge/internal/BrandingControl";
@@ -63,7 +63,7 @@ public final class ForgeTitleBranding {
     static TransformRuleDefinition rule(String gameVersion) {
         return new TransformRuleDefinition(
                 RULE_ID,
-                "poly",
+                "plexus",
                 gameVersion,
                 Set.of(GameSide.CLIENT),
                 new MethodTarget(
@@ -89,7 +89,7 @@ public final class ForgeTitleBranding {
 
     /**
      * Replaces the patched title screen's call to {@code BrandingControl.forEachLine(includeMinecraft, reverse, line)}:
-     * calls it with Forge's mod counts stripped out, then {@code line} with Poly Mod Loader's lines, bottom one first,
+     * calls it with Forge's mod counts stripped out, then {@code line} with Plexus Mod Loader's lines, bottom one first,
      * at the indexes after Forge's.
      *
      * @throws IllegalStateException when Forge's {@code BrandingControl.forEachLine} cannot be found from the title
@@ -129,13 +129,13 @@ public final class ForgeTitleBranding {
     }
 
     /** Hands {@code line} the lines (top to bottom) at the indexes from {@code firstIndex} up, the bottom one first. */
-    static void drawAbove(List<String> polyLines, int firstIndex, ObjIntConsumer<String> line) {
-        for (int i = 0; i < polyLines.size(); i++) {
-            line.accept(polyLines.get(polyLines.size() - 1 - i), firstIndex + i);
+    static void drawAbove(List<String> plexusLines, int firstIndex, ObjIntConsumer<String> line) {
+        for (int i = 0; i < plexusLines.size(); i++) {
+            line.accept(plexusLines.get(plexusLines.size() - 1 - i), firstIndex + i);
         }
-        if (!polyLines.isEmpty() && REPORTED.compareAndSet(false, true)) {
-            log.accept("Title screen: " + polyLines.size() + " line(s) of mod counts drawn above MinecraftForge's"
-                    + " branding: " + String.join(" | ", polyLines));
+        if (!plexusLines.isEmpty() && REPORTED.compareAndSet(false, true)) {
+            log.accept("Title screen: " + plexusLines.size() + " line(s) of mod counts drawn above MinecraftForge's"
+                    + " branding: " + String.join(" | ", plexusLines));
         }
     }
 

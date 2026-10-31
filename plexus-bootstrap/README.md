@@ -1,6 +1,6 @@
 # plexus-bootstrap — JVM Entrypoint & Execution Harness
 
-`plexus-bootstrap`는 Poly Mod Loader의 최상위 **JVM 진입점**이자 개발 환경 실행 및 헤드리스 테스트를 총괄하는 부트스트랩 모듈입니다.
+`plexus-bootstrap`는 Plexus Mod Loader의 최상위 **JVM 진입점**이자 개발 환경 실행 및 헤드리스 테스트를 총괄하는 부트스트랩 모듈입니다.
 
 ---
 
@@ -28,13 +28,13 @@
 
 | 속성명 | 값 예시 | 설명 |
 | :--- | :--- | :--- |
-| `poly.launchTarget` | `client`, `dedicated_server`, `game_test_server` | 실행할 게임 타겟 환경 |
-| `poly.gameJar` | `/path/to/minecraft.jar` | 마인크래프트 바닐라 클라이언트/서버 jar 경로 |
-| `poly.modsDir` | `/path/to/mods` | 사용자 모드가 위치한 디렉터리 |
-| `poly.devModJars` | 쉼표로 구분된 경로 | 개발 중인 모드 jar 목록 |
-| `poly.transformDumpDir` | `/path/to/dumps` | 바이트코드 변환 후 디컴파일/검사용 class 파일 덤프 디렉터리 |
-| `poly.neoforge` | `on` / `off` | NeoForge 지원 활성화 여부 (기본값: on) |
-| `poly.forge` | `auto` / `always` / `off` | Forge 지원 활성화 여부 (기본값: auto) |
+| `plexus.launchTarget` | `client`, `dedicated_server`, `game_test_server` | 실행할 게임 타겟 환경 |
+| `plexus.gameJar` | `/path/to/minecraft.jar` | 마인크래프트 바닐라 클라이언트/서버 jar 경로 |
+| `plexus.modsDir` | `/path/to/mods` | 사용자 모드가 위치한 디렉터리 |
+| `plexus.devModJars` | 쉼표로 구분된 경로 | 개발 중인 모드 jar 목록 |
+| `plexus.transformDumpDir` | `/path/to/dumps` | 바이트코드 변환 후 디컴파일/검사용 class 파일 덤프 디렉터리 |
+| `plexus.neoforge` | `on` / `off` | NeoForge 지원 활성화 여부 (기본값: on) |
+| `plexus.forge` | `auto` / `always` / `off` | Forge 지원 활성화 여부 (기본값: auto) |
 
 ---
 

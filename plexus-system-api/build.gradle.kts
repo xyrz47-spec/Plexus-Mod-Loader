@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "Public system replacement API: system IDs, providers, lookup, and built-in system contracts."

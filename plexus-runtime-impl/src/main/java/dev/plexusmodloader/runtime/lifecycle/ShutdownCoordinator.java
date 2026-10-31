@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class ShutdownCoordinator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /**
      * A registered task.
@@ -58,7 +58,7 @@ public final class ShutdownCoordinator {
 
     /** Registers a JVM shutdown hook that calls {@link #runShutdownTasks()}. */
     public void installJvmShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::runShutdownTasks, "Poly Mod Loader Shutdown"));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::runShutdownTasks, "Plexus Mod Loader Shutdown"));
     }
 
     /** Runs every task once; later calls do nothing and return an empty result. */
@@ -70,7 +70,7 @@ public final class ShutdownCoordinator {
         synchronized (this) {
             snapshot = new ArrayList<>(tasks);
         }
-        LOGGER.info("[Poly Mod Loader] Phase {}: {} task(s)", RuntimePhase.SHUTDOWN, snapshot.size());
+        LOGGER.info("[Plexus Mod Loader] Phase {}: {} task(s)", RuntimePhase.SHUTDOWN, snapshot.size());
         List<ShutdownTask> completed = new ArrayList<>();
         List<String> failed = new ArrayList<>();
         for (ShutdownTask task : snapshot.reversed()) {
@@ -81,7 +81,7 @@ public final class ShutdownCoordinator {
                 String problem =
                         "PLEXUS-SHUTDOWN-001 mod=" + task.modId() + " task='" + task.description() + "' threw " + e;
                 failed.add(problem);
-                LOGGER.error("[Poly Mod Loader] {}", problem, e);
+                LOGGER.error("[Plexus Mod Loader] {}", problem, e);
             }
         }
         return new Result(completed, failed);

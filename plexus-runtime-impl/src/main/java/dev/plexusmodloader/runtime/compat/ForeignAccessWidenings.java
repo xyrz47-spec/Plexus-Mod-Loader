@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 /**
  * Turns the access widenings that loadable foreign mods ask for (Fabric class tweakers, ADR-0018) into
  * transform-engine widenings, after {@link ModLinkVerifier} has checked their targets. The planner then
- * validates and joins them with Poly Mod Loader's and Poly Mods' own, exactly like {@code accessWidenings} in
- * {@code poly.mod.json} (ADR-0013).
+ * validates and joins them with Plexus Mod Loader's and Plexus Mods' own, exactly like {@code accessWidenings} in
+ * {@code plexus.mod.json} (ADR-0013).
  *
  * <ul>
  *   <li>A widening applies to the running side and this game version; the class tweaker names no version, and

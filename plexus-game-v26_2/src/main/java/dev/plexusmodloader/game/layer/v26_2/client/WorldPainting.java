@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 final class WorldPainting {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final float TEXT_SCALE = TextGizmo.Style.DEFAULT_SCALE;
 
     private static final Set<String> FAILED = ConcurrentHashMap.newKeySet();
@@ -57,7 +57,7 @@ final class WorldPainting {
             } catch (RuntimeException | LinkageError e) {
                 FAILED.add(key);
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-CLIENT-003 world painter {} ({}) failed and is disabled",
+                        "[Plexus Mod Loader] PLEXUS-CLIENT-003 world painter {} ({}) failed and is disabled",
                         painter.id(),
                         painter.ownerModId(),
                         e);
@@ -69,7 +69,7 @@ final class WorldPainting {
             }
             if (shapes[0] + quads.size() > 0 && REPORTED.add(key)) {
                 LOGGER.info(
-                        "[Poly Mod Loader] World painter {} drew {} shape(s) and {} quad batch(es)",
+                        "[Plexus Mod Loader] World painter {} drew {} shape(s) and {} quad batch(es)",
                         painter.id(),
                         shapes[0],
                         quads.size());

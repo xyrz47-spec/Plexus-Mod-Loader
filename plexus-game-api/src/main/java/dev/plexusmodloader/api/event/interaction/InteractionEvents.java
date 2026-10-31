@@ -29,19 +29,19 @@ public final class InteractionEvents {
      * the game tries: the main hand first, then the off hand when the main hand passed.
      */
     public static final EventKey<UseBlockListener> USE_BLOCK =
-            EventKey.of("poly:interaction/use_block", UseBlockListener.class);
+            EventKey.of("plexus:interaction/use_block", UseBlockListener.class);
 
     /** A player right-clicks with an item in the air (not at a block or entity), before the item reacts. */
     public static final EventKey<UseItemListener> USE_ITEM =
-            EventKey.of("poly:interaction/use_item", UseItemListener.class);
+            EventKey.of("plexus:interaction/use_item", UseItemListener.class);
 
     /** A player right-clicks an entity, before the entity or the held item reacts. */
     public static final EventKey<UseEntityListener> USE_ENTITY =
-            EventKey.of("poly:interaction/use_entity", UseEntityListener.class);
+            EventKey.of("plexus:interaction/use_entity", UseEntityListener.class);
 
     /** A player attacks (left-clicks) an entity, before damage and knockback. */
     public static final EventKey<AttackEntityListener> ATTACK_ENTITY =
-            EventKey.of("poly:interaction/attack_entity", AttackEntityListener.class);
+            EventKey.of("plexus:interaction/attack_entity", AttackEntityListener.class);
 
     private InteractionEvents() {}
 }

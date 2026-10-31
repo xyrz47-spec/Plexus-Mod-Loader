@@ -16,8 +16,8 @@ import java.util.regex.Pattern;
  * {@link #after()} puts them in one order and their actions can be combined (see {@link
  * MethodTransformAction}).
  *
- * @param ruleId unique ID in {@code namespace:path} form, e.g. {@code poly:client_brand}
- * @param ownerModId mod (or {@code poly}) that provides the rule
+ * @param ruleId unique ID in {@code namespace:path} form, e.g. {@code plexus:client_brand}
+ * @param ownerModId mod (or {@code plexus}) that provides the rule
  * @param gameVersion exact Minecraft version the target was verified against
  * @param sides processes the rule applies to
  * @param target the method to transform

@@ -3,7 +3,7 @@ package dev.plexusmodloader.earlywindow;
 /**
  * Where the game's loading screen puts its pieces, in GUI pixels, for a window of {@code framebufferWidth} x
  * {@code framebufferHeight} pixels. The numbers are the game's own (its {@code LoadingOverlay} and {@code Window} in
- * Minecraft 26.1, 26.2 and 26.3, read with {@code javap}), and the Poly Mod Loader marks sit where the game layers'
+ * Minecraft 26.1, 26.2 and 26.3, read with {@code javap}), and the Plexus Mod Loader marks sit where the game layers'
  * {@code PlexusLoadingOverlay} draws them, so the early window and the game's screen that follows line up.
  *
  * @param scale GUI pixels to window pixels
@@ -87,7 +87,7 @@ record LoadingScreenLayout(int scale, int guiWidth, int guiHeight) {
         return new int[] {guiWidth - CUBE - 6, guiHeight - CUBE - 16};
     }
 
-    /** The top left corner of Poly Mod Loader's name, {@code nameWidth} GUI pixels wide. */
+    /** The top left corner of Plexus Mod Loader's name, {@code nameWidth} GUI pixels wide. */
     int[] name(int nameWidth) {
         return new int[] {guiWidth - nameWidth - 6, guiHeight - 12};
     }

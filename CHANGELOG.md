@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.5.0 — 2026-10-31
+
+### Highlights
+
+- Every remaining Poly name is now Plexus: the installer is `PlexusModLoader-<version>.jar`, the launcher profile key is `plexusmodloader-<Minecraft version>`, the server jar is `plexusmodloader-server.jar`, logs read `[Plexus Mod Loader]`, and the title screen counts "Plexus mods".
+- Reinstalling over 1.4.x moves your existing launcher profile (memory and other settings kept) to the new name instead of adding a second one.
+- Mods and worlds from 1.4.x keep working: old metadata, package names, the `PolySystem` type, the `poly` dependency ID, `-Dpoly.*` settings and saved code structures are still understood.
+- Mod developers: the SDK, plugin and template use Plexus names throughout (`plexusResources`, `-PplexusMinecraft`, `newPlexusMod`); the former names still work in existing projects.
+
+### 주요 변경
+
+- 남아 있던 Poly 이름을 모두 Plexus로 바꿨습니다. 설치 파일은 `PlexusModLoader-<버전>.jar`, 런처 프로필 키는 `plexusmodloader-<Minecraft 버전>`, 서버 jar는 `plexusmodloader-server.jar`이고, 로그는 `[Plexus Mod Loader]`, 타이틀 화면은 "Plexus 모드"로 표시합니다.
+- 1.4.x 위에 다시 설치하면 기존 런처 프로필을 새 이름으로 옮깁니다(메모리 등 설정 유지). 프로필이 두 개로 늘지 않습니다.
+- 1.4.x용 모드와 월드는 그대로 동작합니다. 이전 메타데이터·패키지 이름, `PolySystem` 타입, `poly` 의존 ID, `-Dpoly.*` 설정, 저장된 코드 구조물을 계속 읽습니다.
+- 모드 개발자: SDK·플러그인·템플릿이 모두 Plexus 이름을 씁니다(`plexusResources`, `-PplexusMinecraft`, `newPlexusMod`). 기존 프로젝트의 이전 이름도 계속 동작합니다.
+
+### Renamed
+
+- Installer `PolyModLoader-<version>.jar` → `PlexusModLoader-<version>.jar` (release asset, `installerDistributions`).
+- Launcher version `polymodloader-<plexus>-<minecraft>` → `plexusmodloader-<plexus>-<minecraft>`, profile key `polymodloader-<minecraft>` → `plexusmodloader-<minecraft>`; install moves a 1.4.x profile, uninstall removes both.
+- Dedicated server jar `polymodloader-server.jar` → `plexusmodloader-server.jar`, default server folder `Plexus Mod Loader Server`.
+- SLF4J logger and log prefix `Poly Mod Loader` → `Plexus Mod Loader`; built-in transform rule, event and system IDs `poly:*` → `plexus:*` (system `poly:game_brand` is still accepted).
+- System properties `poly.*` → `plexus.*` (a `poly.*` property is copied to its `plexus.*` name at launch); report and cache folder `.poly/` → `.plexus/`; world backup files `config/plexus/` and `<world>/plexus/` (1.4.x files are read when the new ones do not exist yet).
+- Public API `PolySystem` → `PlexusSystem`; classes compiled against `PolySystem` (either package) are remapped at class load.
+- Gradle plugin: `polyResources` → `plexusResources`, tasks `generatePlexusResources`, `checkPlexusResources`, `validatePlexusModJson`, `newPlexusMod`, `initPlexusMod`, properties `plexusMinecraft`, `plexusTests`, `plexusLocalSdk` (the former extension and property names still work).
+- Title screen line and early loading window: "Plexus mods"; resource namespace `assets/plexus`.
+
+### Kept for compatibility
+
+- Mod metadata `poly.mod.json`, packages `dev.polymodloader.*`, plugin ID `dev.polymodloader.mod`, SDK group `dev.polymodloader` (existing versions), dependency ID `poly`, and the structure piece ID `poly:code_structure_piece` saved in worlds.
+
 ## 1.4.2 — 2026-10-30
 
 ### Highlights

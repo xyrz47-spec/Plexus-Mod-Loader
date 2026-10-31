@@ -52,7 +52,7 @@ import java.util.Set;
  *       PLEXUS-COMPAT-212}). The mixin works as written.
  *   <li>The patch added it, or an accessor's or invoker's method, with other code, or changed the type of the field an
  *       accessor reads or writes: one class cannot hold both, so the mixin cannot work as written on that game. The mod
- *       is incompatible ({@code PLEXUS-COMPAT-224}, ADR-0030) and is not loaded; Poly Mod Loader does not rename or
+ *       is incompatible ({@code PLEXUS-COMPAT-224}, ADR-0030) and is not loaded; Plexus Mod Loader does not rename or
  *       replace either method to make the rest of the mod run.
  * </ul>
  *

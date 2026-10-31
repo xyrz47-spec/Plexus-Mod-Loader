@@ -67,7 +67,7 @@ class ModProjectScaffolderTest {
                     continue;
                 }
                 String text = Files.readString(file, StandardCharsets.UTF_8);
-                for (String old : List.of("my_mod", "MyMod", "com.example.mymod", "my-poly-mod")) {
+                for (String old : List.of("my_mod", "MyMod", "com.example.mymod", "my-plexus-mod")) {
                     assertFalse(text.contains(old), () -> file + " still contains " + old);
                 }
             }
@@ -115,7 +115,7 @@ class ModProjectScaffolderTest {
         assertThrows(IllegalArgumentException.class, () -> ModProjectScaffolder.renameInPlace(project, RUBY));
         assertEquals("mine", Files.readString(taken));
         assertTrue(Files.exists(project.resolve("src/main/java/com/example/mymod/MyMod.java")));
-        assertTrue(Files.readString(project.resolve("settings.gradle.kts")).contains("my-poly-mod"));
+        assertTrue(Files.readString(project.resolve("settings.gradle.kts")).contains("my-plexus-mod"));
     }
 
     private static void copyTemplate(Path target) throws IOException {
@@ -136,7 +136,7 @@ class ModProjectScaffolderTest {
                     continue;
                 }
                 String text = Files.readString(file, StandardCharsets.UTF_8);
-                for (String old : List.of("my_mod", "MyMod", "com.example.mymod", "my-poly-mod")) {
+                for (String old : List.of("my_mod", "MyMod", "com.example.mymod", "my-plexus-mod")) {
                     assertFalse(text.contains(old), () -> file + " still contains " + old);
                 }
             }

@@ -11,16 +11,16 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 
 /**
- * In-repository plugin for the project that owns the Poly Mod Loader bootstrap. The Poly Mod Loader class path is the
+ * In-repository plugin for the project that owns the Plexus Mod Loader bootstrap. The Plexus Mod Loader class path is the
  * project's own runtime class path; mods built in this repository are added with the
- * {@code polyDevMod} configuration. Tasks are described in {@link MinecraftRunTasks}.
+ * {@code plexusDevMod} configuration. Tasks are described in {@link MinecraftRunTasks}.
  */
 public final class MinecraftDevPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
         ObjectFactory objects = project.getObjects();
-        Configuration devMods = project.getConfigurations().create("polyDevMod", configuration -> {
+        Configuration devMods = project.getConfigurations().create("plexusDevMod", configuration -> {
             configuration.setTransitive(false);
             configuration.setCanBeConsumed(false);
             configuration.setCanBeResolved(true);
@@ -36,10 +36,10 @@ public final class MinecraftDevPlugin implements Plugin<Project> {
                 .getByType(JavaPluginExtension.class)
                 .getSourceSets()
                 .getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        project.getExtensions().add("polyScenarios", new GameTestScenarios(project, main.getRuntimeClasspath()));
-        // Runs and verification use one version: the default, or the one picked with -PpolyMinecraft.
+        project.getExtensions().add("plexusScenarios", new GameTestScenarios(project, main.getRuntimeClasspath()));
+        // Runs and verification use one version: the default, or the one picked with -PplexusMinecraft.
         String gameVersion = MinecraftVersions.of(project).selected(project);
-        project.getExtensions().getExtraProperties().set("polyMinecraftVersion", gameVersion);
+        project.getExtensions().getExtraProperties().set("plexusMinecraftVersion", gameVersion);
         MinecraftRunTasks.register(
                 project,
                 main.getRuntimeClasspath(),

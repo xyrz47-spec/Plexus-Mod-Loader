@@ -126,7 +126,7 @@ includeIfPresent(
     "test-mods:fabric-mixin",
     "test-mods:fabric-mixin-broken",
     "test-mods:fabric-client-session",
-    // Quilt mods (ADR-0027 Q3: quiltOnly, quiltFabricPoly, quiltBlocked).
+    // Quilt mods (ADR-0027 Q3: quiltOnly, quiltFabricPlexus, quiltBlocked).
     "test-mods:quilt-hello",
     "test-mods:quilt-nested-lib",
     "test-mods:quilt-nested-unused",

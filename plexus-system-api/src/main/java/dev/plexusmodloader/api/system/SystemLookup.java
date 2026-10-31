@@ -12,5 +12,5 @@ public interface SystemLookup {
      *
      * @throws IllegalArgumentException when no system with that contract is registered
      */
-    <T extends PolySystem> T get(Class<T> contract);
+    <T extends PlexusSystem> T get(Class<T> contract);
 }

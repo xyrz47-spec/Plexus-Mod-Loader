@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Poly Mod Loader's language files read with the game's own reader ({@code Language.loadFromJson}). */
+/** Plexus Mod Loader's language files read with the game's own reader ({@code Language.loadFromJson}). */
 class TitleScreenModCountsTest {
 
     private static final LoadedModCounts COUNTS = new LoadedModCounts(2, 14, 3, 5);
@@ -31,7 +31,7 @@ class TitleScreenModCountsTest {
                 ModCountLines.lines(COUNTS, texts::get));
     }
 
-    /** A language Poly Mod Loader has no file for shows the English lines, as Minecraft falls back to English. */
+    /** A language Plexus Mod Loader has no file for shows the English lines, as Minecraft falls back to English. */
     @Test
     void otherLanguagesFallBackToEnglish() {
         Map<String, String> texts = TitleScreenModCounts.bundledTexts("de_de");

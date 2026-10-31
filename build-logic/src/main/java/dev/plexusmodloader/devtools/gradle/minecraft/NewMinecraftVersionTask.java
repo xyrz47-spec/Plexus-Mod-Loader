@@ -72,12 +72,12 @@ public abstract class NewMinecraftVersionTask extends DefaultTask {
                              Fix what changed in the game (renamed classes, methods, parameters).
                           2. Check every transformation rule in the new adapter against the new jar
                              (owner, method, descriptor), e.g. with javap; rules that miss a target
-                             are reported by name in .poly/transformation-report.json.
+                             are reported by name in .plexus/transformation-report.json.
                           3. Update version data in the game layer: data/resource pack formats and
                              anything else the game versions.
                           4. Verify with the version picked: ./gradlew check
                              :plexus-bootstrap:nativeApiGameTests :plexus-bootstrap:compatibilityMatrix
-                             :plexus-bootstrap:serverBootSmokeTest -PpolyMinecraft={}
+                             :plexus-bootstrap:serverBootSmokeTest -PplexusMinecraft={}
                           5. Make it the default in {} when it is ready.""",
                         MinecraftVersions.adapterModule(to),
                         MinecraftVersions.gameLayerModule(to),

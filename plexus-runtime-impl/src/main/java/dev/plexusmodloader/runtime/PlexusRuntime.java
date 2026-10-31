@@ -88,16 +88,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Runs Poly Mod Loader's launch pipeline (design doc §11) and then hands control to Minecraft's {@code main}.
+ * Runs Plexus Mod Loader's launch pipeline (design doc §11) and then hands control to Minecraft's {@code main}.
  * Every phase is logged with the mod IDs and versions involved (§21 item 7). Problems found in a
  * phase are all reported together, and the game never starts after an error-level problem.
  */
 public final class PlexusRuntime {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /**
-     * Starts Minecraft through Poly Mod Loader and returns when the game's {@code main} returns. The dedicated
+     * Starts Minecraft through Plexus Mod Loader and returns when the game's {@code main} returns. The dedicated
      * server keeps running on its own threads after that, so callers must not close the returned
      * game unless they know the game has stopped (for example in tests).
      */
@@ -105,7 +105,7 @@ public final class PlexusRuntime {
         // BOOTSTRAP
         SemanticVersion runtimeVersion = runtimeVersion();
         LOGGER.info(
-                "[Poly Mod Loader] Phase {}: Poly Mod Loader {} on Java {} ({})",
+                "[Plexus Mod Loader] Phase {}: Plexus Mod Loader {} on Java {} ({})",
                 RuntimePhase.BOOTSTRAP,
                 runtimeVersion,
                 Runtime.version(),
@@ -113,19 +113,19 @@ public final class PlexusRuntime {
         String gameVersion = readGameVersion(configuration.gameJar());
         GameVersionAdapter adapter = selectAdapter(gameVersion);
         LOGGER.info(
-                "[Poly Mod Loader] Minecraft {} ({}) via adapter {}, launch target {}",
+                "[Plexus Mod Loader] Minecraft {} ({}) via adapter {}, launch target {}",
                 gameVersion,
                 configuration.side(),
                 adapter.adapterId(),
                 configuration.target().id());
-        // Poly Mod Loader's early loading window, prepared hidden while the mods are found.
+        // Plexus Mod Loader's early loading window, prepared hidden while the mods are found.
         StartupWindow startup = StartupWindow.start(configuration, adapter, gameVersion, gameArguments);
 
         // DISCOVERY + compatibility classification
         List<DiscoveredModFile> files =
                 new ModFileScanner().scan(configuration.modsDirectory(), configuration.devModJars());
         LOGGER.info(
-                "[Poly Mod Loader] Phase {}: {} mod file(s) in {} and {} dev mod jar(s)",
+                "[Plexus Mod Loader] Phase {}: {} mod file(s) in {} and {} dev mod jar(s)",
                 RuntimePhase.DISCOVERY,
                 files.size(),
                 configuration.modsDirectory(),
@@ -138,8 +138,8 @@ public final class PlexusRuntime {
         // Forge
         // mods, NeoForge through FML 11 (ADR-0026).
         List<Path> forgeJars = forgeJars(files);
-        boolean forge =
-                !forgeJars.isEmpty() || System.getProperty("poly.forge", "auto").equals("always");
+        boolean forge = !forgeJars.isEmpty()
+                || System.getProperty("plexus.forge", "auto").equals("always");
         List<Path> neoForgeJars = forge ? List.of() : neoForgeJars(files);
         if (forge) {
             reportNeoForgeBesideForge(files);
@@ -150,7 +150,7 @@ public final class PlexusRuntime {
         } else if (!neoForgeJars.isEmpty()) {
             startup.hostStarting("NeoForge");
         }
-        // With Poly Mod Loader's early window, the host's FML opens none.
+        // With Plexus Mod Loader's early window, the host's FML opens none.
         Optional<GameHost> host = forge
                 ? gameHost(configuration, gameVersion, gameArguments, files, forgeJars, foreignMods, startup.shows())
                 : neoForgeHost(
@@ -158,7 +158,7 @@ public final class PlexusRuntime {
         List<ForeignModResolver.ForeignMod> assessedForeignMods = new ArrayList<>();
         List<StartupReport.ForeignMod> foreignReport = new ArrayList<>();
         for (DiscoveredModFile file : files) {
-            if (file.kind() == ModFileKind.POLY_NATIVE) {
+            if (file.kind() == ModFileKind.PLEXUS_NATIVE) {
                 nativeFiles.add(file);
                 continue;
             }
@@ -169,7 +169,7 @@ public final class PlexusRuntime {
                         "Unreadable",
                         "PLEXUS-DISCOVERY-003"));
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-DISCOVERY-003 {} cannot be read as a jar ({}); it is NOT loaded. "
+                        "[Plexus Mod Loader] PLEXUS-DISCOVERY-003 {} cannot be read as a jar ({}); it is NOT loaded. "
                                 + "Download it again.",
                         file.path().getFileName(),
                         file.detail().orElse("?"));
@@ -184,7 +184,7 @@ public final class PlexusRuntime {
                 // A jar built for several loaders that the host does not run: its other loader runs it, as that loader
                 // would without the host.
                 LOGGER.info(
-                        "[Poly Mod Loader] {} does not run {}, which is built for {} too; the {} bridge runs it",
+                        "[Plexus Mod Loader] {} does not run {}, which is built for {} too; the {} bridge runs it",
                         host.get().name(),
                         file.path().getFileName(),
                         file.kind(),
@@ -197,7 +197,7 @@ public final class PlexusRuntime {
                 blockedFiles.add(new StartupReport.BlockedFile(
                         file.path().getFileName().toString(), file.kind().name(), "Blocked", "PLEXUS-COMPAT-205"));
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-205 {} is a NeoForge/Forge library (FMLModType {}); FML is not"
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-205 {} is a NeoForge/Forge library (FMLModType {}); FML is not"
                                 + " available, so it is NOT loaded.",
                         file.path().getFileName(),
                         file.detail().orElse("?"));
@@ -207,7 +207,7 @@ public final class PlexusRuntime {
                 blockedFiles.add(new StartupReport.BlockedFile(
                         file.path().getFileName().toString(), file.kind().name(), "NotAMod", "PLEXUS-DISCOVERY-002"));
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-DISCOVERY-002 {} has no known mod metadata ({}, fabric.mod.json, "
+                        "[Plexus Mod Loader] PLEXUS-DISCOVERY-002 {} has no known mod metadata ({}, fabric.mod.json, "
                                 + "quilt.mod.json, META-INF/neoforge.mods.toml, META-INF/mods.toml); it is NOT"
                                 + " loaded.",
                         file.path().getFileName(),
@@ -219,7 +219,7 @@ public final class PlexusRuntime {
                 blockedFiles.add(new StartupReport.BlockedFile(
                         file.path().getFileName().toString(), file.kind().name(), "Blocked", "PLEXUS-COMPAT-001"));
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-001 {} is a {} mod and no bridge for it is installed (bridges: {}). "
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-001 {} is a {} mod and no bridge for it is installed (bridges: {}). "
                                 + "The mod is NOT loaded.",
                         file.path().getFileName(),
                         file.kind(),
@@ -253,7 +253,7 @@ public final class PlexusRuntime {
                     PlexusRuntime.class.getClassLoader(),
                     foreignMods.bridges(),
                     assessedForeignMods);
-            // A left-out Fabric API module runs as Poly Mod Loader's build on the host's hooks, when there is one for
+            // A left-out Fabric API module runs as Plexus Mod Loader's build on the host's hooks, when there is one for
             // this host release (ADR-0031); that build must fit the patch too.
             HostModules.Result hostModules = HostModules.replaceLeftOut(
                     host.get().name(),
@@ -264,9 +264,9 @@ public final class PlexusRuntime {
                     PlexusRuntime.class.getClassLoader());
             for (Path[] replaced : hostModules.replaced()) {
                 LOGGER.info(
-                        "[Poly Mod Loader] {} {} {}",
+                        "[Plexus Mod Loader] {} {} {}",
                         replaced[0].getFileName(),
-                        "does not fit the host's patch (PLEXUS-COMPAT-224); Poly Mod Loader runs its build on the host's hooks instead (ADR-0031):",
+                        "does not fit the host's patch (PLEXUS-COMPAT-224); Plexus Mod Loader runs its build on the host's hooks instead (ADR-0031):",
                         replaced[1].getFileName());
             }
             if (!hostModules.replaced().isEmpty()) {
@@ -283,7 +283,7 @@ public final class PlexusRuntime {
             blockedFiles.add(new StartupReport.BlockedFile(
                     file.container() + "!/" + file.entry(), file.kind().name(), "NotAMod", "PLEXUS-DISCOVERY-002"));
             LOGGER.warn(
-                    "[Poly Mod Loader] PLEXUS-DISCOVERY-002 {} inside {} is not a mod of that loader ({}); it is NOT loaded.",
+                    "[Plexus Mod Loader] PLEXUS-DISCOVERY-002 {} inside {} is not a mod of that loader ({}); it is NOT loaded.",
                     file.entry(),
                     file.container(),
                     file.kind());
@@ -302,7 +302,7 @@ public final class PlexusRuntime {
                 if (problem.isError()) {
                     metadataErrors.add(line);
                 } else {
-                    LOGGER.warn("[Poly Mod Loader] {}", line);
+                    LOGGER.warn("[Plexus Mod Loader] {}", line);
                 }
             }
             result.metadata().ifPresent(metadata -> {
@@ -313,8 +313,8 @@ public final class PlexusRuntime {
         failIfAny(RuntimePhase.METADATA_VALIDATION, metadataErrors);
 
         startup.resolving();
-        // DEPENDENCY_RESOLUTION, across loaders: foreign mods first (they may be blocked, which Poly Mods
-        // that need them must hear about), then Poly Mods with the foreign result.
+        // DEPENDENCY_RESOLUTION, across loaders: foreign mods first (they may be blocked, which Plexus Mods
+        // that need them must hear about), then Plexus Mods with the foreign result.
         Map<String, String> nativeVersions = new HashMap<>();
         mods.forEach(mod ->
                 nativeVersions.putIfAbsent(mod.id().value(), mod.version().toString()));
@@ -384,7 +384,7 @@ public final class PlexusRuntime {
             BridgeAssessment assessment = mod.assessment();
             LOGGER.atLevel(assessment.status().loadable() ? org.slf4j.event.Level.INFO : org.slf4j.event.Level.WARN)
                     .log(
-                            "[Poly Mod Loader] {} mod {} {} ({}): {}{}",
+                            "[Plexus Mod Loader] {} mod {} {} ({}): {}{}",
                             assessment.loader(),
                             assessment.modId(),
                             assessment.version(),
@@ -395,7 +395,7 @@ public final class PlexusRuntime {
                                     : " - NOT loaded");
             for (CompatibilityFinding finding : assessment.findings()) {
                 LOGGER.atLevel(finding.blocking() ? org.slf4j.event.Level.WARN : org.slf4j.event.Level.INFO)
-                        .log("[Poly Mod Loader]   {}", finding);
+                        .log("[Plexus Mod Loader]   {}", finding);
             }
             foreignReport.add(new StartupReport.ForeignMod(
                     assessment.loader(),
@@ -408,7 +408,7 @@ public final class PlexusRuntime {
                             .toList()));
         }
         LOGGER.info(
-                "[Poly Mod Loader] Foreign mods: {} loaded, {} not loaded",
+                "[Plexus Mod Loader] Foreign mods: {} loaded, {} not loaded",
                 bridgedMods.size(),
                 foreignResolution.mods().size() - bridgedMods.size());
         ModDependencyResolver.Result resolution = new ModDependencyResolver()
@@ -424,7 +424,7 @@ public final class PlexusRuntime {
                 resolution.problems().stream().map(DependencyProblem::toString).toList());
         for (ModMetadata mod : resolution.loadOrder()) {
             LOGGER.info(
-                    "[Poly Mod Loader] Loaded mod {} {} ({}) from {}",
+                    "[Plexus Mod Loader] Loaded mod {} {} ({}) from {}",
                     mod.id(),
                     mod.version(),
                     mod.name(),
@@ -436,7 +436,8 @@ public final class PlexusRuntime {
                         .map(BridgeLaunchContext.LoadedMod::modId)
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
-        // Mods left out because Poly Mod Loader cannot run them on the host's patched game (ADR-0030): said once more,
+        // Mods left out because Plexus Mod Loader cannot run them on the host's patched game (ADR-0030): said once
+        // more,
         // together, and counted on the title screen, so that the player does not take them for broken mods.
         List<String> hostIncompatible = foreignResolution.mods().stream()
                 .filter(mod -> mod.assessment().blockingCodes().contains(HostPatchCheck.CODE))
@@ -445,10 +446,10 @@ public final class PlexusRuntime {
                 .toList();
         if (!hostIncompatible.isEmpty()) {
             LOGGER.warn(
-                    "[Poly Mod Loader] {} {} mod(s) are NOT loaded, because Poly Mod Loader cannot run them as written on"
+                    "[Plexus Mod Loader] {} {} mod(s) are NOT loaded, because Plexus Mod Loader cannot run them as written on"
                             + " the game as {} patches it: {}. Mods that need them are not loaded either"
-                            + " (PLEXUS-COMPAT-114). This is a limitation of Poly Mod Loader, not a bug in these mods:"
-                            + " report it to Poly Mod Loader, not to their authors. Each mod's reasons are listed above",
+                            + " (PLEXUS-COMPAT-114). This is a limitation of Plexus Mod Loader, not a bug in these mods:"
+                            + " report it to Plexus Mod Loader, not to their authors. Each mod's reasons are listed above",
                     HostPatchCheck.CODE,
                     hostIncompatible.size(),
                     host.map(GameHost::name).orElse("the host"),
@@ -469,8 +470,8 @@ public final class PlexusRuntime {
                         hostNeoForgeModIds)
                 .withHostIncompatibleMods(hostIncompatible.size());
         LOGGER.info(
-                "[Poly Mod Loader] Loaded mods per loader: {} Poly, {} Fabric, {} Quilt, {} Forge, {} NeoForge",
-                modCounts.polyMods(),
+                "[Plexus Mod Loader] Loaded mods per loader: {} Plexus, {} Fabric, {} Quilt, {} Forge, {} NeoForge",
+                modCounts.plexusMods(),
                 modCounts.fabricMods(),
                 modCounts.quiltMods(),
                 modCounts.forgeMods(),
@@ -482,7 +483,7 @@ public final class PlexusRuntime {
         SystemReplacementResolver.Result replacements =
                 new SystemReplacementResolver().resolve(resolution.loadOrder(), systemDefinitions);
         LOGGER.info(
-                "[Poly Mod Loader] Phase {}: {} system(s), {} replacement(s)",
+                "[Plexus Mod Loader] Phase {}: {} system(s), {} replacement(s)",
                 RuntimePhase.CONFLICT_RESOLUTION,
                 systemDefinitions.size(),
                 replacements.replacements().size());
@@ -492,14 +493,15 @@ public final class PlexusRuntime {
         startup.preparing();
         List<TransformRuleDefinition> rules =
                 new ArrayList<>(AdapterTransformRules.forGameVersion(adapter, gameVersion));
-        // Poly Mod Loader's rules for a host's patched game, where the patch replaced what an adapter rule changes.
+        // Plexus Mod Loader's rules for a host's patched game, where the patch replaced what an adapter rule changes.
         String gameLayerPackage = adapter.gameLayerClass()
                 .map(name -> name.substring(0, name.lastIndexOf('.')).replace('.', '/'))
                 .orElse("");
         host.ifPresent(found -> rules.addAll(found.transformRules(gameLayerPackage)));
-        // Diagnosis only: -Dpoly.transform.disable=<rule IDs, comma-separated, or *> leaves built-in rules out, to find
-        // one that conflicts with another loader's patches. Poly Mod features that rely on them stop working.
-        String disabled = System.getProperty("poly.transform.disable", "").strip();
+        // Diagnosis only: -Dplexus.transform.disable=<rule IDs, comma-separated, or *> leaves built-in rules out, to
+        // find
+        // one that conflicts with another loader's patches. Plexus Mod features that rely on them stop working.
+        String disabled = System.getProperty("plexus.transform.disable", "").strip();
         if (!disabled.isEmpty()) {
             List<String> ids = List.of(disabled.split("\s*,\s*"));
             List<TransformRuleDefinition> left = rules.stream()
@@ -507,7 +509,7 @@ public final class PlexusRuntime {
                     .toList();
             rules.removeAll(left);
             LOGGER.warn(
-                    "[Poly Mod Loader] {} built-in transformation rule(s) left out by poly.transform.disable: {}",
+                    "[Plexus Mod Loader] {} built-in transformation rule(s) left out by plexus.transform.disable: {}",
                     left.size(),
                     left.stream().map(TransformRuleDefinition::ruleId).toList());
         }
@@ -544,47 +546,48 @@ public final class PlexusRuntime {
             }
         }
         LOGGER.info(
-                "[Poly Mod Loader] Transformation plan: {} rule(s) accepted, {} rejected ({} from mods)",
+                "[Plexus Mod Loader] Transformation plan: {} rule(s) accepted, {} rejected ({} from mods)",
                 plan.acceptedRuleCount(),
                 plan.rejected().size(),
                 modRules.rules().size());
         if (!widenings.isEmpty()) {
             LOGGER.info(
-                    "[Poly Mod Loader] Access widenings: {} accepted, {} rejected ({} from foreign mods' class tweakers)",
+                    "[Plexus Mod Loader] Access widenings: {} accepted, {} rejected ({} from foreign mods' class tweakers)",
                     plan.acceptedWideningCount(),
                     plan.rejectedWidenings().size(),
                     foreignWidenings);
         }
         for (TransformProblem problem : plan.rejected()) {
             if (host.isPresent()
-                    && problem.rule().ownerModId().equals("poly")
+                    && problem.rule().ownerModId().equals("plexus")
                     && problem.rule().failurePolicy() == TransformFailurePolicy.DISABLE_RULE) {
-                // The host's patch replaced the code an optional rule of Poly Mod Loader changes (Forge sets the server
+                // The host's patch replaced the code an optional rule of Plexus Mod Loader changes (Forge sets the
+                // server
                 // brand and draws the title screen's branding itself); the host's own code runs there instead.
                 LOGGER.info(
-                        "[Poly Mod Loader] {} patched the target of Poly Mod Loader's optional rule {}; that rule is off"
+                        "[Plexus Mod Loader] {} patched the target of Plexus Mod Loader's optional rule {}; that rule is off"
                                 + " ({})",
                         host.get().name(),
                         problem.rule().ruleId(),
                         problem);
             } else {
-                LOGGER.warn("[Poly Mod Loader] Rejected transformation: {}", problem);
+                LOGGER.warn("[Plexus Mod Loader] Rejected transformation: {}", problem);
             }
         }
         for (AccessWideningProblem problem : plan.rejectedWidenings()) {
-            LOGGER.warn("[Poly Mod Loader] Rejected access widening: {}", problem);
+            LOGGER.warn("[Plexus Mod Loader] Rejected access widening: {}", problem);
         }
         List<String> aborting = new ArrayList<>(plan.abortingProblemMessages());
         if (host.isPresent()) {
-            // A host loader that patched the game (Forge) may have reshaped a method Poly Mod Loader's own rules
+            // A host loader that patched the game (Forge) may have reshaped a method Plexus Mod Loader's own rules
             // change;
             // the host's patch provides that part of the game then (Forge pages creative tabs itself), so the rule is
             // off instead of stopping the launch.
             for (TransformProblem problem : plan.abortingProblems()) {
-                if (problem.rule().ownerModId().equals("poly")) {
+                if (problem.rule().ownerModId().equals("plexus")) {
                     aborting.remove(problem.toString());
                     LOGGER.warn(
-                            "[Poly Mod Loader] {} patched the target of Poly Mod Loader's rule {}; that rule is off: {}",
+                            "[Plexus Mod Loader] {} patched the target of Plexus Mod Loader's rule {}; that rule is off: {}",
                             host.get().name(),
                             problem.rule().ruleId(),
                             problem);
@@ -596,13 +599,13 @@ public final class PlexusRuntime {
                 .transformCacheDirectory()
                 .map(directory -> new DirectoryTransformCache(
                         directory,
-                        warning -> LOGGER.warn("[Poly Mod Loader] {}", warning),
+                        warning -> LOGGER.warn("[Plexus Mod Loader] {}", warning),
                         configuration.transformCacheMaxBytes()));
         ClassTransformExecutor executor = new ClassTransformExecutor(
                 plan,
                 configuration.transformDumpDirectory(),
                 entry -> LOGGER.info(
-                        "[Poly Mod Loader] Transformed {} with {} (sha256 {} -> {}){}",
+                        "[Plexus Mod Loader] Transformed {} with {} (sha256 {} -> {}){}",
                         entry.className(),
                         entry.appliedRuleIds(),
                         entry.sha256Before(),
@@ -626,7 +629,7 @@ public final class PlexusRuntime {
                     System.getProperty("java.class.path", ""), configuration.gameJar());
             gameJars.addAll(libraries);
             LOGGER.info(
-                    "[Poly Mod Loader] {} game library jar(s) load in the game class loader, so foreign mods can change them",
+                    "[Plexus Mod Loader] {} game library jar(s) load in the game class loader, so foreign mods can change them",
                     libraries.size());
         }
         List<String> sharedLibraries = foreignMods.bridges().stream()
@@ -639,7 +642,7 @@ public final class PlexusRuntime {
                 PlexusRuntime.class.getClassLoader(),
                 executor,
                 sharedLibraries,
-                warning -> LOGGER.warn("[Poly Mod Loader] {}", warning));
+                warning -> LOGGER.warn("[Plexus Mod Loader] {}", warning));
         hideIdleLoaderApis(foreignMods, bridgedMods, gameClassLoader);
         // Mod code that runs from here on (Mixin config plugins, Fabric's preLaunch) finds its services through
         // ServiceLoader.load(Class), which reads the context class loader; Fabric's Knot sets it this early too.
@@ -648,13 +651,13 @@ public final class PlexusRuntime {
         // Bridges that emulate their loader's runtime API (Fabric's FabricLoader) see every loaded mod first, and
         // bridges whose loader transforms classes (Fabric's Mixin) install that before any class is defined.
         List<CrossLoaderLoadOrder.LoadedMod> order = CrossLoaderLoadOrder.of(resolution.loadOrder(), bridgedMods);
-        List<BridgeLaunchContext.LoadedMod> polyRunMods =
+        List<BridgeLaunchContext.LoadedMod> plexusRunMods =
                 order.stream().map(mod -> loadedMod(mod, modJars)).toList();
         // Each loader's mod list shows the other loaders' mods too (ADR-0025): the host's mods come first, so that on
         // the other loaders' side a host mod's ID is not taken by another mod's provided ID.
         List<BridgeLaunchContext.LoadedMod> everyMod = new ArrayList<>();
         host.ifPresent(found -> found.mods().forEach(mod -> everyMod.add(withAliases(mod, hostAliases))));
-        everyMod.addAll(polyRunMods);
+        everyMod.addAll(plexusRunMods);
         BridgeLaunchContext bridgeContext = new BridgeLaunchContext(
                 configuration.side(),
                 gameVersion,
@@ -669,7 +672,7 @@ public final class PlexusRuntime {
         // The host defines its loader's layers (Forge's mods) before code that runs before the game: a Mixin shared
         // with the host's mods finds their configurations' classes there.
         if (host.isPresent()) {
-            prepareHost(host.get(), polyRunMods, gameClassLoader);
+            prepareHost(host.get(), plexusRunMods, gameClassLoader);
             // A host whose loader found its mods' Mixin configurations while it started (NeoForge's FML) has them now.
             bridgeContext = withHostMixinConfigs(bridgeContext, host.get());
         }
@@ -684,10 +687,10 @@ public final class PlexusRuntime {
         }
         for (SystemRegistry.ActiveSystem system : systems.activeSystems()) {
             LOGGER.info(
-                    "[Poly Mod Loader] System {}: {} from {}{}",
+                    "[Plexus Mod Loader] System {}: {} from {}{}",
                     system.systemId(),
                     system.providerClass(),
-                    system.isDefault() ? "poly (default)" : system.providerModId(),
+                    system.isDefault() ? "plexus (default)" : system.providerModId(),
                     system.overriddenModIds().isEmpty() ? "" : ", overriding " + system.overriddenModIds());
         }
         adapter.bindSystems(systems);
@@ -705,11 +708,11 @@ public final class PlexusRuntime {
                         systems,
                         plan)
                 .writeTo(configuration.reportDirectory());
-        LOGGER.info("[Poly Mod Loader] Startup report: {}", report.toAbsolutePath());
+        LOGGER.info("[Plexus Mod Loader] Startup report: {}", report.toAbsolutePath());
 
         // LIFECYCLE_INITIALIZATION
         LOGGER.info(
-                "[Poly Mod Loader] Phase {}: {} mod(s)",
+                "[Plexus Mod Loader] Phase {}: {} mod(s)",
                 RuntimePhase.LIFECYCLE_INITIALIZATION,
                 resolution.loadOrder().size());
         startup.initialisingMods(order.size());
@@ -717,7 +720,7 @@ public final class PlexusRuntime {
         shutdown.installJvmShutdownHook();
         // Registered first, so it runs last: the report then covers classes loaded during mod shutdown.
         shutdown.register(
-                "poly",
+                "plexus",
                 "write transformation report",
                 () -> new TransformationReport(gameVersion, executor.report())
                         .writeTo(configuration.reportDirectory()));
@@ -732,7 +735,7 @@ public final class PlexusRuntime {
                 RuntimeLoadedMods.of(bridgeContext.mods()));
         // Common entrypoints of every mod, then side-specific ones; within each, required mods first,
         // whatever their loader.
-        // Poly Mods declare their content before the game starts; their entrypoints run now.
+        // Plexus Mods declare their content before the game starts; their entrypoints run now.
         for (CrossLoaderLoadOrder.LoadedMod mod : order) {
             if (mod.nativeMod() != null) {
                 invoker.invokeCommon(mod.nativeMod());
@@ -754,7 +757,7 @@ public final class PlexusRuntime {
                 configuration.side() == dev.plexusmodloader.api.runtime.GameSide.CLIENT ? "client" : "server";
         Runnable modInitialization = () -> {
             if (!foreignInOrder.isEmpty()) {
-                LOGGER.info("[Poly Mod Loader] Initialising {} foreign mod(s)", foreignInOrder.size());
+                LOGGER.info("[Plexus Mod Loader] Initialising {} foreign mod(s)", foreignInOrder.size());
                 Runnable entrypoints = () -> {
                     foreignInOrder.forEach(mod -> invokeBridgedEntrypoints(mod, "common", gameClassLoader));
                     foreignInOrder.forEach(mod -> invokeBridgedEntrypoints(mod, sidePhase, gameClassLoader));
@@ -767,14 +770,14 @@ public final class PlexusRuntime {
         if (adapter.bindModInitialization(configuration.target(), modInitialization)) {
             if (!foreignInOrder.isEmpty()) {
                 LOGGER.info(
-                        "[Poly Mod Loader] {} foreign mod(s) are initialised when Minecraft reaches its mod initialization"
+                        "[Plexus Mod Loader] {} foreign mod(s) are initialised when Minecraft reaches its mod initialization"
                                 + " point, as under their loader",
                         foreignInOrder.size());
             }
         } else {
             modInitialization.run();
         }
-        LOGGER.info("[Poly Mod Loader] Native declarations: {}", registrations.summary());
+        LOGGER.info("[Plexus Mod Loader] Native declarations: {}", registrations.summary());
         if (adapter.gameLayerClass().isPresent()) {
             List<ModResourcePack> packs = resolution.loadOrder().stream()
                     .map(mod -> new ModResourcePack(
@@ -803,7 +806,7 @@ public final class PlexusRuntime {
         // GAME_LAUNCH
         if (host.isPresent()) {
             LOGGER.info(
-                    "[Poly Mod Loader] Phase {}: {} starts the game",
+                    "[Plexus Mod Loader] Phase {}: {} starts the game",
                     RuntimePhase.GAME_LAUNCH,
                     host.get().name());
             startup.startingGame(gameVersion);
@@ -815,7 +818,7 @@ public final class PlexusRuntime {
             return new LaunchedGame(gameVersion, gameClassLoader, shutdown, systems);
         }
         String mainClassName = adapter.mainClass(configuration.target());
-        LOGGER.info("[Poly Mod Loader] Phase {}: {}", RuntimePhase.GAME_LAUNCH, mainClassName);
+        LOGGER.info("[Plexus Mod Loader] Phase {}: {}", RuntimePhase.GAME_LAUNCH, mainClassName);
         Class<?> mainClass = Class.forName(mainClassName, false, gameClassLoader);
         MethodHandle main = MethodHandles.publicLookup()
                 .findStatic(mainClass, "main", MethodType.methodType(void.class, String[].class));
@@ -883,7 +886,7 @@ public final class PlexusRuntime {
                 bridge.classTransformer(context, gameClassLoader).ifPresent(bridgeTransformer -> {
                     gameClassLoader.installBridgeTransformer(bridgeTransformer);
                     LOGGER.info(
-                            "[Poly Mod Loader] {} bridge transforms classes with {}",
+                            "[Plexus Mod Loader] {} bridge transforms classes with {}",
                             bridge.loaderName(),
                             bridgeTransformer.name());
                 });
@@ -915,7 +918,7 @@ public final class PlexusRuntime {
 
     /**
      * The runtime packages of bridges that run no mods in this launch ({@code ModLoaderBridge.runtimePackages()}, such as
-     * Fabric Loader's API on Poly Mod Loader's class path) are hidden from game and mod code, unless a bridge that does
+     * Fabric Loader's API on Plexus Mod Loader's class path) are hidden from game and mod code, unless a bridge that does
      * run mods has them too (Quilt mods use Fabric Loader's API). Under the loader that runs (NeoForge, Forge, or none),
      * those classes are not there either, and multi-loader libraries tell the loader by them.
      */
@@ -935,11 +938,12 @@ public final class PlexusRuntime {
         }
         gameClassLoader.hideFromParent(List.copyOf(idle));
         LOGGER.info(
-                "[Poly Mod Loader] Loader APIs of bridges without mods are not visible to game and mod code: {}", idle);
+                "[Plexus Mod Loader] Loader APIs of bridges without mods are not visible to game and mod code: {}",
+                idle);
     }
 
     /**
-     * The host for a loader whose own code loads its mods, when such mods were found ({@code -Dpoly.forge=always}
+     * The host for a loader whose own code loads its mods, when such mods were found ({@code -Dplexus.forge=always}
      * also asks without them, {@code off} never): MinecraftForge through FML (ADR-0021). With Fabric mods
      * in the same launch, one Mixin (Fabric's) serves both (G8); when Forge's files cannot be prepared the Forge mods are
      * left out ({@code PLEXUS-COMPAT-206}).
@@ -951,15 +955,15 @@ public final class PlexusRuntime {
             List<DiscoveredModFile> files,
             List<Path> forgeJars,
             ForeignModResolver foreignMods,
-            boolean polyEarlyWindow) {
-        String mode = System.getProperty("poly.forge", "auto");
+            boolean plexusEarlyWindow) {
+        String mode = System.getProperty("plexus.forge", "auto");
         if (mode.equals("off") || (forgeJars.isEmpty() && !mode.equals("always"))) {
             return Optional.empty();
         }
         long fabricMods = files.stream().filter(PlexusRuntime::onlyFabric).count();
         if (fabricMods > 0) {
             LOGGER.info(
-                    "[Poly Mod Loader] {} Forge mod(s) and {} Fabric mod(s) run together; one Mixin serves both",
+                    "[Plexus Mod Loader] {} Forge mod(s) and {} Fabric mod(s) run together; one Mixin serves both",
                     forgeJars.size(),
                     fabricMods);
         }
@@ -971,11 +975,11 @@ public final class PlexusRuntime {
                 Path.of("").toAbsolutePath(),
                 configuration.reportDirectory(),
                 List.of(gameArguments),
-                line -> LOGGER.info("[Poly Mod Loader] {}", line),
+                line -> LOGGER.info("[Plexus Mod Loader] {}", line),
                 fabricMods > 0,
                 configuration.systemClassPath(),
                 Optional.empty(),
-                polyEarlyWindow);
+                plexusEarlyWindow);
         for (dev.plexusmodloader.compat.bridge.ModLoaderBridge bridge : foreignMods.bridges()) {
             if (!bridge.metadataPath().equals(ModFileKind.FORGE.metadataPath())) {
                 continue;
@@ -983,13 +987,13 @@ public final class PlexusRuntime {
             try {
                 Optional<GameHost> host = bridge.gameHost(request, forgeJars);
                 host.ifPresent(found -> LOGGER.info(
-                        "[Poly Mod Loader] {} loads {} Forge mod(s) itself on Poly Mod Loader's game class loader",
+                        "[Plexus Mod Loader] {} loads {} Forge mod(s) itself on Plexus Mod Loader's game class loader",
                         found.name(),
                         forgeJars.size()));
                 return host;
             } catch (java.io.IOException | RuntimeException e) {
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-206 MinecraftForge's files could not be prepared ({}); the {} Forge"
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-206 MinecraftForge's files could not be prepared ({}); the {} Forge"
                                 + " mod(s) are NOT loaded.",
                         e.toString(),
                         forgeJars.size());
@@ -1001,7 +1005,7 @@ public final class PlexusRuntime {
 
     /**
      * The host for NeoForge mods when there are no Forge mods: NeoForge through FML 11 (ADR-0026). It runs by default;
-     * with {@code -Dpoly.neoforge=off} NeoForge mods are only diagnosed and left out ({@code PLEXUS-COMPAT-200..205}). When
+     * with {@code -Dplexus.neoforge=off} NeoForge mods are only diagnosed and left out ({@code PLEXUS-COMPAT-200..205}). When
      * NeoForge cannot run (no NeoForge release for this Minecraft version, files that cannot be prepared, no Java agent,
      * or, with Fabric or Quilt mods in the same launch, an FML whose Mixin start is not the checked code), the NeoForge
      * mods are left out too ({@code PLEXUS-COMPAT-216}). With Fabric or Quilt mods, one Mixin (Fabric's) serves them all
@@ -1014,8 +1018,8 @@ public final class PlexusRuntime {
             List<DiscoveredModFile> files,
             List<Path> neoForgeJars,
             ForeignModResolver foreignMods,
-            boolean polyEarlyWindow) {
-        if (System.getProperty("poly.neoforge", "on").equals("off")
+            boolean plexusEarlyWindow) {
+        if (System.getProperty("plexus.neoforge", "on").equals("off")
                 || neoForgeJars.stream()
                         .noneMatch(jar -> files.stream()
                                 .anyMatch(file -> file.path().equals(jar) && file.kind() == ModFileKind.NEOFORGE))) {
@@ -1030,11 +1034,11 @@ public final class PlexusRuntime {
                 Path.of("").toAbsolutePath(),
                 configuration.reportDirectory(),
                 List.of(gameArguments),
-                line -> LOGGER.info("[Poly Mod Loader] {}", line),
+                line -> LOGGER.info("[Plexus Mod Loader] {}", line),
                 fabricMods > 0,
                 configuration.systemClassPath(),
                 configuration.jdkModuleAccess(),
-                polyEarlyWindow);
+                plexusEarlyWindow);
         for (dev.plexusmodloader.compat.bridge.ModLoaderBridge bridge : foreignMods.bridges()) {
             if (!bridge.metadataPath().equals(ModFileKind.NEOFORGE.metadataPath())) {
                 continue;
@@ -1042,13 +1046,13 @@ public final class PlexusRuntime {
             try {
                 Optional<GameHost> host = bridge.gameHost(request, neoForgeJars);
                 host.ifPresent(found -> LOGGER.info(
-                        "[Poly Mod Loader] {} loads {} NeoForge mod file(s) itself on Poly Mod Loader's game class"
+                        "[Plexus Mod Loader] {} loads {} NeoForge mod file(s) itself on Plexus Mod Loader's game class"
                                 + " loader",
                         found.name(),
                         neoForgeJars.size()));
                 if (host.isPresent() && fabricMods > 0) {
                     LOGGER.info(
-                            "[Poly Mod Loader] {} NeoForge mod file(s) and {} Fabric or Quilt mod(s) run together; one"
+                            "[Plexus Mod Loader] {} NeoForge mod file(s) and {} Fabric or Quilt mod(s) run together; one"
                                     + " Mixin serves both (ADR-0026 30)",
                             neoForgeJars.size(),
                             fabricMods);
@@ -1056,7 +1060,7 @@ public final class PlexusRuntime {
                 return host;
             } catch (java.io.IOException | RuntimeException e) {
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-216 NeoForge cannot run here ({}); the {} NeoForge mod file(s)"
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-216 NeoForge cannot run here ({}); the {} NeoForge mod file(s)"
                                 + " are NOT loaded.",
                         e.toString(),
                         neoForgeJars.size());
@@ -1069,7 +1073,7 @@ public final class PlexusRuntime {
     /**
      * The jars NeoForge's FML runs: those whose loader is NeoForge, FML libraries ({@code FMLModType}), and, when there
      * is a NeoForge mod, every jar built for several loaders that has NeoForge's metadata too (such as Collective, Iris
-     * and Zoomify with {@code fabric.mod.json} besides it): NeoForge reads only its own metadata, as it does without Poly
+     * and Zoomify with {@code fabric.mod.json} besides it): NeoForge reads only its own metadata, as it does without Plexus
      * Mod Loader. Without NeoForge running, Fabric runs such a jar.
      */
     static List<Path> neoForgeJars(List<DiscoveredModFile> files) {
@@ -1077,7 +1081,9 @@ public final class PlexusRuntime {
         return files.stream()
                 .filter(file -> file.kind() == ModFileKind.NEOFORGE
                         || file.kind() == ModFileKind.FML_LIBRARY
-                        || (neoForgeMods && file.isFor(ModFileKind.NEOFORGE) && file.kind() != ModFileKind.POLY_NATIVE))
+                        || (neoForgeMods
+                                && file.isFor(ModFileKind.NEOFORGE)
+                                && file.kind() != ModFileKind.PLEXUS_NATIVE))
                 .map(DiscoveredModFile::path)
                 .toList();
     }
@@ -1108,9 +1114,9 @@ public final class PlexusRuntime {
         for (DiscoveredModFile file : files) {
             if (file.kind() == ModFileKind.FORGE) {
                 jars.add(file.path());
-            } else if (file.isFor(ModFileKind.FORGE) && file.kind() != ModFileKind.POLY_NATIVE) {
+            } else if (file.isFor(ModFileKind.FORGE) && file.kind() != ModFileKind.PLEXUS_NATIVE) {
                 LOGGER.info(
-                        "[Poly Mod Loader] {} is built for several loaders ({} and Forge); MinecraftForge runs it, as it"
+                        "[Plexus Mod Loader] {} is built for several loaders ({} and Forge); MinecraftForge runs it, as it"
                                 + " runs the installed Forge mods",
                         file.path().getFileName(),
                         file.kind());
@@ -1161,7 +1167,7 @@ public final class PlexusRuntime {
             } catch (UncheckedIOException e) {
                 // Without the classes, only the IDs can tell; a mod with a host mod's ID is still left out below.
                 LOGGER.warn(
-                        "[Poly Mod Loader] {} mod {} is compared with {}'s mods by ID only: {}",
+                        "[Plexus Mod Loader] {} mod {} is compared with {}'s mods by ID only: {}",
                         mod.bridge().loaderName(),
                         modId,
                         host.name(),
@@ -1179,7 +1185,7 @@ public final class PlexusRuntime {
                     new StartupReport.BlockedFile(file, mod.bridge().loaderName(), "Blocked", "PLEXUS-COMPAT-139"));
             if (match.isEmpty() || match.get().evidence() == HostBuildMatcher.Evidence.SAME_ID) {
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-139 {} mod {} ({}) is NOT loaded: {} loads its own build of {},"
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-139 {} mod {} ({}) is NOT loaded: {} loads its own build of {},"
                                 + " and the two builds cannot run in one game",
                         mod.bridge().loaderName(),
                         modId,
@@ -1188,7 +1194,7 @@ public final class PlexusRuntime {
                         modId);
             } else {
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-139 {} mod {} ({}) is NOT loaded: {} loads its own build of it"
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-139 {} mod {} ({}) is NOT loaded: {} loads its own build of it"
                                 + " as {}, and the two builds cannot run in one game",
                         mod.bridge().loaderName(),
                         modId,
@@ -1198,7 +1204,7 @@ public final class PlexusRuntime {
             }
             match.filter(found -> !found.sameCode())
                     .ifPresent(found -> LOGGER.info(
-                            "[Poly Mod Loader]   mods that need {} are left out by the dependency check: {}'s build {} has only"
+                            "[Plexus Mod Loader]   mods that need {} are left out by the dependency check: {}'s build {} has only"
                                     + " {} of its {} classes",
                             modId,
                             host.name(),
@@ -1211,7 +1217,7 @@ public final class PlexusRuntime {
                 aliases.computeIfAbsent(found.hostMod().modId(), key -> new LinkedHashSet<>())
                         .addAll(ids.keySet());
                 LOGGER.info(
-                        "[Poly Mod Loader]   mods that need {} use {}'s build {} {}",
+                        "[Plexus Mod Loader]   mods that need {} use {}'s build {} {}",
                         String.join(" or ", new TreeSet<>(ids.keySet())),
                         host.name(),
                         found.hostMod().modId(),
@@ -1257,7 +1263,7 @@ public final class PlexusRuntime {
             try (ZipFile zip = new ZipFile(containerJar.toFile())) {
                 ZipEntry entry = zip.getEntry(entryName);
                 if (entry == null) {
-                    LOGGER.warn("[Poly Mod Loader] Entry {} not found in host jar {}", entryName, containerJar);
+                    LOGGER.warn("[Plexus Mod Loader] Entry {} not found in host jar {}", entryName, containerJar);
                     return null;
                 }
                 if (!Files.exists(target) || (entry.getSize() >= 0 && Files.size(target) != entry.getSize())) {
@@ -1269,7 +1275,7 @@ public final class PlexusRuntime {
             }
         } catch (IOException e) {
             LOGGER.warn(
-                    "[Poly Mod Loader] Could not extract nested host jar {} from {}: {}",
+                    "[Plexus Mod Loader] Could not extract nested host jar {} from {}: {}",
                     entryName,
                     containerJar,
                     e.getMessage());
@@ -1301,7 +1307,7 @@ public final class PlexusRuntime {
             return;
         }
         LOGGER.warn(
-                "[Poly Mod Loader] PLEXUS-COMPAT-221 {} NeoForge mod file(s) are NOT loaded: MinecraftForge mods are in the"
+                "[Plexus Mod Loader] PLEXUS-COMPAT-221 {} NeoForge mod file(s) are NOT loaded: MinecraftForge mods are in the"
                         + " same game, and MinecraftForge and NeoForge each patch the game's classes their own way, so"
                         + " only one of them can run (Forge runs). Remove the Forge mods or the NeoForge mods: {}",
                 neoForgeFiles.size(),
@@ -1327,7 +1333,7 @@ public final class PlexusRuntime {
     }
 
     /**
-     * Tells the host the mods Poly Mod Loader runs ({@code otherMods}, so that its mod list answers for them, ADR-0025),
+     * Tells the host the mods Plexus Mod Loader runs ({@code otherMods}, so that its mod list answers for them, ADR-0025),
      * then runs the host's own setup before any game class is defined; a failure stops the launch ({@code 208}).
      */
     private static void prepareHost(
@@ -1343,7 +1349,7 @@ public final class PlexusRuntime {
         }
         host.classTransformer().ifPresent(transformer -> {
             gameClassLoader.installBridgeTransformer(transformer);
-            LOGGER.info("[Poly Mod Loader] {} transforms classes with {}", host.name(), transformer.name());
+            LOGGER.info("[Plexus Mod Loader] {} transforms classes with {}", host.name(), transformer.name());
         });
     }
 
@@ -1361,7 +1367,7 @@ public final class PlexusRuntime {
             CrossLoaderLoadOrder.LoadedMod mod, Map<String, Path> modJars) {
         if (mod.nativeMod() != null) {
             return new BridgeLaunchContext.LoadedMod(
-                    "Poly Mod Loader",
+                    "Plexus Mod Loader",
                     mod.nativeMod().id().value(),
                     mod.nativeMod().version().toString(),
                     mod.nativeMod().name(),
@@ -1401,7 +1407,7 @@ public final class PlexusRuntime {
         }
     }
 
-    /** The jar that holds {@code className}, found on Poly Mod Loader's own class path (ADR-0010). */
+    /** The jar that holds {@code className}, found on Plexus Mod Loader's own class path (ADR-0010). */
     private static Path locateGameLayerJar(String className) {
         if (!className.startsWith(GameClassLoader.GAME_LAYER_PREFIX)) {
             throw new PlexusLaunchException(
@@ -1415,7 +1421,7 @@ public final class PlexusRuntime {
             throw new PlexusLaunchException(
                     RuntimePhase.BOOTSTRAP.name(),
                     List.of("PLEXUS-BOOTSTRAP-004 game layer " + className
-                            + " is not on Poly Mod Loader's class path"));
+                            + " is not on Plexus Mod Loader's class path"));
         }
         try {
             if (url.openConnection() instanceof java.net.JarURLConnection connection) {
@@ -1435,7 +1441,7 @@ public final class PlexusRuntime {
             Class<?> type = Class.forName(className, true, gameClassLoader);
             GameLayer layer = (GameLayer) type.getConstructor().newInstance();
             layer.start(context);
-            LOGGER.info("[Poly Mod Loader] Game layer {} started", className);
+            LOGGER.info("[Plexus Mod Loader] Game layer {} started", className);
             return layer;
         } catch (ReflectiveOperationException | LinkageError | ClassCastException e) {
             throw new PlexusLaunchException(
@@ -1453,10 +1459,10 @@ public final class PlexusRuntime {
 
     static SemanticVersion runtimeVersion() {
         Properties properties = new Properties();
-        try (InputStream input = PlexusRuntime.class.getResourceAsStream("poly-runtime.properties")) {
+        try (InputStream input = PlexusRuntime.class.getResourceAsStream("plexus-runtime.properties")) {
             if (input == null) {
                 throw new IllegalStateException(
-                        "poly-runtime.properties is missing from the Poly Mod Loader runtime jar");
+                        "plexus-runtime.properties is missing from the Plexus Mod Loader runtime jar");
             }
             properties.load(input);
         } catch (IOException e) {
@@ -1465,7 +1471,7 @@ public final class PlexusRuntime {
         String version = properties.getProperty("version");
         return SemanticVersion.parse(version)
                 .orElseThrow(
-                        () -> new IllegalStateException("Poly Mod Loader runtime version is not SemVer: " + version));
+                        () -> new IllegalStateException("Plexus Mod Loader runtime version is not SemVer: " + version));
     }
 
     /** Reads the {@code id} from the {@code version.json} Mojang ships at the root of the game jar. */
@@ -1501,7 +1507,7 @@ public final class PlexusRuntime {
         throw new PlexusLaunchException(
                 RuntimePhase.BOOTSTRAP.name(),
                 List.of("PLEXUS-BOOTSTRAP-002 no version adapter for Minecraft " + gameVersion
-                        + "; this Poly Mod Loader build supports " + available));
+                        + "; this Plexus Mod Loader build supports " + available));
     }
 
     private static Optional<byte[]> readClass(JarFile gameJar, List<JarFile> hostJars, String internalName) {

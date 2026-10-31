@@ -143,7 +143,7 @@ class ModLinkVerifierTest {
             code.invokestatic(ClassDesc.of("java.lang.String"), "valueOf", MethodTypeDesc.of(CD_String, CD_Object));
             code.ldc(ClassDesc.of("net.fabricmc.api.ModInitializer"));
         });
-        // The provided part of the loader runtime is on Poly Mod Loader's class path, as in a real launch.
+        // The provided part of the loader runtime is on Plexus Mod Loader's class path, as in a real launch.
         Path fabricApi = jar(
                 "fabric-api-interfaces.jar",
                 Map.of(
@@ -198,7 +198,7 @@ class ModLinkVerifierTest {
     }
 
     /**
-     * A runtime class Poly Mod Loader provides only in part (a stand-in of a loader's internal class): members it has
+     * A runtime class Plexus Mod Loader provides only in part (a stand-in of a loader's internal class): members it has
      * resolve, members it lacks block the mod, as they would fail with {@link NoSuchMethodError}.
      */
     @Test
@@ -242,7 +242,7 @@ class ModLinkVerifierTest {
         assertTrue(findings.toString().contains("PartialRuntime#unknown()Ljava/lang/String;"), findings::toString);
     }
 
-    /** Stands in for a loader's internal class that Poly Mod Loader provides only in part. */
+    /** Stands in for a loader's internal class that Plexus Mod Loader provides only in part. */
     static final class PartialRuntime {
         private PartialRuntime() {}
 

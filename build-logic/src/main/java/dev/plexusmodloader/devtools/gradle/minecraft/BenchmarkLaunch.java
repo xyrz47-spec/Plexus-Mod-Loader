@@ -13,24 +13,24 @@ import org.gradle.api.GradleException;
 
 /**
  * Builds and runs the two variants every benchmark compares: vanilla (game jar on the class path, no
- * Poly Mod Loader) and Poly Mod Loader with the development mods (design doc §14.4). Both get the same extra JVM
+ * Plexus Mod Loader) and Plexus Mod Loader with the development mods (design doc §14.4). Both get the same extra JVM
  * and program arguments.
  */
 final class BenchmarkLaunch {
 
     private BenchmarkLaunch() {}
 
-    /** What a benchmark run starts: the vanilla main class and the matching Poly Mod Loader launch target. */
+    /** What a benchmark run starts: the vanilla main class and the matching Plexus Mod Loader launch target. */
     enum Target {
         GAME_TEST_SERVER("net.minecraft.gametest.Main", "game_test_server"),
         CLIENT("net.minecraft.client.main.Main", "client");
 
         final String vanillaMainClass;
-        final String polyLaunchTarget;
+        final String plexusLaunchTarget;
 
-        Target(String vanillaMainClass, String polyLaunchTarget) {
+        Target(String vanillaMainClass, String plexusLaunchTarget) {
             this.vanillaMainClass = vanillaMainClass;
-            this.polyLaunchTarget = polyLaunchTarget;
+            this.plexusLaunchTarget = plexusLaunchTarget;
         }
     }
 
@@ -65,13 +65,13 @@ final class BenchmarkLaunch {
         return arguments;
     }
 
-    /** The Poly Mod Loader command: the bootstrap with the development mods and a shared transform cache. */
-    static List<String> poly(
+    /** The Plexus Mod Loader command: the bootstrap with the development mods and a shared transform cache. */
+    static List<String> plexus(
             String java,
             Target target,
             MinecraftLaunchSpec spec,
             Path directory,
-            Collection<File> polyRuntime,
+            Collection<File> plexusRuntime,
             Collection<File> devModJars,
             File transformCache,
             List<String> extraJvm,
@@ -81,7 +81,7 @@ final class BenchmarkLaunch {
         command.add(java);
         command.addAll(GameLaunchArguments.jvmArguments(
                 spec,
-                target.polyLaunchTarget,
+                target.plexusLaunchTarget,
                 directory,
                 devModJars,
                 GameLaunchArguments.developmentLogConfig(directory),
@@ -89,7 +89,7 @@ final class BenchmarkLaunch {
         command.addAll(extraJvm);
         command.add("-cp");
         List<String> classpath = new ArrayList<>();
-        polyRuntime.forEach(file -> classpath.add(file.getAbsolutePath()));
+        plexusRuntime.forEach(file -> classpath.add(file.getAbsolutePath()));
         classpath.addAll(spec.libraries());
         // The game jar too, last, as the Minecraft Launcher and the server install put it (see RunMinecraftTask).
         classpath.add(spec.gameJar());

@@ -33,7 +33,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Runs real Quilt Loader, not Poly Mod Loader, on the vanilla dedicated server, to compare which mods Quilt Loader
+ * Runs real Quilt Loader, not Plexus Mod Loader, on the vanilla dedicated server, to compare which mods Quilt Loader
  * itself loads (Quilt full support Q10, ADR-0027). Quilt Loader's own server main ({@code KnotServer}) starts with the
  * libraries of Quilt's launcher profile and Minecraft's, the game jar named by {@code loader.gameJarPath}, and a
  * {@code mods/} folder; a run that reaches the EULA check got through Quilt Loader's mod resolution, its mixins and

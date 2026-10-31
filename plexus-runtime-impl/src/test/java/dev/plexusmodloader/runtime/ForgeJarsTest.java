@@ -20,13 +20,13 @@ class ForgeJarsTest {
     private static final DiscoveredModFile FORGE_AND_NEOFORGE =
             file("forge-and-neoforge.jar", ModFileKind.NEOFORGE, ModFileKind.FORGE);
     private static final DiscoveredModFile NEOFORGE = file("neoforge.jar", ModFileKind.NEOFORGE);
-    private static final DiscoveredModFile POLY = file("poly.jar", ModFileKind.POLY_NATIVE, ModFileKind.FORGE);
+    private static final DiscoveredModFile PLEXUS = file("plexus.jar", ModFileKind.PLEXUS_NATIVE, ModFileKind.FORGE);
 
     @Test
     void withForgeModsAndNoModOnlyFabricRunsForgeRunsTheJarsForSeveralLoaders() {
         assertEquals(
                 List.of(path(FORGE), path(EVERY_LOADER), path(FORGE_AND_NEOFORGE)),
-                PlexusRuntime.forgeJars(List.of(FORGE, EVERY_LOADER, FORGE_AND_NEOFORGE, NEOFORGE, POLY)));
+                PlexusRuntime.forgeJars(List.of(FORGE, EVERY_LOADER, FORGE_AND_NEOFORGE, NEOFORGE, PLEXUS)));
     }
 
     /** With Fabric mods in the same game too (ADR-0021 G8), Forge still runs the jars for several loaders. */

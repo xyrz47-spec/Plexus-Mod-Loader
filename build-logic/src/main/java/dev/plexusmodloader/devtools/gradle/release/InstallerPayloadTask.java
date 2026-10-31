@@ -35,11 +35,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Writes what the end-user installer ({@code plexus-installer}) installs: the Poly Mod Loader runtime jars in the
- * Minecraft Launcher's {@code libraries/} layout below {@code META-INF/polymodloader/libraries/} and the index
- * {@code META-INF/polymodloader/installer.json} (version, supported Minecraft versions, main class, and each jar's
+ * Writes what the end-user installer ({@code plexus-installer}) installs: the Plexus Mod Loader runtime jars in the
+ * Minecraft Launcher's {@code libraries/} layout below {@code META-INF/plexusmodloader/libraries/} and the index
+ * {@code META-INF/plexusmodloader/installer.json} (version, supported Minecraft versions, main class, and each jar's
  * coordinates, path, SHA-1 and size). With {@link #getAgentLibrary()} and {@link #getAgentClass()} the index also names
- * Poly Mod Loader's Java agent (ADR-0024); the build fails when that library is not among the jars, does not contain the
+ * Plexus Mod Loader's Java agent (ADR-0024); the build fails when that library is not among the jars, does not contain the
  * class, or its manifest does not name it as {@code Premain-Class}.
  */
 @DisableCachingByDefault(because = "Copies jars; faster than caching")
@@ -55,7 +55,7 @@ public abstract class InstallerPayloadTask extends DefaultTask {
     public abstract ConfigurableFileCollection getLibraryFiles();
 
     @Input
-    public abstract Property<String> getPolyVersion();
+    public abstract Property<String> getPlexusVersion();
 
     @Input
     public abstract ListProperty<String> getMinecraftVersions();
@@ -80,7 +80,7 @@ public abstract class InstallerPayloadTask extends DefaultTask {
     public void write() throws IOException {
         Path root = getOutputDirectory().get().getAsFile().toPath();
         deleteRecursively(root);
-        Path payload = root.resolve("META-INF").resolve("polymodloader");
+        Path payload = root.resolve("META-INF").resolve("plexusmodloader");
         JsonArray libraries = new JsonArray();
         for (Map.Entry<String, String> entry : new TreeMap<>(getLibraries().get()).entrySet()) {
             String coordinates = entry.getKey();
@@ -97,7 +97,7 @@ public abstract class InstallerPayloadTask extends DefaultTask {
             libraries.add(library);
         }
         JsonObject index = new JsonObject();
-        index.addProperty("polyVersion", getPolyVersion().get());
+        index.addProperty("plexusVersion", getPlexusVersion().get());
         JsonArray versions = new JsonArray();
         getMinecraftVersions().get().forEach(versions::add);
         index.add("minecraftVersions", versions);

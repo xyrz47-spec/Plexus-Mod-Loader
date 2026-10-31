@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * };
  * }</pre>
  *
- * <p>Poly Mod Loader asks {@link Source#values()} once per frame on the render thread, before the world is
+ * <p>Plexus Mod Loader asks {@link Source#values()} once per frame on the render thread, before the world is
  * drawn, and uploads the result. A source that throws or returns the wrong number of values is
  * reported once ({@code PLEXUS-CLIENT-007}); the pipeline then keeps its last good values, which start
  * as zeros.

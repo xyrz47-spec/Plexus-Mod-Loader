@@ -30,15 +30,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The part of the Mixin audit ({@code -Dpoly.neoforge.mixinAudit=true}) that finds code that would throw a {@code
+ * The part of the Mixin audit ({@code -Dplexus.neoforge.mixinAudit=true}) that finds code that would throw a {@code
  * ClassCastException} once the game runs (ADR-0026 39). A mixin gives its target class its interfaces, and an accessor or
- * invoker mixin makes the target implement the mixin itself. When such a mixin is left out (Poly Mod Loader's {@code
+ * invoker mixin makes the target implement the mixin itself. When such a mixin is left out (Plexus Mod Loader's {@code
  * 138}) or fails to apply, the target lacks the type, and other mixins that cast the game's object to it fail only when
  * that code runs: Fabric API's {@code GameRendererMixin} casts {@code GuiRenderer} to {@code GuiRendererExtensions}, which
  * {@code GuiRendererMixin} adds and which NeoForge's patch left out, in {@code GameRenderer.<init>}, after the game
  * window opened. Loading the classes, as the audit does, does not run that code.
  *
- * <p>So the audit reads every mixin of every configuration as its jar has it (the configuration resource before Poly
+ * <p>So the audit reads every mixin of every configuration as its jar has it (the configuration resource before Plexus
  * Mod Loader's changes, so left-out mixins count), loads each target, and takes each type the target does not have as
  * loaded as missing. Then it looks through the game classes as Mixin and FML's processors transformed them during the
  * audit: a cast, {@code instanceof} or call on a missing type is a failure.
@@ -115,7 +115,7 @@ final class MixinTypeAudit {
             Class<?> owner = loaded(transformed.getKey(), classes);
             Set<String> called = calledOwnMethods(model);
             for (MethodModel method : model.methods()) {
-                // A private method nothing in the class calls never runs: a handler Poly Mod Loader took the
+                // A private method nothing in the class calls never runs: a handler Plexus Mod Loader took the
                 // injection off (138) is merged as such a method.
                 if (method.code().isEmpty()
                         || (method.flags().has(AccessFlag.PRIVATE)

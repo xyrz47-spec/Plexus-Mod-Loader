@@ -77,7 +77,7 @@ public interface WorldView {
 
     /**
      * World storage with a data version and optional client synchronisation. Saved data records its
-     * version; loading older data runs the migration first. The key {@code poly_version} is reserved.
+     * version; loading older data runs the migration first. The key {@code plexus_version} is reserved.
      * On the client this returns the synchronised copy (empty until the server sends it), read-only.
      */
     StoredData storage(ResourceId id, StorageOptions options);

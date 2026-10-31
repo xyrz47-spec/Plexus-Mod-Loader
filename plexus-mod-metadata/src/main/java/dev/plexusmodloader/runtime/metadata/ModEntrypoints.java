@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Fully qualified entrypoint class names per side, from the {@code entrypoints} object of
- * {@code poly.mod.json}.
+ * {@code plexus.mod.json}.
  *
  * @param common classes implementing {@code CommonModInitializer}
  * @param client classes implementing {@code ClientModInitializer}

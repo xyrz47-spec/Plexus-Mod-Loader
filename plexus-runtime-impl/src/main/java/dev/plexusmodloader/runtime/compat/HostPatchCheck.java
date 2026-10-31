@@ -25,10 +25,10 @@ import java.util.zip.ZipEntry;
  * otherwise run with that part missing, and its users would report the breakage to the mod's author, whose mixin is
  * correct for the game it was written for. Each bridge says which of its mods do not fit ({@link
  * ModLoaderBridge#hostIncompatibilities}); each such mod gets a blocking {@code PLEXUS-COMPAT-224} finding that names
- * Poly Mod Loader as the one to fix it, and the dependency check then leaves out the mods that need it ({@code 114}).
+ * Plexus Mod Loader as the one to fix it, and the dependency check then leaves out the mods that need it ({@code 114}).
  *
  * <p>The host's classes are read from its jars (the patched game, the jars its loader defines later), and the JDK's and
- * libraries' from Poly Mod Loader's class path: no class is defined. Not thread-safe; the runtime calls it once, on the
+ * libraries' from Plexus Mod Loader's class path: no class is defined. Not thread-safe; the runtime calls it once, on the
  * launch thread.
  */
 public final class HostPatchCheck {
@@ -100,10 +100,10 @@ public final class HostPatchCheck {
                 CODE,
                 true,
                 "mixins",
-                "Poly Mod Loader cannot run " + (lines.size() == 1 ? "a part" : lines.size() + " parts")
+                "Plexus Mod Loader cannot run " + (lines.size() == 1 ? "a part" : lines.size() + " parts")
                         + " of this mod as written on the game as " + hostName + " patches it, and does not run the"
-                        + " mod with them left out. This is a limitation of Poly Mod Loader, not a bug in the mod:"
-                        + " report it to Poly Mod Loader, not to the mod's author. " + String.join(" | ", lines));
+                        + " mod with them left out. This is a limitation of Plexus Mod Loader, not a bug in the mod:"
+                        + " report it to Plexus Mod Loader, not to the mod's author. " + String.join(" | ", lines));
     }
 
     /** Class files from jars, then from a class loader's resources. Never defines a class. */

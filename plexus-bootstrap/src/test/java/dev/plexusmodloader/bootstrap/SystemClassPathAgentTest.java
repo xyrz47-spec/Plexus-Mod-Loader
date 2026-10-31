@@ -27,16 +27,16 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * The mechanism behind Forge mods in an installed Poly Mod Loader (ADR-0024), in child JVMs started the two ways an
- * installation starts Poly Mod Loader: the launcher profile's {@code -javaagent:<plexus-bootstrap jar>}, and the server's
- * {@code java -jar polymodloader-server.jar}, a manifest-only jar with {@code Launcher-Agent-Class} whose agent class
+ * The mechanism behind Forge mods in an installed Plexus Mod Loader (ADR-0024), in child JVMs started the two ways an
+ * installation starts Plexus Mod Loader: the launcher profile's {@code -javaagent:<plexus-bootstrap jar>}, and the server's
+ * {@code java -jar plexusmodloader-server.jar}, a manifest-only jar with {@code Launcher-Agent-Class} whose agent class
  * comes from its {@code Class-Path}. A probe appends Forge's four file system jars through {@link SystemClassPathAgent}
  * and lists the file systems Java knows.
  *
- * <p>Needs {@code poly.agentJar} (the built plexus-bootstrap jar) and {@code poly.forgeFileSystemJars} (securemodules,
+ * <p>Needs {@code plexus.agentJar} (the built plexus-bootstrap jar) and {@code plexus.forgeFileSystemJars} (securemodules,
  * unsafe, JarJarFileSystems and roimfs, separated by the path separator); {@code :plexus-bootstrap:test} passes both.
  */
-@EnabledIfSystemProperty(named = "poly.agentJar", matches = ".+")
+@EnabledIfSystemProperty(named = "plexus.agentJar", matches = ".+")
 class SystemClassPathAgentTest {
 
     private static final List<String> FORGE_SCHEMES = List.of("jij", "path", "roimfs", "union");
@@ -113,11 +113,11 @@ class SystemClassPathAgentTest {
     }
 
     private static Path agentJar() {
-        return Path.of(System.getProperty("poly.agentJar"));
+        return Path.of(System.getProperty("plexus.agentJar"));
     }
 
     private static List<String> forgeJars() {
-        return Arrays.stream(System.getProperty("poly.forgeFileSystemJars").split(File.pathSeparator))
+        return Arrays.stream(System.getProperty("plexus.forgeFileSystemJars").split(File.pathSeparator))
                 .filter(path -> !path.isBlank())
                 .toList();
     }
@@ -134,7 +134,7 @@ class SystemClassPathAgentTest {
     }
 
     /**
-     * Like the installer's {@code polymodloader-server.jar}: only a manifest, with the probe as main class, the agent as
+     * Like the installer's {@code plexusmodloader-server.jar}: only a manifest, with the probe as main class, the agent as
      * {@code Launcher-Agent-Class}, and the class path (agent jar first) in {@code Class-Path}. The jars to append are
      * listed in {@code forge-jars.txt} next to it ({@link LaunchJarProbe}).
      */

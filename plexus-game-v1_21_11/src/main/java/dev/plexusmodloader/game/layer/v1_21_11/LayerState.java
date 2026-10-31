@@ -48,11 +48,11 @@ public final class LayerState {
             // worlds stable.
             generatedDataPack = GeneratedDataPack.write(layerContext.declarations());
         } catch (IOException e) {
-            throw new UncheckedIOException("Poly Mod Loader could not write its generated data pack", e);
+            throw new UncheckedIOException("Plexus Mod Loader could not write its generated data pack", e);
         }
     }
 
-    /** The context, or empty when Poly Mod Loader started without this layer (unit tests of other modules). */
+    /** The context, or empty when Plexus Mod Loader started without this layer (unit tests of other modules). */
     public static Optional<GameLayerContext> context() {
         return Optional.ofNullable(context);
     }
@@ -67,7 +67,7 @@ public final class LayerState {
         return configurationExchanges;
     }
 
-    /** Directory of the data pack Poly Mod Loader generates (game tests, biomes), if any. */
+    /** Directory of the data pack Plexus Mod Loader generates (game tests, biomes), if any. */
     static Optional<Path> generatedDataPack() {
         return generatedDataPack.map(GeneratedDataPack.Written::root);
     }

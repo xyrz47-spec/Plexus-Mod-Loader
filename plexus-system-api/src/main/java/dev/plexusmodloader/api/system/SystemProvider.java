@@ -5,7 +5,7 @@ import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
  * Creates the implementation of one system. A mod that replaces a system declares its provider
- * class in {@code poly.mod.json} under {@code replacesSystems}; the class needs a public
+ * class in {@code plexus.mod.json} under {@code replacesSystems}; the class needs a public
  * no-argument constructor.
  *
  * <p><b>Timing:</b> called once on the main thread after all mods are resolved and before any mod
@@ -18,7 +18,7 @@ import dev.plexusmodloader.api.stability.StabilityLevel;
  */
 @ApiStability(StabilityLevel.PREVIEW)
 @FunctionalInterface
-public interface SystemProvider<T extends PolySystem> {
+public interface SystemProvider<T extends PlexusSystem> {
 
     /** Creates the system implementation. */
     T create(SystemContext context);

@@ -1,13 +1,13 @@
-# Poly Mod Loader — Developer & Contributor Guide
+# Plexus Mod Loader — Developer & Contributor Guide
 
-Welcome to the Poly Mod Loader contributor documentation. This guide provides all necessary instructions to clone, build, test, debug, and contribute to Poly Mod Loader.
+Welcome to the Plexus Mod Loader contributor documentation. This guide provides all necessary instructions to clone, build, test, debug, and contribute to Plexus Mod Loader.
 
 ---
 
 ## 1. Prerequisites & Environment Setup
 
 ### Required Tools
-- **Java Development Kit (JDK) 25:** Poly Mod Loader is built with and targets Java 25. Recommended: [Eclipse Temurin 25](https://adoptium.net/) or Microsoft Build of OpenJDK 25.
+- **Java Development Kit (JDK) 25:** Plexus Mod Loader is built with and targets Java 25. Recommended: [Eclipse Temurin 25](https://adoptium.net/) or Microsoft Build of OpenJDK 25.
   ```powershell
   java -version   # Must output java version "25" or higher
   ```
@@ -29,7 +29,7 @@ cd Poly-Mod-Loader
 .\gradlew.bat :plexus-installer:installerDistributions
 ```
 
-> **Note on Minecraft Assets:** On the first run, the build automatically downloads the required Minecraft client/server assets from Mojang's official servers and verifies their integrity against SHA-1 checksums. Minecraft files are cached locally in `~/.gradle/caches/poly-minecraft` and are never committed to the repository.
+> **Note on Minecraft Assets:** On the first run, the build automatically downloads the required Minecraft client/server assets from Mojang's official servers and verifies their integrity against SHA-1 checksums. Minecraft files are cached locally in `~/.gradle/caches/plexus-minecraft` and are never committed to the repository.
 
 ---
 
@@ -39,12 +39,12 @@ cd Poly-Mod-Loader
 | :--- | :--- | :--- |
 | `.\gradlew check` | Runs Spotless format checks and all unit test suites across all modules. | Mandatory before submitting any PR or commit. |
 | `.\gradlew spotlessApply` | Automatically formats all Java sources according to project style. | Uses palantir-java-format (4 spaces, 120 columns), removes unused imports. |
-| `.\gradlew :plexus-installer:installerDistributions` | Builds `PolyModLoader-<version>.jar`, the only download for every platform. | Outputs to `plexus-installer/build/distributions/`. |
-| `.\gradlew :plexus-bootstrap:runClient` | Launches the Minecraft client in development mode with Poly active. | Minecraft 26.2 client with debug hooks. |
+| `.\gradlew :plexus-installer:installerDistributions` | Builds `PlexusModLoader-<version>.jar`, the only download for every platform. | Outputs to `plexus-installer/build/distributions/`. |
+| `.\gradlew :plexus-bootstrap:runClient` | Launches the Minecraft client in development mode with Plexus active. | Minecraft 26.2 client with debug hooks. |
 | `.\gradlew :plexus-bootstrap:runServer` | Launches the dedicated server in development mode. | Requires accepting `run/server/eula.txt`. |
-| `.\gradlew :plexus-bootstrap:serverBootSmokeTest` | Headless smoke test: boots server, verifies Poly runtime initialization, stops. | Fast, CI-friendly check (no UI). |
+| `.\gradlew :plexus-bootstrap:serverBootSmokeTest` | Headless smoke test: boots server, verifies Plexus runtime initialization, stops. | Fast, CI-friendly check (no UI). |
 | `.\gradlew :plexus-bootstrap:worldCreateSaveTest` | Creates a world, executes tick lifecycle, saves to disk, and exits cleanly. | Verifies save and data compatibility. |
-| `.\gradlew publishSdk` | Builds and publishes the Poly SDK to the local Maven cache (`.poly/sdk-maven`). | Used by mod developers targeting Native API. |
+| `.\gradlew publishSdk` | Builds and publishes the Plexus SDK to the local Maven cache (`.plexus/sdk-maven`). | Used by mod developers targeting Native API. |
 
 `serverBootSmokeTest`, `worldCreateSaveTest` and the other game tests load the mods in `examples/` and `test-mods/`, which this public repository leaves out (`settings.gradle.kts`); here they stop with a message. `check`, `spotlessApply`, `installerDistributions`, `runClient`, `runServer` and `publishSdk` work without them.
 
@@ -54,7 +54,7 @@ Every pull request and every push to `main` runs `.github/workflows/ci.yml` on G
 
 ## 4. Multi-Project Module Hierarchy
 
-Poly Mod Loader is structured as a decoupled multi-project build. Each module has a strictly defined single responsibility:
+Plexus Mod Loader is structured as a decoupled multi-project build. Each module has a strictly defined single responsibility:
 
 ```
 Poly-Mod-Loader
@@ -74,7 +74,7 @@ Poly-Mod-Loader
 ├── plexus-game-v26_3/               # Minecraft 26.3 game layer & SDL keycode adapters
 ├── plexus-version-adapter-api/      # Version adapter and game layer contracts
 ├── plexus-version-adapter-v*/       # Per-version launch targets and built-in transform rules (26.1, 26.2, 26.3, 1.21.11)
-├── plexus-system-api/               # Native API: replaceable systems (poly:game_brand)
+├── plexus-system-api/               # Native API: replaceable systems (plexus:game_brand)
 ├── plexus-system-registry/          # Built-in systems, replacement resolution and lookup
 ├── plexus-lifecycle-api/            # Mod entrypoints (common, client, server) and ModContext
 ├── plexus-mod-metadata/             # Parser and validator for poly.mod.json (Fabric, Quilt and FML metadata: the bridges)

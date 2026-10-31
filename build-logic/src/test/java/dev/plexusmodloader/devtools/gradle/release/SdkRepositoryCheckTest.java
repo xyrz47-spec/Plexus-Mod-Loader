@@ -18,38 +18,49 @@ class SdkRepositoryCheckTest {
 
     private static final String VERSION = "1.0.0";
     private static final List<SdkRepositoryCheck.Artifact> EXPECTED = List.of(
-            new SdkRepositoryCheck.Artifact("dev.plexusmodloader", "poly-api", "jar", true),
-            new SdkRepositoryCheck.Artifact("dev.plexusmodloader", "poly-impl", "jar", false));
+            new SdkRepositoryCheck.Artifact("dev.plexusmodloader", "plexus-api", "jar", true),
+            new SdkRepositoryCheck.Artifact("dev.plexusmodloader", "plexus-impl", "jar", false));
 
     @TempDir
     Path repository;
 
     @Test
     void completeRepositoryHasNoProblems() throws IOException {
-        publish("poly-api", List.of(), true, "dev/plexusmodloader/Api.class");
-        publish("poly-impl", List.of("poly-api"), false, "dev/plexusmodloader/Impl.class");
+        publish("plexus-api", List.of(), true, "dev/plexusmodloader/Api.class");
+        publish("plexus-impl", List.of("plexus-api"), false, "dev/plexusmodloader/Impl.class");
 
         assertEquals(List.of(), SdkRepositoryCheck.problems(repository, VERSION, EXPECTED));
     }
 
     @Test
     void sourcesMissingDependenciesAndStrayArtifactsAreReported() throws IOException {
-        publish("poly-api", List.of(), false, "dev/plexusmodloader/Api.java");
-        publish("poly-impl", List.of("poly-api", "test-mod"), false, "dev/plexusmodloader/Impl.class");
+        publish("plexus-api", List.of(), false, "dev/plexusmodloader/Api.java");
+        publish("plexus-impl", List.of("plexus-api", "test-mod"), false, "dev/plexusmodloader/Impl.class");
         publish("test-mod", List.of(), false, "Test.class");
-        Files.write(dir("poly-impl").resolve("poly-impl-" + VERSION + "-sources.jar"), new byte[0]);
+        Files.write(dir("plexus-impl").resolve("plexus-impl-" + VERSION + "-sources.jar"), new byte[0]);
         Files.writeString(
-                dir("poly-impl").resolve("poly-impl-" + VERSION + ".module"),
+                dir("plexus-impl").resolve("plexus-impl-" + VERSION + ".module"),
                 "{\"variants\": [{\"name\": \"apiElementsClasses\"}]}");
 
         String problems = String.join("\n", SdkRepositoryCheck.problems(repository, VERSION, EXPECTED));
 
-        assertTrue(problems.contains("poly-api-1.0.0.jar contains the Java source dev/plexusmodloader/Api.java"), problems);
-        assertTrue(problems.contains("poly-api:1.0.0: the JavaDoc jar is missing"), problems);
+        assertTrue(problems.contains("plexus-api-1.0.0.jar contains the Java source dev/plexusmodloader/Api.java"), problems);
+        assertTrue(problems.contains("plexus-api:1.0.0: the JavaDoc jar is missing"), problems);
         assertTrue(problems.contains("depends on dev.plexusmodloader:test-mod, which is not part of the SDK"), problems);
         assertTrue(problems.contains("dev.plexusmodloader:test-mod:1.0.0 is in the repository but not part of the SDK"));
-        assertTrue(problems.contains("poly-impl-1.0.0-sources.jar: source jars are not published"), problems);
-        assertTrue(problems.contains("the variant apiElementsClasses in poly-impl-1.0.0.module has no files"), problems);
+        assertTrue(problems.contains("plexus-impl-1.0.0-sources.jar: source jars are not published"), problems);
+        assertTrue(problems.contains("the variant apiElementsClasses in plexus-impl-1.0.0.module has no files"), problems);
+    }
+
+    @Test
+    void artifactsOfTheFormerGroupAreLeftAlone() throws IOException {
+        publish("plexus-api", List.of(), true, "dev/plexusmodloader/Api.class");
+        publish("plexus-impl", List.of("plexus-api"), false, "dev/plexusmodloader/Impl.class");
+        Path former = repository.resolve("dev/polymodloader/plexus-runtime-impl").resolve(VERSION);
+        Files.createDirectories(former);
+        Files.writeString(former.resolve("plexus-runtime-impl-" + VERSION + ".pom"), "<project/>");
+
+        assertEquals(List.of(), SdkRepositoryCheck.problems(repository, VERSION, EXPECTED));
     }
 
     @Test

@@ -53,7 +53,7 @@ class EarlyWindowSettingsTest {
     @Test
     void argumentsReadBackAsWritten() {
         EarlyWindowSettings settings = new EarlyWindowSettings(
-                "Minecraft* Poly 26.3",
+                "Minecraft* Plexus 26.3",
                 1000,
                 600,
                 2,

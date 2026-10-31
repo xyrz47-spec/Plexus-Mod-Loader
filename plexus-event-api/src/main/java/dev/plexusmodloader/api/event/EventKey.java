@@ -26,7 +26,7 @@ public final class EventKey<L> {
         return new EventKey<>(id, listenerType);
     }
 
-    /** Diagnostic ID, e.g. {@code poly:server/started}. */
+    /** Diagnostic ID, e.g. {@code plexus:server/started}. */
     public String id() {
         return id;
     }

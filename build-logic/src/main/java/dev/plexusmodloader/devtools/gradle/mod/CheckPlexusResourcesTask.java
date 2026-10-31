@@ -21,11 +21,11 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
 /**
- * {@code checkPolyResources}: runs {@link ModResourceChecker} on the resources that go into the mod jar
+ * {@code checkPlexusResources}: runs {@link ModResourceChecker} on the resources that go into the mod jar
  * (hand-written and generated) and fails with every problem it finds. Part of {@code check}.
  */
 @CacheableTask
-public abstract class CheckPolyResourcesTask extends DefaultTask {
+public abstract class CheckPlexusResourcesTask extends DefaultTask {
 
     /** The processed resources, so the task reruns when any of them changes. */
     @InputFiles
@@ -51,8 +51,8 @@ public abstract class CheckPolyResourcesTask extends DefaultTask {
         Files.writeString(report, lines.isEmpty() ? "" : lines + "\n", StandardCharsets.UTF_8);
         if (!problems.isEmpty()) {
             throw new GradleException(problems.size() + (problems.size() == 1 ? " problem" : " problems")
-                    + " in the mod's resources (src/main/resources and polyResources):\n  "
-                    + lines.replace("\n", "\n  ") + "\nError codes: PLEXUS-RESOURCE in the Poly Mod Loader docs. Report: "
+                    + " in the mod's resources (src/main/resources and plexusResources):\n  "
+                    + lines.replace("\n", "\n  ") + "\nError codes: PLEXUS-RESOURCE in the Plexus Mod Loader docs. Report: "
                     + report);
         }
     }

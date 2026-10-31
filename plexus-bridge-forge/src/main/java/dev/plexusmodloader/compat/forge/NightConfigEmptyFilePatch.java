@@ -32,7 +32,7 @@ import java.util.List;
  * garbage collector closes the writer: Forge Config API Port saves the configs it ports with {@code
  * WritingMode.REPLACE_ATOMIC} right after Forge creates them, and the server stopped at the world start with {@code
  * AccessDeniedException} (Open Parties and Claims' server config). The same steps with night-config alone fail the
- * same way, so this is not Poly Mod Loader's doing; a player's Forge on Windows meets it too.
+ * same way, so this is not Plexus Mod Loader's doing; a player's Forge on Windows meets it too.
  *
  * <p>The method becomes {@code try (Writer writer = supplier.get()) { initEmptyFile(writer); }}. Only a method whose
  * body is exactly the leaking one is changed; any other {@code ConfigFormat} (a night-config that closes the writer

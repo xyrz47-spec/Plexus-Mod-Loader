@@ -1,6 +1,6 @@
 package dev.plexusmodloader.runtime.system;
 
-import dev.plexusmodloader.api.system.PolySystem;
+import dev.plexusmodloader.api.system.PlexusSystem;
 import dev.plexusmodloader.api.system.SystemId;
 import dev.plexusmodloader.api.system.SystemProvider;
 import java.util.Objects;
@@ -8,18 +8,18 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Poly Mod Loader's definition of one system: its contract, default provider, whether mods may replace it, and
+ * Plexus Mod Loader's definition of one system: its contract, default provider, whether mods may replace it, and
  * how an implementation is validated before use (design doc §4.3, §5.6).
  *
  * @param id system ID
  * @param displayName human-readable name for diagnostics
  * @param contract interface every implementation must implement
  * @param replaceable whether mods may replace the default
- * @param defaultProvider Poly Mod Loader's own implementation
+ * @param defaultProvider Plexus Mod Loader's own implementation
  * @param validator returns a problem description when an implementation breaks the contract
  * @param <T> the system contract
  */
-public record SystemDefinition<T extends PolySystem>(
+public record SystemDefinition<T extends PlexusSystem>(
         SystemId id,
         String displayName,
         Class<T> contract,

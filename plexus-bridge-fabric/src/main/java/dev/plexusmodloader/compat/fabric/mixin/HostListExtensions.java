@@ -39,7 +39,7 @@ import java.util.function.Function;
  */
 final class HostListExtensions {
 
-    static final String PREFIX = "poly$hostList$";
+    static final String PREFIX = "plexus$hostList$";
 
     private static final String REDIRECT = "Lorg/spongepowered/asm/mixin/injection/Redirect;";
     private static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";

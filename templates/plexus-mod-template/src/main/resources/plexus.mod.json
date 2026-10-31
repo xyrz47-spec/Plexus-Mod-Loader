@@ -11,6 +11,6 @@
     "common": ["com.example.mymod.MyMod"]
   },
   "depends": {
-    "poly": ">=1.0.0 <2.0.0"
+    "plexus": ">=1.0.0 <2.0.0"
   }
 }

@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "Public mod lifecycle API: mod entrypoint interfaces and the context passed to them."

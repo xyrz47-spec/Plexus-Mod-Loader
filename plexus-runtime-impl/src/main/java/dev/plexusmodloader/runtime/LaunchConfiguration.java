@@ -10,10 +10,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Inputs to one Poly Mod Loader launch.
+ * Inputs to one Plexus Mod Loader launch.
  *
  * @param target which Minecraft program to start
- * @param gameJar the Minecraft game jar; loaded through Poly Mod Loader's game class loader, never from the JVM class path
+ * @param gameJar the Minecraft game jar; loaded through Plexus Mod Loader's game class loader, never from the JVM class path
  * @param modsDirectory user-managed folder scanned for mod jars
  * @param devModJars extra mod jars, e.g. mods built in the current Gradle build
  * @param transformDumpDirectory when present, before/after class files of every transformation are written here
@@ -21,10 +21,10 @@ import java.util.Optional;
  * @param transformCacheDirectory when present, transformed classes are cached there across launches
  * @param transformCacheMaxBytes the most bytes the transform cache may take; least recently used
  *     entries are removed beyond it
- * @param systemClassPath appends to the JVM's class path, when the launcher was started with Poly Mod Loader's Java
+ * @param systemClassPath appends to the JVM's class path, when the launcher was started with Plexus Mod Loader's Java
  *     agent (ADR-0024); only a loader that needs it (Forge's file systems) uses it
- * @param jdkModuleAccess opens JDK packages to modules Poly Mod Loader defines, when the launcher was started with
- *     Poly Mod Loader's Java agent; only a loader that needs it (NeoForge's FML, ADR-0026) uses it
+ * @param jdkModuleAccess opens JDK packages to modules Plexus Mod Loader defines, when the launcher was started with
+ *     Plexus Mod Loader's Java agent; only a loader that needs it (NeoForge's FML, ADR-0026) uses it
  */
 public record LaunchConfiguration(
         GameLaunchTarget target,
@@ -52,7 +52,7 @@ public record LaunchConfiguration(
         Objects.requireNonNull(jdkModuleAccess, "jdkModuleAccess");
     }
 
-    /** A configuration whose JDK modules cannot be opened to modules Poly Mod Loader defines. */
+    /** A configuration whose JDK modules cannot be opened to modules Plexus Mod Loader defines. */
     public LaunchConfiguration(
             GameLaunchTarget target,
             Path gameJar,

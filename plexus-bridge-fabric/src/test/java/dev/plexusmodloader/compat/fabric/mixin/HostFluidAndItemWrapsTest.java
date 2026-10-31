@@ -116,7 +116,7 @@ class HostFluidAndItemWrapsTest {
         HostPatchAdjustments.Finding finding = single(adjustments);
         assertEquals("PLEXUS-COMPAT-226", finding.code(), finding.reason());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.BoatMixin", mixin));
-        MethodModel bridge = method(applied, "poly$hostCall$customFluidSupport");
+        MethodModel bridge = method(applied, "plexus$hostCall$customFluidSupport");
         assertEquals(
                 "(Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;Lnet/minecraft/world/level/material/FluidState;"
                         + "Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)Z",
@@ -191,7 +191,7 @@ class HostFluidAndItemWrapsTest {
         HostPatchAdjustments.Finding finding = single(adjustments);
         assertEquals("PLEXUS-COMPAT-226", finding.code(), finding.reason());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.EntityMixin", mixin));
-        MethodModel bridge = method(applied, "poly$hostCall$checkIfStandingInSwimmableFluid");
+        MethodModel bridge = method(applied, "plexus$hostCall$checkIfStandingInSwimmableFluid");
         assertEquals(
                 "(Lnet/minecraft/world/entity/Entity;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;"
                         + "Lcom/llamalad7/mixinextras/sugar/ref/LocalRef;)Z",
@@ -263,7 +263,7 @@ class HostFluidAndItemWrapsTest {
         assertFalse(hasAnnotation(method(applied, "getStackRemainder"), REDIRECT));
         assertTrue(
                 applied.methods().stream()
-                        .noneMatch(method -> method.methodName().stringValue().startsWith("poly$")),
+                        .noneMatch(method -> method.methodName().stringValue().startsWith("plexus$")),
                 "no bridge is needed");
     }
 
@@ -323,7 +323,7 @@ class HostFluidAndItemWrapsTest {
         HostPatchAdjustments.Finding finding = single(adjustments);
         assertEquals("PLEXUS-COMPAT-226", finding.code(), finding.reason());
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.HelperMixin", mixin));
-        List<String> calls = calls(method(applied, "poly$hostCall$useCustomEnchantingChecks"));
+        List<String> calls = calls(method(applied, "plexus$hostCall$useCustomEnchantingChecks"));
         assertEquals(
                 List.of(
                         "net/minecraft/world/item/ItemStack.canBeEnchantedWith",
@@ -350,7 +350,7 @@ class HostFluidAndItemWrapsTest {
         assertEquals("PLEXUS-COMPAT-226", finding.code(), finding.reason());
         byte[] mixin = watchdogMixin("net.fabricmc.fabric.impl.crash.report.info.ThreadPrinting");
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.WatchdogMixin", mixin));
-        MethodModel bridge = method(applied, "poly$hostCall$printEntireThreadDump");
+        MethodModel bridge = method(applied, "plexus$hostCall$printEntireThreadDump");
         assertEquals(
                 "(Ljava/lang/management/ThreadInfo;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)"
                         + "Ljava/lang/String;",
@@ -471,7 +471,7 @@ class HostFluidAndItemWrapsTest {
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.ConditionsMixin", mixin));
         assertFalse(hasAnnotation(method(applied, "skipData"), "Lorg/spongepowered/asm/mixin/injection/Inject;"));
         assertFalse(hasAnnotation(method(applied, "applyResourceConditions"), WRAP_OPERATION));
-        MethodModel bridge = method(applied, "poly$hostCall$applyResourceConditions");
+        MethodModel bridge = method(applied, "plexus$hostCall$applyResourceConditions");
         assertTrue(hasAnnotation(bridge, WRAP_OPERATION));
         assertEquals(
                 method(applied, "applyResourceConditions").methodType().stringValue(),

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 /**
  * {@link NeoForgeInjectionPoints} against the classes they describe (ADR-0026, ADR-0030). Run with the client jar
  * NeoForge's installer patched ({@code -PneoForgePatchedClient=<minecraft-client-patched-<version>.jar>}, in a NeoForge
- * client run's {@code .poly/neoforge/<version>/libraries/}) and the vanilla client jar ({@code
+ * client run's {@code .plexus/neoforge/<version>/libraries/}) and the vanilla client jar ({@code
  * -PneoForgeVanillaJar=<client-<mc>.jar>}) of every pinned NeoForge release at hand. Points are written in Mixin's
  * target notation; {@code (P...)LOwner;} is a constructor of {@code Owner}, as HostPatchAdjustments reads it.
  */
@@ -46,11 +46,11 @@ class NeoForgeInjectionPointsTest {
 
     /** Each replaced call is one vanilla makes in the method; a point that names a call vanilla lacks moves nothing. */
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgeVanillaJar", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgeVanillaJar", matches = ".+")
     void everyReplacedCallIsInVanilla() throws IOException {
         List<String> problems = new ArrayList<>();
         try (JarFile jar = new JarFile(
-                Path.of(System.getProperty("poly.neoForgeVanillaJar")).toFile())) {
+                Path.of(System.getProperty("plexus.neoForgeVanillaJar")).toFile())) {
             for (InjectionPointReplacement point : NeoForgeInjectionPoints.all()) {
                 Optional<ClassModel> target = read(jar, point.targetClass());
                 if (target.isEmpty()) {
@@ -71,11 +71,11 @@ class NeoForgeInjectionPointsTest {
      * of that name does.
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.neoForgePatchedClient", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.neoForgePatchedClient", matches = ".+")
     void everyPointHasItsShapeInNeoForgesPatchedClient() throws IOException {
         List<String> problems = new ArrayList<>();
         try (JarFile jar = new JarFile(
-                Path.of(System.getProperty("poly.neoForgePatchedClient")).toFile())) {
+                Path.of(System.getProperty("plexus.neoForgePatchedClient")).toFile())) {
             for (InjectionPointReplacement point : NeoForgeInjectionPoints.all()) {
                 Optional<ClassModel> target = read(jar, point.targetClass());
                 if (target.isEmpty()) {

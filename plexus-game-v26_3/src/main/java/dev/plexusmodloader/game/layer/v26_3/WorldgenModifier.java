@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 final class WorldgenModifier {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private WorldgenModifier() {}
 
@@ -96,7 +96,7 @@ final class WorldgenModifier {
                 changedBiomes++;
             }
         }
-        LOGGER.info("[Poly Mod Loader] Added {} feature(s) to {} biome(s)", features.size(), changedBiomes);
+        LOGGER.info("[Plexus Mod Loader] Added {} feature(s) to {} biome(s)", features.size(), changedBiomes);
         if (changedBiomes > 0) {
             refreshFeatureIndexes(registries);
         }
@@ -207,7 +207,7 @@ final class WorldgenModifier {
             }
             changedBiomes++;
         }
-        LOGGER.info("[Poly Mod Loader] Added {} natural spawn(s) to {} biome(s)", spawns.size(), changedBiomes);
+        LOGGER.info("[Plexus Mod Loader] Added {} natural spawn(s) to {} biome(s)", spawns.size(), changedBiomes);
     }
 
     /**

@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * A biome defined in code. Poly Mod Loader writes it as biome data into its generated data pack, so it behaves
+ * A biome defined in code. Plexus Mod Loader writes it as biome data into its generated data pack, so it behaves
  * exactly like a biome from a data pack: dimensions, biome tags, and {@code /locate biome} see it.
  * Colours are {@code 0xRRGGBB}.
  *

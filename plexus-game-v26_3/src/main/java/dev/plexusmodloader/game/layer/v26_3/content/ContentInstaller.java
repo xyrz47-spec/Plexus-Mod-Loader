@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 /** Creates declared blocks and items in the game's registries, and lists items in creative tabs. */
 public final class ContentInstaller {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Map<CreativeTab, List<Item>> TAB_CONTENTS = new EnumMap<>(CreativeTab.class);
     private static final AtomicBoolean TAB_WARNING = new AtomicBoolean();
 
@@ -99,7 +99,7 @@ public final class ContentInstaller {
         }
         if (!blocks.isEmpty() || !declarations.items().isEmpty()) {
             LOGGER.info(
-                    "[Poly Mod Loader] Registered {} block(s) and {} item(s) from mods",
+                    "[Plexus Mod Loader] Registered {} block(s) and {} item(s) from mods",
                     blocks.size(),
                     declarations.items().size());
         }
@@ -117,13 +117,13 @@ public final class ContentInstaller {
         if (tabId == null || !tabId.getNamespace().equals("minecraft")) {
             return;
         }
-        CreativeTab polyTab;
+        CreativeTab plexusTab;
         try {
-            polyTab = CreativeTab.valueOf(tabId.getPath().toUpperCase(Locale.ROOT));
+            plexusTab = CreativeTab.valueOf(tabId.getPath().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException notMapped) {
             return;
         }
-        List<Item> items = TAB_CONTENTS.getOrDefault(polyTab, List.of());
+        List<Item> items = TAB_CONTENTS.getOrDefault(plexusTab, List.of());
         if (items.isEmpty()) {
             return;
         }
@@ -132,8 +132,9 @@ public final class ContentInstaller {
             add(tab.getSearchTabDisplayItems(), items);
         } catch (UnsupportedOperationException e) {
             if (TAB_WARNING.compareAndSet(false, true)) {
-                LOGGER.warn("[Poly Mod Loader] PLEXUS-CONTENT-003 creative tab contents are read-only in this version; "
-                        + "mod items are not listed");
+                LOGGER.warn(
+                        "[Plexus Mod Loader] PLEXUS-CONTENT-003 creative tab contents are read-only in this version; "
+                                + "mod items are not listed");
             }
         }
     }

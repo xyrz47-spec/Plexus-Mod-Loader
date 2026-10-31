@@ -11,37 +11,39 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 /**
- * Adds the resource tools to a mod project that applies the Java plugin: the {@code polyResources}
- * extension, {@code generatePolyResources} (its output is part of the main resources), and {@code
- * checkPolyResources} (part of {@code check}).
+ * Adds the resource tools to a mod project that applies the Java plugin: the {@code plexusResources}
+ * extension, {@code generatePlexusResources} (its output is part of the main resources), and {@code
+ * checkPlexusResources} (part of {@code check}).
  */
 public final class ModResourceTasks {
 
-    private static final String GROUP = "poly mod";
+    private static final String GROUP = "plexus mod";
 
     private ModResourceTasks() {}
 
     /** Registers the extension and both tasks on {@code project}. */
     public static void register(Project project) {
-        PolyResourcesExtension extension =
-                project.getExtensions().create("polyResources", PolyResourcesExtension.class);
+        PlexusResourcesExtension extension =
+                project.getExtensions().create("plexusResources", PlexusResourcesExtension.class);
+        // The 1.4.x name, so build scripts that still say polyResources { } keep working.
+        project.getExtensions().add(PlexusResourcesExtension.class, "polyResources", extension);
         SourceSet main = project.getExtensions()
                 .getByType(SourceSetContainer.class)
                 .getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         Directory handWritten = project.getLayout().getProjectDirectory().dir("src/main/resources");
-        File plexusModJson = handWritten.file("plexus.mod.json").getAsFile();
-        File polyModJson = plexusModJson.isFile() ? plexusModJson : handWritten.file("poly.mod.json").getAsFile();
-        Provider<Directory> generated = project.getLayout().getBuildDirectory().dir("generated/poly-resources/main");
+        File currentModJson = handWritten.file("plexus.mod.json").getAsFile();
+        File plexusModJson = currentModJson.isFile() ? currentModJson : handWritten.file("poly.mod.json").getAsFile();
+        Provider<Directory> generated = project.getLayout().getBuildDirectory().dir("generated/plexus-resources/main");
 
-        TaskProvider<GeneratePolyResourcesTask> generate = project.getTasks()
-                .register("generatePolyResources", GeneratePolyResourcesTask.class, task -> {
+        TaskProvider<GeneratePlexusResourcesTask> generate = project.getTasks()
+                .register("generatePlexusResources", GeneratePlexusResourcesTask.class, task -> {
                     task.setGroup(GROUP);
                     task.setDescription(
                             "Writes models, block states, item definitions, loot tables, names and tool tags"
-                                    + " for the blocks and items listed in polyResources.");
+                                    + " for the blocks and items listed in plexusResources.");
                     task.getModId().set(project.provider(() -> extension.getDefinitions().isEmpty()
                             ? "unused"
-                            : GeneratePolyResourcesTask.modId(polyModJson)));
+                            : GeneratePlexusResourcesTask.modId(plexusModJson)));
                     task.getDefinitions().set(project.provider(extension::getDefinitions));
                     task.getHandWrittenFiles().from(handWritten);
                     task.getHandWrittenDirectory().set(handWritten);
@@ -62,8 +64,8 @@ public final class ModResourceTasks {
 
         TaskProvider<ProcessResources> processResources =
                 project.getTasks().named(main.getProcessResourcesTaskName(), ProcessResources.class);
-        TaskProvider<CheckPolyResourcesTask> check = project.getTasks()
-                .register("checkPolyResources", CheckPolyResourcesTask.class, task -> {
+        TaskProvider<CheckPlexusResourcesTask> check = project.getTasks()
+                .register("checkPlexusResources", CheckPlexusResourcesTask.class, task -> {
                     task.setGroup("verification");
                     task.setDescription("Finds broken paths, JSON, model and texture references, and language files"
                             + " in the mod's resources without starting the game.");
@@ -71,7 +73,7 @@ public final class ModResourceTasks {
                     task.getResourceDirectory()
                             .set(project.getLayout().dir(processResources.map(ProcessResources::getDestinationDir)));
                     task.getReport()
-                            .set(project.getLayout().getBuildDirectory().file("reports/poly/resource-problems.txt"));
+                            .set(project.getLayout().getBuildDirectory().file("reports/plexus/resource-problems.txt"));
                 });
         project.getTasks().named("check").configure(task -> task.dependsOn(check));
     }

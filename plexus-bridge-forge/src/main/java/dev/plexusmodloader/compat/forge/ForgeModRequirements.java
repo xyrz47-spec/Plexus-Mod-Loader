@@ -37,12 +37,12 @@ import org.tomlj.TomlTable;
  * The requirements FML checks in each Forge mod's {@code META-INF/mods.toml} before it loads anything (ADR-0021 G6):
  * the language loader's version ({@code loaderVersion}), required dependencies that must be installed, and the version
  * ranges of the dependencies that are installed ({@code minecraft} and {@code forge} among them), each on its side.
- * FML stops the whole launch when one mod fails them; Poly Mod Loader leaves that mod out before FML starts, with the reason
+ * FML stops the whole launch when one mod fails them; Plexus Mod Loader leaves that mod out before FML starts, with the reason
  * ({@code PLEXUS-COMPAT-209}), and then the mods that need it, so the others still run.
  *
  * <p>Version ranges are Maven's, as FML reads them ({@link VersionRanges}). A jar without {@code mods.toml} (a
  * ModLauncher service such as CustomSkinLoader's) is passed on unchecked, and so is a mod of a language loader other
- * than Forge's own ({@code javafml}, {@code lowcodefml}), whose version Poly Mod Loader does not know. The exception is a
+ * than Forge's own ({@code javafml}, {@code lowcodefml}), whose version Plexus Mod Loader does not know. The exception is a
  * jar without {@code mods.toml} that another loader's metadata in it declares client-only ({@code fabric.mod.json}
  * {@code "environment": "client"}): FML cannot tell its side, and on a server its service still changes Minecraft's
  * classes for client code (CustomSkinLoader adds a client interface to {@code ResourceManager}, and the server stops

@@ -5,10 +5,10 @@ import cpw.mods.modlauncher.api.TypesafeMap;
 import java.util.Optional;
 
 /**
- * Poly Mod Loader's stand-in for ModLauncher's launcher (ADR-0021). FML and the access transformer library read only
+ * Plexus Mod Loader's stand-in for ModLauncher's launcher (ADR-0021). FML and the access transformer library read only
  * {@link #INSTANCE}, {@link #environment()} and {@link #blackboard()} (checked with {@code javap} on Forge
  * 26.2-65.1.5's jars), so that is all this class has, with the private field {@code argumentHandler} that mods read
- * through reflection ({@link ArgumentHandler}); Poly Mod Loader's {@code PlexusModLauncher} does the launching. Not
+ * through reflection ({@link ArgumentHandler}); Plexus Mod Loader's {@code PlexusModLauncher} does the launching. Not
  * ModLauncher's code.
  */
 public final class Launcher {

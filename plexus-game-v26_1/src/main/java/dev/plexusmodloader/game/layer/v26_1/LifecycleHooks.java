@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class LifecycleHooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private LifecycleHooks() {}
 
@@ -75,7 +75,7 @@ public final class LifecycleHooks {
     public static void onServerStopped(MinecraftServer server) {
         // stopServer has saved and closed every world by now. Checks read this line: since 26.3 the game no
         // longer logs that all dimensions are saved.
-        LOGGER.info("[Poly Mod Loader] Server stopped after saving and closing its worlds");
+        LOGGER.info("[Plexus Mod Loader] Server stopped after saving and closing its worlds");
         GameLayerContext context = listening(ServerEvents.STOPPED);
         if (context != null) {
             ServerView view = new GameServerView(server);
@@ -83,7 +83,7 @@ public final class LifecycleHooks {
         }
     }
 
-    /** From the return hook of {@code ServerPlayer.restoreFrom}, after Poly Mod Loader copied entity data. */
+    /** From the return hook of {@code ServerPlayer.restoreFrom}, after Plexus Mod Loader copied entity data. */
     static void onPlayerCopied(ServerPlayer newPlayer, ServerPlayer oldPlayer, boolean returnedFromEnd) {
         GameLayerContext context = listening(PlayerEvents.COPY);
         if (context != null) {
@@ -129,7 +129,7 @@ public final class LifecycleHooks {
         context.events().publish(event, listener -> listener.onWorld(world));
     }
 
-    /** The context when Poly Mod Loader runs and someone listens to {@code event}, else null. */
+    /** The context when Plexus Mod Loader runs and someone listens to {@code event}, else null. */
     private static GameLayerContext listening(EventKey<?> event) {
         GameLayerContext context = LayerState.context().orElse(null);
         return context != null && context.events().hasListeners(event) ? context : null;

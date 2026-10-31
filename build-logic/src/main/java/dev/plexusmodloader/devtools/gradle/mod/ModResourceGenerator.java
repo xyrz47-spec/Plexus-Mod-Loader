@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  * Writes the standard resource files of simple blocks and items, the same JSON a modder would write by
- * hand. Mod developers use it through {@code polyResources} in the build script (docs site: {@code
+ * hand. Mod developers use it through {@code plexusResources} in the build script (docs site: {@code
  * getting-started/mod-dev-tools}).
  *
  * <ul>
@@ -48,7 +48,7 @@ public final class ModResourceGenerator {
     /**
      * The files to generate, as resource path ({@code assets/ruby_mod/items/ruby.json}) to file text.
      *
-     * @param modId the mod's ID from {@code poly.mod.json}; it is the namespace of every generated file
+     * @param modId the mod's ID from {@code plexus.mod.json}; it is the namespace of every generated file
      * @param definitions the declared blocks and items
      * @param handWritten the mod's own resource directory ({@code src/main/resources}); it need not exist
      * @throws IllegalArgumentException with {@code PLEXUS-RESOURCE-009} if a name is declared twice, or
@@ -64,7 +64,7 @@ public final class ModResourceGenerator {
             String name = definition.name();
             if (!names.add(name)) {
                 throw new IllegalArgumentException("PLEXUS-RESOURCE-009 " + name
-                        + " is declared twice in polyResources; a block already has an item of the same name");
+                        + " is declared twice in plexusResources; a block already has an item of the same name");
             }
             String id = modId + ":" + name;
             String assets = "assets/" + modId + "/";

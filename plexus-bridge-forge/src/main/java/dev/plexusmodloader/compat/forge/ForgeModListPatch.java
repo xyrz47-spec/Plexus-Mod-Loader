@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
- * Lets FML's mod list answer for the mods Poly Mod Loader runs beside the host loader (ADR-0025): {@code
- * ModList.getModFileById} and {@code ModList.isLoaded} ask Poly Mod Loader's {@code ForeignModList} (in {@code
+ * Lets FML's mod list answer for the mods Plexus Mod Loader runs beside the host loader (ADR-0025): {@code
+ * ModList.getModFileById} and {@code ModList.isLoaded} ask Plexus Mod Loader's {@code ForeignModList} (in {@code
  * forge-host.jar} or {@code neoforge-host.jar}) when FML's own answer is {@code null} or {@code false}. FML's answer
  * comes first, so a Forge or NeoForge mod keeps its ID. Two FMLs have such a mod list ({@link Shape}):
  *
@@ -65,7 +65,7 @@ final class ForgeModListPatch {
      * @param modFileInfo the type {@code getModFileById} returns
      * @param instance whether the lookups are instance methods reading instance fields (NeoForge) or static ones
      * @param fileById the map field {@code getModFileById} reads
-     * @param foreignModList Poly Mod Loader's answers in that FML's host jar
+     * @param foreignModList Plexus Mod Loader's answers in that FML's host jar
      */
     record Shape(String className, ClassDesc modFileInfo, boolean instance, String fileById, ClassDesc foreignModList) {
 
@@ -106,7 +106,7 @@ final class ForgeModListPatch {
     /** MinecraftForge's FML mod list. */
     static final String CLASS_NAME = Shape.FORGE.className();
 
-    /** Poly Mod Loader's answers for MinecraftForge, in the BOOT layer's {@code cpw.mods.modlauncher} module. */
+    /** Plexus Mod Loader's answers for MinecraftForge, in the BOOT layer's {@code cpw.mods.modlauncher} module. */
     static final ClassDesc FOREIGN_MOD_LIST = Shape.FORGE.foreignModList();
 
     static final String GET_MOD_FILE_BY_ID = "getModFileById";

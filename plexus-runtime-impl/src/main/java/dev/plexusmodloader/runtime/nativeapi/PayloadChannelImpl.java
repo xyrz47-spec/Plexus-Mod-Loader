@@ -22,7 +22,7 @@ final class PayloadChannelImpl<T> implements PayloadChannel<T>, ChannelEndpoint 
     /** Largest encoded payload the server may send; the game's clientbound custom payload limit. */
     static final int MAX_TO_CLIENT = 1048576;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private final ResourceId id;
     private final String ownerModId;
@@ -72,7 +72,7 @@ final class PayloadChannelImpl<T> implements PayloadChannel<T>, ChannelEndpoint 
     public void receiveOnServer(byte[] data, PlayerView sender) {
         ServerPayloadHandler<T> handler = serverHandler;
         if (handler == null) {
-            LOGGER.debug("[Poly Mod Loader] Dropped payload on {}: no server handler", id);
+            LOGGER.debug("[Plexus Mod Loader] Dropped payload on {}: no server handler", id);
             return;
         }
         decode(data).ifPresent(payload -> handler.receive(payload, sender));
@@ -82,7 +82,7 @@ final class PayloadChannelImpl<T> implements PayloadChannel<T>, ChannelEndpoint 
     public void receiveOnClient(byte[] data) {
         ClientPayloadHandler<T> handler = clientHandler;
         if (handler == null) {
-            LOGGER.debug("[Poly Mod Loader] Dropped payload on {}: no client handler", id);
+            LOGGER.debug("[Plexus Mod Loader] Dropped payload on {}: no client handler", id);
             return;
         }
         decode(data).ifPresent(handler::receive);

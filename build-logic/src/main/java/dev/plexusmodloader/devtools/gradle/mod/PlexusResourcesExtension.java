@@ -7,18 +7,18 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 
 /**
- * The {@code polyResources} block of a mod's build script. Each entry names content the mod's code
+ * The {@code plexusResources} block of a mod's build script. Each entry names content the mod's code
  * registers and gets its standard resource files generated ({@link ModResourceGenerator}):
  *
  * <pre>{@code
- * polyResources {
+ * plexusResources {
  *     item("ruby")
  *     block("ruby_block") { minedWith = "pickaxe" }
  *     block("ruby_lamp") { displayName = "Ruby Lamp"; texture = "minecraft:block/redstone_lamp_on" }
  * }
  * }</pre>
  */
-public abstract class PolyResourcesExtension {
+public abstract class PlexusResourcesExtension {
 
     private final List<ContentResourceDefinition> definitions = new ArrayList<>();
 

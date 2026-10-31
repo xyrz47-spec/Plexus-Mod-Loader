@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 class ModDependencyResolverTest {
 
-    private static final SemanticVersion POLY_MOD_LOADER =
+    private static final SemanticVersion PLEXUS_MOD_LOADER =
             SemanticVersion.parse("0.1.0").orElseThrow();
     private final ModDependencyResolver resolver = new ModDependencyResolver();
 
@@ -26,9 +26,9 @@ class ModDependencyResolverTest {
         List<ModMetadata> mods = List.of(
                 mod("zeta", "1.0.0", ModEnvironment.BOTH, Map.of("core", ">=1.0.0")),
                 mod("alpha", "1.0.0", ModEnvironment.BOTH, Map.of("core", "*")),
-                mod("core", "1.2.0", ModEnvironment.BOTH, Map.of("poly", ">=0.1.0 <0.2.0")));
+                mod("core", "1.2.0", ModEnvironment.BOTH, Map.of("plexus", ">=0.1.0 <0.2.0")));
 
-        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER);
+        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER);
 
         assertEquals(List.of(), result.problems());
         assertEquals(
@@ -39,9 +39,9 @@ class ModDependencyResolverTest {
     @Test
     void reportsMissingDependencyAndVersionMismatchTogether() {
         List<ModMetadata> mods =
-                List.of(mod("addon", "1.0.0", ModEnvironment.BOTH, ordered("library", "*", "poly", ">=1.0.0")));
+                List.of(mod("addon", "1.0.0", ModEnvironment.BOTH, ordered("library", "*", "plexus", ">=1.0.0")));
 
-        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER);
+        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER);
 
         assertTrue(result.loadOrder().isEmpty());
         assertEquals(
@@ -55,7 +55,7 @@ class ModDependencyResolverTest {
                 mod("first", "1.0.0", ModEnvironment.BOTH, Map.of("second", "*")),
                 mod("second", "1.0.0", ModEnvironment.BOTH, Map.of("first", "*")));
 
-        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER);
+        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER);
 
         assertEquals(
                 List.of(DependencyProblemCode.DEPENDENCY_CYCLE, DependencyProblemCode.DEPENDENCY_CYCLE), codes(result));
@@ -69,37 +69,37 @@ class ModDependencyResolverTest {
 
         assertEquals(
                 List.of(DependencyProblemCode.DUPLICATE_MOD_ID),
-                codes(resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER)));
+                codes(resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER)));
     }
 
     @Test
-    void acceptsPlexusAndPolyAsRuntimeDependencies() {
+    void acceptsPlexusAndPlexusAsRuntimeDependencies() {
         List<ModMetadata> mods = List.of(
                 mod("modern", "1.0.0", ModEnvironment.BOTH, Map.of("plexus", ">=0.1.0")),
-                mod("legacy", "1.0.0", ModEnvironment.BOTH, Map.of("poly", ">=0.1.0")));
+                mod("legacy", "1.0.0", ModEnvironment.BOTH, Map.of("plexus", ">=0.1.0")));
 
-        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER);
+        ModDependencyResolver.Result result = resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER);
 
         assertEquals(List.of(), result.problems());
         assertEquals(2, result.loadOrder().size());
     }
 
     @Test
-    void rejectsPlexusAndPolyAsModId() {
+    void rejectsPlexusAndPlexusAsModId() {
         assertEquals(
                 List.of(DependencyProblemCode.RESERVED_MOD_ID),
                 codes(resolver.resolve(
                         List.of(mod("plexus", "1.0.0", ModEnvironment.BOTH, Map.of())),
                         "26.2",
                         GameSide.CLIENT,
-                        POLY_MOD_LOADER)));
+                        PLEXUS_MOD_LOADER)));
         assertEquals(
                 List.of(DependencyProblemCode.RESERVED_MOD_ID),
                 codes(resolver.resolve(
-                        List.of(mod("poly", "1.0.0", ModEnvironment.BOTH, Map.of())),
+                        List.of(mod("plexus", "1.0.0", ModEnvironment.BOTH, Map.of())),
                         "26.2",
                         GameSide.CLIENT,
-                        POLY_MOD_LOADER)));
+                        PLEXUS_MOD_LOADER)));
     }
 
     @Test
@@ -108,8 +108,8 @@ class ModDependencyResolverTest {
 
         assertEquals(
                 List.of(DependencyProblemCode.WRONG_ENVIRONMENT),
-                codes(resolver.resolve(mods, "26.2", GameSide.DEDICATED_SERVER, POLY_MOD_LOADER)));
-        assertEquals(List.of(), codes(resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER)));
+                codes(resolver.resolve(mods, "26.2", GameSide.DEDICATED_SERVER, PLEXUS_MOD_LOADER)));
+        assertEquals(List.of(), codes(resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER)));
     }
 
     @Test
@@ -118,7 +118,7 @@ class ModDependencyResolverTest {
 
         assertEquals(
                 List.of(DependencyProblemCode.UNSUPPORTED_MINECRAFT_VERSION),
-                codes(resolver.resolve(mods, "26.3", GameSide.CLIENT, POLY_MOD_LOADER)));
+                codes(resolver.resolve(mods, "26.3", GameSide.CLIENT, PLEXUS_MOD_LOADER)));
     }
 
     @Test
@@ -127,10 +127,11 @@ class ModDependencyResolverTest {
         ModMetadata range = withMinecraft(mod("ranged", "1.0.0", ModEnvironment.BOTH, Map.of()), ">=26.2 <26.4");
 
         assertEquals(
-                List.of(), codes(resolver.resolve(List.of(wildcard, range), "26.3", GameSide.CLIENT, POLY_MOD_LOADER)));
+                List.of(),
+                codes(resolver.resolve(List.of(wildcard, range), "26.3", GameSide.CLIENT, PLEXUS_MOD_LOADER)));
         assertEquals(
                 List.of(DependencyProblemCode.UNSUPPORTED_MINECRAFT_VERSION),
-                codes(resolver.resolve(List.of(wildcard, range), "26.4", GameSide.CLIENT, POLY_MOD_LOADER)));
+                codes(resolver.resolve(List.of(wildcard, range), "26.4", GameSide.CLIENT, PLEXUS_MOD_LOADER)));
     }
 
     @Test
@@ -152,7 +153,7 @@ class ModDependencyResolverTest {
 
         assertEquals(
                 List.of(DependencyProblemCode.CONFLICTING_MODS),
-                codes(resolver.resolve(mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER)));
+                codes(resolver.resolve(mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER)));
     }
 
     @Test
@@ -163,11 +164,16 @@ class ModDependencyResolverTest {
         assertEquals(
                 List.of(),
                 codes(resolver.resolve(
-                        mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER, Map.of("fabric_lib", "1.2"), Map.of())));
+                        mods, "26.2", GameSide.CLIENT, PLEXUS_MOD_LOADER, Map.of("fabric_lib", "1.2"), Map.of())));
         assertEquals(
                 List.of(DependencyProblemCode.DEPENDENCY_VERSION_MISMATCH),
                 codes(resolver.resolve(
-                        mods, "26.2", GameSide.CLIENT, POLY_MOD_LOADER, Map.of("fabric_lib", "2.0.0+26.2"), Map.of())));
+                        mods,
+                        "26.2",
+                        GameSide.CLIENT,
+                        PLEXUS_MOD_LOADER,
+                        Map.of("fabric_lib", "2.0.0+26.2"),
+                        Map.of())));
     }
 
     @Test
@@ -180,7 +186,7 @@ class ModDependencyResolverTest {
                         List.of(mod("aa", "1.0.0", ModEnvironment.BOTH, Map.of("lib", ">=1.0.0"))),
                         "26.2",
                         GameSide.CLIENT,
-                        POLY_MOD_LOADER,
+                        PLEXUS_MOD_LOADER,
                         foreign,
                         Map.of())));
         assertEquals(
@@ -189,7 +195,7 @@ class ModDependencyResolverTest {
                         List.of(mod("aa", "1.0.0", ModEnvironment.BOTH, Map.of("lib", "*"))),
                         "26.2",
                         GameSide.CLIENT,
-                        POLY_MOD_LOADER,
+                        PLEXUS_MOD_LOADER,
                         foreign,
                         Map.of())));
     }
@@ -200,7 +206,7 @@ class ModDependencyResolverTest {
                 List.of(mod("addon", "1.0.0", ModEnvironment.BOTH, Map.of("sodium", "*"))),
                 "26.2",
                 GameSide.CLIENT,
-                POLY_MOD_LOADER,
+                PLEXUS_MOD_LOADER,
                 Map.of(),
                 Map.of("sodium", "Fabric mod sodium 0.8.0 (sodium.jar) is BLOCKED: [PLEXUS-COMPAT-101]"));
 

@@ -7,7 +7,7 @@ import dev.plexusmodloader.internal.transform.TransformRuleDefinition;
 import java.util.List;
 
 /**
- * Everything Poly Mod Loader needs to know about one exact Minecraft version. All knowledge of Minecraft class,
+ * Everything Plexus Mod Loader needs to know about one exact Minecraft version. All knowledge of Minecraft class,
  * method, and descriptor names stays inside adapter implementations so it cannot leak into the
  * general API (design doc §5.5, §7.7 {@code game.version}). Implementations are found with
  * {@link java.util.ServiceLoader}.
@@ -20,7 +20,7 @@ public interface GameVersionAdapter {
 
     /**
      * The Minecraft version ID this adapter was written for, as found in the game jar's {@code
-     * version.json}. Also the version Poly Mod Loader's build compiles the adapter's game layer against.
+     * version.json}. Also the version Plexus Mod Loader's build compiles the adapter's game layer against.
      */
     String gameVersion();
 
@@ -36,7 +36,7 @@ public interface GameVersionAdapter {
     /** Fully qualified name of the game class whose {@code main} starts {@code target}. */
     String mainClass(GameLaunchTarget target);
 
-    /** Transformation rules Poly Mod Loader itself applies to this version. Filtered by side during planning. */
+    /** Transformation rules Plexus Mod Loader itself applies to this version. Filtered by side during planning. */
     List<TransformRuleDefinition> builtInTransformRules();
 
     /**
@@ -74,8 +74,8 @@ public interface GameVersionAdapter {
 
     /**
      * Fully qualified name of this version's {@link dev.plexusmodloader.game.version.layer.GameLayer}
-     * entry class, or empty when the adapter has no game layer. The class must be in a jar on Poly Mod Loader's
-     * class path under {@code dev.plexusmodloader.game.layer.}; Poly Mod Loader adds that jar to the game class
+     * entry class, or empty when the adapter has no game layer. The class must be in a jar on Plexus Mod Loader's
+     * class path under {@code dev.plexusmodloader.game.layer.}; Plexus Mod Loader adds that jar to the game class
      * loader so the layer can use game classes directly (ADR-0010).
      */
     default java.util.Optional<String> gameLayerClass() {
@@ -83,7 +83,7 @@ public interface GameVersionAdapter {
     }
 
     /**
-     * The entry in the client jar of the logo the game's loading screen draws, for Poly Mod Loader's early loading
+     * The entry in the client jar of the logo the game's loading screen draws, for Plexus Mod Loader's early loading
      * window, which looks like that screen. Empty when this adapter's game layer does not tell the runtime when the
      * game's window shows ({@link dev.plexusmodloader.game.version.layer.GameWindowListener}); there is no early window
      * then. Called once, on the launch thread, before discovery.

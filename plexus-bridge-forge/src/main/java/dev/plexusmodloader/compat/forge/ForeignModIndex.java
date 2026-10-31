@@ -20,7 +20,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 /**
- * The mods Poly Mod Loader runs beside Forge (Poly Mods and other loaders' mods), as FML's mod list answers for them
+ * The mods Plexus Mod Loader runs beside Forge (Plexus Mods and other loaders' mods), as FML's mod list answers for them
  * (ADR-0025): Forge mods ask {@code ModList.getModFileById(id)} or {@code ModList.isLoaded(id)} whether a mod is
  * installed, and a Fabric mod they work with (Physics Mod with Sodium) is installed.
  *
@@ -39,7 +39,7 @@ public final class ForeignModIndex {
     /**
      * One mod as FML's mod list shows it.
      *
-     * @param loader {@code Fabric}, {@code Poly Mod Loader}, …
+     * @param loader {@code Fabric}, {@code Plexus Mod Loader}, …
      * @param version its version text, as its own loader reads it
      * @param displayName its name ({@code fabric.mod.json}'s {@code name}, {@code quilt.mod.json}'s {@code
      *     quilt_loader.metadata.name}), or the mod ID
@@ -64,7 +64,7 @@ public final class ForeignModIndex {
     /**
      * Indexes {@code mods} by ID and provided ID.
      *
-     * @param mods the mods Poly Mod Loader runs, in entrypoint order
+     * @param mods the mods Plexus Mod Loader runs, in entrypoint order
      * @param hostIds the IDs of the mods Forge runs, which stay Forge's
      */
     public static ForeignModIndex of(List<BridgeLaunchContext.LoadedMod> mods, Collection<String> hostIds) {
@@ -115,7 +115,7 @@ public final class ForeignModIndex {
     }
 
     /**
-     * The mod's name. Poly Mod Loader knows a Fabric or Quilt mod's ID only, so its {@code fabric.mod.json} ({@code
+     * The mod's name. Plexus Mod Loader knows a Fabric or Quilt mod's ID only, so its {@code fabric.mod.json} ({@code
      * name}) or {@code quilt.mod.json} ({@code quilt_loader.metadata.name}, ADR-0027) gives the name; the ID when it has
      * none, as in Fabric Loader and Quilt Loader.
      */

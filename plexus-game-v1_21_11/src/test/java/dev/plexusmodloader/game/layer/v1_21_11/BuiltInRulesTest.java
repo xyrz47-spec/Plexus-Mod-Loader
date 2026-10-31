@@ -63,7 +63,7 @@ class BuiltInRulesTest {
     void titleScreenRuleRedirectsTheOnlyVersionTextCall() {
         TransformRuleDefinition rule = new Minecraft1_21_11Adapter()
                 .builtInTransformRules().stream()
-                        .filter(candidate -> candidate.ruleId().equals("poly:client_title_mod_counts"))
+                        .filter(candidate -> candidate.ruleId().equals("plexus:client_title_mod_counts"))
                         .findFirst()
                         .orElseThrow();
         assertEquals(TransformFailurePolicy.DISABLE_RULE, rule.failurePolicy());

@@ -42,7 +42,7 @@ class ServerInstallerTest {
     private final List<URI> downloaded = new ArrayList<>();
 
     @Test
-    void installsTheServerPolyModLoaderAndStartScripts() throws Exception {
+    void installsTheServerPlexusModLoaderAndStartScripts() throws Exception {
         mojang(bundler(SERVER_JAR));
         Path server = folder.resolve("my server");
 
@@ -56,25 +56,25 @@ class ServerInstallerTest {
         assertEquals(
                 "runtime bytes",
                 Files.readString(server.resolve(
-                        "libraries/dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar")));
+                        "libraries/dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar")));
         try (JarFile launch =
                 new JarFile(server.resolve(ServerInstaller.LAUNCH_JAR).toFile())) {
             Attributes attributes = launch.getManifest().getMainAttributes();
             assertEquals(ServerInstaller.SERVER_MAIN_CLASS, attributes.getValue(Attributes.Name.MAIN_CLASS));
-            // Poly Mod Loader first, then Minecraft's libraries, then the server jar Poly Mod Loader finds by its
+            // Plexus Mod Loader first, then Minecraft's libraries, then the server jar Plexus Mod Loader finds by its
             // version.json.
             assertEquals(
-                    "libraries/dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar"
+                    "libraries/dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar"
                             + " libraries/com/google/code/gson/gson/2.14.0/gson-2.14.0.jar"
                             + " versions/26.2/server-26.2.jar",
                     attributes.getValue(Attributes.Name.CLASS_PATH));
-            // java -jar starts Poly Mod Loader's agent from that class path (ADR-0024); no flag, no extra jar.
+            // java -jar starts Plexus Mod Loader's agent from that class path (ADR-0024); no flag, no extra jar.
             assertEquals(
                     "dev.plexusmodloader.bootstrap.SystemClassPathAgent", attributes.getValue("Launcher-Agent-Class"));
         }
         String batch = Files.readString(server.resolve("run.bat"));
         assertTrue(batch.contains("java -Xms1G -Xmx4G "), batch);
-        assertTrue(batch.contains("-jar polymodloader-server.jar nogui"), batch);
+        assertTrue(batch.contains("-jar plexusmodloader-server.jar nogui"), batch);
         assertTrue(batch.contains("Needs Java 25 or newer"), batch);
         assertTrue(Files.readString(server.resolve("run.sh")).startsWith("#!/usr/bin/env sh\n"));
         assertTrue(Files.isDirectory(server.resolve("mods")));
@@ -179,7 +179,7 @@ class ServerInstallerTest {
                 "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(new InstallerPayload.Library(
                         "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
-                        "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
+                        "dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar",
                         hash(RUNTIME_JAR, "SHA-1"),
                         RUNTIME_JAR.length)),
                 // The agent class lives in this test's one library.

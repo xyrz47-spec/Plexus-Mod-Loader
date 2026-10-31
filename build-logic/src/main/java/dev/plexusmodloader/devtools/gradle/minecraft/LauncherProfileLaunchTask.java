@@ -52,16 +52,16 @@ import org.gradle.jvm.toolchain.JavaLauncher;
  * (libraries of both, then the vanilla game jar on the class path; JVM and game arguments of the vanilla
  * version followed by the profile's, then the profile's {@code javaArgs}; the profile's main class); library
  * rules and launcher variables are resolved; the vanilla log configuration is passed; the process starts in the
- * game folder. Poly Mod Loader's libraries must be where the version says, with the SHA-1 it says, and no library may
+ * game folder. Plexus Mod Loader's libraries must be where the version says, with the SHA-1 it says, and no library may
  * appear twice.
  *
- * <p>The vanilla files come from Poly Mod Loader's verified download cache (the {@code prepareMinecraftClient}
+ * <p>The vanilla files come from Plexus Mod Loader's verified download cache (the {@code prepareMinecraftClient}
  * launch spec) instead of a real launcher installation; nothing is written to the user's {@code .minecraft}.
  */
 @DisableCachingByDefault(because = "Runs the game and checks its output")
 public abstract class LauncherProfileLaunchTask extends DefaultTask {
 
-    private static final String PLAYER = "PolyDev";
+    private static final String PLAYER = "PlexusDev";
     private static final String MAXIMUM_MEMORY = "3G";
     private static final String MINIMUM_MEMORY = "1G";
 
@@ -99,7 +99,7 @@ public abstract class LauncherProfileLaunchTask extends DefaultTask {
     public abstract Property<Integer> getTimeoutSeconds();
 
     /**
-     * Paths below the game folder that must not exist after the run, such as {@code .poly/forge}: without Forge mods,
+     * Paths below the game folder that must not exist after the run, such as {@code .plexus/forge}: without Forge mods,
      * nothing of Forge is downloaded (ADR-0024).
      */
     @Input
@@ -134,9 +134,9 @@ public abstract class LauncherProfileLaunchTask extends DefaultTask {
         if (!all.has("vanilla")) {
             throw new GradleException("The installer dropped an existing launcher profile");
         }
-        JsonObject profile = all.getAsJsonObject("polymodloader-" + gameVersion);
+        JsonObject profile = all.getAsJsonObject("plexusmodloader-" + gameVersion);
         if (profile == null) {
-            throw new GradleException("The installer added no profile polymodloader-" + gameVersion);
+            throw new GradleException("The installer added no profile plexusmodloader-" + gameVersion);
         }
         String javaArgs = profile.has("javaArgs") ? profile.get("javaArgs").getAsString() : "";
         if (!javaArgs.equals("-Xms" + MINIMUM_MEMORY + " -Xmx" + MAXIMUM_MEMORY)) {
@@ -158,7 +158,7 @@ public abstract class LauncherProfileLaunchTask extends DefaultTask {
                 .replace("-", "");
         Map<String, String> variables = new HashMap<>();
         variables.put("natives_directory", natives.toString());
-        variables.put("launcher_name", "polymodloader-profile-test");
+        variables.put("launcher_name", "plexusmodloader-profile-test");
         variables.put("launcher_version", "1");
         variables.put("classpath", String.join(File.pathSeparator, classpath));
         variables.put("classpath_separator", File.pathSeparator);
@@ -226,7 +226,7 @@ public abstract class LauncherProfileLaunchTask extends DefaultTask {
 
     /**
      * Libraries of the profile's version, then of the vanilla version, as the launcher lists them. The
-     * Poly Mod Loader libraries must be installed with the recorded SHA-1; vanilla ones come from the cache.
+     * Plexus Mod Loader libraries must be installed with the recorded SHA-1; vanilla ones come from the cache.
      */
     private static List<String> classpath(Path minecraft, Path cache, JsonObject child, JsonObject parent) {
         Map<String, String> seen = new LinkedHashMap<>();

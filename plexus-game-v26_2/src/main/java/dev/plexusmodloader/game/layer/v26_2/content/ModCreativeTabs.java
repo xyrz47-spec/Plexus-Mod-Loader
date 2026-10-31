@@ -35,7 +35,7 @@ public final class ModCreativeTabs {
     /** The first column of the game's right-hand tabs, which every page shows. */
     public static final int FIRST_SHARED_COLUMN = 5;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     /** Mod tab → page (1 or more); the game's tabs are not in it. Written once while registries freeze. */
     private static final Map<CreativeModeTab, Integer> PAGES = new IdentityHashMap<>();
     /** Mod tab → its items, in order. Guarded by {@link #PAGES}. */
@@ -82,7 +82,7 @@ public final class ModCreativeTabs {
             }
             if (entries.isEmpty()) {
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-CONTENT-008 mod={} creative tab {} has no registered item; it is left out",
+                        "[Plexus Mod Loader] PLEXUS-CONTENT-008 mod={} creative tab {} has no registered item; it is left out",
                         declaration.ownerModId(),
                         declaration.id());
                 continue;
@@ -112,7 +112,7 @@ public final class ModCreativeTabs {
         if (index > 0) {
             pageCount = pageCount(index);
             LOGGER.info(
-                    "[Poly Mod Loader] Registered {} creative tab(s) from mods on {} extra page(s)",
+                    "[Plexus Mod Loader] Registered {} creative tab(s) from mods on {} extra page(s)",
                     index,
                     pageCount - 1);
         }
@@ -124,7 +124,7 @@ public final class ModCreativeTabs {
             return Optional.of(BuiltInRegistries.ITEM.getValue(identifier));
         }
         LOGGER.error(
-                "[Poly Mod Loader] PLEXUS-CONTENT-008 mod={} creative tab {} {} {} is not a registered item; it is left out",
+                "[Plexus Mod Loader] PLEXUS-CONTENT-008 mod={} creative tab {} {} {} is not a registered item; it is left out",
                 declaration.ownerModId(),
                 declaration.id(),
                 role,
@@ -151,7 +151,7 @@ public final class ModCreativeTabs {
             }
         } catch (UnsupportedOperationException e) {
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-CONTENT-003 creative tab contents are read-only in this version; "
+                    "[Plexus Mod Loader] PLEXUS-CONTENT-003 creative tab contents are read-only in this version; "
                             + "a mod tab stays empty: {}",
                     e.toString());
         }

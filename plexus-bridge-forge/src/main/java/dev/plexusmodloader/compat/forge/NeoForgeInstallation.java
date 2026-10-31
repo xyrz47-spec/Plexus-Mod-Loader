@@ -23,13 +23,13 @@ import java.util.zip.ZipEntry;
 
 /**
  * NeoForge's files for one Minecraft version, put together on the player's PC the way NeoForge's installer does
- * (ADR-0026): the installer from NeoForge's Maven (checked against the SHA-1 Poly Mod Loader pins), the runtime
+ * (ADR-0026): the installer from NeoForge's Maven (checked against the SHA-1 Plexus Mod Loader pins), the runtime
  * libraries its {@code version.json} lists and NeoForge's {@code universal.jar} from its {@code install_profile.json}
  * (each checked against the SHA-1 given there), and the game jar with NeoForge's patches applied ({@link
  * NeoForgePatchBundle}). For a server, also the libraries of {@code install_profile.json} that NeoForge's own server
  * puts on its class path ({@link #serverClassPathLibraries}). The libraries folder has the installer's layout, which FML's production game locator reads
  * ({@code -DlibraryDirectory}). Everything is cached in one folder per NeoForge version; a later launch only checks
- * hashes. Poly Mod Loader itself ships none of these files.
+ * hashes. Plexus Mod Loader itself ships none of these files.
  *
  * <p>Thread: one launch prepares at a time; the methods are not safe for concurrent use on the same folder.
  */
@@ -37,7 +37,7 @@ final class NeoForgeInstallation {
 
     static final String MAVEN = "https://maven.neoforged.net/releases/";
 
-    /** The NeoForge release Poly Mod Loader uses for a Minecraft version ({@code neoforge-releases.properties}). */
+    /** The NeoForge release Plexus Mod Loader uses for a Minecraft version ({@code neoforge-releases.properties}). */
     record Release(String minecraftVersion, String neoForgeVersion, String installerSha1) {
 
         URI installerUri() {
@@ -74,7 +74,7 @@ final class NeoForgeInstallation {
 
     private NeoForgeInstallation() {}
 
-    /** The NeoForge release for {@code minecraftVersion}, or empty when Poly Mod Loader has none for it. */
+    /** The NeoForge release for {@code minecraftVersion}, or empty when Plexus Mod Loader has none for it. */
     static Optional<Release> release(String minecraftVersion) {
         Properties releases = new Properties();
         try (InputStream in = NeoForgeInstallation.class.getResourceAsStream("neoforge-releases.properties")) {
@@ -181,7 +181,7 @@ final class NeoForgeInstallation {
      * The libraries of {@code install_profile.json} that NeoForge's own server starts with besides those of {@code
      * version.json}: the entries the installer writes into the server's class path ({@code -classpath} of {@code
      * data/win_args.txt}, as {@code libraries/<path>}). For NeoForge 26.1.x these are LWJGL's core and tinyfd, for 26.2
-     * tinyfd; the rest of that class path is Minecraft's own server libraries, which Poly Mod Loader's server already has.
+     * tinyfd; the rest of that class path is Minecraft's own server libraries, which Plexus Mod Loader's server already has.
      * Empty when the installer has no server arguments.
      */
     static List<JsonObject> serverClassPathLibraries(JarFile installer) throws IOException {

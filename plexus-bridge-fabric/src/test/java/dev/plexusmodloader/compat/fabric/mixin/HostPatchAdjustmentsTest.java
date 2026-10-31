@@ -119,7 +119,7 @@ class HostPatchAdjustmentsTest {
                 .map(Annotation::toString)
                 .toList()
                 .toString();
-        // The injectors keep the mod's own settings: Poly Mod Loader no longer makes them optional.
+        // The injectors keep the mod's own settings: Plexus Mod Loader no longer makes them optional.
         assertFalse(annotations.contains("require"), annotations);
         assertTrue(annotations.contains("Lt/Target;replacement()V"), annotations);
         assertFalse(annotations.contains("Lt/Target;moved()V"), annotations);
@@ -249,7 +249,7 @@ class HostPatchAdjustmentsTest {
     /**
      * Without that requirement Mixin would replace the host's method with the accessor (architectury's {@code
      * LiquidBlockAccessor.getFluid()} over Forge's {@code LiquidBlock.getFluid()}), and the host's code calling it would
-     * get the accessor's result: the mod is incompatible, and Poly Mod Loader does not run it that way.
+     * get the accessor's result: the mod is incompatible, and Plexus Mod Loader does not run it that way.
      */
     @Test
     void anAccessorThePatchAddedWithOtherCodeMakesTheModIncompatible() throws Exception {
@@ -517,7 +517,7 @@ class HostPatchAdjustmentsTest {
 
     /**
      * A method a Fabric mixin adds that the host's patch added with other code (Fabric's tag API and Forge both add
-     * {@code TagFile.remove()}, each for its own list): one class cannot hold both, so the mod is incompatible. Poly Mod
+     * {@code TagFile.remove()}, each for its own list): one class cannot hold both, so the mod is incompatible. Plexus Mod
      * Loader does not rename the mixin's method, which would leave other callers reaching the host's.
      */
     @Test
@@ -1195,8 +1195,8 @@ class HostPatchAdjustmentsTest {
         List<String> methodNames = appliedModel.methods().stream()
                 .map(m -> m.methodName().stringValue())
                 .toList();
-        assertTrue(methodNames.contains("poly$hostCall$onGetSleepingDirection"), methodNames.toString());
-        assertTrue(methodNames.contains("poly$hostCall$setOccupiedState"), methodNames.toString());
+        assertTrue(methodNames.contains("plexus$hostCall$onGetSleepingDirection"), methodNames.toString());
+        assertTrue(methodNames.contains("plexus$hostCall$setOccupiedState"), methodNames.toString());
     }
 
     @Test
@@ -1325,7 +1325,7 @@ class HostPatchAdjustmentsTest {
         List<String> methodNames = appliedModel.methods().stream()
                 .map(m -> m.methodName().stringValue())
                 .toList();
-        assertTrue(methodNames.contains("poly$hostCall$customFluidSupport"), methodNames.toString());
+        assertTrue(methodNames.contains("plexus$hostCall$customFluidSupport"), methodNames.toString());
     }
 
     private HostPatchAdjustments plan(Path jar, byte[] vanilla, byte[] patched) {
@@ -1431,7 +1431,7 @@ class HostPatchAdjustmentsTest {
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.ExtractMixin", extractMixin(handlerType)));
         MethodModel bridge = method(
                 applied,
-                "poly$hostParameters$onExtract",
+                "plexus$hostParameters$onExtract",
                 MethodTypeDesc.of(CD_void, CD_int, CD_float, CD_String, CALLBACK_INFO));
         // this, then the String (slot 3) and the float (slot 2) where the patch put them, then the CallbackInfo.
         assertEquals(List.of(0, 3, 2, 4), loadedSlots(bridge));
@@ -1441,7 +1441,7 @@ class HostPatchAdjustmentsTest {
      * ADR-0026 39: Fabric API's {@code ReloadableServerRegistriesMixin.modifyLootTable} takes a MixinExtras {@code @Local}
      * after its {@code CallbackInfoReturnable}; NeoForge reordered the lambda's parameters, so the injection runs through
      * a bridge. The bridge lost the {@code @Local}, and Mixin rejected its descriptor ({@code Invalid descriptor on
-     * ...poly$hostParameters$modifyLootTable}), and with it every mixin on the class. The bridge keeps each parameter's
+     * ...plexus$hostParameters$modifyLootTable}), and with it every mixin on the class. The bridge keeps each parameter's
      * annotations where the parameter goes.
      */
     @Test
@@ -1463,7 +1463,7 @@ class HostPatchAdjustmentsTest {
         ClassModel applied = ClassFile.of().parse(adjustments.apply("m.ExtractMixin", mixin));
         MethodModel bridge = method(
                 applied,
-                "poly$hostParameters$onExtract",
+                "plexus$hostParameters$onExtract",
                 MethodTypeDesc.of(CD_void, CD_float, CD_String, CALLBACK_INFO, list));
         List<List<Annotation>> annotations = bridge.findAttribute(
                         java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
@@ -1512,7 +1512,7 @@ class HostPatchAdjustmentsTest {
         assertFalse(annotationsOf(method(applied, "wrapCodec", handler)).contains("WrapOperation"));
         MethodModel bridge = method(
                 applied,
-                "poly$hostArguments$wrapCodec",
+                "plexus$hostArguments$wrapCodec",
                 MethodTypeDesc.of(CD_Object, CD_String, CD_int, ClassDesc.of("java.lang.Long"), OPERATION));
         String bridgeAnnotations = annotationsOf(bridge);
         assertTrue(
@@ -1573,7 +1573,7 @@ class HostPatchAdjustmentsTest {
         byte[] applied = adjustments.apply("m.WrapLoadMixin", mixin);
         ClassModel model = ClassFile.of().parse(applied);
         assertFalse(annotationsOf(method(model, "wrapLoad", WRAP_LOAD)).contains("WrapOperation"));
-        String bridgeAnnotations = annotationsOf(method(model, "poly$hostOptional$wrapLoad", WRAP_LOAD));
+        String bridgeAnnotations = annotationsOf(method(model, "plexus$hostOptional$wrapLoad", WRAP_LOAD));
         assertTrue(
                 bridgeAnnotations.contains("WrapOperation") && bridgeAnnotations.contains(LOAD_CALL),
                 bridgeAnnotations);
@@ -1595,7 +1595,7 @@ class HostPatchAdjustmentsTest {
         java.lang.reflect.Method right = either.getMethod("right", Object.class);
         Class<?> mixinClass = loader.loadClass("m.WrapLoadMixin");
         java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
-                "poly$hostOptional$wrapLoad",
+                "plexus$hostOptional$wrapLoad",
                 String.class,
                 com.llamalad7.mixinextras.injector.wrapoperation.Operation.class);
         bridge.setAccessible(true);
@@ -1659,7 +1659,7 @@ class HostPatchAdjustmentsTest {
         byte[] applied = adjustments.apply("m.HostListMixin", mixin);
         ClassModel model = ClassFile.of().parse(applied);
         assertFalse(annotationsOf(method(model, "worldRegistries", LIST_RESULT)).contains("Redirect"));
-        String bridgeAnnotations = annotationsOf(method(model, "poly$hostList$worldRegistries", LIST_RESULT));
+        String bridgeAnnotations = annotationsOf(method(model, "plexus$hostList$worldRegistries", LIST_RESULT));
         assertTrue(
                 bridgeAnnotations.contains("Redirect")
                         && bridgeAnnotations.contains(WORLD_AND_HOST_CALL)
@@ -1684,7 +1684,7 @@ class HostPatchAdjustmentsTest {
         loaderClass.getField("WORLD").set(null, List.of("world"));
         loaderClass.getField("HOST").set(null, List.of("world", "dimension"));
         java.lang.reflect.Method bridge =
-                loader.loadClass("m.HostListMixin").getDeclaredMethod("poly$hostList$worldRegistries");
+                loader.loadClass("m.HostListMixin").getDeclaredMethod("plexus$hostList$worldRegistries");
         bridge.setAccessible(true);
 
         assertEquals(List.of("world", "fabric", "dimension"), bridge.invoke(null));
@@ -1839,7 +1839,7 @@ class HostPatchAdjustmentsTest {
                 STACK,
                 ACTION,
                 ClassDesc.ofDescriptor("Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;"));
-        String bridgeAnnotations = annotationsOf(method(model, "poly$hostCall$allowOther", bridgeType));
+        String bridgeAnnotations = annotationsOf(method(model, "plexus$hostCall$allowOther", bridgeType));
         assertTrue(
                 bridgeAnnotations.contains(HOST_CHECK) && !bridgeAnnotations.contains(VANILLA_CHECK),
                 bridgeAnnotations);
@@ -1859,7 +1859,7 @@ class HostPatchAdjustmentsTest {
         };
         Class<?> mixinClass = loader.loadClass("m.WrapCheckMixin");
         java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
-                "poly$hostCall$allowOther",
+                "plexus$hostCall$allowOther",
                 loader.loadClass("t.Stack"),
                 loader.loadClass("t.Action"),
                 com.llamalad7.mixinextras.injector.wrapoperation.Operation.class);
@@ -1943,7 +1943,7 @@ class HostPatchAdjustmentsTest {
         byte[] applied = adjustments.apply("m.EffectsMixin", mixin);
         ClassModel model = ClassFile.of().parse(applied);
         MethodModel bridgeModel =
-                method(model, "poly$hostCall$allowRemoveAll", MethodTypeDesc.of(CD_void, SET, CONSUMER, OPERATION));
+                method(model, "plexus$hostCall$allowRemoveAll", MethodTypeDesc.of(CD_void, SET, CONSUMER, OPERATION));
         assertTrue(annotationsOf(bridgeModel).contains("Ljava/util/Set;forEach"), annotationsOf(bridgeModel));
 
         ClassLoader loader = new ClassLoader(getClass().getClassLoader()) {
@@ -1966,7 +1966,7 @@ class HostPatchAdjustmentsTest {
         effects.put("gone", 2);
         effects.put("neoforge", 3);
         java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
-                "poly$hostCall$allowRemoveAll",
+                "plexus$hostCall$allowRemoveAll",
                 java.util.Set.class,
                 java.util.function.Consumer.class,
                 com.llamalad7.mixinextras.injector.wrapoperation.Operation.class);
@@ -2162,7 +2162,7 @@ class HostPatchAdjustmentsTest {
         ClassModel model = ClassFile.of().parse(applied);
         assertFalse(annotationsOf(method(model, "hook", HOPPER_HOOK)).contains("Inject"));
         MethodModel bridgeModel =
-                method(model, "poly$hostCall$hook", HOPPER_HOOK.changeParameterType(1, HOPPER_LOOKUP_RESULT));
+                method(model, "plexus$hostCall$hook", HOPPER_HOOK.changeParameterType(1, HOPPER_LOOKUP_RESULT));
         assertTrue(annotationsOf(bridgeModel).contains(HOST_LOOKUP), annotationsOf(bridgeModel));
         assertTrue(
                 bridgeModel
@@ -2198,7 +2198,7 @@ class HostPatchAdjustmentsTest {
         Class<?> result = loader.loadClass("net.neoforged.neoforge.transfer.item.ContainerOrHandler");
         java.lang.reflect.Constructor<?> lookup = result.getConstructor(container, handler);
         java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
-                "poly$hostCall$hook",
+                "plexus$hostCall$hook",
                 org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable.class,
                 result);
         bridge.setAccessible(true);
@@ -2352,7 +2352,7 @@ class HostPatchAdjustmentsTest {
         ClassModel model = ClassFile.of().parse(applied);
         MethodTypeDesc bridgeType = MethodTypeDesc.of(
                 PICK_ITEM, STACK, PICK_POS, PICK_LEVEL, CD_boolean, PICK_PLAYER, OPERATION, CD_String);
-        MethodModel bridgeModel = method(model, "poly$hostCall$onPick", bridgeType);
+        MethodModel bridgeModel = method(model, "plexus$hostCall$onPick", bridgeType);
         assertTrue(annotationsOf(bridgeModel).contains(HOST_PICK), annotationsOf(bridgeModel));
         List<List<Annotation>> parameters = bridgeModel
                 .findAttribute(java.lang.classfile.Attributes.runtimeInvisibleParameterAnnotations())
@@ -2385,7 +2385,7 @@ class HostPatchAdjustmentsTest {
         };
         Class<?> mixinClass = loader.loadClass("m.WrapPickMixin");
         java.lang.reflect.Method bridge = mixinClass.getDeclaredMethod(
-                "poly$hostCall$onPick",
+                "plexus$hostCall$onPick",
                 loader.loadClass("t.Stack"),
                 loader.loadClass("t.Pos"),
                 loader.loadClass("t.Level"),
@@ -2883,7 +2883,7 @@ class HostPatchAdjustmentsTest {
         assertFalse(annotationsOf(method(model, "onMoved", handlerType)).contains("Inject"));
         MethodModel bridge = method(
                 model,
-                "poly$hostCall$onMoved",
+                "plexus$hostCall$onMoved",
                 MethodTypeDesc.of(CD_boolean, TARGET, CD_String, OPERATION, CD_String, CD_int));
         String annotations = annotationsOf(bridge);
         assertTrue(
@@ -4067,7 +4067,7 @@ class HostPatchAdjustmentsTest {
                 .orElseThrow();
         assertEquals("[]", annotationsOf(original));
         MethodModel bridge = rewritten.methods().stream()
-                .filter(method -> method.methodName().equalsString("poly$hostRedirect$create"))
+                .filter(method -> method.methodName().equalsString("plexus$hostRedirect$create"))
                 .findFirst()
                 .orElseThrow();
         assertTrue(annotationsOf(bridge).contains("ModifyArg"), annotationsOf(bridge));
@@ -4080,7 +4080,7 @@ class HostPatchAdjustmentsTest {
                 return defineClass("m.LanguageRedirectMixin", bytes, 0, bytes.length);
             }
         }.define(transformed);
-        java.lang.reflect.Method bridgeMethod = loaded.getDeclaredMethod("poly$hostRedirect$create", Map.class);
+        java.lang.reflect.Method bridgeMethod = loaded.getDeclaredMethod("plexus$hostRedirect$create", Map.class);
         bridgeMethod.setAccessible(true);
         Map<String, String> mutable = new java.util.HashMap<>();
         Object returned = bridgeMethod.invoke(null, mutable);
@@ -4313,7 +4313,7 @@ class HostPatchAdjustmentsTest {
         ClassModel applied =
                 ClassFile.of().parse(adjustments.apply("m.CommonMixin", handleMixin("m.CommonMixin", COMMON)));
         assertFalse(annotationsOf(method(applied, "onHandle", ON_HANDLE)).contains("Inject"));
-        MethodModel guard = method(applied, "poly$receivers$onHandle", ON_HANDLE);
+        MethodModel guard = method(applied, "plexus$receivers$onHandle", ON_HANDLE);
         assertTrue(annotationsOf(guard).contains("Inject"));
         assertTrue(
                 guard.code()

@@ -59,7 +59,7 @@ final class PlexusParticle extends SingleQuadParticle {
     /** Creates {@link PlexusParticle}s of one mod particle type. */
     static final class Provider implements ParticleProvider<SimpleParticleType> {
 
-        private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+        private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
         private final SpriteSet sprites;
         private final ParticleDefinition definition;
@@ -84,7 +84,7 @@ final class PlexusParticle extends SingleQuadParticle {
                 double zAux,
                 RandomSource random) {
             if (reported.compareAndSet(false, true)) {
-                LOGGER.info("[Poly Mod Loader] Created mod particle {}", typeName);
+                LOGGER.info("[Plexus Mod Loader] Created mod particle {}", typeName);
             }
             return new PlexusParticle(level, x, y, z, xAux, yAux, zAux, sprites, definition);
         }

@@ -1,16 +1,16 @@
-// Shared configuration lives in build-logic convention plugins (poly.java-conventions, poly.minecraft-dev).
+// Shared configuration lives in build-logic convention plugins (plexus.java-conventions, plexus.minecraft-dev).
 // The root project lists the supported Minecraft versions and adds new ones (ADR-0011), starts new
-// mod projects from templates/poly-mod-template (newPolyMod), publishes the mod SDK for the website's
+// mod projects from templates/plexus-mod-template (newPlexusMod), publishes the mod SDK for the website's
 // Maven repository (publishSdk, ADR-0008), and builds the test mods for the version a build runs (below).
 plugins {
-    id("poly.minecraft-versions")
-    id("poly.mod-template")
-    id("poly.sdk-repository")
+    id("plexus.minecraft-versions")
+    id("plexus.mod-template")
+    id("plexus.sdk-repository")
 }
 
 // The test mods and the transform example are written for Minecraft 26.2 and name it in their metadata
-// (fabric.mod.json "~26.2", poly.mod.json "26.2" for exact transform targets, quilt.mod.json "26.2.x"). They are built for the
-// version this build runs (-PpolyMinecraft, ADR-0011), so the verification tasks check every supported
+// (fabric.mod.json "~26.2", plexus.mod.json "26.2" for exact transform targets, quilt.mod.json "26.2.x"). They are built for the
+// version this build runs (-PplexusMinecraft, ADR-0011), so the verification tasks check every supported
 // version with the same mods; the game members they use were checked with javap in each one. With the
 // default version nothing changes.
 val runMinecraft = dev.plexusmodloader.devtools.gradle.minecraft.MinecraftVersions.of(project).selected(project)
@@ -24,8 +24,8 @@ subprojects {
     if (runsExperimental && path in apiOnlyExamples) {
         plugins.withId("java") {
             tasks.named<ProcessResources>("processResources") {
-                inputs.property("polyMinecraft", runMinecraft)
-                filesMatching("poly.mod.json") {
+                inputs.property("plexusMinecraft", runMinecraft)
+                filesMatching(listOf("plexus.mod.json", "poly.mod.json")) {
                     filter { line -> line.replace("\"26.*\"", "\"26.*\", \"$runMinecraft\"") }
                 }
             }
@@ -34,8 +34,8 @@ subprojects {
     if (path.startsWith(":test-mods:") || path == ":examples:transform-demo-mod") {
         plugins.withId("java") {
             tasks.named<ProcessResources>("processResources") {
-                inputs.property("polyMinecraft", runMinecraft)
-                filesMatching(listOf("fabric.mod.json", "poly.mod.json")) {
+                inputs.property("plexusMinecraft", runMinecraft)
+                filesMatching(listOf("fabric.mod.json", "plexus.mod.json", "poly.mod.json")) {
                     filter { line -> line.replace(writtenFor, runMinecraft) }
                 }
                 // quilt.mod.json names the version Quilt's way, "26.2.x" (26.2 and its hotfixes); a run of a version

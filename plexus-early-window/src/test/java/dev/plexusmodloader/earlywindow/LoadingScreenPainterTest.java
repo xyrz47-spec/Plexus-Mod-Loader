@@ -26,7 +26,7 @@ class LoadingScreenPainterTest {
     }
 
     @Test
-    void drawsTheGamesBackgroundBarAndThePolyMarks() {
+    void drawsTheGamesBackgroundBarAndThePlexusMarks() {
         BufferedImage image = paint(false, 0.5f);
         // Background: Mojang red.
         assertEquals(LoadingScreenPainter.MOJANG_RED, rgb(image, 4, 4));

@@ -13,8 +13,8 @@ import java.util.Map;
  * @param modId the mod's own ID
  * @param version the mod's version text
  * @param status overall status: {@link CompatibilityStatus#BLOCKED} if any finding blocks
- * @param findings every feature Poly Mod Loader noticed
- * @param entrypoints entrypoints Poly Mod Loader calls when the mod is loadable
+ * @param findings every feature Plexus Mod Loader noticed
+ * @param entrypoints entrypoints Plexus Mod Loader calls when the mod is loadable
  * @param providedIds further IDs this jar answers to (Fabric {@code provides}, extra FML {@code [[mods]]})
  * @param dependencies relationships with other mods, checked by the runtime across loaders
  * @param nestedJars paths of jars inside this jar that the loader treats as mods of their own (Fabric

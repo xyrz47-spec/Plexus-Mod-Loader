@@ -30,14 +30,14 @@ import java.util.jar.Manifest;
 import java.util.stream.Stream;
 
 /**
- * Installs Poly Mod Loader into a Minecraft Launcher folder ({@code .minecraft}), the way the launcher expects a
+ * Installs Plexus Mod Loader into a Minecraft Launcher folder ({@code .minecraft}), the way the launcher expects a
  * mod loader:
  *
  * <ol>
- *   <li>the Poly Mod Loader jars into {@code libraries/} (checked by SHA-1)
- *   <li>a version {@code versions/polymodloader-<poly>-<minecraft>/} that inherits the vanilla version and starts
- *       Poly Mod Loader's launcher main class instead of Minecraft's
- *   <li>a profile "Poly Mod Loader <minecraft>" in {@code launcher_profiles.json} (and the Microsoft Store
+ *   <li>the Plexus Mod Loader jars into {@code libraries/} (checked by SHA-1)
+ *   <li>a version {@code versions/plexusmodloader-<plexus>-<minecraft>/} that inherits the vanilla version and starts
+ *       Plexus Mod Loader's launcher main class instead of Minecraft's
+ *   <li>a profile "Plexus Mod Loader <minecraft>" in {@code launcher_profiles.json} (and the Microsoft Store
  *       launcher's {@code launcher_profiles_microsoft_store.json} when present), keeping everything else in the
  *       file
  *   <li>the {@code mods/} folder
@@ -62,18 +62,23 @@ final class LauncherProfileInstaller {
         this.clock = clock;
     }
 
-    /** The launcher version ID Poly Mod Loader installs for {@code minecraftVersion}. */
+    /** The launcher version ID Plexus Mod Loader installs for {@code minecraftVersion}. */
     String versionId(String minecraftVersion) {
-        return "polymodloader-" + payload.polyVersion() + "-" + minecraftVersion;
+        return "plexusmodloader-" + payload.plexusVersion() + "-" + minecraftVersion;
     }
 
-    /** The key of the Poly Mod Loader profile in {@code launcher_profiles.json}. */
+    /** The key of the Plexus Mod Loader profile in {@code launcher_profiles.json}. */
     static String profileKey(String minecraftVersion) {
+        return "plexusmodloader-" + minecraftVersion;
+    }
+
+    /** The key 1.4.x gave the same profile; installing moves that profile to {@link #profileKey}. */
+    static String legacyProfileKey(String minecraftVersion) {
         return "polymodloader-" + minecraftVersion;
     }
 
     /**
-     * Installs Poly Mod Loader for {@code minecraftVersion}.
+     * Installs Plexus Mod Loader for {@code minecraftVersion}.
      *
      * @param minecraftDirectory the launcher folder, normally {@link MinecraftDirectories#defaultDirectory()}
      * @param createProfile whether to add the launcher profile
@@ -110,7 +115,7 @@ final class LauncherProfileInstaller {
         Path vanilla = minecraftDirectory.resolve("versions").resolve(minecraftVersion);
         if (!Files.isRegularFile(vanilla.resolve(minecraftVersion + ".json"))) {
             warnings.add("Minecraft " + minecraftVersion + " has not been played from this launcher yet. If the"
-                    + " Poly Mod Loader profile does not start, play vanilla " + minecraftVersion
+                    + " Plexus Mod Loader profile does not start, play vanilla " + minecraftVersion
                     + " once and try again.");
         }
         if (!memory.isLauncherDefault() && !createProfile) {
@@ -129,7 +134,7 @@ final class LauncherProfileInstaller {
                 progress.accept("Installed library " + library.name());
             }
         }
-        progress.accept(payload.libraries().size() + " Poly Mod Loader libraries are in " + libraries);
+        progress.accept(payload.libraries().size() + " Plexus Mod Loader libraries are in " + libraries);
 
         String versionId = versionId(minecraftVersion);
         Path versionDirectory = minecraftDirectory.resolve("versions").resolve(versionId);
@@ -147,7 +152,7 @@ final class LauncherProfileInstaller {
             for (Path file : profileFiles) {
                 addProfile(file, minecraftVersion, versionId, memory);
                 progress.accept(
-                        "Added the profile \"Poly Mod Loader " + minecraftVersion + "\" to " + file.getFileName());
+                        "Added the profile \"Plexus Mod Loader " + minecraftVersion + "\" to " + file.getFileName());
             }
         }
         Path mods = minecraftDirectory.resolve("mods");
@@ -157,7 +162,7 @@ final class LauncherProfileInstaller {
     }
 
     /**
-     * Removes the version and profile {@link #install} added. The libraries of this Poly Mod Loader version are
+     * Removes the version and profile {@link #install} added. The libraries of this Plexus Mod Loader version are
      * removed too once no other Minecraft version uses them; {@code mods/} is left alone.
      */
     void uninstall(Path minecraftDirectory, String minecraftVersion, Consumer<String> progress)
@@ -172,8 +177,8 @@ final class LauncherProfileInstaller {
         }
         for (Path file : profileFiles(minecraftDirectory)) {
             if (removeProfile(file, minecraftVersion)) {
-                progress.accept(
-                        "Removed the profile \"Poly Mod Loader " + minecraftVersion + "\" from " + file.getFileName());
+                progress.accept("Removed the profile \"Plexus Mod Loader " + minecraftVersion + "\" from "
+                        + file.getFileName());
             }
         }
         if (!otherVersionsInstalled(versions)) {
@@ -185,13 +190,13 @@ final class LauncherProfileInstaller {
                     }
                 }
             }
-            progress.accept("Removed the Poly Mod Loader " + payload.polyVersion() + " libraries");
+            progress.accept("Removed the Plexus Mod Loader " + payload.plexusVersion() + " libraries");
         }
     }
 
     private void checkVersion(String minecraftVersion) throws InstallerException {
         if (!payload.minecraftVersions().contains(minecraftVersion)) {
-            throw new InstallerException("Poly Mod Loader " + payload.polyVersion() + " does not support Minecraft "
+            throw new InstallerException("Plexus Mod Loader " + payload.plexusVersion() + " does not support Minecraft "
                     + minecraftVersion + "; it supports " + String.join(", ", payload.minecraftVersions()) + ".");
         }
     }
@@ -244,7 +249,7 @@ final class LauncherProfileInstaller {
     /**
      * The launcher version: everything not listed here (game jar, assets, Java runtime, vanilla libraries and
      * arguments) comes from the vanilla version it inherits. The launcher appends these JVM arguments to the
-     * vanilla ones and starts the process in the game folder, where Poly Mod Loader finds {@code mods/}.
+     * vanilla ones and starts the process in the game folder, where Plexus Mod Loader finds {@code mods/}.
      */
     private JsonObject versionJson(String versionId, String minecraftVersion) {
         String now = timestamp();
@@ -258,8 +263,8 @@ final class LauncherProfileInstaller {
         JsonObject arguments = new JsonObject();
         arguments.add("game", new JsonArray());
         JsonArray jvm = new JsonArray();
-        jvm.add("-Dpoly.launchTarget=client");
-        // Poly Mod Loader's agent, from the library below; the launcher fills in ${library_directory} (ADR-0024).
+        jvm.add("-Dplexus.launchTarget=client");
+        // Plexus Mod Loader's agent, from the library below; the launcher fills in ${library_directory} (ADR-0024).
         payload.agentLibrary().ifPresent(agent -> jvm.add("-javaagent:${library_directory}/" + agent.path()));
         arguments.add("jvm", jvm);
         version.add("arguments", arguments);
@@ -290,9 +295,15 @@ final class LauncherProfileInstaller {
                 : new JsonObject();
         root.add("profiles", profiles);
         String key = profileKey(minecraftVersion);
-        JsonObject profile = profiles.has(key) && profiles.get(key).isJsonObject()
-                ? profiles.getAsJsonObject(key)
-                : new JsonObject();
+        JsonElement legacy = profiles.remove(legacyProfileKey(minecraftVersion));
+        JsonObject profile;
+        if (profiles.has(key) && profiles.get(key).isJsonObject()) {
+            profile = profiles.getAsJsonObject(key);
+        } else if (legacy != null && legacy.isJsonObject()) {
+            profile = legacy.getAsJsonObject();
+        } else {
+            profile = new JsonObject();
+        }
         String now = timestamp();
         if (!profile.has("created")) {
             profile.addProperty("created", now);
@@ -300,7 +311,7 @@ final class LauncherProfileInstaller {
         profile.addProperty("icon", ProfileIcon.dataUri());
         profile.addProperty("lastUsed", now);
         profile.addProperty("lastVersionId", versionId);
-        profile.addProperty("name", "Poly Mod Loader " + minecraftVersion);
+        profile.addProperty("name", "Plexus Mod Loader " + minecraftVersion);
         profile.addProperty("type", "custom");
         if (!memory.isLauncherDefault()) {
             // The launcher passes javaArgs instead of its default "-Xmx2G ..." arguments.
@@ -312,7 +323,7 @@ final class LauncherProfileInstaller {
         profiles.add(key, profile);
         Files.copy(
                 file,
-                file.resolveSibling(file.getFileName() + ".polymodloader-backup"),
+                file.resolveSibling(file.getFileName() + ".plexusmodloader-backup"),
                 StandardCopyOption.REPLACE_EXISTING);
         writeAtomically(file, GSON.toJson(root).getBytes(StandardCharsets.UTF_8));
     }
@@ -322,8 +333,10 @@ final class LauncherProfileInstaller {
         if (!root.has("profiles") || !root.get("profiles").isJsonObject()) {
             return false;
         }
-        JsonElement removed = root.getAsJsonObject("profiles").remove(profileKey(minecraftVersion));
-        if (removed == null) {
+        JsonObject profiles = root.getAsJsonObject("profiles");
+        JsonElement removed = profiles.remove(profileKey(minecraftVersion));
+        JsonElement removedLegacy = profiles.remove(legacyProfileKey(minecraftVersion));
+        if (removed == null && removedLegacy == null) {
             return false;
         }
         writeAtomically(file, GSON.toJson(root).getBytes(StandardCharsets.UTF_8));
@@ -349,7 +362,7 @@ final class LauncherProfileInstaller {
         if (!Files.isDirectory(versions)) {
             return false;
         }
-        String prefix = "polymodloader-" + payload.polyVersion() + "-";
+        String prefix = "plexusmodloader-" + payload.plexusVersion() + "-";
         try (DirectoryStream<Path> entries = Files.newDirectoryStream(versions, prefix + "*")) {
             return entries.iterator().hasNext();
         }

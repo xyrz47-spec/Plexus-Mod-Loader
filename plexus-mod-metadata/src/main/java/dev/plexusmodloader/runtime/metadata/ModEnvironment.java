@@ -3,7 +3,7 @@ package dev.plexusmodloader.runtime.metadata;
 import java.util.Locale;
 import java.util.Optional;
 
-/** Where a mod may be loaded, from the {@code environment} field of {@code poly.mod.json}. */
+/** Where a mod may be loaded, from the {@code environment} field of {@code plexus.mod.json}. */
 public enum ModEnvironment {
     CLIENT,
     SERVER,
@@ -19,7 +19,7 @@ public enum ModEnvironment {
         return Optional.empty();
     }
 
-    /** The spelling used in {@code poly.mod.json}. */
+    /** The spelling used in {@code plexus.mod.json}. */
     public String jsonName() {
         return name().toLowerCase(Locale.ROOT);
     }

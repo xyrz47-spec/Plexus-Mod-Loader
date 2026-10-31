@@ -25,7 +25,7 @@ import org.objectweb.asm.Type;
  * An injection point whose {@code target} Mixin's own selector parser refuses (Even Better Moon and Sun 1.0.0 and
  * 1.1.0: {@code "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose:()V"}, a colon before the descriptor) fails when its
  * target class loads, which for a required configuration stops that class from loading. Under Fabric Loader and Quilt
- * Loader, which use the same Mixin, the client then never finishes loading resources. Poly Mod Loader decides it
+ * Loader, which use the same Mixin, the client then never finishes loading resources. Plexus Mod Loader decides it
  * before the game starts.
  */
 class MixinTargetCheckTest {

@@ -36,7 +36,7 @@ import org.quiltmc.loader.api.ModLicense;
  *       {@code adapter} is not {@code default})
  *   <li>{@code PLEXUS-COMPAT-303} (not blocking): QSL entrypoints ({@code init}, {@code client_init}, {@code
  *       server_init}), which nothing runs without QSL
- *   <li>{@code PLEXUS-COMPAT-304} (not blocking): any other entrypoint key Poly Mod Loader does not run
+ *   <li>{@code PLEXUS-COMPAT-304} (not blocking): any other entrypoint key Plexus Mod Loader does not run
  *   <li>{@code PLEXUS-COMPAT-306} (blocking): {@code required_features} asks for the modifiable file system overlay
  *   <li>{@code PLEXUS-COMPAT-308} (not blocking): a required QSL module ({@link QuiltDependencyReader})
  *   <li>{@code PLEXUS-COMPAT-309} (not blocking): values Quilt Loader reads that have no effect in this launch
@@ -74,7 +74,7 @@ public final class QuiltModJsonReader {
             "metadata",
             "required_features");
 
-    /** Entrypoint keys Poly Mod Loader runs, as Quilt Loader itself does (ADR-0027 background 7). */
+    /** Entrypoint keys Plexus Mod Loader runs, as Quilt Loader itself does (ADR-0027 background 7). */
     static final Set<String> RUN_KEYS = Set.of("main", "client", "server", "pre_launch", "preLaunch");
 
     /** Entrypoint keys QSL runs; without QSL nothing does (ADR-0027 decision 5). */
@@ -373,7 +373,7 @@ public final class QuiltModJsonReader {
                     true,
                     "loader plugin",
                     "declares a Quilt Loader plugin (experimental_quilt_loader_plugin); Quilt Loader runs it inside"
-                            + " the loader, and Poly Mod Loader does not provide the Quilt Loader plugin API"));
+                            + " the loader, and Plexus Mod Loader does not provide the Quilt Loader plugin API"));
         }
         Set<String> adapters = new TreeSet<>();
         entrypoints
@@ -391,7 +391,7 @@ public final class QuiltModJsonReader {
                             + (!languageAdapters.isEmpty() && !adapters.isEmpty() ? " and " : "")
                             + (adapters.isEmpty() ? "" : "has entrypoints that use the language adapter(s) " + adapters)
                             + "; Quilt language adapters (such as Quilt Kotlin Libraries) have no release for"
-                            + " Minecraft 26.x and Poly Mod Loader runs Quilt entrypoints with the default adapter"
+                            + " Minecraft 26.x and Plexus Mod Loader runs Quilt entrypoints with the default adapter"
                             + " only"));
         }
         List<String> qslKeys =
@@ -403,7 +403,7 @@ public final class QuiltModJsonReader {
                     false,
                     "entrypoints " + qslKeys,
                     "QSL runs these entrypoints, and QSL has no release for Minecraft 26.x, so Quilt Loader does not"
-                            + " run them either; Poly Mod Loader does not run them, and applies the mod's mixins and"
+                            + " run them either; Plexus Mod Loader does not run them, and applies the mod's mixins and"
                             + " resources"
                             + (othersRun
                                     ? ""
@@ -416,7 +416,7 @@ public final class QuiltModJsonReader {
                         "PLEXUS-COMPAT-304",
                         false,
                         "entrypoint '" + key + "'",
-                        "not run by Poly Mod Loader; other mods can get it through QuiltLoader.getEntrypoints and"
+                        "not run by Plexus Mod Loader; other mods can get it through QuiltLoader.getEntrypoints and"
                                 + " FabricLoader.getEntrypoints"));
             }
         }
@@ -583,7 +583,7 @@ public final class QuiltModJsonReader {
                     "PLEXUS-COMPAT-306",
                     true,
                     "required_features",
-                    "needs Quilt's modifiable file system overlay (modifiable_filesystem_overlay); Poly Mod Loader"
+                    "needs Quilt's modifiable file system overlay (modifiable_filesystem_overlay); Plexus Mod Loader"
                             + " does not provide it"));
         }
     }

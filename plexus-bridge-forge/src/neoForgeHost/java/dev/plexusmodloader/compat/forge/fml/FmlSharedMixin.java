@@ -38,10 +38,10 @@ import org.apache.maven.artifact.versioning.ArtifactVersion;
  */
 final class FmlSharedMixin {
 
-    /** The class every MixinExtras jar has; Poly Mod Loader's class path has it when Fabric's Mixin is shared. */
+    /** The class every MixinExtras jar has; Plexus Mod Loader's class path has it when Fabric's Mixin is shared. */
     static final String MIXIN_EXTRAS = "com/llamalad7/mixinextras/MixinExtrasBootstrap.class";
 
-    /** The class Forgified Fabric Loader has; Poly Mod Loader provides FabricLoader on its own class path. */
+    /** The class Forgified Fabric Loader has; Plexus Mod Loader provides FabricLoader on its own class path. */
     static final String FABRIC_LOADER = "net/fabricmc/loader/api/FabricLoader.class";
 
     /** The loader name of the configurations, for logs ({@link SharedMixinConfig#loaderName()}). */
@@ -50,10 +50,10 @@ final class FmlSharedMixin {
     private FmlSharedMixin() {}
 
     /**
-     * {@code plugins} (FML's plugin files) without those that have Fabric Loader's {@code FabricLoader}, when Poly Mod
+     * {@code plugins} (FML's plugin files) without those that have Fabric Loader's {@code FabricLoader}, when Plexus Mod
      * Loader's class path has it: such a file is another Fabric Loader (Forgified Fabric Loader, whose {@code
-     * LoaderBootstrap} calls its own {@code FabricLoaderImpl.setup()}), whose {@code FabricLoader} would shadow Poly Mod
-     * Loader's for the NeoForge mods, and Poly Mod Loader runs the Fabric mods itself.
+     * LoaderBootstrap} calls its own {@code FabricLoaderImpl.setup()}), whose {@code FabricLoader} would shadow Plexus Mod
+     * Loader's for the NeoForge mods, and Plexus Mod Loader runs the Fabric mods itself.
      */
     static List<IModFileInfo> withoutForeignFabricLoader(List<IModFileInfo> plugins, Consumer<String> log) {
         if (FmlSharedMixin.class.getClassLoader().getResource(FABRIC_LOADER) == null) {
@@ -63,7 +63,7 @@ final class FmlSharedMixin {
         for (IModFileInfo plugin : plugins) {
             if (plugin.getFile().getContents().containsFile(FABRIC_LOADER)) {
                 log.accept("FML plugin " + plugin.getFile().getFileName()
-                        + ": skipped because Poly Mod Loader provides Fabric Loader and runs Fabric mods itself");
+                        + ": skipped because Plexus Mod Loader provides Fabric Loader and runs Fabric mods itself");
             } else {
                 kept.add(plugin);
             }
@@ -73,8 +73,8 @@ final class FmlSharedMixin {
 
     /**
      * {@code content} without the MixinExtras game libraries (NeoForge's own {@code mixinextras-neoforge}, or a newer
-     * copy FML selected from a mod's JarJar), when Poly Mod Loader's class path has MixinExtras, and without
-     * {@code forgified-fabric-loader} which shadows Poly Mod Loader's {@code FabricLoader}.
+     * copy FML selected from a mod's JarJar), when Plexus Mod Loader's class path has MixinExtras, and without
+     * {@code forgified-fabric-loader} which shadows Plexus Mod Loader's {@code FabricLoader}.
      *
      * @param leftOut gets the names of the modules left out
      */
@@ -97,7 +97,7 @@ final class FmlSharedMixin {
                 leftOut.accept(module.moduleName());
                 log.accept("FML's game library " + module.moduleName() + " ("
                         + module.contents().getPrimaryPath().getFileName()
-                        + ") is left out of the game layer: NeoForge's mods use Poly Mod Loader's Fabric Loader"
+                        + ") is left out of the game layer: NeoForge's mods use Plexus Mod Loader's Fabric Loader"
                         + " implementation");
             } else {
                 kept.add(module);
@@ -108,7 +108,7 @@ final class FmlSharedMixin {
 
     /**
      * In place of FML's Mixin class processor: one with FML's Mixin name that handles no class, so that processors
-     * ordered around FML's Mixin keep their order. The shared Mixin applies in Poly Mod Loader's bridge stage.
+     * ordered around FML's Mixin keep their order. The shared Mixin applies in Plexus Mod Loader's bridge stage.
      */
     static ClassProcessor placeholderProcessor() {
         return new ClassProcessor() {
@@ -140,7 +140,7 @@ final class FmlSharedMixin {
      * frame computation and FML's Mixin, late among equals) that handles no class and generates no package, so that
      * processors ordered around it keep their order. FML's processor would make Mixin's synthetic classes ({@code
      * org.spongepowered.asm.synthetic.args}) with FML's Mixin, which does not start; the shared Mixin's synthetic
-     * classes come from Poly Mod Loader's bridge stage, as with FML 11, whose one Mixin processor this placeholder's
+     * classes come from Plexus Mod Loader's bridge stage, as with FML 11, whose one Mixin processor this placeholder's
      * sibling replaces.
      */
     static ClassProcessor placeholderGeneratingProcessor() {
@@ -188,7 +188,7 @@ final class FmlSharedMixin {
      * platform agent reads from the containers FML gives it), except those of the libraries left out of the game layer
      * ({@link #withoutMixinExtras}): their one configuration starts MixinExtras, which the shared Mixin already did.
      *
-     * @throws IllegalStateException ({@code PLEXUS-COMPAT-215}) when FML's own checks are not the methods Poly Mod Loader
+     * @throws IllegalStateException ({@code PLEXUS-COMPAT-215}) when FML's own checks are not the methods Plexus Mod Loader
      *     checked
      */
     static List<SharedMixinConfig> configurations(
@@ -227,7 +227,7 @@ final class FmlSharedMixin {
             throw new IllegalStateException("FML's Mixin checks failed: " + e.getCause(), e.getCause());
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(
-                    "PLEXUS-COMPAT-215 FML's MixinFacade is not the code Poly Mod Loader checked: " + e, e);
+                    "PLEXUS-COMPAT-215 FML's MixinFacade is not the code Plexus Mod Loader checked: " + e, e);
         }
         List<IModFile> containers = new ArrayList<>();
         mods.getPlugins().stream().map(IModFileInfo::getFile).forEach(containers::add);
@@ -250,7 +250,7 @@ final class FmlSharedMixin {
 
     /**
      * FML's {@code areRequiredModsPresent} with the mods of the other loaders in this game too (ADR-0025): each mod a
-     * {@code [[mixins]]} entry's {@code requiredMods} names is one FML loads or one Poly Mod Loader runs beside it (Sodium
+     * {@code [[mixins]]} entry's {@code requiredMods} names is one FML loads or one Plexus Mod Loader runs beside it (Sodium
      * for NeoForge applies {@code sodium-frapi.mixins.json} when Fabric API's {@code fabric_renderer_api_v1} is there).
      */
     private static boolean requiredModsPresent(

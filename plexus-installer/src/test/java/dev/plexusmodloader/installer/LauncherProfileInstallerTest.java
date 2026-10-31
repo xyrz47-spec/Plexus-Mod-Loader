@@ -48,20 +48,21 @@ class LauncherProfileInstallerTest {
         List<String> warnings =
                 installer(payload()).install(minecraft, "26.2", true, JavaMemory.LAUNCHER_DEFAULT, progress::add);
 
-        Path runtime =
-                minecraft.resolve("libraries/dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar");
+        Path runtime = minecraft.resolve(
+                "libraries/dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar");
         assertTrue(Files.isRegularFile(runtime));
         assertEquals(new String(RUNTIME_JAR, StandardCharsets.UTF_8), Files.readString(runtime));
         // The vanilla version was never played in this folder.
         assertEquals(1, warnings.size(), warnings.toString());
 
-        JsonObject version = json(minecraft.resolve("versions/polymodloader-0.1.0-26.2/polymodloader-0.1.0-26.2.json"));
+        JsonObject version =
+                json(minecraft.resolve("versions/plexusmodloader-0.1.0-26.2/plexusmodloader-0.1.0-26.2.json"));
         assertEquals("26.2", version.get("inheritsFrom").getAsString());
         assertEquals(
                 "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 version.get("mainClass").getAsString());
         assertEquals(
-                "-Dpoly.launchTarget=client",
+                "-Dplexus.launchTarget=client",
                 version.getAsJsonObject("arguments")
                         .getAsJsonArray("jvm")
                         .get(0)
@@ -71,12 +72,12 @@ class LauncherProfileInstallerTest {
         JsonObject artifact =
                 libraries.get(0).getAsJsonObject().getAsJsonObject("downloads").getAsJsonObject("artifact");
         assertEquals(
-                "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
+                "dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar",
                 artifact.get("path").getAsString());
         assertEquals(sha1(RUNTIME_JAR), artifact.get("sha1").getAsString());
         assertEquals("", artifact.get("url").getAsString());
         try (JarFile placeholder = new JarFile(minecraft
-                .resolve("versions/polymodloader-0.1.0-26.2/polymodloader-0.1.0-26.2.jar")
+                .resolve("versions/plexusmodloader-0.1.0-26.2/plexusmodloader-0.1.0-26.2.jar")
                 .toFile())) {
             assertTrue(placeholder.getManifest() != null);
         }
@@ -87,13 +88,13 @@ class LauncherProfileInstallerTest {
         JsonObject all = profiles.getAsJsonObject("profiles");
         assertEquals(
                 "Latest release", all.getAsJsonObject("vanilla").get("name").getAsString());
-        JsonObject poly = all.getAsJsonObject("polymodloader-26.2");
-        assertEquals("Poly Mod Loader 26.2", poly.get("name").getAsString());
-        assertEquals("custom", poly.get("type").getAsString());
-        assertEquals("polymodloader-0.1.0-26.2", poly.get("lastVersionId").getAsString());
-        assertEquals("2026-10-21T12:00:00Z", poly.get("created").getAsString());
-        assertTrue(poly.get("icon").getAsString().startsWith("data:image/png;base64,"));
-        assertTrue(Files.isRegularFile(minecraft.resolve("launcher_profiles.json.polymodloader-backup")));
+        JsonObject plexus = all.getAsJsonObject("plexusmodloader-26.2");
+        assertEquals("Plexus Mod Loader 26.2", plexus.get("name").getAsString());
+        assertEquals("custom", plexus.get("type").getAsString());
+        assertEquals("plexusmodloader-0.1.0-26.2", plexus.get("lastVersionId").getAsString());
+        assertEquals("2026-10-21T12:00:00Z", plexus.get("created").getAsString());
+        assertTrue(plexus.get("icon").getAsString().startsWith("data:image/png;base64,"));
+        assertTrue(Files.isRegularFile(minecraft.resolve("launcher_profiles.json.plexusmodloader-backup")));
         assertTrue(Files.isDirectory(minecraft.resolve("mods")));
     }
 
@@ -123,13 +124,13 @@ class LauncherProfileInstallerTest {
 
         assertTrue(json(minecraft.resolve("launcher_profiles_microsoft_store.json"))
                 .getAsJsonObject("profiles")
-                .has("polymodloader-26.2"));
+                .has("plexusmodloader-26.2"));
     }
 
     @Test
     void replacesADamagedLibrary() throws Exception {
-        Path runtime =
-                minecraft.resolve("libraries/dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar");
+        Path runtime = minecraft.resolve(
+                "libraries/dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar");
         Files.createDirectories(runtime.getParent());
         Files.writeString(runtime, "half a download");
 
@@ -146,7 +147,7 @@ class LauncherProfileInstallerTest {
                 "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                 List.of(new InstallerPayload.Library(
                         "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
-                        "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
+                        "dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar",
                         sha1("something else".getBytes(StandardCharsets.UTF_8)),
                         RUNTIME_JAR.length)),
                 path -> new ByteArrayInputStream(RUNTIME_JAR));
@@ -156,8 +157,8 @@ class LauncherProfileInstallerTest {
                 () -> installer(damaged).install(minecraft, "26.2", false, JavaMemory.LAUNCHER_DEFAULT, line -> {}));
 
         assertTrue(problem.getMessage().contains("is damaged"), problem.getMessage());
-        assertFalse(Files.exists(
-                minecraft.resolve("libraries/dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar")));
+        assertFalse(Files.exists(minecraft.resolve(
+                "libraries/dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar")));
     }
 
     @Test
@@ -189,19 +190,31 @@ class LauncherProfileInstallerTest {
     }
 
     @Test
-    void uninstallRemovesVersionProfileAndPolyModLoaderLibrariesOnly() throws Exception {
+    void uninstallRemovesVersionProfileAndPlexusModLoaderLibrariesOnly() throws Exception {
         Files.writeString(minecraft.resolve("launcher_profiles.json"), "{\"profiles\": {\"vanilla\": {}}}");
         installer(payload()).install(minecraft, "26.2", true, JavaMemory.LAUNCHER_DEFAULT, line -> {});
         Files.writeString(minecraft.resolve("mods/my-mod.jar"), "mine");
 
         installer(payload()).uninstall(minecraft, "26.2", line -> {});
 
-        assertFalse(Files.exists(minecraft.resolve("versions/polymodloader-0.1.0-26.2")));
+        assertFalse(Files.exists(minecraft.resolve("versions/plexusmodloader-0.1.0-26.2")));
         assertFalse(Files.exists(minecraft.resolve("libraries/dev")));
         assertTrue(Files.isRegularFile(minecraft.resolve("libraries/org/ow2/asm/asm/9.11.1/asm-9.11.1.jar")));
         JsonObject profiles = json(minecraft.resolve("launcher_profiles.json")).getAsJsonObject("profiles");
         assertEquals(List.of("vanilla"), List.copyOf(profiles.keySet()));
         assertTrue(Files.isRegularFile(minecraft.resolve("mods/my-mod.jar")));
+    }
+
+    @Test
+    void uninstallAlsoRemovesAProfileInstalledByOneFourX() throws Exception {
+        Files.writeString(minecraft.resolve("launcher_profiles.json"), """
+                {"profiles": {"vanilla": {}, "polymodloader-26.2": {"name": "Poly Mod Loader 26.2"}}}
+                """);
+
+        installer(payload()).uninstall(minecraft, "26.2", line -> {});
+
+        JsonObject profiles = json(minecraft.resolve("launcher_profiles.json")).getAsJsonObject("profiles");
+        assertEquals(List.of("vanilla"), List.copyOf(profiles.keySet()));
     }
 
     @Test
@@ -229,17 +242,19 @@ class LauncherProfileInstallerTest {
                 """);
 
         installer(payload()).install(minecraft, "26.2", true, JavaMemory.parse("4G", "1G"), line -> {});
-        JsonObject poly = json(minecraft.resolve("launcher_profiles.json"))
-                .getAsJsonObject("profiles")
-                .getAsJsonObject("polymodloader-26.2");
-        assertEquals("-XX:+UseZGC -Xms1G -Xmx4G", poly.get("javaArgs").getAsString());
+        JsonObject profiles = json(minecraft.resolve("launcher_profiles.json")).getAsJsonObject("profiles");
+        // A profile installed by 1.4.x moves to the current key and name and keeps the player's settings.
+        assertEquals(List.of("plexusmodloader-26.2"), List.copyOf(profiles.keySet()));
+        JsonObject plexus = profiles.getAsJsonObject("plexusmodloader-26.2");
+        assertEquals("-XX:+UseZGC -Xms1G -Xmx4G", plexus.get("javaArgs").getAsString());
+        assertEquals("Plexus Mod Loader 26.2", plexus.get("name").getAsString());
 
         // The launcher default leaves the player's arguments alone.
         installer(payload()).install(minecraft, "26.2", true, JavaMemory.LAUNCHER_DEFAULT, line -> {});
-        poly = json(minecraft.resolve("launcher_profiles.json"))
+        plexus = json(minecraft.resolve("launcher_profiles.json"))
                 .getAsJsonObject("profiles")
-                .getAsJsonObject("polymodloader-26.2");
-        assertEquals("-XX:+UseZGC -Xms1G -Xmx4G", poly.get("javaArgs").getAsString());
+                .getAsJsonObject("plexusmodloader-26.2");
+        assertEquals("-XX:+UseZGC -Xms1G -Xmx4G", plexus.get("javaArgs").getAsString());
 
         List<String> warnings =
                 installer(payload()).install(minecraft, "26.2", false, JavaMemory.parse("4G", ""), line -> {});
@@ -265,7 +280,7 @@ class LauncherProfileInstallerTest {
                 "-Xms1G -Xmx3G",
                 json(minecraft.resolve("launcher_profiles.json"))
                         .getAsJsonObject("profiles")
-                        .getAsJsonObject("polymodloader-26.2")
+                        .getAsJsonObject("plexusmodloader-26.2")
                         .get("javaArgs")
                         .getAsString());
         assertEquals(2, commandLine.run(List.of("install", "--dir", minecraft.toString(), "--xmx", "lots")));
@@ -273,29 +288,30 @@ class LauncherProfileInstallerTest {
     }
 
     /**
-     * Poly Mod Loader's Java agent (ADR-0024) is the only addition for Forge mods: one JVM argument the launcher
+     * Plexus Mod Loader's Java agent (ADR-0024) is the only addition for Forge mods: one JVM argument the launcher
      * resolves, and no Forge library downloaded for every player.
      */
     @Test
-    void startsTheProfileWithPolyModLoadersJavaAgent() throws Exception {
+    void startsTheProfileWithPlexusModLoadersJavaAgent() throws Exception {
         Files.writeString(minecraft.resolve("launcher_profiles.json"), "{\"profiles\": {}}");
 
         installer(payloadWithAgent()).install(minecraft, "26.2", true, JavaMemory.LAUNCHER_DEFAULT, line -> {});
 
-        JsonObject version = json(minecraft.resolve("versions/polymodloader-0.1.0-26.2/polymodloader-0.1.0-26.2.json"));
+        JsonObject version =
+                json(minecraft.resolve("versions/plexusmodloader-0.1.0-26.2/plexusmodloader-0.1.0-26.2.json"));
         List<String> jvm = new ArrayList<>();
         version.getAsJsonObject("arguments").getAsJsonArray("jvm").forEach(argument -> jvm.add(argument.getAsString()));
         assertEquals(
                 List.of(
-                        "-Dpoly.launchTarget=client",
-                        "-javaagent:${library_directory}/dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar"),
+                        "-Dplexus.launchTarget=client",
+                        "-javaagent:${library_directory}/dev/polymodloader/plexus-bootstrap/0.1.0/plexus-bootstrap-0.1.0.jar"),
                 jvm);
         for (var library : version.getAsJsonArray("libraries")) {
             String name = library.getAsJsonObject().get("name").getAsString();
             assertFalse(name.startsWith("net.minecraftforge:"), name);
         }
         assertTrue(Files.isRegularFile(
-                minecraft.resolve("libraries/dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar")));
+                minecraft.resolve("libraries/dev/polymodloader/plexus-bootstrap/0.1.0/plexus-bootstrap-0.1.0.jar")));
     }
 
     @Test
@@ -319,12 +335,12 @@ class LauncherProfileInstallerTest {
     void readsTheAgentOfTheIndex() {
         InstallerPayload parsed =
                 InstallerPayload.parse(new StringReader("""
-                {"polyVersion": "0.1.0", "minecraftVersions": ["26.2"],
+                {"plexusVersion": "0.1.0", "minecraftVersions": ["26.2"],
                  "mainClass": "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                  "agent": {"library": "dev.plexusmodloader:plexus-bootstrap:0.1.0",
                            "class": "dev.plexusmodloader.bootstrap.SystemClassPathAgent"},
                  "libraries": [{"name": "dev.plexusmodloader:plexus-bootstrap:0.1.0",
-                                "path": "dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar",
+                                "path": "dev/polymodloader/plexus-bootstrap/0.1.0/plexus-bootstrap-0.1.0.jar",
                                 "sha1": "00", "size": 3}]}
                 """), path -> new ByteArrayInputStream(new byte[0]));
 
@@ -334,7 +350,7 @@ class LauncherProfileInstallerTest {
                         "dev.plexusmodloader.bootstrap.SystemClassPathAgent")),
                 parsed.agent());
         assertEquals(
-                "dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar",
+                "dev/polymodloader/plexus-bootstrap/0.1.0/plexus-bootstrap-0.1.0.jar",
                 parsed.agentLibrary().orElseThrow().path());
     }
 
@@ -342,7 +358,7 @@ class LauncherProfileInstallerTest {
     void readsTheIndexTheBuildWrites() {
         InstallerPayload parsed =
                 InstallerPayload.parse(new StringReader("""
-                        {"polyVersion": "0.1.0", "minecraftVersions": ["26.1", "26.2"],
+                        {"plexusVersion": "0.1.0", "minecraftVersions": ["26.1", "26.2"],
                          "mainClass": "dev.plexusmodloader.bootstrap.PlexusLauncherMain",
                          "libraries": [{"name": "org.ow2.asm:asm:9.11.1", "path": "org/ow2/asm/asm/9.11.1/asm-9.11.1.jar",
                                         "sha1": "00", "size": 3}]}
@@ -361,7 +377,7 @@ class LauncherProfileInstallerTest {
 
     private static InstallerPayload payload() {
         Map<String, byte[]> jars = Map.of(
-                "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar", RUNTIME_JAR,
+                "dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar", RUNTIME_JAR,
                 "org/ow2/asm/asm/9.11.1/asm-9.11.1.jar", ASM_JAR);
         return new InstallerPayload(
                 "0.1.0",
@@ -370,7 +386,7 @@ class LauncherProfileInstallerTest {
                 List.of(
                         new InstallerPayload.Library(
                                 "dev.plexusmodloader:plexus-runtime-impl:0.1.0",
-                                "dev/polymodloader/poly-runtime-impl/0.1.0/poly-runtime-impl-0.1.0.jar",
+                                "dev/polymodloader/plexus-runtime-impl/0.1.0/plexus-runtime-impl-0.1.0.jar",
                                 sha1(RUNTIME_JAR),
                                 RUNTIME_JAR.length),
                         new InstallerPayload.Library(
@@ -385,12 +401,12 @@ class LauncherProfileInstallerTest {
     private static InstallerPayload payloadWithAgent() {
         InstallerPayload base = payload();
         byte[] bootstrap = "bootstrap bytes".getBytes(StandardCharsets.UTF_8);
-        String path = "dev/polymodloader/poly-bootstrap/0.1.0/poly-bootstrap-0.1.0.jar";
+        String path = "dev/polymodloader/plexus-bootstrap/0.1.0/plexus-bootstrap-0.1.0.jar";
         List<InstallerPayload.Library> libraries = new ArrayList<>(base.libraries());
         libraries.add(new InstallerPayload.Library(
                 "dev.plexusmodloader:plexus-bootstrap:0.1.0", path, sha1(bootstrap), bootstrap.length));
         return new InstallerPayload(
-                base.polyVersion(),
+                base.plexusVersion(),
                 base.minecraftVersions(),
                 base.mainClass(),
                 libraries,

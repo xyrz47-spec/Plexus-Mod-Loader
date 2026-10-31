@@ -9,7 +9,7 @@ import java.util.Set;
  *
  * @param path location of the jar
  * @param kind the loader it targets
- * @param nativeMetadataJson contents of {@code poly.mod.json}, present only for {@link ModFileKind#POLY_NATIVE}
+ * @param nativeMetadataJson contents of {@code plexus.mod.json}, present only for {@link ModFileKind#PLEXUS_NATIVE}
  * @param detail why the jar was classified as it was, for {@link ModFileKind#UNREADABLE} (the read error) and
  *     {@link ModFileKind#FML_LIBRARY} (the {@code FMLModType}); empty otherwise
  * @param alsoFor the other loaders whose metadata the jar also has (one jar built for several loaders); {@code kind} is

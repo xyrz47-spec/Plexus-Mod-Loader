@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * <p>Widenings only add access, so any number of them on one member combine (their access sets are
  * joined) without an order. The planner checks that the class and the exact member exist.
  *
- * @param ownerModId mod (or {@code poly}) that asks for the widening
+ * @param ownerModId mod (or {@code plexus}) that asks for the widening
  * @param gameVersion exact Minecraft version the target was verified against
  * @param sides processes it applies to
  * @param ownerInternalName the class, or the class declaring the member, as a JVM internal name

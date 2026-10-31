@@ -58,11 +58,11 @@ class TickBenchmarkTaskTest {
                 .getAsJsonObject("pack");
         assertEquals(107, meta.get("max_format").getAsInt());
         JsonObject hold = JsonParser.parseString(
-                        Files.readString(pack.resolve("data/poly_tick_benchmark/test_instance/hold.json")))
+                        Files.readString(pack.resolve("data/plexus_tick_benchmark/test_instance/hold.json")))
                 .getAsJsonObject();
         assertEquals(1200, hold.get("setup_ticks").getAsInt());
         assertTrue(hold.get("required").getAsBoolean());
-        String tick = Files.readString(pack.resolve("data/poly_tick_benchmark/function/tick.mcfunction"));
+        String tick = Files.readString(pack.resolve("data/plexus_tick_benchmark/function/tick.mcfunction"));
         assertTrue(tick.contains("summon minecraft:pig"));
         // An opaque block would queue lighting work faster than the light engine drains it.
         assertTrue(tick.contains("minecraft:glass replace minecraft:air"));

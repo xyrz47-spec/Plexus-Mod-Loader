@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class EventBus implements EventPublisher {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private static final class Registration<L> {
         final String modId;
@@ -110,7 +110,7 @@ public final class EventBus implements EventPublisher {
             if (result == null) {
                 registration.enabled = false;
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-EVENT-003 mod={} event={} listener {} returned null instead of a result;"
+                        "[Plexus Mod Loader] PLEXUS-EVENT-003 mod={} event={} listener {} returned null instead of a result;"
                                 + " the listener is disabled",
                         registration.modId,
                         event,
@@ -127,7 +127,7 @@ public final class EventBus implements EventPublisher {
     private static void disable(EventKey<?> event, Registration<?> registration, Throwable failure) {
         registration.enabled = false;
         LOGGER.error(
-                "[Poly Mod Loader] PLEXUS-EVENT-001 mod={} event={} listener {} threw {}; the listener is disabled",
+                "[Plexus Mod Loader] PLEXUS-EVENT-001 mod={} event={} listener {} threw {}; the listener is disabled",
                 registration.modId,
                 event,
                 registration.listener.getClass().getName(),

@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 
 /**
- * What Poly Mod Loader's Mixin service needs from the launch. Mixin creates its service itself, by class name, so the
+ * What Plexus Mod Loader's Mixin service needs from the launch. Mixin creates its service itself, by class name, so the
  * service reads this shared state. Mixin keeps global state for the whole JVM, so it can be started once per
  * process.
  *
@@ -59,7 +59,7 @@ final class MixinLaunch {
         MixinLaunch launch = current;
         if (launch == null) {
             throw new IllegalStateException(
-                    "Poly Mod Loader's Mixin service is used before the Fabric bridge started it");
+                    "Plexus Mod Loader's Mixin service is used before the Fabric bridge started it");
         }
         return launch;
     }

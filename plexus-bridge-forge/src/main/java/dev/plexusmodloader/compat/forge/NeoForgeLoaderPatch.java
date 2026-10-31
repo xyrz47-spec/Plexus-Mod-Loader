@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Poly Mod Loader's two changes to FML 11's {@code FMLLoader} (ADR-0026), in its own startup and nowhere else:
+ * Plexus Mod Loader's two changes to FML 11's {@code FMLLoader} (ADR-0026), in its own startup and nowhere else:
  *
  * <ul>
  *   <li>In {@code create(Instrumentation, StartupArgs)}, the one call {@code this.buildTransformingLoader(processors,
@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  *       gameContent)}: the game class loader defines the game layer FML computed, and FML gets a class loader that
  *       hands everything to it.
  *   <li>In {@code runDiscovery()}, {@code new ModsFolderLocator()} becomes {@code PlexusFml.modsLocator()}: FML loads the
- *       NeoForge mods Poly Mod Loader found and left in, not every jar of the mods folder.
+ *       NeoForge mods Plexus Mod Loader found and left in, not every jar of the mods folder.
  * </ul>
  *
  * <p>Checked with {@code javap} against {@code loader} 11.0.16 (NeoForge 26.2.0.93 and 26.1.2.122). Each change is
@@ -48,7 +48,7 @@ final class NeoForgeLoaderPatch {
 
     static final String PACKAGE = "net.neoforged.fml.loading";
 
-    /** Poly Mod Loader's host in {@code neoforge-host.jar}, a module of the same layer. */
+    /** Plexus Mod Loader's host in {@code neoforge-host.jar}, a module of the same layer. */
     static final ClassDesc HOST = ClassDesc.of("dev.plexusmodloader.compat.forge.fml.PlexusFml");
 
     private static final ClassDesc FML_LOADER = ClassDesc.of("net.neoforged.fml.loading.FMLLoader");

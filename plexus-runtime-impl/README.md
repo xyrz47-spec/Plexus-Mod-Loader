@@ -1,6 +1,6 @@
 # plexus-runtime-impl — Core Loading Pipeline & Runtime Coordinator
 
-`plexus-runtime-impl`는 Poly Mod Loader의 핵심 두뇌 역할을 수행하며, 모드 탐색부터 의존성 해석, 크로스 로더 충돌 분석, 클래스로더 구성 및 게임 실행까지의 **전체 8단계 로딩 파이프라인**을 관장하는 모듈입니다.
+`plexus-runtime-impl`는 Plexus Mod Loader의 핵심 두뇌 역할을 수행하며, 모드 탐색부터 의존성 해석, 크로스 로더 충돌 분석, 클래스로더 구성 및 게임 실행까지의 **전체 8단계 로딩 파이프라인**을 관장하는 모듈입니다.
 
 ---
 
@@ -13,7 +13,7 @@
 2. [Mod Discovery]       -> mods/ 디렉터리 내 jar 및 중첩(Nested) jar 탐색
           │
           ▼
-3. [Metadata Parsing]    -> poly, fabric, quilt, forge, neoforge 메타데이터 파싱
+3. [Metadata Parsing]    -> plexus, fabric, quilt, forge, neoforge 메타데이터 파싱
           │
           ▼
 4. [Dependency Solver]   -> 버전 제약식, 필수 종속성, 순환 참조 검증
@@ -50,10 +50,10 @@
 ## 3. 핵심 기술 특성
 
 ### 1) 미사용 로더 API 격리 (`hideFromParent`)
-모드팩에 Fabric 모드가 전혀 없고 Forge 모드만 존재하는 경우, 클래스패스에 잔존하는 `net.fabricmc.api.*` 클래스 때문에 멀티로더용 모드가 잘못된 로더 환경으로 오판하는 것을 방지합니다. Poly는 활성 모드가 없는 로더의 브릿지 패키지를 `GameClassLoader` 상에서 선별적으로 마스킹합니다.
+모드팩에 Fabric 모드가 전혀 없고 Forge 모드만 존재하는 경우, 클래스패스에 잔존하는 `net.fabricmc.api.*` 클래스 때문에 멀티로더용 모드가 잘못된 로더 환경으로 오판하는 것을 방지합니다. Plexus는 활성 모드가 없는 로더의 브릿지 패키지를 `GameClassLoader` 상에서 선별적으로 마스킹합니다.
 
 ### 2) 실시간 로더별 모드 수 집계 (`LoadedModCounter`)
-게임 로딩 및 타이틀 화면, 그리고 커스텀 로딩 화면(`PlexusLoadingOverlay`)에 정확한 모드 수를 전달하기 위해 각 로더별(`Poly`, `Fabric`, `Forge`, `NeoForge`, `Quilt`) 실질 구동 모드 수를 중복 없이 실시간 계산합니다.
+게임 로딩 및 타이틀 화면, 그리고 커스텀 로딩 화면(`PlexusLoadingOverlay`)에 정확한 모드 수를 전달하기 위해 각 로더별(`Plexus`, `Fabric`, `Forge`, `NeoForge`, `Quilt`) 실질 구동 모드 수를 중복 없이 실시간 계산합니다.
 
 ### 3) 사전 링크 검증 (`ModLinkVerifier`)
 로드 대상 모드들의 상수 풀(Constant Pool)을 조사하여 마인크래프트 또는 상위 라이브러리에 누락된 메서드나 필드를 참조하는 치명적 모드를 부팅 전에 찾아내어 크래시를 미연에 방지합니다.

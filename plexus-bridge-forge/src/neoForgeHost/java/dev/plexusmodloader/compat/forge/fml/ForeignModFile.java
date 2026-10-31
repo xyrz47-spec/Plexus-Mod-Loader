@@ -15,7 +15,7 @@ import net.neoforged.neoforgespi.locating.IModFile;
 import net.neoforged.neoforgespi.locating.ModFileDiscoveryAttributes;
 
 /**
- * The jar of a Poly Mod or other loader's mod as a NeoForge FML mod file (ADR-0025, ADR-0026): its ID, path, name and
+ * The jar of a Plexus Mod or other loader's mod as a NeoForge FML mod file (ADR-0025, ADR-0026): its ID, path, name and
  * contents. FML did not locate or scan it, so {@link #getScanResult} throws {@link UnsupportedOperationException} with
  * the reason, rather than answering with a made-up value.
  *
@@ -73,7 +73,7 @@ final class ForeignModFile implements IModFile {
     @Override
     public ModFileScanData getScanResult() {
         throw new UnsupportedOperationException(mod.loader() + " mod " + mod.modId() + " was not scanned by FML:"
-                + " Poly Mod Loader runs it beside NeoForge, and FML's mod list shows it for presence queries only"
+                + " Plexus Mod Loader runs it beside NeoForge, and FML's mod list shows it for presence queries only"
                 + " (ADR-0025)");
     }
 

@@ -36,8 +36,8 @@ class TransformCacheTest {
 
     @Test
     void secondRunReusesTheCachedResult() {
-        List<TransformReportEntry> first = run(rule("poly"), "fingerprint");
-        List<TransformReportEntry> second = run(rule("poly"), "fingerprint");
+        List<TransformReportEntry> first = run(rule("plexus"), "fingerprint");
+        List<TransformReportEntry> second = run(rule("plexus"), "fingerprint");
 
         assertFalse(first.getFirst().fromCache());
         assertTrue(second.getFirst().fromCache());
@@ -46,7 +46,7 @@ class TransformCacheTest {
 
     @Test
     void changingTheRuleInvalidatesTheEntry() {
-        run(rule("poly"), "fingerprint");
+        run(rule("plexus"), "fingerprint");
 
         List<TransformReportEntry> changed = run(rule("something-else"), "fingerprint");
 
@@ -55,15 +55,15 @@ class TransformCacheTest {
 
     @Test
     void changingTheEngineInvalidatesTheEntry() {
-        run(rule("poly"), "engine-1");
+        run(rule("plexus"), "engine-1");
 
-        assertFalse(run(rule("poly"), "engine-2").getFirst().fromCache());
+        assertFalse(run(rule("plexus"), "engine-2").getFirst().fromCache());
     }
 
     @Test
     void changingTheOriginalClassChangesTheKey() {
-        TransformCacheKey vanilla = TransformCacheKey.of(OWNER, ORIGINAL, List.of(rule("poly")), "f");
-        TransformCacheKey other = TransformCacheKey.of(OWNER, brandClass("vanilla "), List.of(rule("poly")), "f");
+        TransformCacheKey vanilla = TransformCacheKey.of(OWNER, ORIGINAL, List.of(rule("plexus")), "f");
+        TransformCacheKey other = TransformCacheKey.of(OWNER, brandClass("vanilla "), List.of(rule("plexus")), "f");
 
         assertNotEquals(vanilla, other);
     }
@@ -76,7 +76,7 @@ class TransformCacheTest {
                 "26.2",
                 EnumSet.allOf(GameSide.class),
                 TARGET,
-                new ReplaceReturnedStringConstant("vanilla", "poly"),
+                new ReplaceReturnedStringConstant("vanilla", "plexus"),
                 TransformFailurePolicy.DISABLE_RULE);
         TransformRuleDefinition reversed = new TransformRuleDefinition(
                 "test:brand",
@@ -84,7 +84,7 @@ class TransformCacheTest {
                 "26.2",
                 Set.of(GameSide.DEDICATED_SERVER, GameSide.CLIENT),
                 TARGET,
-                new ReplaceReturnedStringConstant("vanilla", "poly"),
+                new ReplaceReturnedStringConstant("vanilla", "plexus"),
                 TransformFailurePolicy.DISABLE_RULE);
 
         assertEquals(
@@ -94,14 +94,14 @@ class TransformCacheTest {
 
     @Test
     void damagedEntriesAreDiscardedAndRecomputed() throws Exception {
-        List<TransformReportEntry> first = run(rule("poly"), "fingerprint");
+        List<TransformReportEntry> first = run(rule("plexus"), "fingerprint");
         DirectoryTransformCache cache = new DirectoryTransformCache(cacheDirectory, warnings::add);
-        Path entry = cache.entryPath(TransformCacheKey.of(OWNER, ORIGINAL, List.of(rule("poly")), "fingerprint"));
+        Path entry = cache.entryPath(TransformCacheKey.of(OWNER, ORIGINAL, List.of(rule("plexus")), "fingerprint"));
         byte[] bytes = Files.readAllBytes(entry);
         bytes[bytes.length - 1] ^= 0x5A;
         Files.write(entry, bytes);
 
-        List<TransformReportEntry> afterDamage = run(rule("poly"), "fingerprint");
+        List<TransformReportEntry> afterDamage = run(rule("plexus"), "fingerprint");
 
         assertFalse(afterDamage.getFirst().fromCache());
         assertEquals(first.getFirst().sha256After(), afterDamage.getFirst().sha256After());
@@ -112,8 +112,8 @@ class TransformCacheTest {
 
     @Test
     void cachedBytesAreACopy() {
-        run(rule("poly"), "fingerprint");
-        TransformPlan plan = plan(rule("poly"));
+        run(rule("plexus"), "fingerprint");
+        TransformPlan plan = plan(rule("plexus"));
         ClassTransformExecutor executor = executor(plan, "fingerprint", new ArrayList<>());
 
         byte[] first = executor.transform(OWNER, ORIGINAL);

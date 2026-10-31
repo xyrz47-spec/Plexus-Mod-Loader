@@ -18,7 +18,7 @@ import java.util.Optional;
  * The Fabric bridge's class stage, in Fabric Loader's order (ADR-0020): first what Fabric Loader's own transformer
  * does ({@code FabricTransformer}) — environment stripping of mod and library classes ({@link EnvironmentStripper})
  * interface injection and enum extension into Minecraft classes ({@link InterfaceInjector}, {@link EnumExtender};
- * access widenings were already applied by Poly Mod Loader's transformer) — then Mixin. Mixin reads classes as they are after the first part ({@link
+ * access widenings were already applied by Plexus Mod Loader's transformer) — then Mixin. Mixin reads classes as they are after the first part ({@link
  * #preMixinView}), as Fabric Loader hands them to it.
  */
 final class FabricClassTransformer implements BridgeClassTransformer {

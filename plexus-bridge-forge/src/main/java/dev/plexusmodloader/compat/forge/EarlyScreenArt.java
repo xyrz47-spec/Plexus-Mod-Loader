@@ -19,16 +19,16 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * Poly Mod Loader's art in the early loading window of MinecraftForge and NeoForge, which their FML opens before the
+ * Plexus Mod Loader's art in the early loading window of MinecraftForge and NeoForge, which their FML opens before the
  * game's window. The window stays theirs (the game's Mojang red, the Mojang Studios logo, their progress bars and
- * startup log); its animation and logo become Poly Mod Loader's spinning gold cube, as on the game's loading screen
+ * startup log); its animation and logo become Plexus Mod Loader's spinning gold cube, as on the game's loading screen
  * that follows (the game layers' {@code PlexusLoadingOverlay}), so one look carries from the first frame to the title
  * screen:
  *
  * <ul>
  *   <li>NeoForge's {@code earlydisplay} (FML 11 and 12): the running fox ({@code fox_running.png}, 28 frames of 151 x
  *       128) and the window icon ({@code neoforged_icon.png}, 100 x 100), and the version label of its default theme
- *       ({@code "text": "${version}"}) reads {@code Poly Mod Loader}, as on the game's loading screen (the
+ *       ({@code "text": "${version}"}) reads {@code Plexus Mod Loader}, as on the game's loading screen (the
  *       window's title and startup log name NeoForge's version).
  *   <li>MinecraftForge's {@code fmlearlydisplay}: the anvil ({@code forge_anvil.png}, 32 frames of 128 x 128) and the
  *       logo ({@code forge_logo.png}, 589 x 94).
@@ -37,21 +37,21 @@ import java.util.stream.Stream;
  * <p>The early windows read these through the module's reader: Forge with {@code ClassLoader.getResourceAsStream},
  * NeoForge with {@code ClassLoader.getResource} and the theme with {@code Class.getResourceAsStream}, which the game
  * class loader answers with {@code ModuleReader.find} (a URI) or {@code open}. The returned module's reader serves
- * Poly Mod Loader's files there, from copies in {@code cache} (the URI must name a file). An image is replaced only when
- * the host's has the size Poly Mod Loader's art is drawn for (checked against FML 11.0.16 and 12.0.12, MinecraftForge
+ * Plexus Mod Loader's files there, from copies in {@code cache} (the URI must name a file). An image is replaced only when
+ * the host's has the size Plexus Mod Loader's art is drawn for (checked against FML 11.0.16 and 12.0.12, MinecraftForge
  * 26.1-62.0.9 and 26.3-66.1.0), and the label only when the theme has exactly that text; otherwise that piece stays the
- * host's, and the log says so. The art is Poly Mod Loader's own ({@code earlyscreen/} beside this class).
+ * host's, and the log says so. The art is Plexus Mod Loader's own ({@code earlyscreen/} beside this class).
  *
  * <p>Thread: the launch thread, while the host defines its modules.
  */
 final class EarlyScreenArt {
 
-    /** A host image and Poly Mod Loader's in its place, drawn for {@code width} x {@code height}. */
+    /** A host image and Plexus Mod Loader's in its place, drawn for {@code width} x {@code height}. */
     record Image(String path, String replacement, int width, int height) {}
 
     static final String NEOFORGE_THEME = "net/neoforged/fml/earlydisplay/theme/theme-default.json";
     static final String NEOFORGE_LABEL = "\"text\": \"${version}\"";
-    static final String POLY_LABEL = "\"text\": \"Poly Mod Loader\"";
+    static final String PLEXUS_LABEL = "\"text\": \"Plexus Mod Loader\"";
 
     static final List<Image> NEOFORGE = List.of(
             new Image("net/neoforged/fml/earlydisplay/theme/fox_running.png", "neoforge_spinner.png", 151, 3584),
@@ -67,7 +67,7 @@ final class EarlyScreenArt {
     private EarlyScreenArt() {}
 
     /**
-     * {@code reference} serving Poly Mod Loader's art when it is a host's early window module, else {@code reference}.
+     * {@code reference} serving Plexus Mod Loader's art when it is a host's early window module, else {@code reference}.
      *
      * @param cache where the replaced files are written (created when needed)
      * @param log one line naming what was replaced or left as it was
@@ -122,23 +122,23 @@ final class EarlyScreenArt {
                 files.put(entry.getKey(), file);
             }
         } catch (IOException e) {
-            log.accept("Early loading window: Poly Mod Loader's art could not be written to " + cache + " (" + e + "); "
-                    + host + "'s stays");
+            log.accept("Early loading window: Plexus Mod Loader's art could not be written to " + cache + " (" + e
+                    + "); " + host + "'s stays");
             return reference;
         }
-        log.accept("Early loading window (" + host + "): Poly Mod Loader's art in place of " + files.keySet()
-                + (kept.isEmpty() ? "" : "; kept the host's " + kept + " (not the shape Poly Mod Loader checked)"));
+        log.accept("Early loading window (" + host + "): Plexus Mod Loader's art in place of " + files.keySet()
+                + (kept.isEmpty() ? "" : "; kept the host's " + kept + " (not the shape Plexus Mod Loader checked)"));
         return files.isEmpty() ? reference : serving(reference, files);
     }
 
-    /** The default theme with Poly Mod Loader's version label; empty when it has the label other than once. */
+    /** The default theme with Plexus Mod Loader's version label; empty when it has the label other than once. */
     static Optional<byte[]> labelled(byte[] theme) {
         String text = new String(theme, StandardCharsets.UTF_8);
         int first = text.indexOf(NEOFORGE_LABEL);
         if (first < 0 || text.indexOf(NEOFORGE_LABEL, first + 1) >= 0) {
             return Optional.empty();
         }
-        return Optional.of(text.replace(NEOFORGE_LABEL, POLY_LABEL).getBytes(StandardCharsets.UTF_8));
+        return Optional.of(text.replace(NEOFORGE_LABEL, PLEXUS_LABEL).getBytes(StandardCharsets.UTF_8));
     }
 
     /** Whether {@code png} is a PNG image of {@code width} x {@code height} (its IHDR). */
@@ -169,7 +169,7 @@ final class EarlyScreenArt {
     private static byte[] art(String name) throws IOException {
         try (InputStream in = EarlyScreenArt.class.getResourceAsStream(ART + name)) {
             if (in == null) {
-                throw new IOException("Poly Mod Loader's " + ART + name + " is missing from its jar");
+                throw new IOException("Plexus Mod Loader's " + ART + name + " is missing from its jar");
             }
             return in.readAllBytes();
         }

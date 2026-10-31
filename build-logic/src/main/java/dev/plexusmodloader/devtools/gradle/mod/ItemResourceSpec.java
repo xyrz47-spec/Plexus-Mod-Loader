@@ -1,6 +1,6 @@
 package dev.plexusmodloader.devtools.gradle.mod;
 
-/** Settings of one {@code polyResources { item("name") { ... } }} entry. */
+/** Settings of one {@code plexusResources { item("name") { ... } }} entry. */
 public class ItemResourceSpec {
 
     private String displayName;

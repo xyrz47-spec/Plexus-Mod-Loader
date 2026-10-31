@@ -11,7 +11,7 @@ import java.util.Map;
  * {@code Map} field on {@code AttributeSupplier.Builder}.
  *
  * <p>The game class loader defines its own copy of this class ({@link #classFile}): {@code wrap} returns a Guava type,
- * and the game's code must link to the game's Guava (the host's), not to the copy Poly Mod Loader's loader sees. A call
+ * and the game's code must link to the game's Guava (the host's), not to the copy Plexus Mod Loader's loader sees. A call
  * from the game to this loader's class failed with a loader constraint violation on {@code ImmutableMap$Builder}.
  */
 public final class AttributeBuilderBridge {
@@ -25,7 +25,7 @@ public final class AttributeBuilderBridge {
      * other name.
      *
      * @param binaryName binary class name, such as {@code dev.plexusmodloader.compat.fabric.mixin.AttributeBuilderBridge}
-     * @throws UncheckedIOException when Poly Mod Loader's own jar cannot be read
+     * @throws UncheckedIOException when Plexus Mod Loader's own jar cannot be read
      */
     public static byte[] classFile(String binaryName) {
         if (!binaryName.equals(NAME) && !binaryName.equals(NAME + "$ForwardingBuilder")) {

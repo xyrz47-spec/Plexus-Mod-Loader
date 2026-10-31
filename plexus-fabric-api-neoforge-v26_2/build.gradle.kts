@@ -1,6 +1,6 @@
 plugins {
-    id("poly.java-conventions")
-    id("poly.minecraft-compile")
+    id("plexus.java-conventions")
+    id("plexus.minecraft-compile")
 }
 
 description = "Fabric API modules implemented on NeoForge 26.2's hooks (ADR-0031): run in place of the original modules next to NeoForge."
@@ -29,11 +29,11 @@ val installNeoForgeClient =
     tasks.register<dev.plexusmodloader.devtools.gradle.minecraft.NeoForgeClientInstallTask>("installNeoForgeClient") {
         description = "Installs NeoForge $neoForgeRelease's client with its own installer, for the patched game classes."
         neoForgeVersion = neoForgeRelease
-        // The installer Poly Mod Loader itself checks for 26.2 (plexus-bridge-forge, neoforge-releases.properties).
+        // The installer Plexus Mod Loader itself checks for 26.2 (plexus-bridge-forge, neoforge-releases.properties).
         installerSha1 = "97205829a020fc9389f504a77f590b54157c8dde"
         javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
         clientDirectory.set(
-            layout.dir(provider { gradle.gradleUserHomeDir.resolve("caches/poly-neoforge/$neoForgeRelease/client") }),
+            layout.dir(provider { gradle.gradleUserHomeDir.resolve("caches/plexus-neoforge/$neoForgeRelease/client") }),
         )
     }
 val patchedGame = files(installNeoForgeClient.map {
@@ -52,7 +52,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-Xlint:-unchecked")
 }
 
-// What Poly Mod Loader's Fabric bridge carries (HostModules in plexus-runtime-impl): each jar under the host's key, and an
+// What Plexus Mod Loader's Fabric bridge carries (HostModules in plexus-runtime-impl): each jar under the host's key, and an
 // index entry <host key>.<mod id> for it. The host key is HostModules.hostKey of the host's name ("NeoForge 26.2.0.93").
 val hostKey = "neoforge-$neoForgeRelease"
 
@@ -61,8 +61,8 @@ data class HostModule(val modId: String, val sourceSet: String, val version: Str
 
 // Fabric API 0.161.0+26.2's module versions these jars stand in for (ADR-0031: same public API as that version).
 val hostModules = listOf(
-    HostModule("fabric-block-api-v1", "fabricBlockApiV1", "3.1.0+poly.neoforge.26.2"),
-    HostModule("fabric-item-api-v1", "fabricItemApiV1", "14.5.0+poly.neoforge.26.2"),
+    HostModule("fabric-block-api-v1", "fabricBlockApiV1", "3.1.0+plexus.neoforge.26.2"),
+    HostModule("fabric-item-api-v1", "fabricItemApiV1", "14.5.0+plexus.neoforge.26.2"),
 )
 
 val hostModuleJars = hostModules.map { module ->
@@ -80,7 +80,7 @@ val hostModuleJars = hostModules.map { module ->
     }
     sourceSet.compileClasspath = files(tweaked.flatMap { it.outputJar }) + sourceSet.compileClasspath
     module to tasks.register<Jar>("${module.sourceSet}Jar") {
-        description = "Packs Poly Mod Loader's ${module.modId} for NeoForge $neoForgeRelease."
+        description = "Packs Plexus Mod Loader's ${module.modId} for NeoForge $neoForgeRelease."
         archiveBaseName = module.modId
         archiveVersion = module.version
         from(sourceSet.output)
@@ -88,20 +88,20 @@ val hostModuleJars = hostModules.map { module ->
 }
 
 val hostModuleIndex = tasks.register<WriteProperties>("hostModuleIndex") {
-    destinationFile = layout.buildDirectory.file("host-module-index/META-INF/polymodloader/host-modules.properties")
+    destinationFile = layout.buildDirectory.file("host-module-index/META-INF/plexusmodloader/host-modules.properties")
     for ((module, jar) in hostModuleJars) {
         property(
             "$hostKey.${module.modId}",
-            jar.flatMap { it.archiveFileName.map { name -> "META-INF/polymodloader/host-modules/$hostKey/$name" } },
+            jar.flatMap { it.archiveFileName.map { name -> "META-INF/plexusmodloader/host-modules/$hostKey/$name" } },
         )
     }
 }
 val hostModuleResources = tasks.register<Sync>("hostModuleResources") {
     into(layout.buildDirectory.dir("host-module-resources"))
     for ((_, jar) in hostModuleJars) {
-        from(jar) { into("META-INF/polymodloader/host-modules/$hostKey") }
+        from(jar) { into("META-INF/plexusmodloader/host-modules/$hostKey") }
     }
-    from(hostModuleIndex.flatMap { it.destinationFile }) { into("META-INF/polymodloader") }
+    from(hostModuleIndex.flatMap { it.destinationFile }) { into("META-INF/plexusmodloader") }
 }
 configurations.consumable("hostModuleElements") {
     outgoing.artifact(hostModuleResources)

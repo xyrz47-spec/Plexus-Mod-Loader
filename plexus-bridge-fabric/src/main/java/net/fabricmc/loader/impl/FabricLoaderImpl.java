@@ -17,7 +17,7 @@ import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.game.GameProvider;
 
 /**
- * Poly Mod Loader's stand-in for Fabric Loader's internal {@code FabricLoaderImpl}. Fabric Loader's public API reads
+ * Plexus Mod Loader's stand-in for Fabric Loader's internal {@code FabricLoaderImpl}. Fabric Loader's public API reads
  * {@code FabricLoaderImpl.INSTANCE} in {@code FabricLoader.getInstance()}; this class has that field and hands
  * every call to {@link FabricLoaderRuntime}, which the Fabric bridge attaches before any entrypoint runs (ADR-0016).
  * It is not Fabric Loader's implementation, and nothing but the field, the {@link FabricLoader} methods and {@link
@@ -32,13 +32,13 @@ public final class FabricLoaderImpl implements FabricLoader {
 
     private FabricLoaderImpl() {}
 
-    /** Called by the Poly Mod Loader Fabric bridge once, before any Fabric entrypoint runs. */
-    public void attachPolyModLoaderRuntime(FabricLoaderRuntime attached) {
+    /** Called by the Plexus Mod Loader Fabric bridge once, before any Fabric entrypoint runs. */
+    public void attachPlexusModLoaderRuntime(FabricLoaderRuntime attached) {
         this.runtime = attached;
     }
 
     /** The attached runtime; Fabric's message when used before the loader is ready. */
-    public FabricLoaderRuntime polyModLoaderRuntime() {
+    public FabricLoaderRuntime plexusModLoaderRuntime() {
         FabricLoaderRuntime attached = runtime;
         if (attached == null) {
             throw new RuntimeException("Accessed FabricLoader too early!");
@@ -48,58 +48,58 @@ public final class FabricLoaderImpl implements FabricLoader {
 
     @Override
     public <T> List<T> getEntrypoints(String key, Class<T> type) {
-        return polyModLoaderRuntime().getEntrypoints(key, type);
+        return plexusModLoaderRuntime().getEntrypoints(key, type);
     }
 
     @Override
     public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
-        return polyModLoaderRuntime().getEntrypointContainers(key, type);
+        return plexusModLoaderRuntime().getEntrypointContainers(key, type);
     }
 
     @Override
     public <T> void invokeEntrypoints(String key, Class<T> type, Consumer<? super T> invoker) {
-        polyModLoaderRuntime().invokeEntrypoints(key, type, invoker);
+        plexusModLoaderRuntime().invokeEntrypoints(key, type, invoker);
     }
 
     @Override
     public ObjectShare getObjectShare() {
-        return polyModLoaderRuntime().getObjectShare();
+        return plexusModLoaderRuntime().getObjectShare();
     }
 
     /** Minecraft 26.x is not obfuscated: the {@code official} namespace, every name maps to itself. */
     @Override
     public MappingResolver getMappingResolver() {
-        return polyModLoaderRuntime().getMappingResolver();
+        return plexusModLoaderRuntime().getMappingResolver();
     }
 
     @Override
     public Optional<ModContainer> getModContainer(String id) {
-        return polyModLoaderRuntime().getModContainer(id);
+        return plexusModLoaderRuntime().getModContainer(id);
     }
 
     @Override
     public Collection<ModContainer> getAllMods() {
-        return polyModLoaderRuntime().getAllMods();
+        return plexusModLoaderRuntime().getAllMods();
     }
 
     @Override
     public boolean isModLoaded(String id) {
-        return polyModLoaderRuntime().isModLoaded(id);
+        return plexusModLoaderRuntime().isModLoaded(id);
     }
 
     @Override
     public boolean isDevelopmentEnvironment() {
-        return polyModLoaderRuntime().isDevelopmentEnvironment();
+        return plexusModLoaderRuntime().isDevelopmentEnvironment();
     }
 
     @Override
     public EnvType getEnvironmentType() {
-        return polyModLoaderRuntime().getEnvironmentType();
+        return plexusModLoaderRuntime().getEnvironmentType();
     }
 
     @Override
     public String getRawGameVersion() {
-        return polyModLoaderRuntime().getRawGameVersion();
+        return plexusModLoaderRuntime().getRawGameVersion();
     }
 
     /** Fabric Loader's description of the running game; only its descriptive methods exist (see {@link GameProvider}). */
@@ -107,7 +107,7 @@ public final class FabricLoaderImpl implements FabricLoader {
         return new PlexusGameProvider(getRawGameVersion(), getGameDir());
     }
 
-    /** As {@link #getGameProvider()}; Poly Mod Loader always has a game when Fabric code runs. */
+    /** As {@link #getGameProvider()}; Plexus Mod Loader always has a game when Fabric code runs. */
     public GameProvider tryGetGameProvider() {
         return runtime == null ? null : getGameProvider();
     }
@@ -115,12 +115,12 @@ public final class FabricLoaderImpl implements FabricLoader {
     @Override
     @Deprecated
     public Object getGameInstance() {
-        return polyModLoaderRuntime().getGameInstance();
+        return plexusModLoaderRuntime().getGameInstance();
     }
 
     @Override
     public Path getGameDir() {
-        return polyModLoaderRuntime().getGameDir();
+        return plexusModLoaderRuntime().getGameDir();
     }
 
     @Override
@@ -131,7 +131,7 @@ public final class FabricLoaderImpl implements FabricLoader {
 
     @Override
     public Path getConfigDir() {
-        return polyModLoaderRuntime().getConfigDir();
+        return plexusModLoaderRuntime().getConfigDir();
     }
 
     @Override
@@ -142,6 +142,6 @@ public final class FabricLoaderImpl implements FabricLoader {
 
     @Override
     public String[] getLaunchArguments(boolean sanitize) {
-        return polyModLoaderRuntime().getLaunchArguments(sanitize);
+        return plexusModLoaderRuntime().getLaunchArguments(sanitize);
     }
 }

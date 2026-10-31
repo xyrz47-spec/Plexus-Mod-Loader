@@ -16,7 +16,7 @@
 // Source: Sinytra Forgified Fabric API, branch 26.2.x, commit 40f8ce0,
 // fabric-item-api-v1/src/main/java/net/fabricmc/fabric/mixin/item/DataComponentMapBuilderMixin.java (Fabric API's file
 // as Forgified Fabric API changed it for NeoForge).
-// Poly Mod Loader (ADR-0031): reformatted; getOrDefault declared here (see that method).
+// Plexus Mod Loader (ADR-0031): reformatted; getOrDefault declared here (see that method).
 
 package net.fabricmc.fabric.mixin.item;
 

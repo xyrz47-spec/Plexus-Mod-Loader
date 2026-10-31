@@ -1,24 +1,24 @@
 # plexus-installer — Cross-Platform Installer & Launcher Integrator
 
-`plexus-installer`는 마인크래프트 공식 런처(`.minecraft`) 및 독립 서버 환경에 Poly Mod Loader를 설치·관리할 수 있는 크로스 플랫폼 설치 프로그램 모듈입니다.
+`plexus-installer`는 마인크래프트 공식 런처(`.minecraft`) 및 독립 서버 환경에 Plexus Mod Loader를 설치·관리할 수 있는 크로스 플랫폼 설치 프로그램 모듈입니다.
 
 ---
 
 ## 1. 배포 형태 및 아키텍처
 
-Poly 인스톨러는 모든 플랫폼에서 jar 하나로 빌드 및 배포됩니다:
+Plexus 인스톨러는 모든 플랫폼에서 jar 하나로 빌드 및 배포됩니다:
 
 | 배포 파일명 | 대상 플랫폼 | 특징 |
 | :--- | :--- | :--- |
-| **`PolyModLoader-<version>.jar`** | Windows, macOS, Linux (Java 17+) | Java Swing GUI 기반 크로스 플랫폼 인스톨러. CLI 헤드리스 설치 지원. |
+| **`PlexusModLoader-<version>.jar`** | Windows, macOS, Linux (Java 17+) | Java Swing GUI 기반 크로스 플랫폼 인스톨러. CLI 헤드리스 설치 지원. |
 
 ---
 
 ## 2. 주요 기능
 
 1. **공식 마인크래프트 런처 원클릭 프로필 생성:**
-   - `.minecraft/versions` 및 `launcher_profiles.json`에 `Poly Mod Loader <버전>` 프로필을 안전하게 추가합니다.
-   - 기존 설정 손상을 방지하기 위해 원자적 파일 쓰기(Atomic Write) 및 백업(`.polymodloader-backup`)을 수행합니다.
+   - `.minecraft/versions` 및 `launcher_profiles.json`에 `Plexus Mod Loader <버전>` 프로필을 안전하게 추가합니다.
+   - 기존 설정 손상을 방지하기 위해 원자적 파일 쓰기(Atomic Write) 및 백업(`.plexusmodloader-backup`)을 수행합니다.
 2. **다국어 GUI 지원 (영어 / 한국어):**
    - 시스템 언어를 자동 감지하며, 창 우측 상단의 언어 메뉴를 통해 실시간으로 전환할 수 있습니다.
 3. **독립 서버 원클릭 설치 (명령줄 `install-server`):**

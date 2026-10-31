@@ -2,7 +2,7 @@ package dev.plexusmodloader.game.layer.v26_2;
 
 import com.mojang.authlib.GameProfile;
 import dev.plexusmodloader.api.resource.ResourceId;
-import dev.plexusmodloader.game.layer.v26_2.Networking.PolyPayload;
+import dev.plexusmodloader.game.layer.v26_2.Networking.PlexusPayload;
 import dev.plexusmodloader.game.version.layer.ConfigurationEndpoint;
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 final class ConfigurationExchanges {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** The task waiting for an answer on each configuring connection. */
     private static final Map<ServerConfigurationPacketListenerImpl, ExchangeTask> WAITING =
@@ -64,7 +64,7 @@ final class ConfigurationExchanges {
      */
     static boolean receive(ServerCommonPacketListenerImpl listener, ServerboundCustomPayloadPacket packet) {
         if (!(listener instanceof ServerConfigurationPacketListenerImpl configuration)
-                || !(packet.payload() instanceof PolyPayload payload)) {
+                || !(packet.payload() instanceof PlexusPayload payload)) {
             return false;
         }
         ExchangeTask task = WAITING.get(configuration);
@@ -99,8 +99,8 @@ final class ConfigurationExchanges {
                 return;
             }
             WAITING.put(listener, this);
-            connection.accept(
-                    new ClientboundCustomPayloadPacket(new PolyPayload(Networking.type(endpoint.id()), request.get())));
+            connection.accept(new ClientboundCustomPayloadPacket(
+                    new PlexusPayload(Networking.type(endpoint.id()), request.get())));
         }
 
         @Override
@@ -116,7 +116,7 @@ final class ConfigurationExchanges {
             GameProfile profile = listener.getOwner();
             Optional<String> refusal = endpoint.check(profile.id(), profile.name(), Optional.ofNullable(reply));
             LOGGER.info(
-                    "[Poly Mod Loader] Configuration exchange {} with {}: {}, {}",
+                    "[Plexus Mod Loader] Configuration exchange {} with {}: {}, {}",
                     endpoint.id(),
                     profile.name(),
                     reply == null ? "no answer" : "answered",

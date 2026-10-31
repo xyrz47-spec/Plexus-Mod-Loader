@@ -18,7 +18,7 @@ import net.minecraftforge.forgespi.locating.IModFile;
 import net.minecraftforge.forgespi.locating.IModProvider;
 
 /**
- * The jar of a Poly Mod or other loader's mod as an FML mod file (ADR-0025): its path, name and files. FML did not locate,
+ * The jar of a Plexus Mod or other loader's mod as an FML mod file (ADR-0025): its path, name and files. FML did not locate,
  * scan or secure it, so what only FML has for its own files ({@link #getSecureJar}, {@link #getScanResult}, {@link
  * #getProvider}, {@link #setSecurityStatus}) throws {@link UnsupportedOperationException} with the reason, rather than
  * answering with a made-up value.
@@ -110,7 +110,7 @@ final class ForeignModFile implements IModFile {
 
     private UnsupportedOperationException notFml(String what) {
         return new UnsupportedOperationException(mod.loader() + " mod " + mod.modId() + " " + what
-                + ": Poly Mod Loader runs it beside Forge, and FML's mod list shows it for presence queries only"
+                + ": Plexus Mod Loader runs it beside Forge, and FML's mod list shows it for presence queries only"
                 + " (ADR-0025)");
     }
 }

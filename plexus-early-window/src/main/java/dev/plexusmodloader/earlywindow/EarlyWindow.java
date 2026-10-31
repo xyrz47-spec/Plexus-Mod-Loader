@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Poly Mod Loader's early loading window, seen from the game's process: it starts the window's own process (see
- * {@link EarlyWindowMain}) and tells it what to show. The window looks like the game's loading screen with Poly Mod
+ * Plexus Mod Loader's early loading window, seen from the game's process: it starts the window's own process (see
+ * {@link EarlyWindowMain}) and tells it what to show. The window looks like the game's loading screen with Plexus Mod
  * Loader's marks, so that it carries on into the game's screen when the game's window opens over it.
  *
  * <p>Every method may be called from any thread. Nothing here fails the launch: when the process cannot start or
@@ -81,7 +81,7 @@ public final class EarlyWindow implements AutoCloseable {
                     new ProcessBuilder(command).redirectErrorStream(true).start();
             forwardOutput(process, log);
             EarlyWindow window = new EarlyWindow(process, log);
-            Runtime.getRuntime().addShutdownHook(new Thread(window::destroy, "Poly early window shutdown"));
+            Runtime.getRuntime().addShutdownHook(new Thread(window::destroy, "Plexus early window shutdown"));
             return window;
         } catch (IOException | RuntimeException e) {
             log.accept("Failed to start early loading window process " + "(" + e + ")");
@@ -99,7 +99,7 @@ public final class EarlyWindow implements AutoCloseable {
         send(EarlyWindowProtocol.show());
     }
 
-    /** What Poly Mod Loader is doing, shown at the bottom left. */
+    /** What Plexus Mod Loader is doing, shown at the bottom left. */
     public void status(String text) {
         send(EarlyWindowProtocol.status(text));
     }
@@ -167,7 +167,7 @@ public final class EarlyWindow implements AutoCloseable {
                         // The process ended; its output with it.
                     }
                 },
-                "Poly early window output");
+                "Plexus early window output");
         reader.setDaemon(true);
         reader.start();
     }
@@ -195,7 +195,7 @@ public final class EarlyWindow implements AutoCloseable {
         Set<Path> roots = new LinkedHashSet<>();
         root(EarlyWindowMain.class.getResource("EarlyWindowMain.class"), "EarlyWindowMain.class")
                 .ifPresent(roots::add);
-        root(EarlyWindowMain.class.getResource("poly_cube.png"), "poly_cube.png")
+        root(EarlyWindowMain.class.getResource("plexus_cube.png"), "plexus_cube.png")
                 .ifPresent(roots::add);
         if (roots.isEmpty()) {
             return Optional.empty();

@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Against FML's own {@code FMLLoader} and {@code MixinFacade} from {@code loader} 11.0.16 (NeoForge 26.2.0.93, on the
- * test class path) and 12.0.12 (NeoForge 26.3.0.98, read from the jar the build names in {@code poly.fml12Loader}).
+ * test class path) and 12.0.12 (NeoForge 26.3.0.98, read from the jar the build names in {@code plexus.fml12Loader}).
  */
 class NeoForgeSharedMixinPatchTest {
 
@@ -60,7 +60,7 @@ class NeoForgeSharedMixinPatchTest {
 
         assertTrue(result.missing().isEmpty(), () -> "missing: " + result.missing());
         assertEquals(2, result.changed().size(), () -> "changed: " + result.changed());
-        // FML's plugin files pass Poly Mod Loader's filter first (another Fabric Loader is left out).
+        // FML's plugin files pass Plexus Mod Loader's filter first (another Fabric Loader is left out).
         assertEquals(
                 1,
                 hostCalls(
@@ -307,8 +307,8 @@ class NeoForgeSharedMixinPatchTest {
 
     private static synchronized Map<String, byte[]> fml12Classes() {
         if (fml12 == null) {
-            String jar = System.getProperty("poly.fml12Loader");
-            assertNotNull(jar, "the build names FML 12's loader jar in poly.fml12Loader");
+            String jar = System.getProperty("plexus.fml12Loader");
+            assertNotNull(jar, "the build names FML 12's loader jar in plexus.fml12Loader");
             Map<String, byte[]> classes = new HashMap<>();
             try (JarFile file = new JarFile(Path.of(jar).toFile())) {
                 for (var entry : file.stream().toList()) {

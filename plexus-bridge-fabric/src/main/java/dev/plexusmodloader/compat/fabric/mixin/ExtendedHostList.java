@@ -30,10 +30,12 @@ public final class ExtendedHostList {
         boolean stream = hostResult instanceof Stream<?>;
         List<?> host = stream ? ((Stream<?>) hostResult).toList() : (List<?>) hostResult;
         if (host.size() < field.size() || !host.subList(0, field.size()).equals(field)) {
-            throw new IllegalStateException("PLEXUS-COMPAT-225 the host loader's list does not start with the game's"
-                    + " list that a Fabric or Quilt mod's mixin replaces (" + field.size() + " game entries, "
-                    + host.size() + " in the host's), so Poly Mod Loader cannot add the mod's entries to the host's."
-                    + " This is a limitation of Poly Mod Loader, not a bug in the mod: report it to Poly Mod Loader");
+            throw new IllegalStateException(
+                    "PLEXUS-COMPAT-225 the host loader's list does not start with the game's"
+                            + " list that a Fabric or Quilt mod's mixin replaces (" + field.size() + " game entries, "
+                            + host.size()
+                            + " in the host's), so Plexus Mod Loader cannot add the mod's entries to the host's."
+                            + " This is a limitation of Plexus Mod Loader, not a bug in the mod: report it to Plexus Mod Loader");
         }
         List<Object> extended = new ArrayList<>(handlerList);
         for (Object own : host.subList(field.size(), host.size())) {

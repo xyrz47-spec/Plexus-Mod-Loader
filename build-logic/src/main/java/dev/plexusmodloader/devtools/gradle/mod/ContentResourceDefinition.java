@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 /**
  * One block or item whose standard resource files {@link ModResourceGenerator} writes, declared in a
- * mod's build script with {@code polyResources { item("ruby"); block("ruby_block") }}.
+ * mod's build script with {@code plexusResources { item("ruby"); block("ruby_block") }}.
  *
  * @param kind whether this is an item or a block (a block also gets its block item's files)
  * @param name content path, the same one the mod's code registers ({@code "ruby_block"})

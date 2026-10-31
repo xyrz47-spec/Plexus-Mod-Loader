@@ -26,14 +26,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Adds every mod jar as a required pack ({@code poly/<mod id>}): its {@code assets/} to the client's
+ * Adds every mod jar as a required pack ({@code plexus/<mod id>}): its {@code assets/} to the client's
  * resource packs and its {@code data/} to the server's data packs, above the game's own packs. A jar
  * with a {@code pack.mcmeta} also gets the overlay directories it lists for the running game's pack
  * format, as the game's own packs do, so one mod can carry data and assets for several versions.
  */
 final class ModPacks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final PackSelectionConfig REQUIRED_ON_TOP = new PackSelectionConfig(true, Pack.Position.TOP, false);
     private static volatile Field packTypeField;
 
@@ -46,11 +46,11 @@ final class ModPacks {
             for (ModResourcePack mod : context.resourcePacks()) {
                 if (hasEntry(mod.jar(), name -> name.startsWith(root))) {
                     PackLocationInfo location = location(
-                            "poly/" + mod.modId(), mod.name(), new KnownPack("poly", mod.modId(), mod.version()));
+                            "plexus/" + mod.modId(), mod.name(), new KnownPack("plexus", mod.modId(), mod.version()));
                     Pack.ResourcesSupplier resources = new FilePackResources.FileResourcesSupplier(mod.jar());
                     output.accept(pack(
                             location,
-                            mod.name() + " " + mod.version() + " (Poly Mod Loader)",
+                            mod.name() + " " + mod.version() + " (Plexus Mod Loader)",
                             resources,
                             overlays(location, resources, type, mod.jar())));
                 }
@@ -59,10 +59,10 @@ final class ModPacks {
                 LayerState.generatedDataPack()
                         .ifPresent(directory -> output.accept(pack(
                                 location(
-                                        "poly/generated",
-                                        "Poly Mod Loader generated data",
-                                        new KnownPack("poly", "generated", LayerState.generatedDataPackVersion())),
-                                "Data Poly Mod Loader derives from mod declarations",
+                                        "plexus/generated",
+                                        "Plexus Mod Loader generated data",
+                                        new KnownPack("plexus", "generated", LayerState.generatedDataPackVersion())),
+                                "Data Plexus Mod Loader derives from mod declarations",
                                 new PathPackResources.PathResourcesSupplier(directory),
                                 List.of())));
             }
@@ -101,13 +101,13 @@ final class ModPacks {
                 location, resources, SharedConstants.getCurrentVersion().packVersion(type), type);
         if (metadata == null) {
             LOGGER.warn(
-                    "[Poly Mod Loader] PLEXUS-RESOURCE-010 cannot read pack.mcmeta of {} (see the warning above); "
+                    "[Plexus Mod Loader] PLEXUS-RESOURCE-010 cannot read pack.mcmeta of {} (see the warning above); "
                             + "its overlays are not used",
                     location.id());
             return List.of();
         }
         if (!metadata.overlays().isEmpty()) {
-            LOGGER.info("[Poly Mod Loader] Pack {} uses overlays {}", location.id(), metadata.overlays());
+            LOGGER.info("[Plexus Mod Loader] Pack {} uses overlays {}", location.id(), metadata.overlays());
         }
         return metadata.overlays();
     }
@@ -116,7 +116,7 @@ final class ModPacks {
         try (ZipFile zip = new ZipFile(jar.toFile())) {
             return zip.stream().anyMatch(entry -> name.test(entry.getName()));
         } catch (IOException e) {
-            LOGGER.warn("[Poly Mod Loader] Cannot read {} to add it as a pack: {}", jar, e.toString());
+            LOGGER.warn("[Plexus Mod Loader] Cannot read {} to add it as a pack: {}", jar, e.toString());
             return false;
         }
     }

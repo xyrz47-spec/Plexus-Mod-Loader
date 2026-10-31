@@ -13,7 +13,7 @@ import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 /**
- * A Poly Mod or other loader's mod as an FML mod (ADR-0025): its ID, name and version; no dependencies, Forge features
+ * A Plexus Mod or other loader's mod as an FML mod (ADR-0025): its ID, name and version; no dependencies, Forge features
  * or URLs, since FML does not resolve or show it.
  *
  * <p>Thread: immutable.

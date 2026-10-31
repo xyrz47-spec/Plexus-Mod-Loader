@@ -13,7 +13,7 @@ import java.util.List;
  * §12.4): the original class bytes (which also pin the Minecraft version and mappings), each
  * applied rule's full definition (ID, owner mod, game version, target, action, policy, order), the
  * access widenings of the class, and the
- * engine fingerprint (Poly Mod Loader and ASM versions). Changing any of them yields a different key, so
+ * engine fingerprint (Plexus Mod Loader and ASM versions). Changing any of them yields a different key, so
  * invalidation is automatic.
  *
  * @param className JVM internal name, kept readable for diagnostics

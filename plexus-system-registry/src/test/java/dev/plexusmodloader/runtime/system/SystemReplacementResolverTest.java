@@ -59,7 +59,7 @@ class SystemReplacementResolverTest {
         ModMetadata legacy = metadata(
                 "legacy_mod",
                 List.of(),
-                List.of(new SystemReplacementDeclaration("poly:game_brand", "com.example.LegacyProvider", false)));
+                List.of(new SystemReplacementDeclaration("plexus:game_brand", "com.example.LegacyProvider", false)));
 
         SystemReplacementResolver.Result result = resolver.resolve(List.of(legacy), definitions);
 
@@ -98,7 +98,7 @@ class SystemReplacementResolverTest {
     @Test
     void unknownSystemsAreReported() {
         ModMetadata mod =
-                metadata("ghost", List.of(), List.of(new SystemReplacementDeclaration("poly:no_such", "a.B", false)));
+                metadata("ghost", List.of(), List.of(new SystemReplacementDeclaration("plexus:no_such", "a.B", false)));
 
         SystemReplacementResolver.Result result = resolver.resolve(List.of(mod), definitions);
 

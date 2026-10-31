@@ -375,7 +375,7 @@ class CrossLoaderModResolverTest {
         assertEquals(CompatibilityStatus.BLOCKED, find(result, "native_core").status());
         assertTrue(details(find(result, "native_core"), "PLEXUS-COMPAT-117")
                 .getFirst()
-                .contains("Poly Mod"));
+                .contains("Plexus Mod"));
         assertEquals(
                 CompatibilityStatus.EXPERIMENTAL, find(result, "self_alias").status(), "an alias of itself");
     }

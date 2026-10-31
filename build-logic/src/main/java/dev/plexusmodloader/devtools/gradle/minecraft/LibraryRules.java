@@ -61,7 +61,7 @@ final class LibraryRules {
 
     /**
      * Resolves {@code --option value} style game arguments and drops options whose value refers to
-     * a variable Poly Mod Loader does not supply (for example {@code --clientId} or {@code --xuid}).
+     * a variable Plexus Mod Loader does not supply (for example {@code --clientId} or {@code --xuid}).
      */
     static List<String> resolveOptionArguments(JsonArray template, Map<String, String> variables) {
         List<String> arguments = allowedArguments(template);

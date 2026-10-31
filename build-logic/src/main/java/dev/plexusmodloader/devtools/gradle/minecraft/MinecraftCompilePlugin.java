@@ -24,7 +24,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
  */
 public final class MinecraftCompilePlugin implements Plugin<Project> {
 
-    static final String VERSION_PROPERTY = "polyCompileMinecraft";
+    static final String VERSION_PROPERTY = "plexusCompileMinecraft";
 
     @Override
     public void apply(Project project) {
@@ -34,7 +34,7 @@ public final class MinecraftCompilePlugin implements Plugin<Project> {
                         .getGradleUserHomeDir()
                         .toPath()
                         .resolve("caches")
-                        .resolve("poly-minecraft")
+                        .resolve("plexus-minecraft")
                         .toFile()));
         // A version module compiles against, and for the Java of, the version in its name.
         MinecraftVersions versions = MinecraftVersions.of(project);
@@ -50,7 +50,7 @@ public final class MinecraftCompilePlugin implements Plugin<Project> {
                 .set(JavaLanguageVersion.of(versions.javaVersion(gameVersion)));
         TaskProvider<PrepareMinecraftTask> prepare = project.getTasks()
                 .register("prepareMinecraftCompile", PrepareMinecraftTask.class, task -> {
-                    task.setGroup("poly minecraft");
+                    task.setGroup("plexus minecraft");
                     task.setDescription("Downloads and verifies the Minecraft client jar and libraries to compile against.");
                     task.getGameVersion().set(gameVersion);
                     task.getSide().set("client");
@@ -59,7 +59,7 @@ public final class MinecraftCompilePlugin implements Plugin<Project> {
                     task.getLaunchSpecFile()
                             .set(project.getLayout()
                                     .getBuildDirectory()
-                                    .file("poly/minecraft-compile/" + gameVersion + "-client.json"));
+                                    .file("plexus/minecraft-compile/" + gameVersion + "-client.json"));
                 });
         // Derived from the task's output so Gradle knows the producer without reading the spec, which
         // does not exist until prepareMinecraftCompile runs (a clean checkout has no build directory).

@@ -28,8 +28,8 @@ jobs:
       # Minecraft files are downloaded from Mojang and checked by hash; keep them between runs.
       - uses: actions/cache@v6
         with:
-          path: ~/.gradle/caches/poly-minecraft
-          key: poly-minecraft-${{ hashFiles('gradle/minecraft-versions.properties') }}
+          path: ~/.gradle/caches/plexus-minecraft
+          key: plexus-minecraft-${{ hashFiles('gradle/minecraft-versions.properties') }}
       - name: Spotless and unit tests
         run: ./gradlew.bat check --stacktrace
       - name: build-logic tests

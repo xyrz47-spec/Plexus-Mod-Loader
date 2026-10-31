@@ -25,7 +25,7 @@ class JavaArgumentFileTest {
     void theJvmReadsEveryArgumentFromTheFileWhateverItsLength() throws IOException, InterruptedException {
         String java = Path.of(System.getProperty("java.home"), "bin", "java").toString();
         String value = "C:\\Program Files\\a b\\\"quoted\"\\" + "x".repeat(40_000);
-        List<String> command = new ArrayList<>(List.of(java, "-Dpoly.argfile.test=" + value, "-XshowSettings:properties", "-version"));
+        List<String> command = new ArrayList<>(List.of(java, "-Dplexus.argfile.test=" + value, "-XshowSettings:properties", "-version"));
 
         List<String> started = JavaArgumentFile.commandWithArgumentFile(command, folder.resolve("java.args"));
 
@@ -35,6 +35,6 @@ class JavaArgumentFileTest {
         String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertTrue(process.waitFor(60, TimeUnit.SECONDS));
         assertEquals(0, process.exitValue(), output);
-        assertTrue(output.contains("poly.argfile.test = " + value), "the property did not arrive as written");
+        assertTrue(output.contains("plexus.argfile.test = " + value), "the property did not arrive as written");
     }
 }

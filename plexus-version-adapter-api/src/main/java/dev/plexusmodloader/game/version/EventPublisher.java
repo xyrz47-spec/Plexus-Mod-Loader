@@ -6,7 +6,7 @@ import dev.plexusmodloader.api.stability.StabilityLevel;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/** Lets version adapter hooks fire events to mod listeners. Implemented by the Poly Mod Loader runtime. */
+/** Lets version adapter hooks fire events to mod listeners. Implemented by the Plexus Mod Loader runtime. */
 @ApiStability(StabilityLevel.INTERNAL)
 public interface EventPublisher {
 

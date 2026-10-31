@@ -13,7 +13,7 @@ import java.io.UncheckedIOException;
 import java.util.Base64;
 import javax.imageio.ImageIO;
 
-/** The Poly Mod Loader logo (a wireframe cube, as on the website) drawn for the launcher profile and the window. */
+/** The Plexus Mod Loader logo (a wireframe cube, as on the website) drawn for the launcher profile and the window. */
 final class ProfileIcon {
 
     private ProfileIcon() {}

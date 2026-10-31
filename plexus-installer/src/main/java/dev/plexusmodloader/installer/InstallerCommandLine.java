@@ -7,7 +7,7 @@ import java.time.Clock;
 import java.util.List;
 
 /**
- * {@code java -jar PolyModLoader-<version>.jar install|install-server|uninstall [--dir <folder>] [--minecraft <version>]
+ * {@code java -jar PlexusModLoader-<version>.jar install|install-server|uninstall [--dir <folder>] [--minecraft <version>]
  * [--no-profile] [--max-memory <size>] [--min-memory <size>]}. Exit codes: 0 done, 1 failed, 2 wrong arguments.
  */
 final class InstallerCommandLine {
@@ -24,15 +24,15 @@ final class InstallerCommandLine {
 
     String usage() {
         return """
-                Poly Mod Loader %1$s installer
+                Plexus Mod Loader %1$s installer
 
                 Usage:
-                  java -jar PolyModLoader-%1$s.jar                      open the installer window
-                  java -jar PolyModLoader-%1$s.jar install [options]         install into the Minecraft Launcher
-                  java -jar PolyModLoader-%1$s.jar install-server [options]  install a dedicated server: downloads
+                  java -jar PlexusModLoader-%1$s.jar                      open the installer window
+                  java -jar PlexusModLoader-%1$s.jar install [options]         install into the Minecraft Launcher
+                  java -jar PlexusModLoader-%1$s.jar install-server [options]  install a dedicated server: downloads
                                                                        Mojang's server and writes run.bat, run.sh
-                                                                       and polymodloader-server.jar
-                  java -jar PolyModLoader-%1$s.jar uninstall [options]       remove the Poly Mod Loader version and profile
+                                                                       and plexusmodloader-server.jar
+                  java -jar PlexusModLoader-%1$s.jar uninstall [options]       remove the Plexus Mod Loader version and profile
 
                 Options:
                   --dir <folder>          the launcher folder (default %2$s);
@@ -44,7 +44,7 @@ final class InstallerCommandLine {
                   --min-memory <size>     the game's starting memory (-Xms), such as 1G
                   --help, --version
                 """.formatted(
-                        payload.polyVersion(),
+                        payload.plexusVersion(),
                         MinecraftDirectories.defaultDirectory(),
                         String.join(", ", payload.minecraftVersions()),
                         payload.newestMinecraftVersion());
@@ -56,7 +56,7 @@ final class InstallerCommandLine {
             return args.isEmpty() ? 2 : 0;
         }
         if (args.contains("--version")) {
-            out.println(payload.polyVersion());
+            out.println(payload.plexusVersion());
             return 0;
         }
         String command = args.get(0);
@@ -107,21 +107,21 @@ final class InstallerCommandLine {
                                     + "). Close it before installing, or it may drop the new profile when it exits."));
                     List<String> warnings = installer.install(directory, minecraft, profile, memory, out::println);
                     warnings.forEach(warning -> err.println("Warning: " + warning));
-                    out.println("Poly Mod Loader " + payload.polyVersion() + " for Minecraft " + minecraft
-                            + " is installed. Choose the profile \"Poly Mod Loader " + minecraft
+                    out.println("Plexus Mod Loader " + payload.plexusVersion() + " for Minecraft " + minecraft
+                            + " is installed. Choose the profile \"Plexus Mod Loader " + minecraft
                             + "\" in the Minecraft Launcher.");
                 }
                 case "install-server" -> {
                     List<String> warnings = new ServerInstaller(payload, ServerInstaller.httpDownloader())
                             .install(directory, minecraft, memory, out::println);
                     warnings.forEach(warning -> err.println("Warning: " + warning));
-                    out.println("Poly Mod Loader " + payload.polyVersion() + " server for Minecraft " + minecraft
+                    out.println("Plexus Mod Loader " + payload.plexusVersion() + " server for Minecraft " + minecraft
                             + " is installed in " + directory.toAbsolutePath() + ". Start it with run.bat, run.sh or"
                             + " java -jar " + ServerInstaller.LAUNCH_JAR + " nogui.");
                 }
                 case "uninstall" -> {
                     installer.uninstall(directory, minecraft, out::println);
-                    out.println("Poly Mod Loader " + payload.polyVersion() + " for Minecraft " + minecraft
+                    out.println("Plexus Mod Loader " + payload.plexusVersion() + " for Minecraft " + minecraft
                             + " is removed.");
                 }
                 default -> {

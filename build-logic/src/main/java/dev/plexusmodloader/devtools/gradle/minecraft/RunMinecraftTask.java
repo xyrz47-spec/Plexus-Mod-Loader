@@ -24,8 +24,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Starts Minecraft through the Poly Mod Loader bootstrap. The JVM class path holds Poly Mod Loader plus Minecraft's
- * libraries; the game jar and mod jars are handed to Poly Mod Loader, which loads them through its
+ * Starts Minecraft through the Plexus Mod Loader bootstrap. The JVM class path holds Plexus Mod Loader plus Minecraft's
+ * libraries; the game jar and mod jars are handed to Plexus Mod Loader, which loads them through its
  * transforming game class loader (ADR-0003).
  */
 @DisableCachingByDefault(because = "Runs the game")
@@ -49,7 +49,7 @@ public abstract class RunMinecraftTask extends JavaExec {
     @Internal
     public abstract DirectoryProperty getRunDirectory();
 
-    /** Mod jars built in this repository, passed to Poly Mod Loader directly instead of being copied. */
+    /** Mod jars built in this repository, passed to Plexus Mod Loader directly instead of being copied. */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
     public abstract ConfigurableFileCollection getDevModJars();
@@ -60,7 +60,7 @@ public abstract class RunMinecraftTask extends JavaExec {
 
 
     /**
-     * Dedicated servers refuse to start until the Minecraft EULA is accepted. Poly Mod Loader never accepts
+     * Dedicated servers refuse to start until the Minecraft EULA is accepted. Plexus Mod Loader never accepts
      * it on the user's behalf; when true this task fails early with instructions instead.
      */
     @Input
@@ -87,12 +87,12 @@ public abstract class RunMinecraftTask extends JavaExec {
         if (getRequireAcceptedEula().get() && !eulaAccepted(runDirectory)) {
             throw new GradleException("The Minecraft dedicated server requires accepting the Minecraft EULA "
                     + "(https://aka.ms/MinecraftEULA). Read it, then create " + runDirectory.resolve("eula.txt")
-                    + " containing 'eula=true'. Poly Mod Loader does not accept it for you.");
+                    + " containing 'eula=true'. Plexus Mod Loader does not accept it for you.");
         }
 
         // The game jar goes on the class path last, as the Minecraft Launcher and the server install put it, so mods
         // that read the game's files through the system class loader (CustomSkinLoader reads version.json) find
-        // them as in a real install; poly.gameJar still names it.
+        // them as in a real install; plexus.gameJar still names it.
         setClasspath(getClasspath()
                 .plus(getObjects().fileCollection().from(spec.libraries()))
                 .plus(getObjects().fileCollection().from(spec.gameJar())));

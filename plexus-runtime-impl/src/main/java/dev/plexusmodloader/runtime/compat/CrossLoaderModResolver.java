@@ -56,7 +56,7 @@ import java.util.TreeSet;
  *       requires; it does not count for {@code 124}
  * </ul>
  *
- * <p>Poly Mods (native mods) are not decided here; {@link dev.plexusmodloader.runtime.dependency.ModDependencyResolver} checks
+ * <p>Plexus Mods (native mods) are not decided here; {@link dev.plexusmodloader.runtime.dependency.ModDependencyResolver} checks
  * them with the result of this class.
  */
 public final class CrossLoaderModResolver {
@@ -80,10 +80,10 @@ public final class CrossLoaderModResolver {
             Map<String, String> unavailable) {}
 
     /**
-     * Resolves {@code foreign} together with the Poly Mods.
+     * Resolves {@code foreign} together with the Plexus Mods.
      *
-     * @param nativeVersions ID of each Poly Mod to its version
-     * @param nativeJars the Poly Mod jars, which foreign mods may link against
+     * @param nativeVersions ID of each Plexus Mod to its version
+     * @param nativeJars the Plexus Mod jars, which foreign mods may link against
      * @param gameVersion Minecraft version of this launch
      * @param javaVersion Java feature version of this launch, such as {@code 25}
      * @param linkCheck class checks for mods that pass the metadata checks; {@code null} skips them
@@ -99,7 +99,7 @@ public final class CrossLoaderModResolver {
     }
 
     /**
-     * Resolves {@code foreign} together with the Poly Mods, where the host's builds of left-out mods stand in for them.
+     * Resolves {@code foreign} together with the Plexus Mods, where the host's builds of left-out mods stand in for them.
      *
      * @param hostBuilds the IDs of mods left out because the host runs its own build of them ({@code
      *     PLEXUS-COMPAT-139}, ADR-0026 37), each to the version of the host's build, which meets the dependencies on them
@@ -321,7 +321,7 @@ public final class CrossLoaderModResolver {
         }
 
         /**
-         * For each ID with several loadable copies: a directly installed one (or a Poly Mod) wins over nested
+         * For each ID with several loadable copies: a directly installed one (or a Plexus Mod) wins over nested
          * ones, and among nested ones the newest wins.
          */
         private Map<Integer, String> chooseCopies() {
@@ -347,7 +347,7 @@ public final class CrossLoaderModResolver {
                 }
                 if (nativeVersions.containsKey(id)) {
                     nested.forEach(index -> replaced.putIfAbsent(
-                            index, "the Poly Mod '" + id + "' " + nativeVersions.get(id) + " is used instead"));
+                            index, "the Plexus Mod '" + id + "' " + nativeVersions.get(id) + " is used instead"));
                     continue;
                 }
                 if (hostBuilds.containsKey(id)) {
@@ -355,14 +355,14 @@ public final class CrossLoaderModResolver {
                             index, "the host build '" + id + "' " + hostBuilds.get(id) + " is used instead"));
                     continue;
                 }
-                // A library the bridge itself provides on Poly Mod Loader's class path (Fabric's MixinExtras): the
+                // A library the bridge itself provides on Plexus Mod Loader's class path (Fabric's MixinExtras): the
                 // game class loader never defines a mod's copy of its classes, so the copy cannot be used.
                 for (int index : nested) {
                     Map<String, String> builtIn = mods.get(index).bridge().builtInMods();
                     if (builtIn.containsKey(id)) {
                         replaced.putIfAbsent(
                                 index,
-                                "Poly Mod Loader's built-in '" + id + "' " + builtIn.get(id) + " is used instead");
+                                "Plexus Mod Loader's built-in '" + id + "' " + builtIn.get(id) + " is used instead");
                     }
                 }
                 if (nested.stream().allMatch(replaced::containsKey)) {
@@ -450,7 +450,7 @@ public final class CrossLoaderModResolver {
                 List<Integer> indexes = owner.getValue();
                 String reason;
                 if (nativeVersions.containsKey(id)) {
-                    reason = "the ID '" + id + "' is also the ID of an installed Poly Mod; remove one of" + " them";
+                    reason = "the ID '" + id + "' is also the ID of an installed Plexus Mod; remove one of" + " them";
                 } else if (indexes.size() > 1) {
                     reason = "the ID '" + id + "' is used by " + indexes.size() + " installed jars ("
                             + String.join(

@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * Calls a static hook immediately before every return instruction of a method, so Poly Mod Loader can react
+ * Calls a static hook immediately before every return instruction of a method, so Plexus Mod Loader can react
  * after the original body finished or replace the returned value.
  *
  * <p><b>Precondition:</b> the target has a body, is not a class initialiser, and never writes to

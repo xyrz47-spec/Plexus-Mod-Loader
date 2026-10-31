@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * Entrypoint listed under {@code entrypoints.common} in {@code poly.mod.json}. Runs on both the
+ * Entrypoint listed under {@code entrypoints.common} in {@code plexus.mod.json}. Runs on both the
  * client and the dedicated server.
  *
  * <p><b>Timing:</b> called once on the main thread after all mods were discovered, validated, and

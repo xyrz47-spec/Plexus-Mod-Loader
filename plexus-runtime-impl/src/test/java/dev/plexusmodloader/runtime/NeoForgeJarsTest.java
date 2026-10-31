@@ -23,12 +23,12 @@ class NeoForgeJarsTest {
     private static final DiscoveredModFile EVERY_LOADER =
             file("every-loader.jar", ModFileKind.FABRIC, ModFileKind.NEOFORGE, ModFileKind.FORGE);
     private static final DiscoveredModFile LIBRARY = file("library.jar", ModFileKind.FML_LIBRARY);
-    private static final DiscoveredModFile POLY = file("poly.jar", ModFileKind.POLY_NATIVE, ModFileKind.NEOFORGE);
+    private static final DiscoveredModFile PLEXUS = file("plexus.jar", ModFileKind.PLEXUS_NATIVE, ModFileKind.NEOFORGE);
 
     @Test
     void withNeoForgeModsNeoForgeRunsTheJarsForSeveralLoadersAndFmlLibraries() {
-        List<Path> jars =
-                PlexusRuntime.neoForgeJars(List.of(NEOFORGE, FABRIC, FABRIC_AND_NEOFORGE, EVERY_LOADER, LIBRARY, POLY));
+        List<Path> jars = PlexusRuntime.neoForgeJars(
+                List.of(NEOFORGE, FABRIC, FABRIC_AND_NEOFORGE, EVERY_LOADER, LIBRARY, PLEXUS));
 
         assertEquals(List.of(path(NEOFORGE), path(FABRIC_AND_NEOFORGE), path(EVERY_LOADER), path(LIBRARY)), jars);
     }

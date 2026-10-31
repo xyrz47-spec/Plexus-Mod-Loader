@@ -20,24 +20,24 @@ Minecraft 1.21.11 전용 지식을 담습니다. 클라이언트/서버 진입�
 .\gradlew.bat :plexus-bootstrap:serverBootSmokeTest
 ```
 
-실제 1.21.11에서 규칙 승인과 적용을 확인합니다(`serverBootSmokeTest -PpolyMinecraft=1.21.11`). 클라이언트는 아직 실행하지 않았습니다.
+실제 1.21.11에서 규칙 승인과 적용을 확인합니다(`serverBootSmokeTest -PplexusMinecraft=1.21.11`). 클라이언트는 아직 실행하지 않았습니다.
 
 ## 대표 흐름
-`poly:client_brand`(CLIENT)와 `poly:server_brand`(양쪽)가 `"vanilla"`를 `"poly"`로 바꿉니다. 실패 정책은 DISABLE_RULE입니다.
+`plexus:client_brand`(CLIENT)와 `plexus:server_brand`(양쪽)가 `"vanilla"`를 `"plexus"`로 바꿉니다. 실패 정책은 DISABLE_RULE입니다.
 
-`poly:client_title_mod_counts`(CLIENT, DISABLE_RULE)는 타이틀 화면 `TitleScreen.extractRenderState`가 버전 글자를 그리는 유일한 `GuiGraphicsExtractor.text(Font, String, int, int, int)` 호출을 게임 계층의 `client.TitleScreenModCounts.onVersionText`로 바꿉니다(`RedirectCall`, ADR-0013). 훅은 그 줄을 그리고 그 위에 로더별 모드 수를 그립니다. MinecraftForge의 패치에는 이 호출이 없어서 Forge에서는 이 규칙이 꺼지고, `plexus-bridge-forge`의 `poly:client_title_mod_counts_forge`가 대신 Forge 브랜딩 위에 그립니다.
+`plexus:client_title_mod_counts`(CLIENT, DISABLE_RULE)는 타이틀 화면 `TitleScreen.extractRenderState`가 버전 글자를 그리는 유일한 `GuiGraphicsExtractor.text(Font, String, int, int, int)` 호출을 게임 계층의 `client.TitleScreenModCounts.onVersionText`로 바꿉니다(`RedirectCall`, ADR-0013). 훅은 그 줄을 그리고 그 위에 로더별 모드 수를 그립니다. MinecraftForge의 패치에는 이 호출이 없어서 Forge에서는 이 규칙이 꺼지고, `plexus-bridge-forge`의 `plexus:client_title_mod_counts_forge`가 대신 Forge 브랜딩 위에 그립니다.
 
 ## 26.1과 다른 점
 
 **실험 버전입니다**(ADR-0019). `plexus-version-adapter-v26_1`을 복사했습니다. 다시 매핑한 1.21.11 jar에서 `javap`로 찾아 대상을 바꾼 규칙은 다음과 같습니다.
 
-- `poly:use_entity`: `Player.interactOn(Entity, InteractionHand)`
-- `poly:client_hud`: `Gui.render`
-- `poly:client_creative_tabs_hovered`·`_drawn`: `CreativeModeInventoryScreen.render`·`renderBg`
-- `poly:client_title_mod_counts`: `TitleScreen.render`의 `GuiGraphics.drawString`
-- `poly:client_world_painters`: `LevelRenderer.submitEntities`(`renderer.state.LevelRenderState`)
-- `poly:client_shader_uniforms`: `GlRenderPass.setPipeline`(1.21.11의 `RenderPass`는 인터페이스)
-- `poly:client_fov`: `GameRenderer.getFov`
+- `plexus:use_entity`: `Player.interactOn(Entity, InteractionHand)`
+- `plexus:client_hud`: `Gui.render`
+- `plexus:client_creative_tabs_hovered`·`_drawn`: `CreativeModeInventoryScreen.render`·`renderBg`
+- `plexus:client_title_mod_counts`: `TitleScreen.render`의 `GuiGraphics.drawString`
+- `plexus:client_world_painters`: `LevelRenderer.submitEntities`(`renderer.state.LevelRenderState`)
+- `plexus:client_shader_uniforms`: `GlRenderPass.setPipeline`(1.21.11의 `RenderPass`는 인터페이스)
+- `plexus:client_fov`: `GameRenderer.getFov`
 
 `BuiltInRulesTest`(게임 계층 모듈)가 모든 규칙을 다시 매핑한 jar에 적용해 봅니다. `gameVersions()`는 `1.21.11`뿐입니다. 핫픽스는 없습니다.
 

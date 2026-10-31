@@ -12,12 +12,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Static entry points that transformed Minecraft 26.2 code calls. Each hook forwards to the active
- * Poly Mod Loader system, so game code never depends on which mod (if any) replaced the system. Only this
+ * Plexus Mod Loader system, so game code never depends on which mod (if any) replaced the system. Only this
  * version adapter knows that these hooks exist.
  */
 public final class Minecraft26_2Hooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final AtomicBoolean CLIENT_BRAND_REPORTED = new AtomicBoolean();
     private static final AtomicBoolean SERVER_BRAND_REPORTED = new AtomicBoolean();
     private static final AtomicReference<Runnable> MOD_INITIALIZATION = new AtomicReference<>();
@@ -114,7 +114,7 @@ public final class Minecraft26_2Hooks {
         } catch (IllegalStateException e) {
             // Never break the game loop: report once and stop firing server events.
             serverEventsDisabled = true;
-            LOGGER.error("[Poly Mod Loader] {}; server events are disabled for this run", e.getMessage(), e);
+            LOGGER.error("[Plexus Mod Loader] {}; server events are disabled for this run", e.getMessage(), e);
             return null;
         }
     }
@@ -133,11 +133,11 @@ public final class Minecraft26_2Hooks {
         SystemLookup lookup = systems;
         if (lookup == null) {
             throw new IllegalStateException(
-                    "PLEXUS-SYSTEM-006 Minecraft asked for the game brand before Poly Mod Loader bound its systems");
+                    "PLEXUS-SYSTEM-006 Minecraft asked for the game brand before Plexus Mod Loader bound its systems");
         }
         String brand = lookup.get(GameBrandSystem.class).brand(side);
         if (reported.compareAndSet(false, true)) {
-            LOGGER.info("[Poly Mod Loader] {} reported '{}' to Minecraft ({})", GameBrandSystem.ID, brand, side);
+            LOGGER.info("[Plexus Mod Loader] {} reported '{}' to Minecraft ({})", GameBrandSystem.ID, brand, side);
         }
         return brand;
     }

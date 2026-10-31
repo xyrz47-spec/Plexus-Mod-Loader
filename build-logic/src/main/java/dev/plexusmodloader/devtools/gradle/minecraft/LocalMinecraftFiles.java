@@ -25,7 +25,7 @@ import org.gradle.api.provider.Provider;
 final class LocalMinecraftFiles {
 
     /** Gradle property naming the local files directory; overrides {@value #DEFAULT_DIRECTORY}. */
-    static final String PROPERTY = "polyMinecraftFiles";
+    static final String PROPERTY = "plexusMinecraftFiles";
 
     /** Directory under the root project used when {@value #PROPERTY} is not set and it exists. */
     static final String DEFAULT_DIRECTORY = "MinecraftFiles";

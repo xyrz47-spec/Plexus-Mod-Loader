@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
-description = "Public Poly Mod Loader runtime foundation API: stability markers and game side."
+description = "Public Plexus Mod Loader runtime foundation API: stability markers and game side."

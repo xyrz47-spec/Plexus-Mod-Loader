@@ -35,13 +35,13 @@ class EnumExtenderTest {
     @Test
     void addsAStubConstantAfterTheExistingOnes() throws Exception {
         EnumExtender extender = EnumExtender.of(List.of(
-                new ClassTweakerFile.EnumExtension(2, SHADE, "POLY_DIM"),
+                new ClassTweakerFile.EnumExtension(2, SHADE, "PLEXUS_DIM"),
                 new ClassTweakerFile.EnumExtension(3, SHADE, "LIGHT")));
 
         ClassNode node = node(extender.apply(SHADE, bytes(Shade.class)));
 
         List<String> fields = node.fields.stream().map(field -> field.name).toList();
-        assertEquals(List.of("LIGHT", "DARK", "POLY_DIM"), fields.subList(0, 3), "after the existing constants");
+        assertEquals(List.of("LIGHT", "DARK", "PLEXUS_DIM"), fields.subList(0, 3), "after the existing constants");
         assertTrue(fields.indexOf("LABEL") > 2, "other fields come after the added constant");
         FieldNode added = node.fields.get(2);
         assertEquals("L" + SHADE + ";", added.desc);
@@ -55,7 +55,7 @@ class EnumExtenderTest {
 
     @Test
     void theExtendedEnumStillLoadsAndTheStubIsNull() throws Exception {
-        EnumExtender extender = EnumExtender.of(List.of(new ClassTweakerFile.EnumExtension(2, SHADE, "POLY_DIM")));
+        EnumExtender extender = EnumExtender.of(List.of(new ClassTweakerFile.EnumExtension(2, SHADE, "PLEXUS_DIM")));
         byte[] changed = extender.apply(SHADE, bytes(Shade.class));
 
         Class<?> loaded = new ClassLoader(getClass().getClassLoader()) {
@@ -71,7 +71,7 @@ class EnumExtenderTest {
             }
         }.loadClass(Shade.class.getName());
 
-        Field stub = loaded.getField("POLY_DIM");
+        Field stub = loaded.getField("PLEXUS_DIM");
         stub.setAccessible(true); // the test enum is package-private, and this copy is in another class loader
         assertTrue(stub.isEnumConstant());
         assertNull(stub.get(null), "no mixin assigned it, as under Fabric Loader");
@@ -82,7 +82,7 @@ class EnumExtenderTest {
 
     @Test
     void otherClassesAreUntouched() throws Exception {
-        EnumExtender extender = EnumExtender.of(List.of(new ClassTweakerFile.EnumExtension(2, SHADE, "POLY_DIM")));
+        EnumExtender extender = EnumExtender.of(List.of(new ClassTweakerFile.EnumExtension(2, SHADE, "PLEXUS_DIM")));
         byte[] other = bytes(EnumExtenderTest.class);
         assertSame(other, extender.apply(EnumExtenderTest.class.getName(), other));
         assertTrue(EnumExtender.of(List.of()).isEmpty());

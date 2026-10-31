@@ -45,8 +45,8 @@ import org.quiltmc.loader.impl.QuiltLoaderImpl;
  * adapters other than the default come from the loaded mod that declares them; a mod that uses one requires
  * {@code fabric-language-adapter:<name>}. A class tweaker ({@code accessWidener}) is read with Fabric Loader's
  * grammar and its access lines become access widenings the runtime checks and applies (ADR-0018). Mixin configurations
- * are applied by Mixin itself, at the versions Fabric Loader 0.19.5 ships, through Poly Mod Loader's Mixin service (ADR-0020).
- * What Poly Mod Loader cannot provide (enum extension in class tweakers) is
+ * are applied by Mixin itself, at the versions Fabric Loader 0.19.5 ships, through Plexus Mod Loader's Mixin service (ADR-0020).
+ * What Plexus Mod Loader cannot provide (enum extension in class tweakers) is
  * reported per feature and blocks loading. Nested jars ({@code jars}) are reported for the runtime, which extracts them
  * and assesses each one as a mod of its own, as Fabric Loader does.
  *
@@ -67,10 +67,10 @@ public final class FabricBridge implements ModLoaderBridge {
     /** Prefix of the ID a mod provides for each language adapter it declares ({@code languageAdapters}). */
     static final String LANGUAGE_ADAPTER_PREFIX = "fabric-language-adapter:";
 
-    /** Version of the Fabric Loader API jar on Poly Mod Loader's class path, from {@code fabric-bridge.properties}. */
+    /** Version of the Fabric Loader API jar on Plexus Mod Loader's class path, from {@code fabric-bridge.properties}. */
     static final String FABRIC_LOADER_VERSION = BundledVersions.FABRIC_LOADER;
 
-    /** Version of MixinExtras on Poly Mod Loader's class path, reported as the built-in mod {@code mixinextras}. */
+    /** Version of MixinExtras on Plexus Mod Loader's class path, reported as the built-in mod {@code mixinextras}. */
     static final String MIXIN_EXTRAS_VERSION = BundledVersions.MIXIN_EXTRAS;
 
     @Override
@@ -84,7 +84,7 @@ public final class FabricBridge implements ModLoaderBridge {
     }
 
     /**
-     * {@code fabricloader} and MixinExtras, as Fabric Loader has them, and {@code quilt_loader}: Poly Mod Loader
+     * {@code fabricloader} and MixinExtras, as Fabric Loader has them, and {@code quilt_loader}: Plexus Mod Loader
      * provides Quilt Loader's API to every mod (ADR-0027), and Quilt builds that ship only {@code fabric.mod.json}
      * require it, which Quilt Loader meets. {@code FabricLoader.isModLoaded("quilt_loader")} stays {@code false}, as
      * under Fabric Loader, so Fabric mods do not take Quilt-only code paths (Quilt full support Q10).
@@ -100,7 +100,7 @@ public final class FabricBridge implements ModLoaderBridge {
                 BundledVersions.QUILT_LOADER);
     }
 
-    /** Mixin and MixinExtras keep global state; a mod's own copy must never be defined beside Poly Mod Loader's. */
+    /** Mixin and MixinExtras keep global state; a mod's own copy must never be defined beside Plexus Mod Loader's. */
     @Override
     public List<String> sharedLibraryPackages() {
         return List.of("org.spongepowered.", "com.llamalad7.mixinextras.");
@@ -134,8 +134,8 @@ public final class FabricBridge implements ModLoaderBridge {
     public void prepareLaunch(BridgeLaunchContext context) {
         FabricLoaderRuntime fabric =
                 FabricLoaderRuntime.create(context, FABRIC_LOADER_VERSION, Map.of("mixinextras", MIXIN_EXTRAS_VERSION));
-        FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(fabric);
-        QuiltLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(
+        FabricLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(fabric);
+        QuiltLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(
                 QuiltLoaderRuntime.create(context, fabric, BundledVersions.QUILT_LOADER));
         PlexusFabricLauncher.install(context.gameClassLoader(), context.side());
     }
@@ -187,7 +187,7 @@ public final class FabricBridge implements ModLoaderBridge {
         return Optional.of(new FabricClassTransformer(classes, stripper, injector, extender, mixin, hostDefaults));
     }
 
-    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Poly Mod Loader");
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** Logs a default method conflict {@link HostInterfaceDefaults} resolved (ADR-0026 42). */
     private static void reportHostDefault(HostInterfaceDefaults.Resolution resolution) {
@@ -196,7 +196,7 @@ public final class FabricBridge implements ModLoaderBridge {
         if (resolution.sameCode()) {
             LOGGER.info(
                     text,
-                    "[Poly Mod Loader] PLEXUS-COMPAT-223",
+                    "[Plexus Mod Loader] PLEXUS-COMPAT-223",
                     resolution.type(),
                     resolution.method(),
                     resolution.kept(),
@@ -206,7 +206,7 @@ public final class FabricBridge implements ModLoaderBridge {
         } else {
             LOGGER.warn(
                     text,
-                    "[Poly Mod Loader] PLEXUS-COMPAT-223 [limited]",
+                    "[Plexus Mod Loader] PLEXUS-COMPAT-223 [limited]",
                     resolution.type(),
                     resolution.method(),
                     resolution.kept(),
@@ -225,9 +225,9 @@ public final class FabricBridge implements ModLoaderBridge {
     @Override
     public void beforeGame(BridgeLaunchContext context) {
         FabricMixinBootstrap.addShared(context);
-        QuiltLoaderImpl.INSTANCE.polyModLoaderRuntime().invokePreLaunch();
+        QuiltLoaderImpl.INSTANCE.plexusModLoaderRuntime().invokePreLaunch();
         FabricLoaderImpl.INSTANCE
-                .polyModLoaderRuntime()
+                .plexusModLoaderRuntime()
                 .invokeEntrypoints("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
     }
 
@@ -392,7 +392,7 @@ public final class FabricBridge implements ModLoaderBridge {
                         "PLEXUS-COMPAT-107",
                         false,
                         "entrypoint '" + type + "'",
-                        "not run by Poly Mod Loader; other mods can get it through FabricLoader.getEntrypoints"));
+                        "not run by Plexus Mod Loader; other mods can get it through FabricLoader.getEntrypoints"));
                 continue;
             }
             JsonElement list = declared.get(type);
@@ -451,7 +451,7 @@ public final class FabricBridge implements ModLoaderBridge {
         for (Map.Entry<String, JsonElement> entry : declared.entrySet()) {
             if (entry.getKey().equals("quilt_loader")
                     && (kind == BridgedDependency.Kind.BREAKS || kind == BridgedDependency.Kind.CONFLICTS)) {
-                // Fabric Loader, as which Poly Mod Loader runs Fabric mods, never has quilt_loader; it is built in
+                // Fabric Loader, as which Plexus Mod Loader runs Fabric mods, never has quilt_loader; it is built in
                 // only so that Fabric jars made for Quilt find the Quilt Loader API they require (builtInMods).
                 continue;
             }
@@ -503,7 +503,7 @@ public final class FabricBridge implements ModLoaderBridge {
      */
     @Override
     public void invokeEntrypoint(BridgedEntrypoint entrypoint, ClassLoader gameClassLoader) throws Exception {
-        FabricLoaderImpl.INSTANCE.polyModLoaderRuntime().invokeModEntrypoint(entrypoint);
+        FabricLoaderImpl.INSTANCE.plexusModLoaderRuntime().invokeModEntrypoint(entrypoint);
     }
 
     private static boolean nonEmpty(JsonObject root, String field) {

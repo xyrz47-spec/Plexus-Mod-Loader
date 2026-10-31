@@ -35,7 +35,7 @@ import org.objectweb.asm.Type;
 class PlexusRuntimeTest {
 
     private static final List<String> PROPERTIES =
-            List.of("poly.test.brand", "poly.test.loader", "poly.test.mod", "poly.test.storage");
+            List.of("plexus.test.brand", "plexus.test.loader", "plexus.test.mod", "plexus.test.storage");
 
     @TempDir
     Path directory;
@@ -54,12 +54,13 @@ class PlexusRuntimeTest {
             assertEquals("test-1", game.gameVersion());
         }
 
-        assertEquals("plexus", System.getProperty("poly.test.brand"), "game saw the default plexus:game_brand system");
         assertEquals(
-                "poly-game",
-                System.getProperty("poly.test.loader"),
-                "game classes come from the Poly Mod Loader loader");
-        assertEquals("test_mod", System.getProperty("poly.test.mod"), "mod entrypoint ran with its context");
+                "plexus", System.getProperty("plexus.test.brand"), "game saw the default plexus:game_brand system");
+        assertEquals(
+                "plexus-game",
+                System.getProperty("plexus.test.loader"),
+                "game classes come from the Plexus Mod Loader loader");
+        assertEquals("test_mod", System.getProperty("plexus.test.mod"), "mod entrypoint ran with its context");
     }
 
     @Test
@@ -70,8 +71,8 @@ class PlexusRuntimeTest {
             assertEquals("brand_mod", game.systems().activeSystems().getFirst().providerModId());
         }
 
-        assertEquals("test/brand", System.getProperty("poly.test.brand"), "game saw the replacement provider");
-        StartupReport report = StartupReport.read(directory.resolve(".poly").resolve(StartupReport.FILE_NAME));
+        assertEquals("test/brand", System.getProperty("plexus.test.brand"), "game saw the replacement provider");
+        StartupReport report = StartupReport.read(directory.resolve(".plexus").resolve(StartupReport.FILE_NAME));
         assertEquals("brand_mod", report.systems().getFirst().providerMod());
         assertEquals("testbrand.Provider", report.systems().getFirst().provider());
         assertEquals("test:brand", report.acceptedTransformations().getFirst().ruleId());
@@ -93,7 +94,7 @@ class PlexusRuntimeTest {
                         .startsWith(
                                 "PLEXUS-SYSTEM-001 system=plexus:game_brand: mods [first_brand, " + "second_brand]"),
                 failure.getMessage());
-        assertNull(System.getProperty("poly.test.brand"), "the game must not start after a conflict");
+        assertNull(System.getProperty("plexus.test.brand"), "the game must not start after a conflict");
     }
 
     @Test
@@ -116,17 +117,17 @@ class PlexusRuntimeTest {
         try (LaunchedGame game = new PlexusRuntime().launch(configuration(gameJar(), transformMod), new String[0])) {
             game.shutdown().runShutdownTasks();
         }
-        assertEquals("Anvil+mod", System.getProperty("poly.test.storage"), "the mod's rule changed game behaviour");
+        assertEquals("Anvil+mod", System.getProperty("plexus.test.storage"), "the mod's rule changed game behaviour");
         TransformationReport first =
-                TransformationReport.read(directory.resolve(".poly/" + TransformationReport.FILE_NAME));
+                TransformationReport.read(directory.resolve(".plexus/" + TransformationReport.FILE_NAME));
 
-        System.clearProperty("poly.test.storage");
+        System.clearProperty("plexus.test.storage");
         try (LaunchedGame game = new PlexusRuntime().launch(configuration(gameJar(), transformMod), new String[0])) {
             game.shutdown().runShutdownTasks();
         }
-        assertEquals("Anvil+mod", System.getProperty("poly.test.storage"));
+        assertEquals("Anvil+mod", System.getProperty("plexus.test.storage"));
         TransformationReport second =
-                TransformationReport.read(directory.resolve(".poly/" + TransformationReport.FILE_NAME));
+                TransformationReport.read(directory.resolve(".plexus/" + TransformationReport.FILE_NAME));
 
         assertEquals(
                 List.of("transform_mod:storage_name"),
@@ -148,7 +149,7 @@ class PlexusRuntimeTest {
 
         assertEquals("TRANSFORMATION_PLANNING", failure.phase());
         assertTrue(failure.problems().getFirst().startsWith("PLEXUS-TRANSFORM-003 rule=transform_mod:storage_name"));
-        assertNull(System.getProperty("poly.test.storage"), "the game must not start");
+        assertNull(System.getProperty("plexus.test.storage"), "the game must not start");
     }
 
     private static dev.plexusmodloader.internal.transform.engine.TransformReportEntry entry(
@@ -170,8 +171,8 @@ class PlexusRuntimeTest {
         assertEquals("DEPENDENCY_RESOLUTION", failure.phase());
         assertTrue(
                 failure.problems().getFirst().startsWith("PLEXUS-DEPENDENCY-003 mod=test_mod"), failure.getMessage());
-        assertNull(System.getProperty("poly.test.mod"), "no entrypoint may run after a failed phase");
-        assertNull(System.getProperty("poly.test.brand"), "the game must not start after a failed phase");
+        assertNull(System.getProperty("plexus.test.mod"), "no entrypoint may run after a failed phase");
+        assertNull(System.getProperty("plexus.test.brand"), "the game must not start after a failed phase");
     }
 
     @Test
@@ -207,8 +208,8 @@ class PlexusRuntimeTest {
                 mods,
                 List.of(devMods),
                 Optional.empty(),
-                directory.resolve(".poly"),
-                Optional.of(directory.resolve(".poly/transform-cache")));
+                directory.resolve(".plexus"),
+                Optional.of(directory.resolve(".plexus/transform-cache")));
     }
 
     private Path gameJar() throws IOException {
@@ -221,7 +222,7 @@ class PlexusRuntimeTest {
                         "fakegame/StorageName.class", storageNameClass()));
     }
 
-    private Path modJar(String polyRange, String minecraft) throws IOException {
+    private Path modJar(String plexusRange, String minecraft) throws IOException {
         String metadata = """
                 {
                   "schemaVersion": 1,
@@ -231,9 +232,9 @@ class PlexusRuntimeTest {
                   "environment": "both",
                   "minecraft": ["%s"],
                   "entrypoints": { "common": ["testmod.Init"] },
-                  "depends": { "poly": "%s" }
+                  "depends": { "plexus": "%s" }
                 }
-                """.formatted(minecraft, polyRange);
+                """.formatted(minecraft, plexusRange);
         return jar(
                 "test-mod.jar",
                 Map.of(
@@ -253,7 +254,7 @@ class PlexusRuntimeTest {
                   "name": "Transform Mod",
                   "environment": "both",
                   "minecraft": ["test-1"],
-                  "depends": { "poly": "*" },
+                  "depends": { "plexus": "*" },
                   "capabilities": ["internal.bytecode.transform"],
                   "transforms": [{
                     "id": "transform_mod:storage_name",
@@ -282,9 +283,9 @@ class PlexusRuntimeTest {
         return writer.toByteArray();
     }
 
-    /** A mod whose provider class {@code testbrand.Provider} replaces {@code poly:game_brand} with {@code test/brand}. */
+    /** A mod whose provider class {@code testbrand.Provider} replaces {@code plexus:game_brand} with {@code test/brand}. */
     private Path brandMod(String id, boolean override, List<String> depends) throws IOException {
-        StringBuilder dependencies = new StringBuilder("\"poly\": \"*\"");
+        StringBuilder dependencies = new StringBuilder("\"plexus\": \"*\"");
         depends.forEach(
                 dependency -> dependencies.append(", \"").append(dependency).append("\": \"*\""));
         String metadata = """
@@ -298,7 +299,7 @@ class PlexusRuntimeTest {
                   "depends": { %s },
                   "capabilities": ["system.provider.replace"],
                   "replacesSystems": [
-                    { "system": "poly:game_brand", "provider": "testbrand.Provider", "override": %s }
+                    { "system": "plexus:game_brand", "provider": "testbrand.Provider", "override": %s }
                   ]
                 }
                 """.formatted(id, id, dependencies, override);
@@ -329,7 +330,7 @@ class PlexusRuntimeTest {
         MethodVisitor create = writer.visitMethod(
                 Opcodes.ACC_PUBLIC,
                 "create",
-                "(Ldev/plexusmodloader/api/system/SystemContext;)Ldev/plexusmodloader/api/system/PolySystem;",
+                "(Ldev/plexusmodloader/api/system/SystemContext;)Ldev/plexusmodloader/api/system/PlexusSystem;",
                 null,
                 null);
         create.visitCode();
@@ -385,16 +386,16 @@ class PlexusRuntimeTest {
         MethodVisitor main = writer.visitMethod(
                 Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
         main.visitCode();
-        main.visitLdcInsn("poly.test.brand");
+        main.visitLdcInsn("plexus.test.brand");
         main.visitMethodInsn(Opcodes.INVOKESTATIC, "fakegame/Brand", "brand", "()Ljava/lang/String;", false);
         setProperty(main);
-        main.visitLdcInsn("poly.test.loader");
+        main.visitLdcInsn("plexus.test.loader");
         main.visitLdcInsn(Type.getObjectType("fakegame/Main"));
         main.visitMethodInsn(
                 Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false);
         main.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/ClassLoader", "getName", "()Ljava/lang/String;", false);
         setProperty(main);
-        main.visitLdcInsn("poly.test.storage");
+        main.visitLdcInsn("plexus.test.storage");
         main.visitMethodInsn(Opcodes.INVOKESTATIC, "fakegame/StorageName", "name", "()Ljava/lang/String;", false);
         setProperty(main);
         main.visitInsn(Opcodes.RETURN);
@@ -422,7 +423,7 @@ class PlexusRuntimeTest {
                 null,
                 null);
         initialize.visitCode();
-        initialize.visitLdcInsn("poly.test.mod");
+        initialize.visitLdcInsn("plexus.test.mod");
         initialize.visitVarInsn(Opcodes.ALOAD, 1);
         initialize.visitMethodInsn(
                 Opcodes.INVOKEINTERFACE,

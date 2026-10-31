@@ -21,13 +21,13 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Mod data attached to entities, kept beside the game's entity objects (weakly, so unloaded
- * entities are collected) and saved under {@code poly_entity_data} in the entity's own save data.
+ * entities are collected) and saved under {@code plexus_entity_data} in the entity's own save data.
  */
 final class EntityData {
 
-    private static final String KEY = "poly_entity_data";
+    private static final String KEY = "plexus_entity_data";
     /** Reserved key that holds a data version inside each saved tree. */
-    private static final String VERSION_KEY = "poly_version";
+    private static final String VERSION_KEY = "plexus_version";
 
     // Weak identity keys: Entity.equals compares entity IDs, and a respawn gives the new player object
     // the old one's ID after its data was copied, so an equality-keyed map would mix the two up.

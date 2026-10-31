@@ -31,21 +31,21 @@ final class LoadedModCounter {
     private LoadedModCounter() {}
 
     /**
-     * @param polyModIds IDs of the Poly mods Poly Mod Loader loads
+     * @param plexusModIds IDs of the Plexus mods Plexus Mod Loader loads
      * @param foreignModIdsByLoader IDs of the mods each bridge loads, by the bridge's loader name; only Fabric's and
      *     Quilt's count (no other bridge loads mods itself)
      * @param hostModIds IDs of the mods MinecraftForge's FML loads itself as the host (ADR-0021), empty without that
      *     host
      */
     static LoadedModCounts count(
-            Collection<String> polyModIds,
+            Collection<String> plexusModIds,
             Map<String, ? extends Collection<String>> foreignModIdsByLoader,
             Collection<String> hostModIds) {
-        return count(polyModIds, foreignModIdsByLoader, hostModIds, Set.of());
+        return count(plexusModIds, foreignModIdsByLoader, hostModIds, Set.of());
     }
 
     /**
-     * @param polyModIds IDs of the Poly mods Poly Mod Loader loads
+     * @param plexusModIds IDs of the Plexus mods Plexus Mod Loader loads
      * @param foreignModIdsByLoader IDs of the mods each bridge loads, by the bridge's loader name; only Fabric's and
      *     Quilt's count (no other bridge loads mods itself)
      * @param forgeModIds IDs of the mods MinecraftForge's FML loads itself as the host (ADR-0021)
@@ -53,14 +53,14 @@ final class LoadedModCounter {
      *     one host, so one of the two is empty
      */
     static LoadedModCounts count(
-            Collection<String> polyModIds,
+            Collection<String> plexusModIds,
             Map<String, ? extends Collection<String>> foreignModIdsByLoader,
             Collection<String> forgeModIds,
             Collection<String> neoForgeModIds) {
         Collection<String> fabricModIds = foreignModIdsByLoader.get(FABRIC);
         Collection<String> quiltModIds = foreignModIdsByLoader.get(QUILT);
         return new LoadedModCounts(
-                distinctMods(polyModIds),
+                distinctMods(plexusModIds),
                 distinctMods(fabricModIds == null ? Set.of() : fabricModIds),
                 distinctMods(forgeModIds),
                 distinctMods(quiltModIds == null ? Set.of() : quiltModIds),

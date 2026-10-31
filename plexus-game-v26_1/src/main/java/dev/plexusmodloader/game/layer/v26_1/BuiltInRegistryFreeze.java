@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The tag binding in {@code BuiltInRegistries.freeze()} when that freeze runs a second time (ADR-0026 38, rule {@code
- * poly:builtin_registries_refreeze}). Fabric API's registry sync keeps the built-in registries open past {@code
+ * plexus:builtin_registries_refreeze}). Fabric API's registry sync keeps the built-in registries open past {@code
  * Bootstrap.bootStrap} and freezes them after mod initialization with {@code BuiltInRegistries.bootStrap()}: on the
  * client from {@code Minecraft.<init>} ({@code MinecraftMixin.afterModInit}), on a dedicated server from {@code
  * Main.main} ({@code MainMixin.afterModInit}). Under NeoForge, NeoForge has frozen them by then with {@code
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class BuiltInRegistryFreeze {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final AtomicBoolean REPORTED = new AtomicBoolean();
     private static final Field FROZEN = frozenField();
 
@@ -49,7 +49,7 @@ public final class BuiltInRegistryFreeze {
         if (frozen(mapped)) {
             if (REPORTED.compareAndSet(false, true)) {
                 LOGGER.info(
-                        "[Poly Mod Loader] The built-in registries are frozen a second time ({} first): registries"
+                        "[Plexus Mod Loader] The built-in registries are frozen a second time ({} first): registries"
                                 + " another loader froze keep their tags (ADR-0026 38)",
                         mapped.key());
             }
@@ -77,7 +77,7 @@ public final class BuiltInRegistryFreeze {
             return field;
         } catch (NoSuchFieldException | InaccessibleObjectException | SecurityException e) {
             LOGGER.warn(
-                    "[Poly Mod Loader] MappedRegistry.frozen cannot be read ({}); a second freeze of the built-in"
+                    "[Plexus Mod Loader] MappedRegistry.frozen cannot be read ({}); a second freeze of the built-in"
                             + " registries binds their tags as vanilla does",
                     e.toString());
             return null;

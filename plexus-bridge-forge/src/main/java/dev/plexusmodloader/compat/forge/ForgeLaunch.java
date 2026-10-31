@@ -13,10 +13,10 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /**
- * FML set up by Poly Mod Loader's implementation of ModLauncher's contracts (ADR-0021), ready to start the game. The
+ * FML set up by Plexus Mod Loader's implementation of ModLauncher's contracts (ADR-0021), ready to start the game. The
  * implementation runs inside the boot layer's {@code cpw.mods.modlauncher} module ({@code PlexusModLauncher}, built from
  * the {@code forgeHost} source set); this side and that one meet only through this interface, JDK types and the bridge
- * API, which both see from Poly Mod Loader's class path.
+ * API, which both see from Plexus Mod Loader's class path.
  */
 @ApiStability(StabilityLevel.INTERNAL)
 public interface ForgeLaunch {
@@ -24,19 +24,19 @@ public interface ForgeLaunch {
     /**
      * What {@code PlexusModLauncher.start} needs.
      *
-     * @param launchTarget Forge's launch handler: {@code forge_server}, {@code forge_client}, or Poly Mod Loader's {@code
-     *     polymodloader_server_gametest}
+     * @param launchTarget Forge's launch handler: {@code forge_server}, {@code forge_client}, or Plexus Mod Loader's {@code
+     *     plexusmodloader_server_gametest}
      * @param minecraftVersion the game version, ModLauncher's {@code --version}
-     * @param modJars the Forge mods Poly Mod Loader found and FML will accept; those that provide a ModLauncher or FML
+     * @param modJars the Forge mods Plexus Mod Loader found and FML will accept; those that provide a ModLauncher or FML
      *     service go to the SERVICE layer, in place of FML's own scan of the mods folder
-     * @param otherMods the Poly Mods and other loaders' mods in this launch, which FML's mod list answers for
+     * @param otherMods the Plexus Mods and other loaders' mods in this launch, which FML's mod list answers for
      *     (ADR-0025)
      * @param bootLayer the layer with FML's loader libraries and the {@code cpw.mods.modlauncher} module
      * @param layers defines the SERVICE, PLUGIN and GAME layers in the game class loader
      * @param classes the game class loader's classes, for launch plugins that read other classes
      * @param layerModules applied to each module of the SERVICE, PLUGIN and GAME layers before the layer is defined;
-     *     Poly Mod Loader's checked patches of FML's own classes ({@link ForgeModListPatch}, ADR-0025)
-     * @param sharedMixin whether the Mixin on Poly Mod Loader's class path serves the Forge mods too (Fabric mods run in
+     *     Plexus Mod Loader's checked patches of FML's own classes ({@link ForgeModListPatch}, ADR-0025)
+     * @param sharedMixin whether the Mixin on Plexus Mod Loader's class path serves the Forge mods too (Fabric mods run in
      *     the same launch, ADR-0021 G8); the GAME layer then leaves out the MixinExtras jars FML selected, as MixinExtras
      *     comes from that class path
      */

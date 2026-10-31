@@ -9,8 +9,8 @@ import java.util.Set;
 /**
  * One access widening a foreign mod asks for, already translated by its bridge into Minecraft's own names
  * (Fabric class tweakers, ADR-0018). The runtime checks the target against the game jar before the mod
- * loads and turns the widening into a transform-engine widening; it means exactly what Poly Mod Loader's {@code
- * accessWidenings} in {@code poly.mod.json} mean (ADR-0013).
+ * loads and turns the widening into a transform-engine widening; it means exactly what Plexus Mod Loader's {@code
+ * accessWidenings} in {@code plexus.mod.json} mean (ADR-0013).
  *
  * @param source where the widening was declared, as {@code file:line}, for diagnostics
  * @param owner the class, or the class declaring the member, as a JVM internal name

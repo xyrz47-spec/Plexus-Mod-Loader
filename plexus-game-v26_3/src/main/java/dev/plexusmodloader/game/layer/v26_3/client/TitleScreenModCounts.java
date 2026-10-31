@@ -21,11 +21,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * How many mods each loader loaded, at the bottom left of the title screen, above the version text ({@link
- * ModCountLines}). The rule {@code poly:client_title_mod_counts} redirects the title screen's one call that draws the
+ * ModCountLines}). The rule {@code plexus:client_title_mod_counts} redirects the title screen's one call that draws the
  * version text to {@link #onVersionText}; under MinecraftForge, whose patch draws its own branding there instead, the
  * Forge bridge draws {@link #lines()} above Forge's lines (through {@code GameLayer.brandingLines()}).
  *
- * <p>Texts: the game's current language first ({@link Language}, so a resource pack can change them), then Poly Mod
+ * <p>Texts: the game's current language first ({@link Language}, so a resource pack can change them), then Plexus Mod
  * Loader's own file for the selected language over its English one. The lines are worked out again when the language
  * changes (a new {@link Language} after the resource reload, or another selected code).
  *
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class TitleScreenModCounts {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final AtomicBoolean REPORTED = new AtomicBoolean();
 
     /** The lines for one language. */
@@ -57,7 +57,7 @@ public final class TitleScreenModCounts {
         }
         if (!lines.isEmpty() && REPORTED.compareAndSet(false, true)) {
             LOGGER.info(
-                    "[Poly Mod Loader] Title screen: {} line(s) of mod counts drawn above the version text: {}",
+                    "[Plexus Mod Loader] Title screen: {} line(s) of mod counts drawn above the version text: {}",
                     lines.size(),
                     String.join(" | ", lines));
         }
@@ -87,7 +87,7 @@ public final class TitleScreenModCounts {
         return current.lines();
     }
 
-    /** Poly Mod Loader's own texts for {@code languageCode}, over its English ones; English for a language it has no file for. */
+    /** Plexus Mod Loader's own texts for {@code languageCode}, over its English ones; English for a language it has no file for. */
     static Map<String, String> bundledTexts(String languageCode) {
         Map<String, String> texts = new HashMap<>();
         readBundled(ModCountLines.DEFAULT_LANGUAGE, texts);
@@ -105,7 +105,7 @@ public final class TitleScreenModCounts {
         try (InputStream in = file.get()) {
             Language.loadFromJson(in, texts::put);
         } catch (IOException e) {
-            throw new UncheckedIOException("Poly Mod Loader's language file " + languageCode + " cannot be read", e);
+            throw new UncheckedIOException("Plexus Mod Loader's language file " + languageCode + " cannot be read", e);
         }
     }
 }

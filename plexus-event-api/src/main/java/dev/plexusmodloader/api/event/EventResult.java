@@ -10,7 +10,7 @@ import dev.plexusmodloader.api.stability.StabilityLevel;
  * <p><b>Convention</b> (the same for every decision event): listeners run in {@link EventPriority}
  * order; the first listener that returns {@link #ALLOW} or {@link #DENY} decides, and the listeners
  * after it are not called. When every listener returns {@link #PASS}, the game does what it would
- * have done without Poly Mod Loader. A listener that throws counts as {@link #PASS} and is disabled
+ * have done without Plexus Mod Loader. A listener that throws counts as {@link #PASS} and is disabled
  * ({@code PLEXUS-EVENT-001}); a listener that returns {@code null} is treated the same way
  * ({@code PLEXUS-EVENT-003}).
  *

@@ -73,16 +73,16 @@ public final class ClassTransformExecutor {
     }
 
     /**
-     * Fingerprint of everything in the engine that can change transformation output: the Poly Mod Loader
+     * Fingerprint of everything in the engine that can change transformation output: the Plexus Mod Loader
      * version, the engine revision, and the ASM API level and version.
      */
-    public static String fingerprint(String polyVersion) {
+    public static String fingerprint(String plexusVersion) {
         String asmVersion = Optional.ofNullable(ClassReader.class.getPackage().getImplementationVersion())
                 .orElse("unknown");
         // engine=2: rules on one method are combined in declared order; access widening.
         // engine=3: extendable constructors; interface fields stay final when made mutable.
         // engine=4: call-site observers (InvokeHookAtCall).
-        return "poly=" + polyVersion + ";engine=4;asm-api=" + Opcodes.ASM9 + ";asm=" + asmVersion;
+        return "plexus=" + plexusVersion + ";engine=4;asm-api=" + Opcodes.ASM9 + ";asm=" + asmVersion;
     }
 
     /** Whether the plan has rules or access widenings for {@code internalName}. */
@@ -119,7 +119,7 @@ public final class ClassTransformExecutor {
     /**
      * The first of two passes for a class that another transformer (a loader bridge's Mixin) changes in between: every
      * rule and access widening except call redirects ({@link RedirectCall}), which {@link #transformLate} applies
-     * afterwards (ADR-0020). The other transformer then sees each call Poly Mod Loader redirects as the game has it, so its
+     * afterwards (ADR-0020). The other transformer then sees each call Plexus Mod Loader redirects as the game has it, so its
      * own injections at that call still find it.
      */
     public byte[] transformEarly(String internalName, byte[] original) {

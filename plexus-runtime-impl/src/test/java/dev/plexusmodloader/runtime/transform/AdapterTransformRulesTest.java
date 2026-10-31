@@ -21,13 +21,13 @@ class AdapterTransformRulesTest {
     private static TransformRuleDefinition rule(String id, String gameVersion) {
         return new TransformRuleDefinition(
                 id,
-                "poly",
+                "plexus",
                 gameVersion,
                 EnumSet.allOf(GameSide.class),
                 new MethodTarget("game/Server", "tick", "()V"),
                 new InjectStaticCallAtHead("hooks/Hooks", "onTick"),
                 TransformFailurePolicy.ABORT_STARTUP,
-                List.of("poly:other"));
+                List.of("plexus:other"));
     }
 
     /** Covers 26.1 and its hotfixes; one rule names a version the adapter does not cover. */
@@ -54,7 +54,7 @@ class AdapterTransformRulesTest {
 
         @Override
         public List<TransformRuleDefinition> builtInTransformRules() {
-            return List.of(rule("poly:tick", "26.1"), rule("poly:stale", "26.0"));
+            return List.of(rule("plexus:tick", "26.1"), rule("plexus:stale", "26.0"));
         }
     };
 

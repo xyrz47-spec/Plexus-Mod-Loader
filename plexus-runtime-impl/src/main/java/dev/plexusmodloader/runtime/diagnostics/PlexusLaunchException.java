@@ -38,7 +38,7 @@ public final class PlexusLaunchException extends RuntimeException {
     }
 
     private static String format(String phase, List<String> problems) {
-        StringBuilder message = new StringBuilder("Poly Mod Loader launch stopped in phase ")
+        StringBuilder message = new StringBuilder("Plexus Mod Loader launch stopped in phase ")
                 .append(phase)
                 .append(" with ")
                 .append(problems.size())

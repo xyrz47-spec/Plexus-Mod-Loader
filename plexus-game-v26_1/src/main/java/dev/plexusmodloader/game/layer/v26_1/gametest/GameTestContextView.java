@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 /** {@link GameTestContext} over the game's {@link GameTestHelper}. */
 final class GameTestContextView implements GameTestContext {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Field TEST_INFO;
 
     static {
@@ -120,7 +120,7 @@ final class GameTestContextView implements GameTestContext {
         // As GameTestHelper.makeMockServerPlayerInLevel, but a plain survival player: that helper's
         // player always reports creative mode.
         CommonListenerCookie cookie =
-                CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "poly-test-player"), false);
+                CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "plexus-test-player"), false);
         ServerPlayer player =
                 new ServerPlayer(server, helper.getLevel(), cookie.gameProfile(), cookie.clientInformation());
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
@@ -286,7 +286,7 @@ final class GameTestContextView implements GameTestContext {
         try {
             return server.getCommands().getDispatcher().execute(command, source);
         } catch (CommandSyntaxException e) {
-            LOGGER.info("[Poly Mod Loader] Game test command '{}' failed: {}", command, e.getMessage());
+            LOGGER.info("[Plexus Mod Loader] Game test command '{}' failed: {}", command, e.getMessage());
             return 0;
         }
     }

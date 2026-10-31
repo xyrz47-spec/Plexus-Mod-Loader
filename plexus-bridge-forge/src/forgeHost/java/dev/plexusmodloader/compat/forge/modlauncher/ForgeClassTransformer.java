@@ -28,7 +28,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
- * ModLauncher's class transformation, as Poly Mod Loader's game class loader stage (ADR-0021). For each class, in the
+ * ModLauncher's class transformation, as Plexus Mod Loader's game class loader stage (ADR-0021). For each class, in the
  * order ModLauncher documents for its services:
  *
  * <ol>
@@ -38,7 +38,7 @@ import org.objectweb.asm.tree.MethodNode;
  *   <li>launch plugins in the {@code AFTER} phase.
  * </ol>
  *
- * <p>A class nothing touches keeps its bytes. Written for Poly Mod Loader from ModLauncher's public API; not ModLauncher's
+ * <p>A class nothing touches keeps its bytes. Written for Plexus Mod Loader from ModLauncher's public API; not ModLauncher's
  * code.
  *
  * <p>Thread: the game class loader calls it from any thread; the transformer registry is fixed before the first call.
@@ -81,7 +81,7 @@ final class ForgeClassTransformer implements BridgeClassTransformer {
 
     @Override
     public String name() {
-        return "ModLauncher services (Poly Mod Loader)";
+        return "ModLauncher services (Plexus Mod Loader)";
     }
 
     @Override

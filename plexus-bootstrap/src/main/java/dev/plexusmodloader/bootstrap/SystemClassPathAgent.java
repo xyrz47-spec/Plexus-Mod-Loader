@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.jar.JarFile;
 
 /**
- * Poly Mod Loader's Java agent (ADR-0024). It only keeps the {@link Instrumentation} the JVM hands it, so the launcher can
+ * Plexus Mod Loader's Java agent (ADR-0024). It only keeps the {@link Instrumentation} the JVM hands it, so the launcher can
  * append jars to the JVM's class path later (Forge's file systems, which Java finds only through the system class
  * loader, when Forge mods are present) and open JDK packages to the modules of NeoForge's loader (ADR-0026), as
  * NeoForge's own launcher profile does with {@code --add-opens}. It registers no class transformer and does nothing
@@ -18,7 +18,7 @@ import java.util.jar.JarFile;
  *
  * <p>The JVM starts it before {@link PlexusLauncherMain#main}: with {@code -javaagent:<this jar>} (the launcher profile's
  * JVM argument; this jar's manifest names it as {@code Premain-Class}), or as the {@code Launcher-Agent-Class} of an
- * executable jar (the server's {@code polymodloader-server.jar}, whose {@code Class-Path} has this jar).
+ * executable jar (the server's {@code plexusmodloader-server.jar}, whose {@code Class-Path} has this jar).
  *
  * <p>Thread: the JVM calls {@link #premain}/{@link #agentmain} on the main thread before the main method.
  */

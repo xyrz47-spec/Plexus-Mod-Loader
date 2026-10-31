@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 /**
  * FML's GAME layer for a launch where one Mixin serves Forge and Fabric mods (ADR-0021 G8): MixinExtras then comes from
- * Poly Mod Loader's class path for every mod, and defines the classes it generates there ({@code LocalRef}
+ * Plexus Mod Loader's class path for every mod, and defines the classes it generates there ({@code LocalRef}
  * implementations, in the package of its {@code GeneratedImplDummy}). A MixinExtras module in the GAME layer would hold
  * MixinExtras' packages in the game class loader, which resolves a module's packages before its parent, so game classes
  * a mixin made use those classes would not find them ({@code NoClassDefFoundError: ...LocalRefImpl}).
@@ -22,15 +22,15 @@ import java.util.function.Consumer;
  */
 final class SharedMixinExtras {
 
-    /** The class every MixinExtras jar has; Poly Mod Loader's class path has it when Fabric's Mixin is shared. */
+    /** The class every MixinExtras jar has; Plexus Mod Loader's class path has it when Fabric's Mixin is shared. */
     static final String MIXIN_EXTRAS = "com/llamalad7/mixinextras/MixinExtrasBootstrap.class";
 
     private SharedMixinExtras() {}
 
     /**
-     * {@code gameJars} without the jars that hold MixinExtras itself, when Poly Mod Loader's class path has MixinExtras
+     * {@code gameJars} without the jars that hold MixinExtras itself, when Plexus Mod Loader's class path has MixinExtras
      * ({@code classPathHasMixinExtras}); otherwise {@code gameJars} as they are. MixinExtras' platform jar ({@code
-     * mixinextras-forge}, whose classes Poly Mod Loader's class path does not have) stays.
+     * mixinextras-forge}, whose classes Plexus Mod Loader's class path does not have) stays.
      *
      * @param log gets a line for each jar left out
      */

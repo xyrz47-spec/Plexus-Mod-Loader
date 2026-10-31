@@ -52,7 +52,7 @@ class ClassTransformPlannerTest {
 
         assertEquals(List.of(), plan.rejected());
         assertArrayEquals(BRAND_SOURCE, input, "input bytes must not be modified");
-        assertEquals("poly", invokeBrand(transformed));
+        assertEquals("plexus", invokeBrand(transformed));
         assertEquals(List.of("test:brand"), reported.getFirst().appliedRuleIds());
         assertTrue(
                 !reported.getFirst().sha256Before().equals(reported.getFirst().sha256After()));
@@ -159,7 +159,7 @@ class ClassTransformPlannerTest {
                 "26.2",
                 Set.of(GameSide.CLIENT),
                 BRAND,
-                new ReplaceReturnedStringConstant("vanilla", "poly"),
+                new ReplaceReturnedStringConstant("vanilla", "plexus"),
                 TransformFailurePolicy.DISABLE_RULE);
 
         TransformPlan plan = planner.plan(List.of(clientOnly), "26.2", GameSide.DEDICATED_SERVER, CLASSES);
@@ -221,7 +221,7 @@ class ClassTransformPlannerTest {
                 "26.2",
                 EnumSet.allOf(GameSide.class),
                 target,
-                new ReplaceReturnedStringConstant(expectedConstant, "poly"),
+                new ReplaceReturnedStringConstant(expectedConstant, "plexus"),
                 TransformFailurePolicy.DISABLE_RULE);
     }
 

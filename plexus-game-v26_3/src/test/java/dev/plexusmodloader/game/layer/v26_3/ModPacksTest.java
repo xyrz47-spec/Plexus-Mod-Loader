@@ -30,8 +30,8 @@ class ModPacksTest {
             {
               "pack": {"description": "Demo", "min_format": 84, "max_format": 121},
               "overlays": {"entries": [
-                {"directory": "poly_26_3", "min_format": 121, "max_format": 121},
-                {"directory": "poly_26_3_assets", "min_format": 97, "max_format": 97}
+                {"directory": "plexus_26_3", "min_format": 121, "max_format": 121},
+                {"directory": "plexus_26_3_assets", "min_format": 97, "max_format": 97}
               ]}
             }
             """;
@@ -50,8 +50,8 @@ class ModPacksTest {
     void theDataOverlayOnTheServerAndTheAssetsOverlayOnTheClient() throws IOException {
         Path jar = jar("pack.mcmeta", TWO_OVERLAYS);
 
-        assertEquals(List.of("poly_26_3"), overlays(jar, PackType.SERVER_DATA));
-        assertEquals(List.of("poly_26_3_assets"), overlays(jar, PackType.CLIENT_RESOURCES));
+        assertEquals(List.of("plexus_26_3"), overlays(jar, PackType.SERVER_DATA));
+        assertEquals(List.of("plexus_26_3_assets"), overlays(jar, PackType.CLIENT_RESOURCES));
     }
 
     @Test
@@ -70,7 +70,7 @@ class ModPacksTest {
 
     private static List<String> overlays(Path jar, PackType type) {
         PackLocationInfo location =
-                new PackLocationInfo("poly/demo", Component.literal("Demo"), PackSource.BUILT_IN, Optional.empty());
+                new PackLocationInfo("plexus/demo", Component.literal("Demo"), PackSource.BUILT_IN, Optional.empty());
         return ModPacks.overlays(location, new FilePackResources.FileResourcesSupplier(jar), type, jar);
     }
 

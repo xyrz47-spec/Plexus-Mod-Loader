@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
- * Main class of {@code PolyModLoader-<version>.jar}.
+ * Main class of {@code PlexusModLoader-<version>.jar}.
  * Without arguments it opens the installer window; with arguments it is a command line tool.
  */
 public final class InstallerMain {
@@ -20,7 +20,7 @@ public final class InstallerMain {
             payload = InstallerPayload.bundled();
         } catch (IOException | RuntimeException e) {
             fail(
-                    "This Poly Mod Loader installer is damaged: " + e.getMessage() + ". Download it again.",
+                    "This Plexus Mod Loader installer is damaged: " + e.getMessage() + ". Download it again.",
                     args.length == 0);
             return;
         }
@@ -33,7 +33,7 @@ public final class InstallerMain {
 
     private static void fail(String message, boolean window) {
         if (window && !GraphicsEnvironment.isHeadless()) {
-            JOptionPane.showMessageDialog(null, message, "Poly Mod Loader", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, message, "Plexus Mod Loader", JOptionPane.ERROR_MESSAGE);
         } else {
             System.err.println(message);
         }

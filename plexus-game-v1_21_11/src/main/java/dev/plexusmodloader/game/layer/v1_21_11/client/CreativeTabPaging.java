@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class CreativeTabPaging {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final AtomicBoolean REPORTED = new AtomicBoolean();
     private static final MethodHandle LEFT_POS;
     private static final MethodHandle TOP_POS;
@@ -118,7 +118,7 @@ public final class CreativeTabPaging {
         invoke(ADD_RENDERABLE_WIDGET, screen, next);
         if (REPORTED.compareAndSet(false, true)) {
             LOGGER.info(
-                    "[Poly Mod Loader] Creative screen shows mod tabs on {} extra page(s) with page buttons",
+                    "[Plexus Mod Loader] Creative screen shows mod tabs on {} extra page(s) with page buttons",
                     pages - 1);
         }
     }

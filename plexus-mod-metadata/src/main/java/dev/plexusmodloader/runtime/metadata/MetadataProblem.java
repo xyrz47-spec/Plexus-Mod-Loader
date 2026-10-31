@@ -1,7 +1,7 @@
 package dev.plexusmodloader.runtime.metadata;
 
 /**
- * One finding from reading a {@code poly.mod.json}.
+ * One finding from reading a {@code plexus.mod.json}.
  *
  * @param code stable error code
  * @param field JSON path of the offending field, or {@code $} for the whole document

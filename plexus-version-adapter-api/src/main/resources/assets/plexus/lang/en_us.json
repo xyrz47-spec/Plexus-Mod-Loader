@@ -1,0 +1,8 @@
+{
+  "plexus.title.mod_count.plexus": "Plexus mods: %s",
+  "plexus.title.mod_count.fabric": "Fabric mods: %s",
+  "plexus.title.mod_count.quilt": "Quilt mods: %s",
+  "plexus.title.mod_count.forge": "Forge mods: %s",
+  "plexus.title.mod_count.neoforge": "NeoForge mods: %s",
+  "plexus.title.mod_count.host_incompatible": "Not loaded, Plexus Mod Loader can't run them yet: %s"
+}

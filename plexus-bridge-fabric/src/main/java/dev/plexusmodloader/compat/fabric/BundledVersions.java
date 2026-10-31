@@ -14,7 +14,7 @@ public final class BundledVersions {
     /** Fabric Loader whose public API the jar carries: the built-in {@code fabricloader}. */
     public static final String FABRIC_LOADER = read("fabricLoaderVersion");
 
-    /** MixinExtras on Poly Mod Loader's class path: the built-in {@code mixinextras}. */
+    /** MixinExtras on Plexus Mod Loader's class path: the built-in {@code mixinextras}. */
     public static final String MIXIN_EXTRAS = read("mixinExtrasVersion");
 
     /** Quilt Loader whose public API the jar carries: the built-in {@code quilt_loader} (ADR-0027). */

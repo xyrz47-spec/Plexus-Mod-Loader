@@ -15,7 +15,7 @@ import org.quiltmc.loader.api.entrypoint.EntrypointContainer;
 import org.quiltmc.loader.impl.game.GameProvider;
 
 /**
- * Poly Mod Loader's stand-in for Quilt Loader's internal {@code QuiltLoaderImpl}. Quilt Loader's public API ({@code
+ * Plexus Mod Loader's stand-in for Quilt Loader's internal {@code QuiltLoaderImpl}. Quilt Loader's public API ({@code
  * QuiltLoader}, {@code MinecraftQuiltLoader}, {@code EntrypointUtils}) reads {@code QuiltLoaderImpl.INSTANCE} and calls
  * its methods; this class has that field and those methods, with Quilt Loader 0.31.0-beta.4's signatures, and hands
  * every call to {@link QuiltLoaderRuntime}, which the Fabric bridge attaches before any entrypoint runs (ADR-0027
@@ -31,8 +31,8 @@ public final class QuiltLoaderImpl {
 
     private QuiltLoaderImpl() {}
 
-    /** Called by the Poly Mod Loader Fabric bridge once, before any Fabric or Quilt entrypoint runs. */
-    public void attachPolyModLoaderRuntime(QuiltLoaderRuntime attached) {
+    /** Called by the Plexus Mod Loader Fabric bridge once, before any Fabric or Quilt entrypoint runs. */
+    public void attachPlexusModLoaderRuntime(QuiltLoaderRuntime attached) {
         this.runtime = attached;
     }
 
@@ -41,7 +41,7 @@ public final class QuiltLoaderImpl {
      *
      * @throws IllegalStateException with Quilt Loader's message when used before the loader is ready
      */
-    public QuiltLoaderRuntime polyModLoaderRuntime() {
+    public QuiltLoaderRuntime plexusModLoaderRuntime() {
         QuiltLoaderRuntime attached = runtime;
         if (attached == null) {
             throw new IllegalStateException("Accessed QuiltLoader too early!");
@@ -50,75 +50,75 @@ public final class QuiltLoaderImpl {
     }
 
     public <T> List<T> getEntrypoints(String key, Class<T> type) {
-        return polyModLoaderRuntime().getEntrypoints(key, type);
+        return plexusModLoaderRuntime().getEntrypoints(key, type);
     }
 
     public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
-        return polyModLoaderRuntime().getEntrypointContainers(key, type);
+        return plexusModLoaderRuntime().getEntrypointContainers(key, type);
     }
 
     public boolean hasEntrypoints(String key) {
-        return polyModLoaderRuntime().hasEntrypoints(key);
+        return plexusModLoaderRuntime().hasEntrypoints(key);
     }
 
     public MappingResolver getMappingResolver() {
-        return polyModLoaderRuntime().getMappingResolver();
+        return plexusModLoaderRuntime().getMappingResolver();
     }
 
     public Optional<ModContainer> getModContainer(String id) {
-        return polyModLoaderRuntime().getModContainer(id);
+        return plexusModLoaderRuntime().getModContainer(id);
     }
 
     public Optional<ModContainer> getModContainer(Class<?> type) {
-        return polyModLoaderRuntime().getModContainer(type);
+        return plexusModLoaderRuntime().getModContainer(type);
     }
 
     public Collection<ModContainer> getAllMods() {
-        return polyModLoaderRuntime().getAllMods();
+        return plexusModLoaderRuntime().getAllMods();
     }
 
     public boolean isModLoaded(String id) {
-        return polyModLoaderRuntime().isModLoaded(id);
+        return plexusModLoaderRuntime().isModLoaded(id);
     }
 
     public boolean isDevelopmentEnvironment() {
-        return polyModLoaderRuntime().isDevelopmentEnvironment();
+        return plexusModLoaderRuntime().isDevelopmentEnvironment();
     }
 
     public Object getGameInstance() {
-        return polyModLoaderRuntime().getGameInstance();
+        return plexusModLoaderRuntime().getGameInstance();
     }
 
     public GameProvider getGameProvider() {
-        return polyModLoaderRuntime().getGameProvider();
+        return plexusModLoaderRuntime().getGameProvider();
     }
 
     public Path getGameDir() {
-        return polyModLoaderRuntime().getGameDir();
+        return plexusModLoaderRuntime().getGameDir();
     }
 
     public Path getCacheDir() {
-        return polyModLoaderRuntime().getCacheDir();
+        return plexusModLoaderRuntime().getCacheDir();
     }
 
     public Path getConfigDir() {
-        return polyModLoaderRuntime().getConfigDir();
+        return plexusModLoaderRuntime().getConfigDir();
     }
 
     public String[] getLaunchArguments(boolean sanitize) {
-        return polyModLoaderRuntime().getLaunchArguments(sanitize);
+        return plexusModLoaderRuntime().getLaunchArguments(sanitize);
     }
 
     public ObjectShare getObjectShare() {
-        return polyModLoaderRuntime().getObjectShare();
+        return plexusModLoaderRuntime().getObjectShare();
     }
 
     public String createModTable() {
-        return polyModLoaderRuntime().createModTable();
+        return plexusModLoaderRuntime().createModTable();
     }
 
     public EnvType getEnvironmentType() {
-        return polyModLoaderRuntime().getEnvironmentType();
+        return plexusModLoaderRuntime().getEnvironmentType();
     }
 
     /**

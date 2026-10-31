@@ -87,13 +87,13 @@ public final class InteractionHooks {
         ItemStackRef ref = stackRef(player, stack);
         dev.plexusmodloader.api.world.BlockPos pos = Views.pos(hit.getBlockPos());
         dev.plexusmodloader.api.world.Direction face = BlockStates.fromGame(hit.getDirection());
-        dev.plexusmodloader.api.entity.Hand polyHand = Interactions.hand(hand);
+        dev.plexusmodloader.api.entity.Hand plexusHand = Interactions.hand(hand);
         return decided(
                 player,
                 context.events()
                         .publishUntilDecided(
                                 InteractionEvents.USE_BLOCK,
-                                listener -> listener.onUseBlock(view, polyHand, ref, pos, face),
+                                listener -> listener.onUseBlock(view, plexusHand, ref, pos, face),
                                 dev.plexusmodloader.api.world.InteractionResult.PASS));
     }
 
@@ -106,13 +106,13 @@ public final class InteractionHooks {
         }
         PlayerView view = Views.player(player);
         ItemStackRef ref = stackRef(player, stack);
-        dev.plexusmodloader.api.entity.Hand polyHand = Interactions.hand(hand);
+        dev.plexusmodloader.api.entity.Hand plexusHand = Interactions.hand(hand);
         return decided(
                 player,
                 context.events()
                         .publishUntilDecided(
                                 InteractionEvents.USE_ITEM,
-                                listener -> listener.onUseItem(view, polyHand, ref),
+                                listener -> listener.onUseItem(view, plexusHand, ref),
                                 dev.plexusmodloader.api.world.InteractionResult.PASS));
     }
 
@@ -128,13 +128,13 @@ public final class InteractionHooks {
         PlayerView view = Views.player(serverPlayer);
         ItemStackRef ref = stackRef(serverPlayer, serverPlayer.getItemInHand(hand));
         dev.plexusmodloader.api.entity.EntityView targetView = Views.entity(target);
-        dev.plexusmodloader.api.entity.Hand polyHand = Interactions.hand(hand);
+        dev.plexusmodloader.api.entity.Hand plexusHand = Interactions.hand(hand);
         return decided(
                 serverPlayer,
                 context.events()
                         .publishUntilDecided(
                                 InteractionEvents.USE_ENTITY,
-                                listener -> listener.onUseEntity(view, polyHand, ref, targetView),
+                                listener -> listener.onUseEntity(view, plexusHand, ref, targetView),
                                 dev.plexusmodloader.api.world.InteractionResult.PASS));
     }
 
@@ -171,13 +171,13 @@ public final class InteractionHooks {
         ServerLevel level = level(gameMode);
         BlockState state = level.getBlockState(pos);
         dev.plexusmodloader.api.world.WorldView world = Views.world(level);
-        dev.plexusmodloader.api.world.BlockPos polyPos = Views.pos(pos);
+        dev.plexusmodloader.api.world.BlockPos plexusPos = Views.pos(pos);
         dev.plexusmodloader.api.resource.ResourceId block = Views.blockId(state.getBlock());
         PlayerView view = Views.player(player);
         EventResult result = context.events()
                 .publishUntilDecided(
                         BlockEvents.BREAK,
-                        listener -> listener.onBlockBreak(world, polyPos, block, view),
+                        listener -> listener.onBlockBreak(world, plexusPos, block, view),
                         EventResult.PASS);
         if (result != EventResult.DENY) {
             return null;
@@ -208,13 +208,13 @@ public final class InteractionHooks {
         net.minecraft.core.BlockPos pos = placeContext.getClickedPos().immutable();
         if (context.events().hasListeners(BlockEvents.PLACE)) {
             dev.plexusmodloader.api.world.WorldView world = Views.world(level);
-            dev.plexusmodloader.api.world.BlockPos polyPos = Views.pos(pos);
+            dev.plexusmodloader.api.world.BlockPos plexusPos = Views.pos(pos);
             dev.plexusmodloader.api.resource.ResourceId block = Views.blockId(state.getBlock());
             PlayerView view = Views.player(player);
             EventResult result = context.events()
                     .publishUntilDecided(
                             BlockEvents.PLACE,
-                            listener -> listener.onBlockPlace(world, polyPos, block, view),
+                            listener -> listener.onBlockPlace(world, plexusPos, block, view),
                             EventResult.PASS);
             if (result == EventResult.DENY) {
                 // The client already placed the block and used the item in its prediction.
@@ -241,12 +241,12 @@ public final class InteractionHooks {
             LayerState.context().ifPresent(context -> {
                 dev.plexusmodloader.api.world.WorldView world =
                         Views.world(pending.player().level());
-                dev.plexusmodloader.api.world.BlockPos polyPos = Views.pos(pending.pos());
+                dev.plexusmodloader.api.world.BlockPos plexusPos = Views.pos(pending.pos());
                 dev.plexusmodloader.api.resource.ResourceId block =
                         Views.blockId(pending.state().getBlock());
                 PlayerView view = Views.player(pending.player());
                 context.events()
-                        .publish(BlockEvents.PLACED, listener -> listener.onBlockPlaced(world, polyPos, block, view));
+                        .publish(BlockEvents.PLACED, listener -> listener.onBlockPlaced(world, plexusPos, block, view));
             });
         }
         return returned;
@@ -282,7 +282,7 @@ public final class InteractionHooks {
         }
     }
 
-    /** The context when Poly Mod Loader runs and someone listens to {@code event}, else null. */
+    /** The context when Plexus Mod Loader runs and someone listens to {@code event}, else null. */
     private static GameLayerContext listening(EventKey<?> event) {
         GameLayerContext context = LayerState.context().orElse(null);
         return context != null && context.events().hasListeners(event) ? context : null;

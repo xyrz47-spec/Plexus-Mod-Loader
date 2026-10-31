@@ -14,7 +14,7 @@ import java.util.List;
  * provider is active for every system, and which transformations were planned or rejected. It is
  * the first version of the System Explorer and Transformation Report from design doc §5.10.
  *
- * @param polyVersion Poly Mod Loader runtime version
+ * @param plexusVersion Plexus Mod Loader runtime version
  * @param gameVersion Minecraft version
  * @param launchTarget launch target ID
  * @param adapterId version adapter used
@@ -26,7 +26,7 @@ import java.util.List;
  * @param rejectedTransformations problems for rejected rules
  */
 public record StartupReport(
-        String polyVersion,
+        String plexusVersion,
         String gameVersion,
         String launchTarget,
         String adapterId,
@@ -81,7 +81,7 @@ public record StartupReport(
      *
      * @param system system ID
      * @param provider provider class
-     * @param providerMod {@code poly} for the default
+     * @param providerMod {@code plexus} for the default
      * @param overriddenMods mods whose replacement was overridden
      */
     public record ActiveSystem(String system, String provider, String providerMod, List<String> overriddenMods) {}

@@ -17,16 +17,16 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
- * Finds the Minecraft game jar on the JVM class path when {@code poly.gameJar} is not set. The official
- * Minecraft Launcher starts a Poly Mod Loader profile (which inherits the vanilla version) with the vanilla game jar
+ * Finds the Minecraft game jar on the JVM class path when {@code plexus.gameJar} is not set. The official
+ * Minecraft Launcher starts a Plexus Mod Loader profile (which inherits the vanilla version) with the vanilla game jar
  * on the class path instead of passing its location.
  *
  * <p>The game jar is the one class path jar with Mojang's {@code version.json} at its root, the same file
- * Poly Mod Loader reads to pick the version adapter. Poly Mod Loader's game class loader still defines every game
+ * Plexus Mod Loader reads to pick the version adapter. Plexus Mod Loader's game class loader still defines every game
  * class from it (child-first), so having the jar on the class path as well changes nothing.
  *
  * <p>The class path includes what the jars' manifests add with {@code Class-Path}, as the JVM's does. A server the
- * installer set up starts with {@code java -jar polymodloader-server.jar}, whose manifest lists the server jar.
+ * installer set up starts with {@code java -jar plexusmodloader-server.jar}, whose manifest lists the server jar.
  */
 final class ClassPathGameJarLocator {
 
@@ -65,11 +65,11 @@ final class ClassPathGameJarLocator {
         }
         throw new IllegalArgumentException(
                 candidates.isEmpty()
-                        ? "PLEXUS-BOOTSTRAP-006 poly.gameJar is not set and no jar on the class path has a version.json;"
-                                + " set -Dpoly.gameJar=<Minecraft jar> or reinstall the Poly Mod Loader profile"
-                        : "PLEXUS-BOOTSTRAP-006 poly.gameJar is not set and " + candidates.size()
+                        ? "PLEXUS-BOOTSTRAP-006 plexus.gameJar is not set and no jar on the class path has a version.json;"
+                                + " set -Dplexus.gameJar=<Minecraft jar> or reinstall the Plexus Mod Loader profile"
+                        : "PLEXUS-BOOTSTRAP-006 plexus.gameJar is not set and " + candidates.size()
                                 + " jars on the class path have a version.json " + candidates
-                                + "; set -Dpoly.gameJar=<Minecraft jar>");
+                                + "; set -Dplexus.gameJar=<Minecraft jar>");
     }
 
     /** The jar's {@code Class-Path} entries: URLs relative to the jar's folder, separated by spaces. */

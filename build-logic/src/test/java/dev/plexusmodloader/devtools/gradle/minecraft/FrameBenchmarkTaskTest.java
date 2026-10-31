@@ -28,9 +28,9 @@ class FrameBenchmarkTaskTest {
     @Test
     void progressLineIsOneJsonObjectPerRun() {
         FrameBenchmarkTask.RunResult result = new FrameBenchmarkTask.RunResult(10, 100.0, 9.5, 12.0, 15.0, 20.0, 0.0);
-        String line = FrameBenchmarkTask.progressLine("poly", -1, result);
+        String line = FrameBenchmarkTask.progressLine("plexus", -1, result);
 
-        assertTrue(line.startsWith("{\"variant\": \"poly\", \"run\": -1, \"result\": {\"frames\": 10,"), line);
+        assertTrue(line.startsWith("{\"variant\": \"plexus\", \"run\": -1, \"result\": {\"frames\": 10,"), line);
         assertTrue(line.endsWith("}}\n"), line);
         assertEquals(1, line.lines().count());
     }

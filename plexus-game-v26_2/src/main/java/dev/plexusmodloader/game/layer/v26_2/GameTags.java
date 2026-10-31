@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class GameTags {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** The tags view handed out by world views; it reads the registries' current tags. */
     public static final TagView VIEW = new TagView() {
@@ -118,7 +118,7 @@ public final class GameTags {
             for (ResourceId entry : declaration.entries()) {
                 if (!registry.containsKey(Views.id(entry))) {
                     LOGGER.error(
-                            "[Poly Mod Loader] PLEXUS-CONTENT-007 mod={} added {} to {}, but no {} with that ID is registered;"
+                            "[Plexus Mod Loader] PLEXUS-CONTENT-007 mod={} added {} to {}, but no {} with that ID is registered;"
                                     + " the entry is left out of the tag",
                             declaration.ownerModId(),
                             entry,

@@ -95,12 +95,12 @@ final class InstallerWindow {
         this.payload = payload;
         this.language = language;
         this.text = language == Language.KOREAN ? KOREAN : ENGLISH;
-        frame = new JFrame(text("title").formatted(payload.polyVersion()));
+        frame = new JFrame(text("title").formatted(payload.plexusVersion()));
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setIconImage(ProfileIcon.image(64));
 
         JLabel header = new JLabel(
-                "Poly Mod Loader " + payload.polyVersion(), new ImageIcon(ProfileIcon.image(40)), JLabel.LEADING);
+                "Plexus Mod Loader " + payload.plexusVersion(), new ImageIcon(ProfileIcon.image(40)), JLabel.LEADING);
         header.setFont(header.getFont().deriveFont(Font.BOLD, 18f));
         header.setIconTextGap(10);
         languages = new JComboBox<>(Language.values());
@@ -133,7 +133,7 @@ final class InstallerWindow {
         version.setSelectedItem(payload.newestMinecraftVersion());
         directory = new JTextField(MinecraftDirectories.defaultDirectory().toString(), FIELD_COLUMNS);
         serverDirectory = new JTextField(
-                Path.of(System.getProperty("user.home"), "Poly Mod Loader Server")
+                Path.of(System.getProperty("user.home"), "Plexus Mod Loader Server")
                         .toString(),
                 FIELD_COLUMNS);
         profile = new JCheckBox(text("profile"), true);
@@ -381,7 +381,7 @@ final class InstallerWindow {
             int answer = JOptionPane.showConfirmDialog(
                     frame,
                     text("launcherRunning"),
-                    "Poly Mod Loader",
+                    "Plexus Mod Loader",
                     JOptionPane.OK_CANCEL_OPTION,
                     JOptionPane.WARNING_MESSAGE);
             if (answer != JOptionPane.OK_OPTION) {
@@ -423,7 +423,7 @@ final class InstallerWindow {
                     String message = cause instanceof InstallerException ? cause.getMessage() : cause.toString();
                     log.append("Error: " + message + "\n");
                     DesktopNotification.show(
-                            "Poly Mod Loader " + payload.polyVersion(),
+                            "Plexus Mod Loader " + payload.plexusVersion(),
                             text(installing ? "notifyFailed" : "notifyRemoveFailed"),
                             true,
                             () -> {},
@@ -462,7 +462,7 @@ final class InstallerWindow {
             onClick = () -> {};
         }
         boolean notified = DesktopNotification.show(
-                "Poly Mod Loader " + payload.polyVersion(),
+                "Plexus Mod Loader " + payload.plexusVersion(),
                 message,
                 false,
                 onClick,
@@ -503,7 +503,7 @@ final class InstallerWindow {
     }
 
     private void finishedServer(Path folder, String minecraft, List<String> warnings) {
-        String message = text("serverInstalled").formatted(payload.polyVersion(), minecraft, folder);
+        String message = text("serverInstalled").formatted(payload.plexusVersion(), minecraft, folder);
         if (!warnings.isEmpty()) {
             message += "\n\n" + String.join("\n", warnings);
         }
@@ -511,7 +511,7 @@ final class InstallerWindow {
         int choice = JOptionPane.showOptionDialog(
                 frame,
                 message,
-                "Poly Mod Loader",
+                "Plexus Mod Loader",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
@@ -523,7 +523,7 @@ final class InstallerWindow {
     }
 
     private void finished(Path folder, String minecraft, List<String> warnings) {
-        String message = text("installed").formatted(payload.polyVersion(), minecraft, minecraft);
+        String message = text("installed").formatted(payload.plexusVersion(), minecraft, minecraft);
         if (!warnings.isEmpty()) {
             message += "\n\n" + String.join("\n", warnings);
         }
@@ -531,7 +531,7 @@ final class InstallerWindow {
         int choice = JOptionPane.showOptionDialog(
                 frame,
                 message,
-                "Poly Mod Loader",
+                "Plexus Mod Loader",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
@@ -550,7 +550,7 @@ final class InstallerWindow {
     }
 
     private static final Map<String, String> ENGLISH = Map.ofEntries(
-            Map.entry("title", "Poly Mod Loader %s installer"),
+            Map.entry("title", "Plexus Mod Loader %s installer"),
             Map.entry("target", "Install for"),
             Map.entry("client", "Client"),
             Map.entry("server", "Server"),
@@ -560,8 +560,8 @@ final class InstallerWindow {
                     "Server for Minecraft %s installed. Start it with run.bat or run.sh. Click to open the folder."),
             Map.entry(
                     "serverInstalled",
-                    "Poly Mod Loader %s server for Minecraft %s is installed in\n%s\n\nStart it with run.bat (Windows) or"
-                            + " run.sh, or java -jar polymodloader-server.jar nogui. It needs Java 25 or newer.\nThe first"
+                    "Plexus Mod Loader %s server for Minecraft %s is installed in\n%s\n\nStart it with run.bat (Windows) or"
+                            + " run.sh, or java -jar plexusmodloader-server.jar nogui. It needs Java 25 or newer.\nThe first"
                             + " start stops at Minecraft's EULA: read it and set eula=true in eula.txt.\nPut mods into"
                             + " the mods folder."),
             Map.entry("openFolder", "Open folder"),
@@ -581,7 +581,7 @@ final class InstallerWindow {
             Map.entry("advancedHide", "Advanced ▾"),
             Map.entry(
                     "notifyInstalled",
-                    "Installed for Minecraft %s. Choose the profile \"Poly Mod Loader %s\" in the Minecraft Launcher."
+                    "Installed for Minecraft %s. Choose the profile \"Plexus Mod Loader %s\" in the Minecraft Launcher."
                             + " Click to open the mods folder."),
             Map.entry("notifyRemoved", "Removed from Minecraft %s."),
             Map.entry("notifyFailed", "Installation failed. The installer window says why."),
@@ -594,16 +594,16 @@ final class InstallerWindow {
                             + " profile when it exits.\nInstall anyway?"),
             Map.entry(
                     "installed",
-                    "Poly Mod Loader %s for Minecraft %s is installed.\n\nIn the Minecraft Launcher, choose"
-                            + " the profile \"Poly Mod Loader %s\" and press Play.\nPut Poly Mods (and supported Fabric mods) into"
+                    "Plexus Mod Loader %s for Minecraft %s is installed.\n\nIn the Minecraft Launcher, choose"
+                            + " the profile \"Plexus Mod Loader %s\" and press Play.\nPut Plexus mods (and supported Fabric mods) into"
                             + " the mods folder."),
-            Map.entry("removed", "Poly Mod Loader for Minecraft %s is removed. The mods folder was left as it is."),
+            Map.entry("removed", "Plexus Mod Loader for Minecraft %s is removed. The mods folder was left as it is."),
             Map.entry("failed", "Installation failed"),
             Map.entry("openMods", "Open mods folder"),
             Map.entry("close", "Close"));
 
     private static final Map<String, String> KOREAN = Map.ofEntries(
-            Map.entry("title", "Poly 모드 로더 %s 설치"),
+            Map.entry("title", "Plexus 모드 로더 %s 설치"),
             Map.entry("target", "설치 대상"),
             Map.entry("client", "클라이언트"),
             Map.entry("server", "서버"),
@@ -611,8 +611,8 @@ final class InstallerWindow {
             Map.entry("notifyServerInstalled", "Minecraft %s 서버를 설치했습니다. run.bat 또는 run.sh로 시작하세요. 누르면 폴더가 열립니다."),
             Map.entry(
                     "serverInstalled",
-                    "Minecraft %2$s용 Poly 모드 로더 %1$s 서버를 설치했습니다.\n%3$s\n\nrun.bat(Windows)이나 run.sh, 또는"
-                            + " java -jar polymodloader-server.jar nogui로 시작합니다. Java 25 이상이 필요합니다.\n처음 시작하면"
+                    "Minecraft %2$s용 Plexus 모드 로더 %1$s 서버를 설치했습니다.\n%3$s\n\nrun.bat(Windows)이나 run.sh, 또는"
+                            + " java -jar plexusmodloader-server.jar nogui로 시작합니다. Java 25 이상이 필요합니다.\n처음 시작하면"
                             + " Minecraft EULA 확인에서 멈춥니다. EULA를 읽고 eula.txt에 eula=true로 적으세요.\n모드는 mods"
                             + " 폴더에 넣습니다."),
             Map.entry("openFolder", "폴더 열기"),
@@ -632,7 +632,7 @@ final class InstallerWindow {
             Map.entry("advancedHide", "고급 설정 ▾"),
             Map.entry(
                     "notifyInstalled",
-                    "Minecraft %s용으로 설치했습니다. Minecraft Launcher에서 \"Poly 모드 로더 %s\" 프로필을 고르세요."
+                    "Minecraft %s용으로 설치했습니다. Minecraft Launcher에서 \"Plexus Mod Loader %s\" 프로필을 고르세요."
                             + " 누르면 mods 폴더가 열립니다."),
             Map.entry("notifyRemoved", "Minecraft %s에서 제거했습니다."),
             Map.entry("notifyFailed", "설치하지 못했습니다. 이유는 설치 프로그램 창에 있습니다."),
@@ -644,10 +644,10 @@ final class InstallerWindow {
                     "Minecraft Launcher가 실행 중입니다. 런처가 꺼질 때 새 프로필을 지울 수 있으니" + " 먼저 닫아 주세요.\n그래도 설치할까요?"),
             Map.entry(
                     "installed",
-                    "Minecraft %2$s용 Poly 모드 로더 %1$s를 설치했습니다.\n\nMinecraft Launcher에서"
-                            + " \"Poly 모드 로더 %3$s\" 프로필을 고르고 플레이를 누르세요.\nPoly 모드(와 지원되는 Fabric 모드)는"
+                    "Minecraft %2$s용 Plexus 모드 로더 %1$s를 설치했습니다.\n\nMinecraft Launcher에서"
+                            + " \"Plexus Mod Loader %3$s\" 프로필을 고르고 플레이를 누르세요.\nPlexus 모드(와 지원되는 Fabric 모드)는"
                             + " mods 폴더에 넣습니다."),
-            Map.entry("removed", "Minecraft %s용 Poly 모드 로더를 제거했습니다. mods 폴더는 그대로 두었습니다."),
+            Map.entry("removed", "Minecraft %s용 Plexus 모드 로더를 제거했습니다. mods 폴더는 그대로 두었습니다."),
             Map.entry("failed", "설치하지 못했습니다"),
             Map.entry("openMods", "mods 폴더 열기"),
             Map.entry("close", "닫기"));

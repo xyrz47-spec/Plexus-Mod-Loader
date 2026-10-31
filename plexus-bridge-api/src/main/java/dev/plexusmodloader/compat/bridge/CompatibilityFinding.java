@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * One feature of a foreign mod and what Poly Mod Loader can do about it.
+ * One feature of a foreign mod and what Plexus Mod Loader can do about it.
  *
  * @param code stable code, e.g. {@code PLEXUS-COMPAT-101}
  * @param blocking whether this feature alone prevents loading

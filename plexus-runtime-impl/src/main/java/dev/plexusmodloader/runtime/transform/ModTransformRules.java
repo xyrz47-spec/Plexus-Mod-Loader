@@ -21,9 +21,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Turns the {@code transforms} and {@code accessWidenings} declared in {@code poly.mod.json} into engine
- * rules and widenings. The planner then validates them against the game exactly like Poly Mod Loader's own:
- * target, descriptor, precondition, conflicts and order with every other rule (including Poly Mod Loader's),
+ * Turns the {@code transforms} and {@code accessWidenings} declared in {@code plexus.mod.json} into engine
+ * rules and widenings. The planner then validates them against the game exactly like Plexus Mod Loader's own:
+ * target, descriptor, precondition, conflicts and order with every other rule (including Plexus Mod Loader's),
  * and game version.
  */
 public final class ModTransformRules {

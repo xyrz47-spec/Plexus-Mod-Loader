@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * One entry of {@code accessWidenings} in {@code poly.mod.json}. The metadata module checks the shape;
+ * One entry of {@code accessWidenings} in {@code plexus.mod.json}. The metadata module checks the shape;
  * the runtime turns it into an engine widening and the planner checks the target against the game.
  *
  * @param minecraft exact Minecraft version the target was verified against
@@ -27,10 +27,10 @@ public record AccessWideningDeclaration(
         Set<String> access,
         boolean abortOnFailure) {
 
-    /** The kinds this Poly Mod Loader version understands. */
+    /** The kinds this Plexus Mod Loader version understands. */
     public static final Set<String> KINDS = Set.of("class", "method", "field");
 
-    /** The access words this Poly Mod Loader version understands. */
+    /** The access words this Plexus Mod Loader version understands. */
     public static final Set<String> ACCESS = Set.of("accessible", "extendable", "mutable");
 
     public AccessWideningDeclaration {

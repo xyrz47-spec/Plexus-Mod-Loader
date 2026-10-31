@@ -37,7 +37,7 @@ class LoadedModCounterTest {
         assertEquals(
                 new LoadedModCounts(1, 1, 2),
                 LoadedModCounter.count(
-                        List.of("poly", "native_lib"),
+                        List.of("plexus", "native_lib"),
                         Map.of(LoadedModCounter.FABRIC, List.of("fabricloader", "minecraft", "java", "sodium")),
                         List.of("forge", "minecraft", "forge_hello", "forge_at")));
     }

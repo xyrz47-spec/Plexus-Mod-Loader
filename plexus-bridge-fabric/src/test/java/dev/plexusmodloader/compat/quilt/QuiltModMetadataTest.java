@@ -43,8 +43,8 @@ class QuiltModMetadataTest {
         QuiltTestLaunch launch = new QuiltTestLaunch(directory, GameSide.CLIENT);
         FabricLoaderRuntime fabric =
                 FabricLoaderRuntime.create(launch.context, "0.19.5", Map.of("mixinextras", "0.5.5"));
-        FabricLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(fabric);
-        QuiltLoaderImpl.INSTANCE.attachPolyModLoaderRuntime(
+        FabricLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(fabric);
+        QuiltLoaderImpl.INSTANCE.attachPlexusModLoaderRuntime(
                 QuiltLoaderRuntime.create(launch.context, fabric, "0.31.0-beta.4"));
     }
 

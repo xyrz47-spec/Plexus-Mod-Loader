@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 /** Registers mod mobs, spawn eggs, status effects, game rules, and sound events. */
 public final class EntityInstaller {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Map<EntityType<?>, EntityDefinition> DEFINITIONS = new ConcurrentHashMap<>();
     /** Built on first use: attribute holders are only bound once the registries froze. */
     private static final Map<EntityType<?>, AttributeSupplier> ATTRIBUTES = new ConcurrentHashMap<>();
@@ -118,7 +118,7 @@ public final class EntityInstaller {
                 + declarations.sounds().size();
         if (total > 0) {
             LOGGER.info(
-                    "[Poly Mod Loader] Registered {} entity type(s), {} effect(s), {} game rule(s), {} sound(s) from mods",
+                    "[Plexus Mod Loader] Registered {} entity type(s), {} effect(s), {} game rule(s), {} sound(s) from mods",
                     declarations.entities().size(),
                     declarations.effects().size(),
                     declarations.gameRules().size(),
@@ -173,7 +173,7 @@ public final class EntityInstaller {
     static ProjectileDefinition projectile(EntityType<?> type) {
         ProjectileDefinition definition = PROJECTILES.get(type);
         if (definition == null) {
-            throw new IllegalStateException("Not a Poly Mod Loader projectile type: " + type);
+            throw new IllegalStateException("Not a Plexus Mod Loader projectile type: " + type);
         }
         return definition;
     }

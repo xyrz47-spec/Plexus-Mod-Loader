@@ -22,7 +22,7 @@ public interface GameLayer {
     void start(GameLayerContext context);
 
     /**
-     * The lines Poly Mod Loader adds to the game's branding text at the bottom left of the title screen ({@link
+     * The lines Plexus Mod Loader adds to the game's branding text at the bottom left of the title screen ({@link
      * ModCountLines}), in the game's current language, top to bottom. For a loader that draws that text itself
      * (Forge's branding, through the runtime and the loader's host). Called on the render thread, every frame the
      * title screen is drawn, after {@link #start}.

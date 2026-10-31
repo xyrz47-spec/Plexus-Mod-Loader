@@ -14,7 +14,7 @@ import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 /**
- * A Poly Mod or other loader's mod as a NeoForge FML mod (ADR-0025, ADR-0026): its ID, name and version; no
+ * A Plexus Mod or other loader's mod as a NeoForge FML mod (ADR-0025, ADR-0026): its ID, name and version; no
  * dependencies, features or URLs, since FML does not resolve or show it. It has no FML language loader ({@link
  * #getLoader} throws): FML never constructs it.
  *
@@ -41,7 +41,7 @@ final class ForeignModInfo implements IModInfo {
     @Override
     public IModLanguageLoader getLoader() {
         throw new UnsupportedOperationException(mod.loader() + " mod " + mod.modId() + " has no FML language loader:"
-                + " Poly Mod Loader runs it beside NeoForge, and FML's mod list shows it for presence queries only"
+                + " Plexus Mod Loader runs it beside NeoForge, and FML's mod list shows it for presence queries only"
                 + " (ADR-0025)");
     }
 

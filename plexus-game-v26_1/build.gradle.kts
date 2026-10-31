@@ -1,6 +1,6 @@
 plugins {
-    id("poly.java-conventions")
-    id("poly.minecraft-compile")
+    id("plexus.java-conventions")
+    id("plexus.minecraft-compile")
 }
 
 description = "Game layer for Minecraft 26.1: implements the Native API with game classes; loaded by the game class loader."
@@ -35,6 +35,6 @@ tasks.withType<Test>().configureEach {
 // patched (-PneoForgePatchedClient=<minecraft-client-patched-<version>.jar>, -PneoForgePatchedServer=<...server...>).
 tasks.test {
     for (name in listOf("neoForgePatchedClient", "neoForgePatchedServer")) {
-        providers.gradleProperty(name).orNull?.let { systemProperty("poly.$name", it) }
+        providers.gradleProperty(name).orNull?.let { systemProperty("plexus.$name", it) }
     }
 }

@@ -3,8 +3,8 @@ package dev.plexusmodloader.devtools.gradle;
 import org.gradle.api.provider.Property;
 
 /**
- * {@code polySdkPublication} of every Poly Mod Loader module: how the module goes into the public SDK repository
- * ({@code publishSdk}, ADR-0008). The root plugin {@code poly.sdk-repository} sets it for the modules it
+ * {@code plexusSdkPublication} of every Plexus Mod Loader module: how the module goes into the public SDK repository
+ * ({@code publishSdk}, ADR-0008). The root plugin {@code plexus.sdk-repository} sets it for the modules it
  * publishes; build scripts do not need to.
  */
 public abstract class SdkPublicationExtension {

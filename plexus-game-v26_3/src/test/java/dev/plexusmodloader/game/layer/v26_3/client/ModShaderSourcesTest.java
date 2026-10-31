@@ -33,13 +33,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 /**
  * The example native-showcase-mod's shaders against the GLSL compiler of Minecraft 26.3 (shaderc to SPIR-V), with
  * the game's own include files from the client jar. 26.3 needs {@code #include} and a location on every input and
- * output, so the mod keeps a 26.3 form in the overlay {@code poly_26_3_assets} that its {@code pack.mcmeta} picks
+ * output, so the mod keeps a 26.3 form in the overlay {@code plexus_26_3_assets} that its {@code pack.mcmeta} picks
  * on 26.3; its 26.2 form in {@code assets/} does not compile here. The public source has no examples/, so the tests are
  * skipped there.
  */
 class ModShaderSourcesTest {
 
-    private static final Path RESOURCES = Path.of(System.getProperty("poly.exampleResources"));
+    private static final Path RESOURCES = Path.of(System.getProperty("plexus.exampleResources"));
     private static final String SHADERS = "assets/native_showcase/shaders/";
 
     private static GlslCompiler compiler;
@@ -95,7 +95,7 @@ class ModShaderSourcesTest {
         "post/sepia.fsh, FRAGMENT"
     })
     void overlayShadersCompile(String file, ShaderType type) throws ShaderCompileException {
-        try (SpvModule module = compile(RESOURCES.resolve("poly_26_3_assets").resolve(SHADERS + file), type)) {
+        try (SpvModule module = compile(RESOURCES.resolve("plexus_26_3_assets").resolve(SHADERS + file), type)) {
             assertTrue(module.spv().remaining() > 0, file);
         }
     }

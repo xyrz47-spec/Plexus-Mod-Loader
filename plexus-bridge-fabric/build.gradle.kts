@@ -1,5 +1,5 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
 description = "Fabric bridge: fabric.mod.json analysis, Fabric Loader API for bridged mods, entrypoint loading."
@@ -30,8 +30,8 @@ dependencies {
     testImplementation(libs.guava)
     fabricLoaderJar(libs.fabric.loader)
     quiltLoaderJar(libs.quilt.loader)
-    // Mixin (FabricMC fork, MIT) and MixinExtras (MIT) at the versions Fabric Loader 0.19.5 ships, on Poly Mod Loader's
-    // class path for every Fabric mod (ADR-0020). Mixin asks for ASM 9.8; Poly Mod Loader's ASM is newer and API
+    // Mixin (FabricMC fork, MIT) and MixinExtras (MIT) at the versions Fabric Loader 0.19.5 ships, on Plexus Mod Loader's
+    // class path for every Fabric mod (ADR-0020). Mixin asks for ASM 9.8; Plexus Mod Loader's ASM is newer and API
     // compatible, and every ASM module is held at that one version.
     implementation(libs.sponge.mixin) { isTransitive = false }
     implementation(libs.mixinextras.common) { isTransitive = false }
@@ -113,7 +113,7 @@ val quiltLoaderApi = tasks.register<Sync>("quiltLoaderApi") {
     include(quiltLoaderApiClasses)
     into(layout.buildDirectory.dir("quilt-loader-api"))
 }
-// Poly Mod Loader's builds of Fabric API modules on NeoForge's hooks and their index (ADR-0031, HostModules): in the jar
+// Plexus Mod Loader's builds of Fabric API modules on NeoForge's hooks and their index (ADR-0031, HostModules): in the jar
 // only, so that the bridge's unit tests do not install NeoForge.
 val hostModules = configurations.dependencyScope("hostModules")
 val hostModuleResources = configurations.resolvable("hostModuleResources") { extendsFrom(hostModules.get()) }

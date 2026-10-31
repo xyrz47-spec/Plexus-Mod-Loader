@@ -410,10 +410,10 @@ class ForgeInjectionPointsTest {
      * AFTER_TRUE_RESULT} point makes the replaced call. Run for every pinned Forge release whose client jar is at hand.
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.forgePatchedClient", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.forgePatchedClient", matches = ".+")
     void everyPointHasItsShapeInForgesPatchedClient() throws IOException {
         try (JarFile jar = new JarFile(
-                Path.of(System.getProperty("poly.forgePatchedClient")).toFile())) {
+                Path.of(System.getProperty("plexus.forgePatchedClient")).toFile())) {
             for (InjectionPointReplacement point : ForgeInjectionPoints.all()) {
                 ClassNode target = read(jar, point.targetClass()).orElseThrow();
                 // For IN_METHOD, name(descriptor) or name of the method that took the body (it may be an overload of

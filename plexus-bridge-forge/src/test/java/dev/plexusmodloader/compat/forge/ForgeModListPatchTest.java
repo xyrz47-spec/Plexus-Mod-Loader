@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * ADR-0025: FML's {@code ModList} lookups ask Poly Mod Loader only when FML has no answer. The class under test has
+ * ADR-0025: FML's {@code ModList} lookups ask Plexus Mod Loader only when FML has no answer. The class under test has
  * {@code ModList}'s name and the method bodies {@code javap} shows in fmlcore 26.2-65.1.5 and 26.1-62.0.9.
  */
 class ForgeModListPatchTest {
@@ -63,7 +63,7 @@ class ForgeModListPatchTest {
     }
 
     @Test
-    void fmlAnswersFirstAndPolyModLoaderOnlyWhenFmlHasNone() throws Exception {
+    void fmlAnswersFirstAndPlexusModLoaderOnlyWhenFmlHasNone() throws Exception {
         IModFileInfo forgeFile = file();
         IModFileInfo fabricFile = file();
         IModFileInfo shadowed = file();
@@ -88,7 +88,7 @@ class ForgeModListPatchTest {
     @Test
     void aMethodWhoseCodeIsNotTheCheckedOneIsLeftAsItIs() throws Exception {
         Answers.FILES.put("sodium", file());
-        // isLoaded reads another map than FML 65.1.5's: not the code Poly Mod Loader checked.
+        // isLoaded reads another map than FML 65.1.5's: not the code Plexus Mod Loader checked.
         byte[] original = modList(code -> {
             byIdBody(code);
             code.withMethodBody(

@@ -46,7 +46,7 @@ class GameClassLoaderResourcesTest {
     }
 
     @Test
-    void ownJarsComeBeforeTheParentButPolyModLoaderResourcesStayWithTheParent() throws Exception {
+    void ownJarsComeBeforeTheParentButPlexusModLoaderResourcesStayWithTheParent() throws Exception {
         // As in a launcher install with Forge: the class path has the vanilla jar, this loader the patched one.
         Path vanilla = jar(
                 "vanilla.jar",

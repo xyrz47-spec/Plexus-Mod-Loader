@@ -40,15 +40,15 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Compares server tick times, heap and garbage collection of vanilla and Poly Mod Loader under the same load
+ * Compares server tick times, heap and garbage collection of vanilla and Plexus Mod Loader under the same load
  * (design doc §14.1, §14.4). Each run starts Mojang's game test server with a data pack that defines
- * the test {@code poly_tick_benchmark:hold}, which waits {@link #getHoldTicks()} ticks and passes, and
+ * the test {@code plexus_tick_benchmark:hold}, which waits {@link #getHoldTicks()} ticks and passes, and
  * a tick function that keeps 40 pigs alive and fills and clears a 16×16×16 cube of glass every tick. The
- * pack works without Poly Mod Loader, so both variants do the same work.
+ * pack works without Plexus Mod Loader, so both variants do the same work.
  *
  * <p>Both variants get the same measuring tools: the tick probe agent ({@code tools/tick-probe}) times
  * every {@code GameTestServer.tickServer} call, and Java Flight Recorder records the heap and the
- * collections. Runs alternate (vanilla, Poly Mod Loader, …) after one discarded warm-up of each, each in a
+ * collections. Runs alternate (vanilla, Plexus Mod Loader, …) after one discarded warm-up of each, each in a
  * fresh directory; the first {@link #getWarmupTicks()} ticks of every run are discarded. Raw tick
  * times stay in each run directory, and {@code tick-benchmark.json} holds every run's figures.
  *
@@ -73,7 +73,7 @@ public abstract class TickBenchmarkTask extends DefaultTask {
     public abstract RegularFileProperty getLaunchSpecFile();
 
     @Classpath
-    public abstract ConfigurableFileCollection getPolyRuntime();
+    public abstract ConfigurableFileCollection getPlexusRuntime();
 
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
@@ -88,12 +88,12 @@ public abstract class TickBenchmarkTask extends DefaultTask {
     public abstract Property<JavaLauncher> getJavaLauncher();
 
     /**
-     * Java agents for the Poly Mod Loader variant only ({@code -javaagent:<jar>}), such as Poly Mod Loader's own agent,
+     * Java agents for the Plexus Mod Loader variant only ({@code -javaagent:<jar>}), such as Plexus Mod Loader's own agent,
      * which NeoForge needs (ADR-0026) and the launcher profile starts.
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    public abstract ConfigurableFileCollection getPolyJavaAgents();
+    public abstract ConfigurableFileCollection getPlexusJavaAgents();
 
     /** Measured runs per variant. */
     @Input
@@ -123,8 +123,8 @@ public abstract class TickBenchmarkTask extends DefaultTask {
 
     /**
      * The name of a third variant that runs a real NeoForge installation ({@link NeoForgeServerInstallTask}) with
-     * {@link #getReferenceModJars()} instead of Poly Mod Loader, such as {@code connector}. When absent, only vanilla
-     * and Poly Mod Loader run.
+     * {@link #getReferenceModJars()} instead of Plexus Mod Loader, such as {@code connector}. When absent, only vanilla
+     * and Plexus Mod Loader run.
      */
     @Input
     @Optional
@@ -152,29 +152,29 @@ public abstract class TickBenchmarkTask extends DefaultTask {
     public abstract Property<String> getJfrSettings();
 
     /**
-     * When true, the tick probe also commits each tick as a JFR event ({@code poly.TickProbe.Call}), so the recording
+     * When true, the tick probe also commits each tick as a JFR event ({@code plexus.TickProbe.Call}), so the recording
      * can be split into slow and ordinary ticks. For profiling; every variant gets the same setting.
      */
     @Input
     public abstract Property<Boolean> getTickEvents();
 
-    /** Lines every Poly Mod Loader run's output must have (which mods loaded). */
+    /** Lines every Plexus Mod Loader run's output must have (which mods loaded). */
     @Input
-    public abstract ListProperty<String> getPolyExpectedOutput();
+    public abstract ListProperty<String> getPlexusExpectedOutput();
 
     /** Lines every reference run's output must have (which mods loaded). */
     @Input
     public abstract ListProperty<String> getReferenceExpectedOutput();
 
-    /** {@code extraJvm} with the Poly Mod Loader variant's own Java agents first. */
-    private List<String> polyJvm(List<String> extraJvm) {
-        List<String> arguments = new ArrayList<>(BenchmarkLaunch.javaAgents(getPolyJavaAgents().getFiles()));
+    /** {@code extraJvm} with the Plexus Mod Loader variant's own Java agents first. */
+    private List<String> plexusJvm(List<String> extraJvm) {
+        List<String> arguments = new ArrayList<>(BenchmarkLaunch.javaAgents(getPlexusJavaAgents().getFiles()));
         arguments.addAll(extraJvm);
         return arguments;
     }
 
     public TickBenchmarkTask() {
-        getPolyExpectedOutput().convention(List.of());
+        getPlexusExpectedOutput().convention(List.of());
         getReferenceExpectedOutput().convention(List.of());
         getJfrSettings().convention("default");
         getTickEvents().convention(false);
@@ -226,10 +226,10 @@ public abstract class TickBenchmarkTask extends DefaultTask {
         int runs = getRuns().get();
         int hold = getHoldTicks().get();
         List<String> programArgs =
-                List.of("--universe", "universe", "--tests", "poly_tick_benchmark:hold", "--packs", "packs");
+                List.of("--universe", "universe", "--tests", "plexus_tick_benchmark:hold", "--packs", "packs");
         Map<String, List<RunResult>> results = new LinkedHashMap<>();
         results.put("vanilla", new ArrayList<>());
-        results.put("poly", new ArrayList<>());
+        results.put("plexus", new ArrayList<>());
         String reference = getReferenceName().getOrNull();
         Path warmCache = work.resolve("reference-cache");
         if (reference != null) {
@@ -238,7 +238,7 @@ public abstract class TickBenchmarkTask extends DefaultTask {
         for (int i = -1; i < runs; i++) {
             for (String variant : results.keySet()) {
                 Path directory = work.resolve(variant + "-" + i);
-                writeWorkload(directory.resolve("packs/poly_tick_benchmark"), packFormat, hold);
+                writeWorkload(directory.resolve("packs/plexus_tick_benchmark"), packFormat, hold);
                 List<String> extraJvm = new ArrayList<>(heapArguments(getHeapSize().getOrNull()));
                 extraJvm.add("-javaagent:" + probe + "=out=" + directory.resolve("ticks.txt").toAbsolutePath()
                         + ",target=" + TICK_TARGET + (getTickEvents().get() ? ",jfr=true" : ""));
@@ -248,24 +248,24 @@ public abstract class TickBenchmarkTask extends DefaultTask {
                 if (variant.equals("vanilla")) {
                     command = BenchmarkLaunch.vanilla(
                             java(), BenchmarkLaunch.Target.GAME_TEST_SERVER, spec, directory, extraJvm, programArgs);
-                } else if (variant.equals("poly")) {
-                    command = BenchmarkLaunch.poly(
+                } else if (variant.equals("plexus")) {
+                    command = BenchmarkLaunch.plexus(
                             java(),
                             BenchmarkLaunch.Target.GAME_TEST_SERVER,
                             spec,
                             directory,
-                            getPolyRuntime().getFiles(),
+                            getPlexusRuntime().getFiles(),
                             getDevModJars().getFiles(),
                             getTransformCacheDirectory().get().getAsFile(),
-                            polyJvm(extraJvm),
+                            plexusJvm(extraJvm),
                             programArgs);
                 } else {
                     NeoForgeServerLaunch.prepareRun(directory, getReferenceModJars().getFiles(), warmCache);
                     command = referenceCommand(directory, extraJvm, programArgs);
                 }
                 BenchmarkLaunch.run(command, directory, "All 1 required tests passed", 15);
-                if (variant.equals("poly")) {
-                    BenchmarkLaunch.requireOutput(directory, getPolyExpectedOutput().get());
+                if (variant.equals("plexus")) {
+                    BenchmarkLaunch.requireOutput(directory, getPlexusExpectedOutput().get());
                 } else if (variant.equals(reference)) {
                     BenchmarkLaunch.requireOutput(directory, getReferenceExpectedOutput().get());
                     if (i < 0) {
@@ -385,7 +385,7 @@ public abstract class TickBenchmarkTask extends DefaultTask {
 
     private String report(Map<String, List<RunResult>> results, int runs, int hold) {
         StringBuilder json = new StringBuilder();
-        json.append("{\n  \"scenario\": \"game test server, test poly_tick_benchmark:hold for ")
+        json.append("{\n  \"scenario\": \"game test server, test plexus_tick_benchmark:hold for ")
                 .append(hold)
                 .append(" ticks, data pack: 40 pigs and a 16x16x16 glass fill/clear every tick\",\n");
         json.append("  \"runsPerVariant\": ").append(runs).append(",\n  \"warmupRunsDiscarded\": 1,\n");
@@ -417,7 +417,7 @@ public abstract class TickBenchmarkTask extends DefaultTask {
                                     .sorted()
                                     .toList()))
                     .append("]},\n");
-            json.append("  \"polyMods\": [")
+            json.append("  \"plexusMods\": [")
                     .append(String.join(
                             ", ",
                             getDevModJars().getFiles().stream()
@@ -481,29 +481,29 @@ public abstract class TickBenchmarkTask extends DefaultTask {
      * instead of the loader.
      */
     static void writeWorkload(Path pack, String packFormat, int holdTicks) throws IOException {
-        write(pack.resolve("pack.mcmeta"), "{\"pack\": {\"description\": \"Poly Mod Loader tick benchmark workload\", "
+        write(pack.resolve("pack.mcmeta"), "{\"pack\": {\"description\": \"Plexus Mod Loader tick benchmark workload\", "
                 + packFormat + "}}\n");
         write(
                 pack.resolve("data/minecraft/tags/function/load.json"),
-                "{\"values\": [\"poly_tick_benchmark:load\"]}\n");
+                "{\"values\": [\"plexus_tick_benchmark:load\"]}\n");
         write(
                 pack.resolve("data/minecraft/tags/function/tick.json"),
-                "{\"values\": [\"poly_tick_benchmark:tick\"]}\n");
+                "{\"values\": [\"plexus_tick_benchmark:tick\"]}\n");
         // Waits holdTicks before running the built-in always_pass test function, so the run lasts.
         write(
-                pack.resolve("data/poly_tick_benchmark/test_instance/hold.json"),
+                pack.resolve("data/plexus_tick_benchmark/test_instance/hold.json"),
                 "{\"type\": \"minecraft:function\", \"environment\": \"minecraft:default\", "
                         + "\"function\": \"minecraft:always_pass\", \"structure\": \"minecraft:empty\", "
                         + "\"setup_ticks\": " + holdTicks + ", \"max_ticks\": 1, \"required\": true}\n");
-        write(pack.resolve("data/poly_tick_benchmark/function/load.mcfunction"), """
+        write(pack.resolve("data/plexus_tick_benchmark/function/load.mcfunction"), """
                 forceload add -16 -16 63 63
-                scoreboard objectives add poly_bench dummy
+                scoreboard objectives add plexus_bench dummy
                 fill 30 99 30 50 99 50 minecraft:grass_block
                 fill 29 100 29 51 102 51 minecraft:glass hollow
                 """);
-        write(pack.resolve("data/poly_tick_benchmark/function/tick.mcfunction"), """
-                execute store result score #pigs poly_bench if entity @e[type=minecraft:pig]
-                execute if score #pigs poly_bench matches ..39 run summon minecraft:pig 40 100 40
+        write(pack.resolve("data/plexus_tick_benchmark/function/tick.mcfunction"), """
+                execute store result score #pigs plexus_bench if entity @e[type=minecraft:pig]
+                execute if score #pigs plexus_bench matches ..39 run summon minecraft:pig 40 100 40
                 fill 0 100 0 15 115 15 minecraft:glass replace minecraft:air
                 fill 0 100 0 15 115 15 minecraft:air replace minecraft:glass
                 """);

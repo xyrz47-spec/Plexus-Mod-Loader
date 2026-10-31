@@ -17,8 +17,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * Parses and validates {@code poly.mod.json} schema version 1. Every problem is collected instead of
- * stopping at the first one, so a mod author sees all mistakes at once. Fields that a later Poly Mod Loader
+ * Parses and validates {@code plexus.mod.json} schema version 1. Every problem is collected instead of
+ * stopping at the first one, so a mod author sees all mistakes at once. Fields that a later Plexus Mod Loader
  * version will support ({@code replacesSystems}, {@code transforms}, {@code provides}) are rejected
  * when non-empty rather than silently ignored (design doc §5.4.1).
  */
@@ -85,7 +85,7 @@ public final class ModMetadataReader {
         }
     }
 
-    /** Reads {@code json}, the contents of a {@code poly.mod.json} file. */
+    /** Reads {@code json}, the contents of a {@code plexus.mod.json} file. */
     public Result read(String json) {
         List<MetadataProblem> problems = new ArrayList<>();
         JsonObject root;
@@ -114,7 +114,7 @@ public final class ModMetadataReader {
             problems.add(new MetadataProblem(
                     MetadataProblemCode.UNSUPPORTED_SCHEMA_VERSION,
                     "$.schemaVersion",
-                    "Schema version " + schemaVersion.get() + " is not supported; this Poly Mod Loader reads version "
+                    "Schema version " + schemaVersion.get() + " is not supported; this Plexus Mod Loader reads version "
                             + SUPPORTED_SCHEMA_VERSION));
             return new Result(Optional.empty(), problems);
         }
@@ -171,7 +171,7 @@ public final class ModMetadataReader {
                 problems.add(new MetadataProblem(
                         MetadataProblemCode.UNKNOWN_CAPABILITY,
                         "$.capabilities",
-                        "'" + capability + "' is not a capability this Poly Mod Loader version knows"));
+                        "'" + capability + "' is not a capability this Plexus Mod Loader version knows"));
             }
         }
         List<SystemReplacementDeclaration> replacesSystems = replacesSystems(root, problems);
@@ -188,8 +188,8 @@ public final class ModMetadataReader {
                 problems.add(new MetadataProblem(
                         MetadataProblemCode.FEATURE_NOT_SUPPORTED_YET,
                         "$." + field,
-                        "'" + field + "' declarations are not supported by this Poly Mod Loader version yet; "
-                                + "remove them or use a Poly Mod Loader version that supports them"));
+                        "'" + field + "' declarations are not supported by this Plexus Mod Loader version yet; "
+                                + "remove them or use a Plexus Mod Loader version that supports them"));
             }
         }
 

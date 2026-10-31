@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * Custom payloads of a host loader and another loader on one connection (ADR-0026 40, {@link ForeignPayloads}).
  *
  * <ul>
- *   <li>{@link #encode}: rule {@code poly:custom_payload_encoding} calls it instead of the payload codec's {@code
+ *   <li>{@link #encode}: rule {@code plexus:custom_payload_encoding} calls it instead of the payload codec's {@code
  *       encode} in {@code CustomPacketPayload}'s codec ({@code writeCap}), so a host's payload is written with the
  *       host's codec where another loader's codec owns its id (NeoForge's {@code MinecraftRegisterPayload} next to
  *       Fabric API's {@code minecraft:register} codec). Without a host, it is the plain call.
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class HostPayloadHooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final AtomicBoolean DROP_REPORTED = new AtomicBoolean();
 
     private HostPayloadHooks() {}
@@ -76,7 +76,7 @@ public final class HostPayloadHooks {
 
     /**
      * Before NeoForge's filter of a bundle's packets returns ({@code kept}, from {@code packets}, rule {@code
-     * poly:neoforge_bundle_filter}): puts back the play-phase payloads of other loaders that it left out, in their
+     * plexus:neoforge_bundle_filter}): puts back the play-phase payloads of other loaders that it left out, in their
      * places. The filter only leaves packets out, in order; when {@code kept} is not such a subsequence of {@code
      * packets}, it is returned as it is.
      */
@@ -105,7 +105,7 @@ public final class HostPayloadHooks {
         }
         if (DROP_REPORTED.compareAndSet(false, true)) {
             LOGGER.info(
-                    "[Poly Mod Loader] Payload {} of another loader had no receiver; it is dropped, as that loader"
+                    "[Plexus Mod Loader] Payload {} of another loader had no receiver; it is dropped, as that loader"
                             + " does (ADR-0026 40)",
                     payload.type().id());
         }

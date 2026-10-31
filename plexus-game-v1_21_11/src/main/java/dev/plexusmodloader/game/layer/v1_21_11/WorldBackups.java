@@ -22,14 +22,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Backs up a world before it loads with mods removed or at other versions than last time, when the
- * policy in {@code config/poly/backups.properties} allows it (the default). The mods a world was last
- * loaded with are recorded in {@code <world>/poly/mods.properties}. Backups use the game's own world
+ * policy in {@code config/plexus/backups.properties} allows it (the default). The mods a world was last
+ * loaded with are recorded in {@code <world>/plexus/mods.properties}. Backups use the game's own world
  * backup (a zip in the {@code backups} directory, as from the Edit World screen).
  */
 final class WorldBackups {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
-    private static final Path POLICY = Path.of("config", "poly", "backups.properties");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
+    private static final Path POLICY = Path.of("config", "plexus", "backups.properties");
+    /** Where 1.4.x kept the policy and the record; read when the current file does not exist yet. */
+    private static final Path LEGACY_POLICY = Path.of("config", "poly", "backups.properties");
+
+    private static final String LEGACY_DIRECTORY = "poly";
     private static final String ON_MOD_CHANGE = "backup-on-mod-change";
     private static final String KEEP = "max-backups-per-world";
 
@@ -42,9 +46,12 @@ final class WorldBackups {
                 current.put(pack.modId(), pack.version());
             }
             Path record =
-                    server.getWorldPath(LevelResource.ROOT).resolve("poly").resolve("mods.properties");
+                    server.getWorldPath(LevelResource.ROOT).resolve("plexus").resolve("mods.properties");
+            Path legacyRecord = server.getWorldPath(LevelResource.ROOT)
+                    .resolve(LEGACY_DIRECTORY)
+                    .resolve("mods.properties");
             try {
-                Map<String, String> previous = read(record);
+                Map<String, String> previous = read(Files.exists(record) ? record : legacyRecord);
                 List<String> changes = changes(previous, current);
                 if (!changes.isEmpty()) {
                     Properties policy = policy();
@@ -57,19 +64,19 @@ final class WorldBackups {
                                 storage.getLevelId(),
                                 Integer.parseInt(policy.getProperty(KEEP, "10").trim()));
                         LOGGER.info(
-                                "[Poly Mod Loader] Backed up the world before loading it with changed mods {} ({} bytes)",
+                                "[Plexus Mod Loader] Backed up the world before loading it with changed mods {} ({} bytes)",
                                 changes,
                                 size);
                     } else {
                         LOGGER.warn(
-                                "[Poly Mod Loader] The world's mods changed {}; backups are off in {}",
+                                "[Plexus Mod Loader] The world's mods changed {}; backups are off in {}",
                                 changes,
                                 POLICY);
                     }
                 }
                 write(record, current);
             } catch (IOException | ReflectiveOperationException e) {
-                LOGGER.error("[Poly Mod Loader] PLEXUS-BACKUP-001 world backup check failed; loading continues", e);
+                LOGGER.error("[Plexus Mod Loader] PLEXUS-BACKUP-001 world backup check failed; loading continues", e);
             }
         });
     }
@@ -106,12 +113,16 @@ final class WorldBackups {
         }
         for (Path old : backups.subList(0, Math.max(0, backups.size() - keep))) {
             Files.delete(old);
-            LOGGER.info("[Poly Mod Loader] Deleted old world backup {}", old.getFileName());
+            LOGGER.info("[Plexus Mod Loader] Deleted old world backup {}", old.getFileName());
         }
     }
 
     private static Properties policy() throws IOException {
         Properties policy = new Properties();
+        if (!Files.exists(POLICY) && Files.exists(LEGACY_POLICY)) {
+            Files.createDirectories(POLICY.getParent());
+            Files.copy(LEGACY_POLICY, POLICY);
+        }
         if (Files.exists(POLICY)) {
             try (InputStream input = Files.newInputStream(POLICY)) {
                 policy.load(input);
@@ -119,8 +130,8 @@ final class WorldBackups {
         } else {
             Files.createDirectories(POLICY.getParent());
             Files.writeString(POLICY, """
-                    # Poly Mod Loader world backups. When a world is about to load with mods removed or at other versions
-                    # than last time, Poly Mod Loader first saves a zip of it to the backups directory.
+                    # Plexus Mod Loader world backups. When a world is about to load with mods removed or at other versions
+                    # than last time, Plexus Mod Loader first saves a zip of it to the backups directory.
                     %s=true
                     # How many backups of each world to keep; older ones are deleted (0 keeps all).
                     %s=10
@@ -153,7 +164,7 @@ final class WorldBackups {
         Properties properties = new Properties();
         properties.putAll(mods);
         try (OutputStream output = Files.newOutputStream(record)) {
-            properties.store(output, "Mods this world was last loaded with (written by Poly Mod Loader)");
+            properties.store(output, "Mods this world was last loaded with (written by Plexus Mod Loader)");
         }
     }
 }

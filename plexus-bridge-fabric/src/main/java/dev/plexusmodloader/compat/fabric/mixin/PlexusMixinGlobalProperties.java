@@ -6,7 +6,7 @@ import org.spongepowered.asm.service.IPropertyKey;
 /**
  * Mixin's global properties, kept in {@link MixinLaunch#properties} as Fabric Loader keeps them in a map. Found by
  * Mixin through {@link java.util.ServiceLoader}; Mixin's own two services need LaunchWrapper or ModLauncher, which
- * Poly Mod Loader does not have, so this is the one that loads.
+ * Plexus Mod Loader does not have, so this is the one that loads.
  */
 public final class PlexusMixinGlobalProperties implements IGlobalPropertyService {
 

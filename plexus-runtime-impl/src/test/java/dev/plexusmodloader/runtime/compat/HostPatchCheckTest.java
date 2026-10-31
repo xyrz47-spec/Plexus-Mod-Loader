@@ -94,7 +94,7 @@ class HostPatchCheckTest {
     }
 
     @Test
-    void aModThatDoesNotFitIsBlockedWithPolyModLoaderNamedAndTheModsThatNeedItFollow() throws Exception {
+    void aModThatDoesNotFitIsBlockedWithPlexusModLoaderNamedAndTheModsThatNeedItFollow() throws Exception {
         CheckingBridge bridge = new CheckingBridge();
         BridgedDependency needsBroken =
                 new BridgedDependency("broken", BridgedDependency.Kind.REQUIRED, "*", version -> true);
@@ -118,7 +118,7 @@ class HostPatchCheckTest {
         assertTrue(
                 finding.detail().contains("NeoForge 26.2.0.93")
                         && finding.detail().contains("not a bug in the mod")
-                        && finding.detail().contains("report it to Poly Mod Loader")
+                        && finding.detail().contains("report it to Plexus Mod Loader")
                         && finding.detail().contains("BrokenMixin"),
                 finding.detail());
         assertSame(mods.get(1), checked.get(1));

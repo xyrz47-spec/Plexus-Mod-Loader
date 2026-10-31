@@ -325,7 +325,7 @@ public abstract class ModCorpusTask extends DefaultTask {
             try {
                 HttpResponse<byte[]> response = http.send(
                         HttpRequest.newBuilder(URI.create(url))
-                                .header("User-Agent", "Poly Mod Loader compatibility tests (modCorpus)")
+                                .header("User-Agent", "Plexus Mod Loader compatibility tests (modCorpus)")
                                 .timeout(Duration.ofMinutes(2))
                                 .build(),
                         HttpResponse.BodyHandlers.ofByteArray());

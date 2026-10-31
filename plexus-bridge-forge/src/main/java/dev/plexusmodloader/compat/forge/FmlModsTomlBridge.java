@@ -16,7 +16,7 @@ import org.tomlj.TomlTable;
 /**
  * Diagnosis-only bridge for FML-based loaders (NeoForge and MinecraftForge). FML mods are classes
  * annotated with {@code @Mod} that receive an event bus and depend on FML's lifecycle, registries,
- * and class processors, none of which Poly Mod Loader provides yet, so every such mod is {@code BLOCKED}; the
+ * and class processors, none of which Plexus Mod Loader provides yet, so every such mod is {@code BLOCKED}; the
  * findings explain exactly which FML features it needs. Every {@code [[mods]]} ID of the jar is reported,
  * so a mod of another loader that requires one of them is told that it is installed but blocked.
  *
@@ -57,7 +57,7 @@ abstract class FmlModsTomlBridge implements ModLoaderBridge {
                 true,
                 "FML language provider",
                 "modLoader '" + text(toml.get("modLoader")) + "' needs FML to construct @Mod classes with "
-                        + "the mod event bus; Poly Mod Loader has no FML runtime"));
+                        + "the mod event bus; Plexus Mod Loader has no FML runtime"));
         if (toml.get("mixins") instanceof TomlArray mixins && !mixins.isEmpty()) {
             findings.add(new CompatibilityFinding(
                     "PLEXUS-COMPAT-202", true, "mixins", mixins.size() + " Mixin configuration(s)"));

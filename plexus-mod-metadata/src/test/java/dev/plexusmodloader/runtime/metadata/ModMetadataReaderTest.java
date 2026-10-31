@@ -20,7 +20,7 @@ class ModMetadataReaderTest {
                 "common": ["com.example.copper.ExampleMod"],
                 "client": ["com.example.copper.client.ExampleClientMod"]
               },
-              "depends": { "poly": ">=0.1.0 <0.2.0" },
+              "depends": { "plexus": ">=0.1.0 <0.2.0" },
               "conflicts": [],
               "provides": [],
               "replacesSystems": [],
@@ -44,7 +44,7 @@ class ModMetadataReaderTest {
         assertEquals(
                 List.of("com.example.copper.client.ExampleClientMod"),
                 metadata.entrypoints().client());
-        assertEquals(">=0.1.0 <0.2.0", metadata.depends().get("poly").toString());
+        assertEquals(">=0.1.0 <0.2.0", metadata.depends().get("plexus").toString());
     }
 
     @Test
@@ -57,7 +57,7 @@ class ModMetadataReaderTest {
                   "environment": "everywhere",
                   "minecraft": ["26.2"],
                   "entrypoints": { "common": ["not a class"], "launcher": [] },
-                  "depends": { "poly": "~1.0" }
+                  "depends": { "plexus": "~1.0" }
                 }
                 """);
 
@@ -108,11 +108,11 @@ class ModMetadataReaderTest {
         ModMetadataReader.Result result = reader.read(VALID.replace(
                 "\"replacesSystems\": []",
                 "\"capabilities\": [\"system.provider.replace\"], \"replacesSystems\": [{\"system\": "
-                        + "\"poly:game_brand\", \"provider\": \"com.example.Brand\", \"override\": true}]"));
+                        + "\"plexus:game_brand\", \"provider\": \"com.example.Brand\", \"override\": true}]"));
 
         assertEquals(List.of(), result.problems());
         assertEquals(
-                List.of(new SystemReplacementDeclaration("poly:game_brand", "com.example.Brand", true)),
+                List.of(new SystemReplacementDeclaration("plexus:game_brand", "com.example.Brand", true)),
                 result.metadata().orElseThrow().replacesSystems());
     }
 
@@ -120,7 +120,7 @@ class ModMetadataReaderTest {
     void systemReplacementsRequireTheReplaceCapability() {
         ModMetadataReader.Result result = reader.read(VALID.replace(
                 "\"replacesSystems\": []",
-                "\"replacesSystems\": [{\"system\": \"poly:game_brand\", \"provider\": \"com.example.Brand\"}]"));
+                "\"replacesSystems\": [{\"system\": \"plexus:game_brand\", \"provider\": \"com.example.Brand\"}]"));
 
         assertTrue(result.metadata().isEmpty());
         assertEquals(
@@ -206,7 +206,7 @@ class ModMetadataReaderTest {
              "action": {"type": "redirect_call", "invokedOwner": "net.minecraft.Util", "invokedName": "getNanos",
                         "invokedDescriptor": "()J", "ordinal": 1,
                         "hookOwner": "com.example.copper.Hooks", "hookMethod": "nanos"},
-             "after": ["poly:server_tick_events"]}
+             "after": ["plexus:server_tick_events"]}
             """;
 
     private static final String WIDENING = """
@@ -227,7 +227,7 @@ class ModMetadataReaderTest {
                 result.metadata().orElseThrow().transforms().getFirst();
         assertEquals("1", declaration.actionArguments().get("ordinal"));
         assertEquals("net.minecraft.Util", declaration.actionArguments().get("invokedOwner"));
-        assertEquals(List.of("poly:server_tick_events"), declaration.after());
+        assertEquals(List.of("plexus:server_tick_events"), declaration.after());
     }
 
     @Test

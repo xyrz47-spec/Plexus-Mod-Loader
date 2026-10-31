@@ -8,7 +8,7 @@ import dev.plexusmodloader.api.client.KeyCodes;
 import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 
-/** Poly Mod Loader key codes (GLFW key tokens, ADR-0029) against the SDL scancodes of 26.3's own constants. */
+/** Plexus Mod Loader key codes (GLFW key tokens, ADR-0029) against the SDL scancodes of 26.3's own constants. */
 class GameKeyCodesTest {
 
     @Test

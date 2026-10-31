@@ -50,7 +50,7 @@ import java.util.Optional;
  */
 final class HostReplacedCalls {
 
-    static final String PREFIX = "poly$hostCall$";
+    static final String PREFIX = "plexus$hostCall$";
 
     private static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
     private static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";

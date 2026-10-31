@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * Where a {@link CodeFeature} is tried in each chunk: how often, and at which height. Poly Mod Loader writes it as
+ * Where a {@link CodeFeature} is tried in each chunk: how often, and at which height. Plexus Mod Loader writes it as
  * the placed feature with the feature's ID, the same as one from a data pack.
  *
  * @param countPerChunk tries per chunk, each at a random x and z in the chunk

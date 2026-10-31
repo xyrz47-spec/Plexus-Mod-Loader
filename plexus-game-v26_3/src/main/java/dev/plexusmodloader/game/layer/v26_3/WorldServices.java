@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 /** World storage ({@link StoredData}) and per-dimension task scheduling. */
 final class WorldServices {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     /** Reserved key that holds the data version in saved storage. */
-    static final String VERSION_KEY = "poly_version";
+    static final String VERSION_KEY = "plexus_version";
 
     private static final Map<ResourceId, SavedDataType<ModSavedData>> TYPES = new ConcurrentHashMap<>();
     private static final Map<ServerLevel, LevelTasks> TASKS = new WeakHashMap<>();
@@ -97,13 +97,13 @@ final class WorldServices {
         if (version < current.version() && current.migration().isPresent()) {
             current.migration().get().migrate(tree, version);
             LOGGER.info(
-                    "[Poly Mod Loader] Migrated world storage {} from version {} to {}",
+                    "[Plexus Mod Loader] Migrated world storage {} from version {} to {}",
                     id,
                     version,
                     current.version());
         } else if (version > current.version()) {
             LOGGER.warn(
-                    "[Poly Mod Loader] PLEXUS-STORAGE-001 world storage {} was saved by a newer version ({} > {}); kept as is",
+                    "[Plexus Mod Loader] PLEXUS-STORAGE-001 world storage {} was saved by a newer version ({} > {}); kept as is",
                     id,
                     version,
                     current.version());
@@ -157,7 +157,7 @@ final class WorldServices {
                 task.action().run();
             } catch (RuntimeException e) {
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-SCHEDULE-001 a scheduled task failed in {}",
+                        "[Plexus Mod Loader] PLEXUS-SCHEDULE-001 a scheduled task failed in {}",
                         level.dimension().identifier(),
                         e);
             }

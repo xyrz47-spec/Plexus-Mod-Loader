@@ -18,20 +18,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Poly Mod Loader's early loading window over a launch, with every loader: it opens as Poly Mod Loader starts, shows
+ * Plexus Mod Loader's early loading window over a launch, with every loader: it opens as Plexus Mod Loader starts, shows
  * each step of the launch, and closes when the game's window shows its loading screen, which looks the same ({@link
  * GameWindowListener}). A host loader (MinecraftForge, NeoForge) then opens no early window of its own.
  *
  * <p>The window opens only on the client, for a version adapter that names the game's logo and whose game layer tells
  * when the game's window shows ({@link GameVersionAdapter#loadingScreenLogo()}), not on macOS (not checked there), and
- * not with {@code -Dpoly.earlyWindow=off}. When the game's window never says it shows, the window closes on its own: 20
+ * not with {@code -Dplexus.earlyWindow=off}. When the game's window never says it shows, the window closes on its own: 20
  * seconds after the game names its window, at the latest 3 minutes after the game starts.
  *
  * <p>Thread: the launch thread, and the game's render thread for {@link GameWindowListener}.
  */
 final class StartupWindow implements GameWindowListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** The game's first frame of its loading screen is on screen by then. */
     private static final long CLOSE_AFTER_SHOWN_MILLIS = 300;
@@ -61,13 +61,13 @@ final class StartupWindow implements GameWindowListener {
         if (configuration.side() != GameSide.CLIENT
                 || logo.isEmpty()
                 || mac
-                || System.getProperty("poly.earlyWindow", "on").equals("off")) {
+                || System.getProperty("plexus.earlyWindow", "on").equals("off")) {
             return none();
         }
         EarlyWindowSettings settings = EarlyWindowSettings.forGame(
                 "Minecraft* Plexus " + gameVersion, List.of(gameArguments), Optional.of(configuration.gameJar()), logo);
-        EarlyWindow window = EarlyWindow.start(settings, line -> LOGGER.info("[Poly Mod Loader] {}", line));
-        Optional<Path> snapshots = Optional.ofNullable(System.getProperty("poly.earlyWindow.snapshots"))
+        EarlyWindow window = EarlyWindow.start(settings, line -> LOGGER.info("[Plexus Mod Loader] {}", line));
+        Optional<Path> snapshots = Optional.ofNullable(System.getProperty("plexus.earlyWindow.snapshots"))
                 .map(Path::of);
         StartupWindow startup = new StartupWindow(window, snapshots);
         startup.open();
@@ -75,11 +75,11 @@ final class StartupWindow implements GameWindowListener {
         return startup;
     }
 
-    /** Opens the window; the host loader, if any, opens none ({@code GameHost.Request.polyEarlyWindow}). */
+    /** Opens the window; the host loader, if any, opens none ({@code GameHost.Request.plexusEarlyWindow}). */
     private void open() {
         if (window.isRunning()) {
             window.show();
-            LOGGER.info("[Poly Mod Loader] Early loading window opened");
+            LOGGER.info("[Plexus Mod Loader] Early loading window opened");
         }
     }
 
@@ -145,7 +145,7 @@ final class StartupWindow implements GameWindowListener {
         add(parts, "Quilt", counts.quiltMods());
         add(parts, "Forge", counts.forgeMods());
         add(parts, "NeoForge", counts.neoForgeMods());
-        add(parts, "Plexus", counts.polyMods());
+        add(parts, "Plexus", counts.plexusMods());
         return parts.isEmpty() ? "" : "Mods: " + String.join("  ·  ", parts);
     }
 
@@ -166,7 +166,7 @@ final class StartupWindow implements GameWindowListener {
         }
         if (timer == null) {
             timer = Executors.newSingleThreadScheduledExecutor(task -> {
-                Thread thread = new Thread(task, "Poly early window close");
+                Thread thread = new Thread(task, "Plexus early window close");
                 thread.setDaemon(true);
                 return thread;
             });
@@ -177,7 +177,7 @@ final class StartupWindow implements GameWindowListener {
     private synchronized void close() {
         if (window.isRunning()) {
             window.close();
-            LOGGER.info("[Poly Mod Loader] Early loading window closed");
+            LOGGER.info("[Plexus Mod Loader] Early loading window closed");
         }
         if (timer != null) {
             timer.shutdown();

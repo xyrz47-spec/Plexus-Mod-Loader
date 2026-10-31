@@ -13,24 +13,24 @@ import dev.plexusmodloader.api.system.SystemLookup;
 import dev.plexusmodloader.api.worldgen.WorldgenRegistrar;
 
 /**
- * Information Poly Mod Loader hands to a mod entrypoint about the mod being initialised and the process it runs
- * in. Implementations are provided by Poly Mod Loader; mods do not implement this interface.
+ * Information Plexus Mod Loader hands to a mod entrypoint about the mod being initialised and the process it runs
+ * in. Implementations are provided by Plexus Mod Loader; mods do not implement this interface.
  */
 @ApiStability(StabilityLevel.PREVIEW)
 public interface ModContext {
-    /** The mod ID declared in {@code poly.mod.json}, for example {@code minimal_native_mod}. */
+    /** The mod ID declared in {@code plexus.mod.json}, for example {@code minimal_native_mod}. */
     String modId();
 
-    /** The mod version declared in {@code poly.mod.json}. */
+    /** The mod version declared in {@code plexus.mod.json}. */
     String modVersion();
 
     /** Whether this process is a client or a dedicated server. */
     GameSide side();
 
-    /** The mods loaded in this game, of every loader (Poly Mods, Fabric mods, Forge mods). */
+    /** The mods loaded in this game, of every loader (Plexus Mods, Fabric mods, Forge mods). */
     LoadedMods mods();
 
-    /** The active implementation of each Poly Mod Loader system, after replacements were applied. */
+    /** The active implementation of each Plexus Mod Loader system, after replacements were applied. */
     SystemLookup systems();
 
     /** Registers event listeners owned by this mod. */
@@ -42,7 +42,7 @@ public interface ModContext {
      * <p><b>Order:</b> tasks run once, in reverse registration order across all mods, so mods are
      * cleaned up before the mods they depend on.
      *
-     * <p><b>Thread:</b> tasks run on Poly Mod Loader's shutdown thread while the JVM exits. They must be quick,
+     * <p><b>Thread:</b> tasks run on Plexus Mod Loader's shutdown thread while the JVM exits. They must be quick,
      * must not start new threads, and must not touch game state, which may already be gone.
      *
      * <p><b>Failure:</b> an exception is logged with the mod ID ({@code PLEXUS-SHUTDOWN-001}); the

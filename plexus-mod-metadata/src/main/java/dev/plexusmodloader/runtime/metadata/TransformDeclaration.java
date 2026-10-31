@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One entry of {@code transforms} in {@code poly.mod.json}. The metadata module only checks the
+ * One entry of {@code transforms} in {@code plexus.mod.json}. The metadata module only checks the
  * shape; the runtime turns it into an engine rule and the planner validates it against the game.
  *
  * @param id rule ID, must be {@code <mod id>:<path>}
@@ -30,7 +30,7 @@ public record TransformDeclaration(
         boolean abortOnFailure,
         List<String> after) {
 
-    /** Action types this Poly Mod Loader version understands, with their required arguments. */
+    /** Action types this Plexus Mod Loader version understands, with their required arguments. */
     public static final Map<String, List<String>> ACTIONS = Map.of(
             "replace_returned_string_constant", List.of("expected", "replacement"),
             "invoke_hook_at_head", List.of("hookOwner", "hookMethod", "result"),

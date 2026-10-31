@@ -14,7 +14,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * ADR-0021 G8: with one Mixin for Forge and Fabric mods, MixinExtras comes from Poly Mod Loader's class path, where it
+ * ADR-0021 G8: with one Mixin for Forge and Fabric mods, MixinExtras comes from Plexus Mod Loader's class path, where it
  * defines the classes it generates ({@code LocalRefImpl} next to {@code GeneratedImplDummy}). A MixinExtras module in
  * FML's GAME layer would hold that package in the game class loader, so the game's classes would not find them. Carry On
  * 2.12.0 for 26.3 nests mixinextras-forge 0.5.5, newer than Forge 66.1.0's 0.5.4, and FML's JarJar selection then put
@@ -78,7 +78,7 @@ class SharedMixinExtrasTest {
     }
 
     @Test
-    void aMixinExtrasGameLibraryIsLeftOutWhenPolyModLoadersClassPathHasMixinExtras() {
+    void aMixinExtrasGameLibraryIsLeftOutWhenPlexusModLoadersClassPathHasMixinExtras() {
         List<String> log = new ArrayList<>();
 
         List<SecureJar> kept = SharedMixinExtras.withoutMixinExtras(gameJars(), true, log::add);
@@ -91,7 +91,7 @@ class SharedMixinExtrasTest {
     }
 
     @Test
-    void everyGameJarStaysWithoutMixinExtrasOnPolyModLoadersClassPath() {
+    void everyGameJarStaysWithoutMixinExtrasOnPlexusModLoadersClassPath() {
         List<String> log = new ArrayList<>();
 
         List<SecureJar> kept = SharedMixinExtras.withoutMixinExtras(gameJars(), false, log::add);

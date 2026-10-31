@@ -36,7 +36,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Opens an existing saved world in the client through Poly Mod Loader (Quick Play) and passes once every
+ * Opens an existing saved world in the client through Plexus Mod Loader (Quick Play) and passes once every
  * expected log line has appeared, then stops the client. This proves that a world written by an
  * earlier run is read back from disk. The client has no headless mode, so this task opens a game
  * window for a few seconds.
@@ -80,7 +80,7 @@ public abstract class ClientWorldReloadTask extends DefaultTask {
     public abstract Property<Integer> getTimeoutSeconds();
 
     /**
-     * Java agents for the client ({@code -javaagent:<jar>}), such as Poly Mod Loader's own agent, which NeoForge needs
+     * Java agents for the client ({@code -javaagent:<jar>}), such as Plexus Mod Loader's own agent, which NeoForge needs
      * (ADR-0026) and the launcher profile starts.
      */
     @InputFiles

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Sends Quilt Loader's log ({@code org.quiltmc.loader.impl.util.log.Log}, which the packed API classes write to) to
- * SLF4J under the logger {@code Quilt Loader}, so it reaches the game's log like Poly Mod Loader's own lines (ADR-0027
+ * SLF4J under the logger {@code Quilt Loader}, so it reaches the game's log like Plexus Mod Loader's own lines (ADR-0027
  * decision 4). Installed once per process ({@link #install}); what Quilt's built-in handler buffered before is
  * replayed.
  *

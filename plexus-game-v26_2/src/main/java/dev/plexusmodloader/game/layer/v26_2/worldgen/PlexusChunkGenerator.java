@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class PlexusChunkGenerator extends ChunkGenerator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Map<ResourceId, MapCodec<PlexusChunkGenerator>> CODECS = new ConcurrentHashMap<>();
     private static final Map<ResourceId, BlockState> STATES = new ConcurrentHashMap<>();
 
@@ -69,7 +69,7 @@ public final class PlexusChunkGenerator extends ChunkGenerator {
             Registry.register(BuiltInRegistries.CHUNK_GENERATOR, Views.id(id), codec);
         }
         if (!declarations.isEmpty()) {
-            LOGGER.info("[Poly Mod Loader] Registered {} chunk generator type(s) from mods", declarations.size());
+            LOGGER.info("[Plexus Mod Loader] Registered {} chunk generator type(s) from mods", declarations.size());
         }
     }
 
@@ -170,7 +170,7 @@ public final class PlexusChunkGenerator extends ChunkGenerator {
 
     @Override
     public void addDebugScreenInfo(List<String> result, RandomState randomState, BlockPos feetPos) {
-        result.add("Poly Mod Loader terrain: " + id);
+        result.add("Plexus Mod Loader terrain: " + id);
     }
 
     @Override

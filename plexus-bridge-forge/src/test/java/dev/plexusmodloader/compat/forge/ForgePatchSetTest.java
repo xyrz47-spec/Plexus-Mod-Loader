@@ -76,15 +76,15 @@ class ForgePatchSetTest {
      * -PforgePatchedServer=...}).
      */
     @Test
-    @EnabledIfSystemProperty(named = "poly.forgeInstaller", matches = ".+")
+    @EnabledIfSystemProperty(named = "plexus.forgeInstaller", matches = ".+")
     void realPatchesMatchForgesInstaller(@org.junit.jupiter.api.io.TempDir Path directory) throws IOException {
         ForgePatchSet patches;
-        try (JarFile installer = new JarFile(System.getProperty("poly.forgeInstaller"));
+        try (JarFile installer = new JarFile(System.getProperty("plexus.forgeInstaller"));
                 InputStream lzma = installer.getInputStream(installer.getEntry("data/server.lzma"))) {
             patches = ForgePatchSet.read(lzma);
         }
         Path patched = directory.resolve("patched.jar");
-        List<String> changed = patches.patch(Path.of(System.getProperty("poly.forgeVanillaServer")), patched);
+        List<String> changed = patches.patch(Path.of(System.getProperty("plexus.forgeVanillaServer")), patched);
 
         assertEquals(patches.size(), changed.size());
         assertFalse(changed.isEmpty());
@@ -94,7 +94,7 @@ class ForgePatchSetTest {
                     "Mojang's signature is left out, patched classes no longer match it");
         }
         try (JarFile ours = new JarFile(patched.toFile());
-                JarFile forge = new JarFile(System.getProperty("poly.forgePatchedServer"))) {
+                JarFile forge = new JarFile(System.getProperty("plexus.forgePatchedServer"))) {
             for (String name : changed) {
                 ZipEntry expected = forge.getEntry(name);
                 assertTrue(expected != null, name + " is not in Forge's jar");

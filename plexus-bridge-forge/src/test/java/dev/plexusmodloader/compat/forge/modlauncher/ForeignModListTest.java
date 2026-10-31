@@ -25,7 +25,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** ADR-0025: Poly Mods and other loaders' mods as forgespi mod files, what Forge mods read from FML's mod list. */
+/** ADR-0025: Plexus Mods and other loaders' mods as forgespi mod files, what Forge mods read from FML's mod list. */
 class ForeignModListTest {
 
     @TempDir

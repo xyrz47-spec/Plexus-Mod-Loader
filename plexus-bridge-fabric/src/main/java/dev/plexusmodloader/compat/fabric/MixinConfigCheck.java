@@ -158,7 +158,7 @@ public final class MixinConfigCheck {
                         && value.getAsJsonPrimitive().isBoolean()
                         && value.getAsBoolean();
                 return Optional.of(new Problem(
-                        path + " needs Mixin " + minVersion + "; Poly Mod Loader has " + MixinBootstrap.VERSION,
+                        path + " needs Mixin " + minVersion + "; Plexus Mod Loader has " + MixinBootstrap.VERSION,
                         required));
             }
         }

@@ -33,8 +33,8 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Measures wall-clock time from JVM start to exit of Mojang's game test server running the built-in
- * {@code always_pass} test, for vanilla (game jar on the class path, no Poly Mod Loader) and for Poly Mod Loader with the
- * configured mods. Runs are interleaved (vanilla, Poly Mod Loader, vanilla, …) after one discarded warm-up of
+ * {@code always_pass} test, for vanilla (game jar on the class path, no Plexus Mod Loader) and for Plexus Mod Loader with the
+ * configured mods. Runs are interleaved (vanilla, Plexus Mod Loader, vanilla, …) after one discarded warm-up of
  * each, every run in a fresh directory, and the raw times are written next to the summary so the
  * numbers can be re-analysed (design doc §14.4). Each run also notes when the server is ready: the first output line
  * {@value #READY_MARKER} (Mojang's {@code GameTestRunner}, after the world is created and before the first test).
@@ -42,7 +42,7 @@ import org.gradle.work.DisableCachingByDefault;
  * <p>With {@link #getReferenceName()}, a third variant runs in the same rotation: a real NeoForge installation started
  * by NeoForge's own argument files on FML's game test server entry point, with {@link #getReferenceModJars()} (for
  * Sinytra Connector and the Fabric mods it runs), and the same log configuration. Its warm-up run's game-folder cache
- * is copied into each of its measured runs, as Poly Mod Loader's runs share their transform cache.
+ * is copied into each of its measured runs, as Plexus Mod Loader's runs share their transform cache.
  */
 @DisableCachingByDefault(because = "Benchmarks must run every time")
 public abstract class StartupBenchmarkTask extends DefaultTask {
@@ -55,7 +55,7 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
     public abstract RegularFileProperty getLaunchSpecFile();
 
     @Classpath
-    public abstract ConfigurableFileCollection getPolyRuntime();
+    public abstract ConfigurableFileCollection getPlexusRuntime();
 
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
@@ -65,12 +65,12 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
     public abstract Property<JavaLauncher> getJavaLauncher();
 
     /**
-     * Java agents for the Poly Mod Loader variant only ({@code -javaagent:<jar>}), such as Poly Mod Loader's own agent,
+     * Java agents for the Plexus Mod Loader variant only ({@code -javaagent:<jar>}), such as Plexus Mod Loader's own agent,
      * which NeoForge needs (ADR-0026) and the launcher profile starts.
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    public abstract ConfigurableFileCollection getPolyJavaAgents();
+    public abstract ConfigurableFileCollection getPlexusJavaAgents();
 
     @Input
     public abstract Property<Integer> getRuns();
@@ -89,7 +89,7 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
     @Optional
     public abstract Property<String> getHeapSize();
 
-    /** The name of the reference variant, such as {@code connector}; when absent, only vanilla and Poly Mod Loader. */
+    /** The name of the reference variant, such as {@code connector}; when absent, only vanilla and Plexus Mod Loader. */
     @Input
     @Optional
     public abstract Property<String> getReferenceName();
@@ -108,16 +108,16 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
     @PathSensitive(PathSensitivity.NAME_ONLY)
     public abstract ConfigurableFileCollection getReferenceModJars();
 
-    /** Lines every Poly Mod Loader run's output must have (which mods loaded). */
+    /** Lines every Plexus Mod Loader run's output must have (which mods loaded). */
     @Input
-    public abstract ListProperty<String> getPolyExpectedOutput();
+    public abstract ListProperty<String> getPlexusExpectedOutput();
 
     /** Lines every reference run's output must have (which mods loaded). */
     @Input
     public abstract ListProperty<String> getReferenceExpectedOutput();
 
     public StartupBenchmarkTask() {
-        getPolyExpectedOutput().convention(List.of());
+        getPlexusExpectedOutput().convention(List.of());
         getReferenceExpectedOutput().convention(List.of());
     }
 
@@ -131,7 +131,7 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
         Map<String, List<BenchmarkLaunch.Timing>> measured = new LinkedHashMap<>();
         Map<String, BenchmarkLaunch.Timing> warmups = new LinkedHashMap<>();
         measured.put("vanilla", new ArrayList<>());
-        measured.put("poly", new ArrayList<>());
+        measured.put("plexus", new ArrayList<>());
         if (reference != null) {
             measured.put(reference, new ArrayList<>());
         }
@@ -143,16 +143,16 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
                 List<String> command;
                 if (variant.equals("vanilla")) {
                     command = vanillaCommand(spec, directory, heap);
-                } else if (variant.equals("poly")) {
-                    command = polyCommand(spec, directory, heap);
+                } else if (variant.equals("plexus")) {
+                    command = plexusCommand(spec, directory, heap);
                 } else {
                     NeoForgeServerLaunch.prepareRun(directory, getReferenceModJars().getFiles(), warmCache);
                     command = referenceCommand(directory, heap);
                 }
                 BenchmarkLaunch.Timing timing = BenchmarkLaunch.runTimed(
                         command, directory, "All 1 required tests passed", READY_MARKER, 10);
-                if (variant.equals("poly")) {
-                    BenchmarkLaunch.requireOutput(directory, getPolyExpectedOutput().get());
+                if (variant.equals("plexus")) {
+                    BenchmarkLaunch.requireOutput(directory, getPlexusExpectedOutput().get());
                 } else if (variant.equals(reference)) {
                     BenchmarkLaunch.requireOutput(directory, getReferenceExpectedOutput().get());
                     if (i < 0) {
@@ -180,7 +180,7 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
         if (reference != null) {
             extra.append(String.format(
                     Locale.ROOT,
-                    "  \"reference\": {\"name\": \"%s\", \"neoForge\": \"%s\", \"mods\": %s},\n  \"polyMods\": %s,\n",
+                    "  \"reference\": {\"name\": \"%s\", \"neoForge\": \"%s\", \"mods\": %s},\n  \"plexusMods\": %s,\n",
                     reference,
                     getReferenceNeoForgeVersion().get(),
                     names(getReferenceModJars().getFiles()),
@@ -264,19 +264,19 @@ public abstract class StartupBenchmarkTask extends DefaultTask {
                 java(), BenchmarkLaunch.Target.GAME_TEST_SERVER, spec, directory, heap, PROGRAM_ARGUMENTS);
     }
 
-    private List<String> polyCommand(MinecraftLaunchSpec spec, Path directory, List<String> heap)
+    private List<String> plexusCommand(MinecraftLaunchSpec spec, Path directory, List<String> heap)
             throws IOException {
-        List<String> polyJvm = new ArrayList<>(BenchmarkLaunch.javaAgents(getPolyJavaAgents().getFiles()));
-        polyJvm.addAll(heap);
-        return BenchmarkLaunch.poly(
+        List<String> plexusJvm = new ArrayList<>(BenchmarkLaunch.javaAgents(getPlexusJavaAgents().getFiles()));
+        plexusJvm.addAll(heap);
+        return BenchmarkLaunch.plexus(
                 java(),
                 BenchmarkLaunch.Target.GAME_TEST_SERVER,
                 spec,
                 directory,
-                getPolyRuntime().getFiles(),
+                getPlexusRuntime().getFiles(),
                 getDevModJars().getFiles(),
                 getTransformCacheDirectory().get().getAsFile(),
-                polyJvm,
+                plexusJvm,
                 PROGRAM_ARGUMENTS);
     }
 

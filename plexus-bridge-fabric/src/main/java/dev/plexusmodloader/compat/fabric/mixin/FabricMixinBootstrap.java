@@ -39,7 +39,7 @@ import org.spongepowered.asm.mixin.transformer.Config;
  * {@code FabricLauncherBase.finishMixinBootstrapping}, ADR-0020):
  *
  * <ol>
- *   <li>names Poly Mod Loader's service ({@code mixin.service}, {@code mixin.bootstrapService}) and runs {@link
+ *   <li>names Plexus Mod Loader's service ({@code mixin.service}, {@code mixin.bootstrapService}) and runs {@link
  *       MixinBootstrap#init()}
  *   <li>starts MixinExtras, as Fabric Loader's bundled MixinExtras mod does from its configuration plugin
  *   <li>adds every loaded Fabric and Quilt mod's configurations for this side, in load order ({@link
@@ -61,7 +61,7 @@ import org.spongepowered.asm.mixin.transformer.Config;
  */
 public final class FabricMixinBootstrap {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     /** Mixin's option for where field initialisers of mixins go ({@code MixinEnvironment.Option}). */
     private static final String INITIALISER_MODE = "mixin.initialiserInjectionMode";
@@ -75,8 +75,8 @@ public final class FabricMixinBootstrap {
      * Starts Mixin for {@code context} and returns the transformer the game class loader runs, or empty when no
      * loaded Fabric mod has a Mixin configuration for this side.
      *
-     * @param fabricLoaderVersion the Fabric Loader version Poly Mod Loader stands in for
-     * @param mixinExtrasVersion the MixinExtras version on Poly Mod Loader's class path, for the log
+     * @param fabricLoaderVersion the Fabric Loader version Plexus Mod Loader stands in for
+     * @param mixinExtrasVersion the MixinExtras version on Plexus Mod Loader's class path, for the log
      * @throws IllegalStateException when two mods use the same configuration name, a configuration cannot be
      *     read, or Mixin fails to start; the message names the configuration and the mod. On a host's patched game also
      *     ({@code PLEXUS-COMPAT-225}) when a loaded mod's mixin cannot work as written there, which {@link
@@ -112,15 +112,15 @@ public final class FabricMixinBootstrap {
                     lines.add(finding.modId() + " (" + simpleName(finding.mixin()) + "): " + finding.reason());
                 }
             }
-            throw new IllegalStateException("PLEXUS-COMPAT-225 Poly Mod Loader cannot run these Fabric mods' mixins"
+            throw new IllegalStateException("PLEXUS-COMPAT-225 Plexus Mod Loader cannot run these Fabric mods' mixins"
                     + " as written on the game as " + context.host().hostName() + " patches it, and its check"
-                    + " before the launch did not foresee it. This is a limitation of Poly Mod Loader, not a bug in"
-                    + " these mods: report it to Poly Mod Loader, not to the mods' authors. Remove these mods to play: "
+                    + " before the launch did not foresee it. This is a limitation of Plexus Mod Loader, not a bug in"
+                    + " these mods: report it to Plexus Mod Loader, not to the mods' authors. Remove these mods to play: "
                     + String.join("; ", lines));
         }
         for (HostPatchAdjustments.Finding finding : adjustments.findings()) {
             LOGGER.info(
-                    "[Poly Mod Loader] {} Fabric mod {} ({}, {}): {}",
+                    "[Plexus Mod Loader] {} Fabric mod {} ({}, {}): {}",
                     finding.code(),
                     finding.modId(),
                     finding.config(),
@@ -152,14 +152,14 @@ public final class FabricMixinBootstrap {
             // puts them right after the delegate call, the same place for every constructor with one such call.
             System.setProperty(INITIALISER_MODE, "safe");
             LOGGER.info(
-                    "[Poly Mod Loader] Mixin puts mixins' field initialisers right after the delegate constructor call"
+                    "[Plexus Mod Loader] Mixin puts mixins' field initialisers right after the delegate constructor call"
                             + " (initialiserInjectionMode safe): {} constructs some classes inside their own"
                             + " constructors",
                     context.host().hostName());
         }
         MixinBootstrap.init();
         if (context.host().isHosted()) {
-            // What HostPatchAdjustments could not foresee on a host's patched game is reported as Poly Mod Loader's.
+            // What HostPatchAdjustments could not foresee on a host's patched game is reported as Plexus Mod Loader's.
             HostedMixinErrors.handle(configToMod.keySet(), context.host().hostName());
             Mixins.registerErrorHandlerClass(HostedMixinErrors.class.getName());
         }
@@ -188,7 +188,7 @@ public final class FabricMixinBootstrap {
         started = true;
         if (launch.transformer == null) {
             throw new IllegalStateException(
-                    "Mixin started but offered no class transformer to Poly Mod Loader's service");
+                    "Mixin started but offered no class transformer to Plexus Mod Loader's service");
         }
         if (context.host().sharesMixin() && context.sharedMixinConfigs().isEmpty()) {
             // The host reports its mods' configurations only once its loader has started (NeoForge). Mixin selects
@@ -210,7 +210,7 @@ public final class FabricMixinBootstrap {
                 .distinct()
                 .count();
         LOGGER.info(
-                "[Poly Mod Loader] Mixin: {} configuration(s) from {} Fabric mod(s){} for {}",
+                "[Plexus Mod Loader] Mixin: {} configuration(s) from {} Fabric mod(s){} for {}",
                 configToMod.size(),
                 fabricMods,
                 quiltMods == 0 ? "" : " and " + quiltMods + " Quilt mod(s)",
@@ -376,7 +376,7 @@ public final class FabricMixinBootstrap {
         late.retainAll(PlexusMixinService.askedDuringHostSelection());
         for (String target : late) {
             LOGGER.warn(
-                    "[Poly Mod Loader] PLEXUS-COMPAT-220 [limited] {} loaded {} Mixin selected the {} mods'"
+                    "[Plexus Mod Loader] PLEXUS-COMPAT-220 [limited] {} loaded {} Mixin selected the {} mods'"
                             + " configurations (another mod's Mixin plugin loaded it); their mixins into it do not"
                             + " apply, the rest of their configurations does",
                     target,
@@ -384,7 +384,7 @@ public final class FabricMixinBootstrap {
                     shared.getFirst().loaderName());
         }
         LOGGER.info(
-                "[Poly Mod Loader] Mixin: {} configuration(s) from {} {} mod(s) share Fabric's Mixin",
+                "[Plexus Mod Loader] Mixin: {} configuration(s) from {} {} mod(s) share Fabric's Mixin",
                 added.size(),
                 added.values().stream().map(SharedMixinConfig::modId).distinct().count(),
                 shared.getFirst().loaderName());

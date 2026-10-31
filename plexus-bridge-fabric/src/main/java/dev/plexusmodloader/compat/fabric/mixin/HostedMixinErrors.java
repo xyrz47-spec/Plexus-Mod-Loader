@@ -16,8 +16,8 @@ import org.spongepowered.asm.mixin.transformer.throwables.MixinTargetAlreadyLoad
  * HostPatchAdjustments} keeps the Fabric mods whose mixins cannot work on the host's patched classes out of the launch
  * before any mod code runs ({@code PLEXUS-COMPAT-224}); a failure it could not foresee (injection points found by
  * expressions or slices) keeps Mixin's action, as under Fabric Loader: a required injection that finds nothing stops
- * the game. Such a failure is reported as Poly Mod Loader's ({@code PLEXUS-COMPAT-225}), so that the player reports it to
- * Poly Mod Loader and not to the mod's author, whose mixin is correct for the game it was written for. Poly Mod Loader
+ * the game. Such a failure is reported as Plexus Mod Loader's ({@code PLEXUS-COMPAT-225}), so that the player reports it to
+ * Plexus Mod Loader and not to the mod's author, whose mixin is correct for the game it was written for. Plexus Mod Loader
  * does not skip the mixin and run the rest of the mod. Errors of the host's own mods keep the host Mixin's handling.
  *
  * <p>Mixin creates this class itself ({@code Mixins.registerErrorHandlerClass}), so the Fabric configurations it
@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.transformer.throwables.MixinTargetAlreadyLoad
  */
 public final class HostedMixinErrors implements IMixinErrorHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Set<String> FABRIC_CONFIGS = ConcurrentHashMap.newKeySet();
     private static volatile String hostName = "";
 
@@ -47,7 +47,7 @@ public final class HostedMixinErrors implements IMixinErrorHandler {
 
     /**
      * Reports {@code error}, which Mixin threw while it changed {@code className} without asking this handler (an
-     * injection that found fewer targets than it requires throws {@code InjectionError} directly), as Poly Mod Loader's
+     * injection that found fewer targets than it requires throws {@code InjectionError} directly), as Plexus Mod Loader's
      * when its message names a Fabric or Quilt mod's configuration ({@code PLEXUS-COMPAT-225}). The caller rethrows it.
      */
     static void reportUnforeseen(String className, Throwable error) {
@@ -59,10 +59,10 @@ public final class HostedMixinErrors implements IMixinErrorHandler {
             for (String config : FABRIC_CONFIGS) {
                 if (message.contains(" " + config + ":")) {
                     LOGGER.error(
-                            "[Poly Mod Loader] PLEXUS-COMPAT-225 a Fabric mod's mixin from {} does not apply to {} as {}"
-                                    + " patches it: {}. Poly Mod Loader's check before the launch did not foresee"
-                                    + " this. This is a limitation of Poly Mod Loader running Fabric mods with {}, not"
-                                    + " a bug in the mod: report it to Poly Mod Loader, not to the mod's author. The"
+                            "[Plexus Mod Loader] PLEXUS-COMPAT-225 a Fabric mod's mixin from {} does not apply to {} as {}"
+                                    + " patches it: {}. Plexus Mod Loader's check before the launch did not foresee"
+                                    + " this. This is a limitation of Plexus Mod Loader running Fabric mods with {}, not"
+                                    + " a bug in the mod: report it to Plexus Mod Loader, not to the mod's author. The"
                                     + " game stops, as it would under Fabric Loader; remove that mod (or the {} mods)"
                                     + " to play",
                             config,
@@ -93,7 +93,7 @@ public final class HostedMixinErrors implements IMixinErrorHandler {
                 // tracks only the classes its Mixin processor handled), so there the mixin silently does not apply.
                 Object modId = config.getDecoration(FabricUtil.KEY_MOD_ID);
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMPAT-220 [limited] {} mod {} ({}, {}): {}; as under {}'s own Mixin, this"
+                        "[Plexus Mod Loader] PLEXUS-COMPAT-220 [limited] {} mod {} ({}, {}): {}; as under {}'s own Mixin, this"
                                 + " mixin does not apply",
                         hostName,
                         modId == null ? "?" : modId,
@@ -114,9 +114,9 @@ public final class HostedMixinErrors implements IMixinErrorHandler {
         Object modId = config.getDecoration(FabricUtil.KEY_MOD_ID);
         String mod = modId == null ? "?" : modId.toString();
         LOGGER.error(
-                "[Poly Mod Loader] PLEXUS-COMPAT-225 Fabric mod {} ({}, {}){} does not apply to the game as {} patches it:"
-                        + " {}. Poly Mod Loader's check before the launch did not foresee this. This is a limitation of"
-                        + " Poly Mod Loader running Fabric mods with {}, not a bug in mod {}: report it to Poly Mod"
+                "[Plexus Mod Loader] PLEXUS-COMPAT-225 Fabric mod {} ({}, {}){} does not apply to the game as {} patches it:"
+                        + " {}. Plexus Mod Loader's check before the launch did not foresee this. This is a limitation of"
+                        + " Plexus Mod Loader running Fabric mods with {}, not a bug in mod {}: report it to Plexus Mod"
                         + " Loader, not to the mod's author. The game stops, as it would under Fabric Loader; remove"
                         + " mod {} (or the {} mods) to play",
                 mod,

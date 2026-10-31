@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Everything needed to start one side of a prepared Minecraft distribution: the game jar (loaded by
- * Poly Mod Loader's game class loader, never put on the JVM class path), the library class path, and the
+ * Plexus Mod Loader's game class loader, never put on the JVM class path), the library class path, and the
  * already-resolved JVM and game arguments from Mojang's version manifest.
  *
  * @param gameVersion Minecraft version id, e.g. {@code 26.2}

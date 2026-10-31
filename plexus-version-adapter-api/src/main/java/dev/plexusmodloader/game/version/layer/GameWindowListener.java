@@ -4,7 +4,7 @@ import dev.plexusmodloader.api.stability.ApiStability;
 import dev.plexusmodloader.api.stability.StabilityLevel;
 
 /**
- * What the game layer tells the runtime about the game's own window, so that Poly Mod Loader's early loading window
+ * What the game layer tells the runtime about the game's own window, so that Plexus Mod Loader's early loading window
  * closes when the game's window takes over. Thread: the game's render thread; implementations return quickly.
  */
 @ApiStability(StabilityLevel.INTERNAL)

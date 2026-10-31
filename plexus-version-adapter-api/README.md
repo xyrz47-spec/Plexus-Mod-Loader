@@ -6,7 +6,7 @@ Minecraft 버전마다 다른 지식(게임 진입점, 내장 변환 규칙)을 
 ## 무엇을 소유하는가
 `dev.plexusmodloader.game.version.GameVersionAdapter`, 게임 계층 계약 `dev.plexusmodloader.game.version.layer`(`GameLayer`, `GameLayerContext`, `LoadedModCounts`, `ModCountLines` 등)
 
-`ModCountLines`는 타이틀 화면에 보이는 로더별 모드 수 줄(Poly·Fabric·Quilt·Forge·NeoForge 순서, 모드가 없는 로더는 줄 없음)과 그 번역 키(`poly.title.mod_count.*`)를 정합니다. 번역은 `src/main/resources/assets/poly/lang/`의 `en_us.json`, `ko_kr.json`에 있고, 언어 파일이 없거나 글자가 형식에 맞지 않으면 영어 줄을 씁니다.
+`ModCountLines`는 타이틀 화면에 보이는 로더별 모드 수 줄(Plexus·Fabric·Quilt·Forge·NeoForge 순서, 모드가 없는 로더는 줄 없음)과 그 번역 키(`plexus.title.mod_count.*`)를 정합니다. 번역은 `src/main/resources/assets/plexus/lang/`의 `en_us.json`, `ko_kr.json`에 있고, 언어 파일이 없거나 글자가 형식에 맞지 않으면 영어 줄을 씁니다.
 
 ## 무엇을 하지 않는가
 특정 버전의 클래스·메서드 이름을 담지 않습니다.

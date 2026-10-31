@@ -12,7 +12,7 @@ import net.neoforged.fml.classloading.transformation.TransformingClassLoader;
  * own, so that every class and resource comes from the game class loader (its fallback), which defines FML's game
  * layer. It still runs FML's class processors: for the game class loader's bridge stage ({@link #processAll}), and for
  * processors that ask for another class "up to" a processor (Mixin, frame computation), from that class's bytes after
- * Poly Mod Loader's transformer.
+ * Plexus Mod Loader's transformer.
  *
  * <p>Thread: as FML's own; parallel capable.
  */

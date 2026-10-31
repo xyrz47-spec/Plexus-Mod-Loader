@@ -19,7 +19,7 @@ public final class NeoForgeBridge extends FmlModsTomlBridge {
         return "META-INF/neoforge.mods.toml";
     }
 
-    /** FML 11 loads NeoForge mods itself, with Poly Mod Loader's game class loader defining its game layer (ADR-0026). */
+    /** FML 11 loads NeoForge mods itself, with Plexus Mod Loader's game class loader defining its game layer (ADR-0026). */
     @Override
     public Optional<GameHost> gameHost(GameHost.Request request, List<Path> modJars) throws IOException {
         return Optional.of(NeoForgeGameHost.create(request, modJars));

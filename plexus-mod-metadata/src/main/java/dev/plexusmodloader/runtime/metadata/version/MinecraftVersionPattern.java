@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  *
  * <p>Wildcards and ranges compare release versions (dot-separated numbers, missing parts count as
  * 0) and never match snapshots or other non-numeric version IDs; list those exactly. Native mods that
- * use only the Native API can use a wildcard or range, because Poly Mod Loader's game layer for each version
+ * use only the Native API can use a wildcard or range, because Plexus Mod Loader's game layer for each version
  * implements the same API.
  */
 public final class MinecraftVersionPattern {

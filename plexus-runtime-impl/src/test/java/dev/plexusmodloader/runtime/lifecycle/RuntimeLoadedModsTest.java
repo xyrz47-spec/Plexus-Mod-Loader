@@ -14,7 +14,7 @@ class RuntimeLoadedModsTest {
 
     private static final LoadedMods MODS = RuntimeLoadedMods.of(List.of(
             mod("MinecraftForge", "forge_hello", "1.0.0", "forge_hello", List.of(), true),
-            mod("Poly Mod Loader", "native_lib", "2.1.0", "Native Library", List.of(), false),
+            mod("Plexus Mod Loader", "native_lib", "2.1.0", "Native Library", List.of(), false),
             mod("Fabric", "fabric_lib", "1.2.0", "fabric_lib", List.of("fabric_lib_alias"), false)));
 
     @Test
@@ -29,7 +29,7 @@ class RuntimeLoadedModsTest {
     @Test
     void namesEachModsLoaderInLowerCase() {
         assertEquals("minecraftforge", MODS.find("forge_hello").orElseThrow().loader());
-        assertEquals("poly", MODS.find("native_lib").orElseThrow().loader());
+        assertEquals("plexus", MODS.find("native_lib").orElseThrow().loader());
         LoadedMods.Mod fabric = MODS.find("fabric_lib").orElseThrow();
         assertEquals("fabric", fabric.loader());
         assertEquals("1.2.0", fabric.version());
@@ -45,9 +45,9 @@ class RuntimeLoadedModsTest {
     void aModsOwnIdComesBeforeAnotherModsProvidedId() {
         LoadedMods mods = RuntimeLoadedMods.of(List.of(
                 mod("Fabric", "wrapper", "1", "wrapper", List.of("lib"), false),
-                mod("Poly Mod Loader", "lib", "2", "Lib", List.of(), false)));
+                mod("Plexus Mod Loader", "lib", "2", "Lib", List.of(), false)));
 
-        assertEquals("poly", mods.find("lib").orElseThrow().loader());
+        assertEquals("plexus", mods.find("lib").orElseThrow().loader());
     }
 
     private static BridgeLaunchContext.LoadedMod mod(

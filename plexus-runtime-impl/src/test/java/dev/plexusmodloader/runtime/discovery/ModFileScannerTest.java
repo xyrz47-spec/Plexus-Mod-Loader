@@ -62,7 +62,7 @@ class ModFileScannerTest {
 
         assertEquals(
                 List.of(
-                        ModFileKind.POLY_NATIVE,
+                        ModFileKind.PLEXUS_NATIVE,
                         ModFileKind.FABRIC,
                         ModFileKind.NEOFORGE,
                         ModFileKind.FORGE,
@@ -76,7 +76,7 @@ class ModFileScannerTest {
 
         List<DiscoveredModFile> files = scan();
         assertEquals(1, files.size());
-        assertEquals(ModFileKind.POLY_NATIVE, files.getFirst().kind());
+        assertEquals(ModFileKind.PLEXUS_NATIVE, files.getFirst().kind());
         assertTrue(files.getFirst().nativeMetadataJson().orElseThrow().contains("test"));
     }
 

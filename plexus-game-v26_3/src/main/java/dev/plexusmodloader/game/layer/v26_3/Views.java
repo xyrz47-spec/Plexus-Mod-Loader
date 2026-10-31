@@ -94,7 +94,7 @@ public final class Views {
         if (view instanceof PlayerEntityView player) {
             return player.player;
         }
-        throw new IllegalArgumentException("Not a player view created by Poly Mod Loader: " + view);
+        throw new IllegalArgumentException("Not a player view created by Plexus Mod Loader: " + view);
     }
 
     public static BlockPos pos(net.minecraft.core.BlockPos pos) {
@@ -508,7 +508,7 @@ public final class Views {
         public boolean startRiding(EntityView vehicle) {
             serverLevel(entity.level());
             if (!(vehicle instanceof GenericEntityView other)) {
-                throw new IllegalArgumentException("Not an entity view created by Poly Mod Loader: " + vehicle);
+                throw new IllegalArgumentException("Not an entity view created by Plexus Mod Loader: " + vehicle);
             }
             return entity.startRiding(other.entity);
         }
@@ -663,7 +663,7 @@ public final class Views {
             } else if (target instanceof LivingView living) {
                 mob.setTarget(living.living);
             } else {
-                throw new IllegalArgumentException("Not an entity view created by Poly Mod Loader: " + target);
+                throw new IllegalArgumentException("Not an entity view created by Plexus Mod Loader: " + target);
             }
         }
     }

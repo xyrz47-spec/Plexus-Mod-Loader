@@ -9,8 +9,16 @@ class ModTemplatePluginTest {
     @Test
     void pluginVersionIsReplaced() {
         assertEquals(
-                "    id(\"dev.polymodloader.mod\") version \"0.2.0\"",
-                ModTemplatePlugin.withPluginVersion("    id(\"dev.polymodloader.mod\") version \"0.1.0-alpha.2\"", "0.2.0"));
+                "    id(\"dev.plexusmodloader.mod\") version \"0.2.0\"",
+                ModTemplatePlugin.withPluginVersion(
+                        "    id(\"dev.plexusmodloader.mod\") version \"0.1.0-alpha.2\"", "0.2.0"));
         assertEquals("group = \"com.example\"", ModTemplatePlugin.withPluginVersion("group = \"com.example\"", "0.2.0"));
+    }
+
+    @Test
+    void formerPluginIdBecomesTheCurrentOne() {
+        assertEquals(
+                "    id(\"dev.plexusmodloader.mod\") version \"0.2.0\"",
+                ModTemplatePlugin.withPluginVersion("    id(\"dev.polymodloader.mod\") version \"0.1.0-alpha.2\"", "0.2.0"));
     }
 }

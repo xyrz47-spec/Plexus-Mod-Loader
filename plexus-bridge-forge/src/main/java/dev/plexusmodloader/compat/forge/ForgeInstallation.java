@@ -30,9 +30,9 @@ import java.util.zip.ZipEntry;
 
 /**
  * Forge's files for one Minecraft version, put together on the player's PC the way Forge's installer does (ADR-0021
- * G3c): the installer from Forge's Maven (checked against the SHA-1 Poly Mod Loader pins), the runtime libraries its
+ * G3c): the installer from Forge's Maven (checked against the SHA-1 Plexus Mod Loader pins), the runtime libraries its
  * {@code version.json} lists (each checked against the SHA-1 it gives), and the game jar with Forge's binary patches
- * applied (G2). Everything is cached in one folder per Forge version; a later launch only checks hashes. Poly Mod Loader
+ * applied (G2). Everything is cached in one folder per Forge version; a later launch only checks hashes. Plexus Mod Loader
  * itself ships none of these files.
  *
  * <p>Thread: one launch prepares at a time; the methods are not safe for concurrent use on the same folder.
@@ -41,7 +41,7 @@ final class ForgeInstallation {
 
     static final String MAVEN = "https://maven.minecraftforge.net/";
 
-    /** The Forge release Poly Mod Loader uses for a Minecraft version ({@code forge-releases.properties}). */
+    /** The Forge release Plexus Mod Loader uses for a Minecraft version ({@code forge-releases.properties}). */
     record Release(String minecraftVersion, String forgeVersion, String installerSha1) {
 
         URI installerUri() {
@@ -69,7 +69,7 @@ final class ForgeInstallation {
 
     private ForgeInstallation() {}
 
-    /** The Forge release for {@code minecraftVersion}, or empty when Poly Mod Loader has none for it. */
+    /** The Forge release for {@code minecraftVersion}, or empty when Plexus Mod Loader has none for it. */
     static Optional<Release> release(String minecraftVersion) {
         Properties releases = new Properties();
         try (InputStream in = ForgeInstallation.class.getResourceAsStream("forge-releases.properties")) {
@@ -122,7 +122,7 @@ final class ForgeInstallation {
                 String name = library.get("name").getAsString();
                 if (name.startsWith("net.minecraftforge:forge:")
                         && (name.endsWith(":client") || name.endsWith(":server"))) {
-                    // The patched game jar, which Poly Mod Loader builds itself below.
+                    // The patched game jar, which Plexus Mod Loader builds itself below.
                     continue;
                 }
                 JsonObject artifact = library.getAsJsonObject("downloads").getAsJsonObject("artifact");
@@ -211,7 +211,7 @@ final class ForgeInstallation {
         return (uri, target) -> {
             HttpRequest request = HttpRequest.newBuilder(uri)
                     .timeout(Duration.ofMinutes(5))
-                    .header("User-Agent", "Poly Mod Loader")
+                    .header("User-Agent", "Plexus Mod Loader")
                     .build();
             try {
                 HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(target));

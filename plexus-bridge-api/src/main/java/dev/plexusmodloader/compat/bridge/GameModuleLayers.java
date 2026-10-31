@@ -19,7 +19,7 @@ public interface GameModuleLayers {
      * from then on.
      *
      * @param parents the parent layers, such as the boot layer or a layer defined earlier
-     * @param transformed whether the classes go through Poly Mod Loader's transformer and the bridges' stages (game and
+     * @param transformed whether the classes go through Plexus Mod Loader's transformer and the bridges' stages (game and
      *     mod classes) or are defined as they are (a loader's own code)
      * @return the layer's controller, for adding reads, exports and opens the descriptors do not declare
      * @throws java.lang.LayerInstantiationException when the JDK refuses the layer

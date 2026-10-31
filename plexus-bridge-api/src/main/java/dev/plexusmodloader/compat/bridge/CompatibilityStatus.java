@@ -17,7 +17,7 @@ public enum CompatibilityStatus {
     /** Not assessed. */
     UNTESTED;
 
-    /** Whether Poly Mod Loader loads mods with this status. */
+    /** Whether Plexus Mod Loader loads mods with this status. */
     public boolean loadable() {
         return this == VERIFIED || this == PARTIAL || this == EXPERIMENTAL;
     }

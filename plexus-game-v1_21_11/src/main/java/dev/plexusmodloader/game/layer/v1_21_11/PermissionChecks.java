@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 /** Decides named permissions: mod providers first, then the node's default operator level. */
 public final class PermissionChecks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private PermissionChecks() {}
 
@@ -44,7 +44,7 @@ public final class PermissionChecks {
                 result = provider.check(Views.player(player), node);
             } catch (RuntimeException e) {
                 LOGGER.error(
-                        "[Poly Mod Loader] PLEXUS-PERMISSION-003 a permission provider failed for {}", node.id(), e);
+                        "[Plexus Mod Loader] PLEXUS-PERMISSION-003 a permission provider failed for {}", node.id(), e);
                 continue;
             }
             if (result == PermissionResult.ALLOW) {

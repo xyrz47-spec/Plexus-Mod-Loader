@@ -6,23 +6,23 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskProvider;
 
 /**
- * Build-script extension {@code polyScenarios}: registers game test server scenarios with their own
- * mod sets, e.g. {@code polyScenarios.gameTest("nativeOnly", files(...)) { expectedOutput.add(...) }}.
+ * Build-script extension {@code plexusScenarios}: registers game test server scenarios with their own
+ * mod sets, e.g. {@code plexusScenarios.gameTest("nativeOnly", files(...)) { expectedOutput.add(...) }}.
  */
 public class GameTestScenarios {
 
     private final Project project;
-    private final FileCollection polyRuntime;
+    private final FileCollection plexusRuntime;
 
-    GameTestScenarios(Project project, FileCollection polyRuntime) {
+    GameTestScenarios(Project project, FileCollection plexusRuntime) {
         this.project = project;
-        this.polyRuntime = polyRuntime;
+        this.plexusRuntime = plexusRuntime;
     }
 
     /** Registers scenario task {@code name} that runs with exactly {@code mods}. */
     public TaskProvider<VerifiedGameRunTask> gameTest(String name, FileCollection mods, Action<VerifiedGameRunTask> configure) {
         TaskProvider<VerifiedGameRunTask> task =
-                MinecraftRunTasks.registerGameTestScenario(project, name, polyRuntime, mods);
+                MinecraftRunTasks.registerGameTestScenario(project, name, plexusRuntime, mods);
         task.configure(configure);
         return task;
     }

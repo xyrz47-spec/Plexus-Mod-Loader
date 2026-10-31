@@ -1,8 +1,8 @@
 plugins {
-    id("poly.java-conventions")
+    id("plexus.java-conventions")
 }
 
-description = "Poly Mod Loader runtime: discovery, metadata validation, dependency resolution, game class loading, lifecycle."
+description = "Plexus Mod Loader runtime: discovery, metadata validation, dependency resolution, game class loading, lifecycle."
 
 dependencies {
     api(project(":plexus-lifecycle-api"))
@@ -25,7 +25,7 @@ dependencies {
 tasks.processResources {
     val runtimeVersion = project.version.toString()
     inputs.property("runtimeVersion", runtimeVersion)
-    filesMatching("dev/plexusmodloader/runtime/poly-runtime.properties") {
+    filesMatching("dev/plexusmodloader/runtime/plexus-runtime.properties") {
         expand("runtimeVersion" to runtimeVersion)
     }
 }

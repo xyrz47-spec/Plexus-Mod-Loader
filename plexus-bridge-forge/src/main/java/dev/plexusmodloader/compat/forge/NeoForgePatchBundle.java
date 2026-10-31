@@ -25,7 +25,7 @@ import org.tukaani.xz.LZMAInputStream;
 /**
  * NeoForge's binary patches ({@code data/client.lzma} of the NeoForge installer, for client and server alike): an
  * LZMA-compressed {@code NFPATCHBUNDLE001} bundle (ADR-0026). Builds the NeoForge-patched game jar on the player's PC,
- * as the installer's {@code PROCESS_MINECRAFT_JAR} task does; Poly Mod Loader never ships patched classes.
+ * as the installer's {@code PROCESS_MINECRAFT_JAR} task does; Plexus Mod Loader never ships patched classes.
  *
  * <p>The bundle, after LZMA: the signature, an {@code int} entry count and a byte of the sides it targets, then per
  * entry a flags byte (operation and sides), an ASCII path with an {@code unsigned short} length, for a modification

@@ -86,7 +86,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class NativeRegistrations implements NativeDeclarations {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
     private static final Pattern DIRECTORY = Pattern.compile("[a-z0-9_./-]+");
     private static final Pattern SUFFIX = Pattern.compile("\\.[a-z0-9_]+(\\.[a-z0-9_]+)*");
     private static final Pattern PERMISSION = Pattern.compile("[a-z0-9_]+(\\.[a-z0-9_]+)*");
@@ -676,7 +676,7 @@ public final class NativeRegistrations implements NativeDeclarations {
             String previous = commandOwners.putIfAbsent(command.name(), modId);
             if (previous != null && !previous.equals(modId)) {
                 LOGGER.warn(
-                        "[Poly Mod Loader] PLEXUS-COMMAND-001 /{} is registered by both {} and {}; the game merges their trees",
+                        "[Plexus Mod Loader] PLEXUS-COMMAND-001 /{} is registered by both {} and {}; the game merges their trees",
                         command.name(),
                         previous,
                         modId);

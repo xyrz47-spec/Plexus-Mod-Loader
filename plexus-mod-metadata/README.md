@@ -1,7 +1,7 @@
 # plexus-mod-metadata
 
 ## 이 모듈이 하는 일
-`poly.mod.json` 스키마 1을 파싱·검증하고, SemVer 2.0.0 버전과 버전 범위를 제공합니다.
+`plexus.mod.json` 스키마 1을 파싱·검증하고, SemVer 2.0.0 버전과 버전 범위를 제공합니다.
 
 ## 무엇을 소유하는가
 `dev.plexusmodloader.runtime.metadata`(`ModMetadata`, `ModId`, `ModMetadataReader`, `MetadataProblemCode`)와 `...metadata.version`(`SemanticVersion`, `VersionRange`)

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /** Encodes and decodes payloads with a mod's codec, checking size limits and leftover bytes. */
 final class PayloadBytes {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private PayloadBytes() {}
 
@@ -38,7 +38,7 @@ final class PayloadBytes {
             return Optional.of(payload);
         } catch (RuntimeException e) {
             LOGGER.warn(
-                    "[Poly Mod Loader] PLEXUS-NETWORK-004 dropped a malformed payload on {} (mod {}): {}",
+                    "[Plexus Mod Loader] PLEXUS-NETWORK-004 dropped a malformed payload on {} (mod {}): {}",
                     id,
                     ownerModId,
                     e.toString());

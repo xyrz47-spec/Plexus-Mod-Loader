@@ -10,7 +10,7 @@ import java.lang.constant.MethodTypeDesc;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 
-/** The early loading window's title names Poly Mod Loader. */
+/** The early loading window's title names Plexus Mod Loader. */
 class EarlyWindowTitleTest {
 
     private static final ClassDesc WINDOW = ClassDesc.of("t.DisplayWindow");

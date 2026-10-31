@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 final class ConfigurationExchangeImpl<T> implements ConfigurationExchange<T>, ConfigurationEndpoint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("Poly Mod Loader");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Plexus Mod Loader");
 
     private final ResourceId id;
     private final String ownerModId;
@@ -85,7 +85,7 @@ final class ConfigurationExchangeImpl<T> implements ConfigurationExchange<T>, Co
                     .map(message -> PayloadBytes.encode(codec, message, PayloadChannelImpl.MAX_TO_CLIENT, id));
         } catch (RuntimeException e) {
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-NETWORK-005 request of {} ({}) failed; the exchange is skipped",
+                    "[Plexus Mod Loader] PLEXUS-NETWORK-005 request of {} ({}) failed; the exchange is skipped",
                     id,
                     ownerModId,
                     e);
@@ -105,7 +105,7 @@ final class ConfigurationExchangeImpl<T> implements ConfigurationExchange<T>, Co
                     .map(reply -> PayloadBytes.encode(codec, reply, PayloadChannelImpl.MAX_TO_SERVER, id));
         } catch (RuntimeException e) {
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-NETWORK-005 answer of {} ({}) failed; no answer is sent",
+                    "[Plexus Mod Loader] PLEXUS-NETWORK-005 answer of {} ({}) failed; no answer is sent",
                     id,
                     ownerModId,
                     e);
@@ -126,7 +126,7 @@ final class ConfigurationExchangeImpl<T> implements ConfigurationExchange<T>, Co
             return current.check(playerId, playerName, decoded);
         } catch (RuntimeException e) {
             LOGGER.error(
-                    "[Poly Mod Loader] PLEXUS-NETWORK-005 check of {} ({}) failed; the player is refused",
+                    "[Plexus Mod Loader] PLEXUS-NETWORK-005 check of {} ({}) failed; the player is refused",
                     id,
                     ownerModId,
                     e);

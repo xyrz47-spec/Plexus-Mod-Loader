@@ -10,7 +10,7 @@ import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.locating.IModFile;
 
 /**
- * A Poly Mod or other loader's mod as a NeoForge FML mod file (ADR-0025, ADR-0026): one mod, its version as the file's
+ * A Plexus Mod or other loader's mod as a NeoForge FML mod file (ADR-0025, ADR-0026): one mod, its version as the file's
  * version, no language loader, no resource or data pack (its own loader serves its resources), and no {@code
  * neoforge.mods.toml} configuration.
  *

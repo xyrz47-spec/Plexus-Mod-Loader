@@ -28,14 +28,14 @@ import org.xml.sax.SAXException;
 
 /**
  * Checks a Maven repository written by {@code publishSdk} (ADR-0008): every expected artifact of the version
- * is there and listed in its {@code maven-metadata.xml}, JavaDoc only where expected, no other Poly Mod Loader
- * artifact of that version, every Poly Mod Loader dependency of a POM inside the repository, and, for every
+ * is there and listed in its {@code maven-metadata.xml}, JavaDoc only where expected, no other Plexus Mod Loader
+ * artifact of that version, every Plexus Mod Loader dependency of a POM inside the repository, and, for every
  * version in the repository, no {@code -sources.jar} and no {@code .java} file inside any archive.
  */
 public final class SdkRepositoryCheck {
 
-    /** The group of Poly Mod Loader's own artifacts; dependencies in it must be in the repository. */
-    public static final String GROUP = "dev.polymodloader";
+    /** The group of Plexus Mod Loader's own artifacts; dependencies in it must be in the repository. */
+    public static final String GROUP = "dev.plexusmodloader";
 
     private SdkRepositoryCheck() {}
 
@@ -136,7 +136,11 @@ public final class SdkRepositoryCheck {
         }
     }
 
-    /** Other Poly Mod Loader artifacts of this version: test mods, examples or the installer published by mistake. */
+    /**
+     * Other Plexus Mod Loader artifacts of this version: test mods, examples or the installer published by mistake.
+     * Only {@value #GROUP} and its subgroups are looked at; artifacts of the group before the rename
+     * ({@code dev.polymodloader}) stay in the repository as published.
+     */
     private static void checkNoOtherArtifacts(
             Path repository, String version, Map<String, Artifact> expected, List<String> problems) {
         try (Stream<Path> walk = Files.walk(repository)) {
@@ -149,7 +153,8 @@ public final class SdkRepositoryCheck {
                         .toString()
                         .replace('\\', '/')
                         .replace('/', '.');
-                if (!expected.containsKey(group + ":" + name)) {
+                boolean ours = group.equals(GROUP) || group.startsWith(GROUP + ".");
+                if (ours && !expected.containsKey(group + ":" + name)) {
                     problems.add(group + ":" + name + ":" + version + " is in the repository but not part of the SDK");
                 }
             }

@@ -16,7 +16,7 @@
 // Source: Sinytra Forgified Fabric API, branch 26.2.x, commit 40f8ce0,
 // fabric-item-api-v1/src/main/java/net/fabricmc/fabric/mixin/item/IItemExtensionMixin.java (written in Forgified Fabric
 // API).
-// Poly Mod Loader (ADR-0031): reformatted; isPrimaryItemFor honours an explicit ALLOW_ENCHANTING answer (see there).
+// Plexus Mod Loader (ADR-0031): reformatted; isPrimaryItemFor honours an explicit ALLOW_ENCHANTING answer (see there).
 package net.fabricmc.fabric.mixin.item;
 
 import net.fabricmc.fabric.api.item.v1.EnchantingContext;

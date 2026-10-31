@@ -31,7 +31,7 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 /**
- * Shared Java build rules for every Poly Mod Loader module: Java toolchain, compiler strictness, JUnit, and
+ * Shared Java build rules for every Plexus Mod Loader module: Java toolchain, compiler strictness, JUnit, and
  * formatting checks wired into {@code check} (design doc §6.1, §7.4).
  *
  * <p>Every module has two publications with the same coordinates {@code dev.plexusmodloader:<module name>}:
@@ -40,21 +40,21 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
  *   <li>{@code maven}: classes, sources and JavaDoc, for {@code publishToMavenLocal} (contributors)
  *   <li>{@code sdk}: classes, never sources, and JavaDoc only when {@link SdkPublicationExtension#getJavadoc()}
  *       is set. Only the public SDK repository receives it ({@code publishSdk}, ADR-0008), and only for the
- *       modules the root plugin {@code poly.sdk-repository} picks
+ *       modules the root plugin {@code plexus.sdk-repository} picks
  * </ul>
  */
-public abstract class PolyJavaConventionsPlugin implements Plugin<Project> {
+public abstract class PlexusJavaConventionsPlugin implements Plugin<Project> {
 
     /** The publication that goes into the public SDK repository. */
     public static final String SDK_PUBLICATION = "sdk";
 
     /** The name of the public SDK repository in {@code publishing.repositories}. */
-    public static final String SDK_REPOSITORY = "polySdk";
+    public static final String SDK_REPOSITORY = "plexusSdk";
 
     private final SoftwareComponentFactory componentFactory;
 
     @Inject
-    public PolyJavaConventionsPlugin(SoftwareComponentFactory componentFactory) {
+    public PlexusJavaConventionsPlugin(SoftwareComponentFactory componentFactory) {
         this.componentFactory = componentFactory;
     }
 
@@ -68,8 +68,8 @@ public abstract class PolyJavaConventionsPlugin implements Plugin<Project> {
                 .getByType(VersionCatalogsExtension.class)
                 .named("libs");
 
-        project.setGroup(project.property("poly.group"));
-        project.setVersion(project.property("poly.version"));
+        project.setGroup(project.property("plexus.group"));
+        project.setVersion(project.property("plexus.version"));
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         int javaVersion = Integer.parseInt(requiredVersion(libs, "java"));
@@ -78,7 +78,7 @@ public abstract class PolyJavaConventionsPlugin implements Plugin<Project> {
         java.withJavadocJar();
 
         // Every module is published as dev.plexusmodloader:<module name> so mod projects can depend on
-        // the API modules and run the game through the published runtime (dev.polymodloader.mod plugin).
+        // the API modules and run the game through the published runtime (dev.plexusmodloader.mod plugin).
         PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
         publishing.getPublications().create("maven", MavenPublication.class, publication -> {
             publication.from(project.getComponents().getByName("java"));
@@ -86,7 +86,7 @@ public abstract class PolyJavaConventionsPlugin implements Plugin<Project> {
         });
         registerSdkPublication(project, publishing);
 
-        // Every jar carries Poly Mod Loader's license and the third-party notices, which say where the source is
+        // Every jar carries Plexus Mod Loader's license and the third-party notices, which say where the source is
         // (MPL 2.0 section 3.2).
         project.getTasks().named("jar", Jar.class).configure(jar -> jar.from(
                 project.files(
@@ -134,13 +134,13 @@ public abstract class PolyJavaConventionsPlugin implements Plugin<Project> {
      */
     private void registerSdkPublication(Project project, PublishingExtension publishing) {
         SdkPublicationExtension sdk =
-                project.getExtensions().create("polySdkPublication", SdkPublicationExtension.class);
+                project.getExtensions().create("plexusSdkPublication", SdkPublicationExtension.class);
         sdk.getJavadoc().convention(false);
-        AdhocComponentWithVariants component = componentFactory.adhoc("polySdk");
+        AdhocComponentWithVariants component = componentFactory.adhoc("plexusSdk");
         project.getComponents().add(component);
         addPrimaryVariant(component, project, "apiElements", variant -> variant.mapToMavenScope("compile"));
         addPrimaryVariant(component, project, "runtimeElements", variant -> variant.mapToMavenScope("runtime"));
-        // Read when the publication is built, after poly.sdk-repository has picked the API modules.
+        // Read when the publication is built, after plexus.sdk-repository has picked the API modules.
         addPrimaryVariant(component, project, "javadocElements", variant -> {
             if (sdk.getJavadoc().get()) {
                 variant.mapToOptional();
@@ -184,9 +184,9 @@ public abstract class PolyJavaConventionsPlugin implements Plugin<Project> {
         return task.getName().startsWith("publishSdkPublicationTo");
     }
 
-    /** {@code publish...PublicationToPolySdkRepository}. */
+    /** {@code publish...PublicationToPlexusSdkRepository}. */
     public static boolean isSdkRepositoryTask(Task task) {
-        return task.getName().endsWith("PublicationToPolySdkRepository");
+        return task.getName().endsWith("PublicationToPlexusSdkRepository");
     }
 
     private static Provider<MinimalExternalModuleDependency> library(VersionCatalog libs, String alias) {

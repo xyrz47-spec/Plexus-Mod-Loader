@@ -21,10 +21,10 @@ import dev.plexusmodloader.api.tag.TagKey;
 /**
  * Declares a mod's blocks and items. IDs are {@code <mod id>:<path>}.
  *
- * <p><b>When:</b> only inside common entrypoints. Poly Mod Loader creates the declared content just before the
+ * <p><b>When:</b> only inside common entrypoints. Plexus Mod Loader creates the declared content just before the
  * game freezes its registries; content cannot be added afterwards ({@code PLEXUS-CONTENT-002}).
  * Models, textures, translations, recipes, loot tables, and tags come from the mod jar's
- * {@code assets/} and {@code data/} folders, which Poly Mod Loader adds as a required resource and data pack.
+ * {@code assets/} and {@code data/} folders, which Plexus Mod Loader adds as a required resource and data pack.
  *
  * <p><b>Both sides:</b> client and server must declare the same content in the same order, because
  * the game synchronises blocks by number.
@@ -96,7 +96,7 @@ public interface ContentRegistrar {
 
     /**
      * Adds entries to a tag of any namespace, as a tag file with {@code "replace": false} in the mod
-     * jar would; Poly Mod Loader writes them to its generated data pack. Several calls and several mods add
+     * jar would; Plexus Mod Loader writes them to its generated data pack. Several calls and several mods add
      * up. Entries are checked when the registries freeze: an entry that is not registered then is
      * reported ({@code PLEXUS-CONTENT-007}) and left out, the rest of the tag still loads.
      *

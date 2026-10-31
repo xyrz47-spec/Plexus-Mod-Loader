@@ -24,6 +24,14 @@ class LegacyPackageRemapperTest {
     }
 
     @Test
+    void rewritesTheRenamedSystemInterfaceInEitherPackage() {
+        byte[] former = LegacyPackageRemapper.remap(classExtending("dev/polymodloader/api/system/PolySystem"));
+        assertEquals("dev/plexusmodloader/api/system/PlexusSystem", new ClassReader(former).getSuperName());
+        byte[] current = LegacyPackageRemapper.remap(classExtending("dev/plexusmodloader/api/system/PolySystem"));
+        assertEquals("dev/plexusmodloader/api/system/PlexusSystem", new ClassReader(current).getSuperName());
+    }
+
+    @Test
     void leavesOtherClassesUntouched() {
         byte[] plain = classExtending("java/lang/Object");
         assertArrayEquals(plain, LegacyPackageRemapper.remap(plain));

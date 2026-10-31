@@ -13,13 +13,13 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * {@code ./gradlew initPolyMod -PmodId=ruby_tools [-PmodName="Ruby Tools"] [-PmodPackage=io.github.you.rubytools]}
+ * {@code ./gradlew initPlexusMod -PmodId=ruby_tools [-PmodName="Ruby Tools"] [-PmodPackage=io.github.you.rubytools]}
  * in an unzipped {@code plexus-mod-template-<version>.zip}: renames the template's mod ID, name, Java package,
  * entry point class and project name in place with {@link ModProjectScaffolder#renameInPlace}, the same
- * renaming {@code newPolyMod} does in the Poly Mod Loader repository.
+ * renaming {@code newPlexusMod} does in the Plexus Mod Loader repository.
  */
 @DisableCachingByDefault(because = "Rewrites the project's own sources")
-public abstract class InitPolyModTask extends DefaultTask {
+public abstract class InitPlexusModTask extends DefaultTask {
 
     @Input
     @Optional
@@ -41,7 +41,7 @@ public abstract class InitPolyModTask extends DefaultTask {
     @TaskAction
     public void rename() {
         if (!getModId().isPresent()) {
-            throw new GradleException("Usage: ./gradlew initPolyMod -PmodId=<mod_id> [-PmodName=\"<Name>\"]"
+            throw new GradleException("Usage: ./gradlew initPlexusMod -PmodId=<mod_id> [-PmodName=\"<Name>\"]"
                     + " [-PmodPackage=<java.package>]");
         }
         Path project = getProjectDirectory().get().getAsFile().toPath();
@@ -61,7 +61,7 @@ public abstract class InitPolyModTask extends DefaultTask {
                           entry point: {}.{}
                           Gradle project: {} (you may rename the folder to match)
                         Next:
-                          ./gradlew build        compiles, checks poly.mod.json and the resources
+                          ./gradlew build        compiles, checks plexus.mod.json and the resources
                           ./gradlew runClient    starts the game with the mod""",
                         names.modId(),
                         names.modName(),
