@@ -7,10 +7,12 @@ import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.Instruction;
 import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.attribute.RuntimeVisibleAnnotationsAttribute;
 import java.lang.classfile.instruction.FieldInstruction;
+import java.lang.classfile.instruction.InvokeInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
 import java.lang.constant.MethodTypeDesc;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Static {@code List} fields whose reads a host's patch replaced with a call that returns the field's elements followed
@@ -40,6 +43,14 @@ import java.util.function.Function;
 final class HostListExtensions {
 
     static final String PREFIX = "plexus$hostList$";
+
+    /**
+     * The {@code replacement} of a {@code HostList} whose {@code replaced} is a host-filled static list field that a
+     * {@code @ModifyArg} handler's list replaces ({@link #hostFilledArgument}).
+     */
+    static final String HOST_FILLED_ARGUMENT = "plexus:host-filled-argument";
+
+    private static final String MODIFY_ARG = "Lorg/spongepowered/asm/mixin/injection/ModifyArg;";
 
     private static final String REDIRECT = "Lorg/spongepowered/asm/mixin/injection/Redirect;";
     private static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";
@@ -162,6 +173,100 @@ final class HostListExtensions {
                         code.areturn();
                     });
                 });
+    }
+
+    /**
+     * The static {@code List} field, in Mixin's notation, that {@code patchedMethods} read and whose class's static
+     * initializer takes from the host's own code ({@code hostOwned}), when {@code handler} is a static {@code
+     * @ModifyArg} handler {@code (List)List}: MinecraftForge 26.2-65.1.5 sets {@code
+     * RegistryDataLoader.WORLDGEN_REGISTRIES} to a view of its list ({@code
+     * DataPackRegistriesHooks.grabWorldgenRegistries}) and adds its own registries to that list later.
+     */
+    static Optional<String> hostFilledArgument(
+            MethodModel handler,
+            String type,
+            List<MethodModel> patchedMethods,
+            Predicate<String> hostOwned,
+            Function<String, Optional<ClassModel>> patchedClass) {
+        if (!type.equals(MODIFY_ARG)
+                || !handler.flags().has(AccessFlag.STATIC)
+                || !handler.methodType().equalsString("(" + LIST + ")" + LIST)) {
+            return Optional.empty();
+        }
+        for (MethodModel method : patchedMethods) {
+            if (method.code().isEmpty()) {
+                continue;
+            }
+            for (CodeElement element : method.code().get()) {
+                if (element instanceof FieldInstruction read
+                        && read.opcode() == Opcode.GETSTATIC
+                        && read.type().equalsString(LIST)
+                        && hostFilled(
+                                patchedClass.apply(read.owner().asInternalName()),
+                                read.name().stringValue(),
+                                hostOwned)) {
+                    return Optional.of("L" + read.owner().asInternalName() + ";"
+                            + read.name().stringValue() + ":" + LIST);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Whether {@code owner}'s static initializer stores the result of a host method's call in its field {@code name}. */
+    private static boolean hostFilled(Optional<ClassModel> owner, String name, Predicate<String> hostOwned) {
+        if (owner.isEmpty()) {
+            return false;
+        }
+        for (MethodModel method : owner.get().methods()) {
+            if (!method.methodName().equalsString(ConstantDescs.CLASS_INIT_NAME)
+                    || method.code().isEmpty()) {
+                continue;
+            }
+            Instruction previous = null;
+            for (CodeElement element : method.code().get()) {
+                if (!(element instanceof Instruction instruction)) {
+                    continue;
+                }
+                if (instruction instanceof FieldInstruction store
+                        && store.opcode() == Opcode.PUTSTATIC
+                        && store.owner().equals(owner.get().thisClass())
+                        && store.name().equalsString(name)
+                        && previous instanceof InvokeInstruction call
+                        && call.opcode() == Opcode.INVOKESTATIC
+                        && hostOwned.test(call.owner().asInternalName())) {
+                    return true;
+                }
+                previous = instruction;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds the bridge of {@code handler} to {@code mixin}: {@code modifyArg} (the handler's) on a method {@code
+     * (List)List} whose body returns {@link ExtendedHostList#withHostEntries} of the handler's list, the argument and
+     * the host-filled {@code field}. The handler stays as a plain method.
+     */
+    static void modifyArgBridge(
+            ClassBuilder builder, ClassModel mixin, MethodModel handler, Annotation modifyArg, String field) {
+        Field parsed = Field.parse(field).orElseThrow();
+        ClassDesc list = ClassDesc.ofDescriptor(LIST);
+        MethodTypeDesc listToList = MethodTypeDesc.of(list, list);
+        ClassDesc owner = mixin.thisClass().asSymbol();
+        boolean isInterface = mixin.flags().has(AccessFlag.INTERFACE);
+        String name = handler.methodName().stringValue();
+        builder.withMethod(PREFIX + name, listToList, handler.flags().flagsMask(), method -> {
+            method.with(RuntimeVisibleAnnotationsAttribute.of(modifyArg));
+            method.withCode(code -> {
+                code.aload(0);
+                code.invokestatic(owner, name, listToList, isInterface);
+                code.aload(0);
+                code.getstatic(ClassDesc.ofInternalName(parsed.owner()), parsed.name(), list);
+                code.invokestatic(EXTENDED_HOST_LIST, "withHostEntries", MethodTypeDesc.of(list, list, list, list));
+                code.areturn();
+            });
+        });
     }
 
     /** A field in Mixin's notation {@code Lowner;name:type}. */

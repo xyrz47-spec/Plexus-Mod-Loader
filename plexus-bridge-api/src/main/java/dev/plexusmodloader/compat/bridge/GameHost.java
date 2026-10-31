@@ -277,6 +277,19 @@ public interface GameHost {
     }
 
     /**
+     * Runs {@code modInitialization}, Plexus Mod Loader's mod initialization (other loaders' entrypoints through {@link
+     * #runForeignModInitialization}, then {@code MODS_INITIALIZED}), which the version adapter calls at Minecraft's mod
+     * initialization point. A host whose own mods register after that point on this side may run it later, once they
+     * have, so that other loaders' mods see the host's registry entries as they do on the other side (NeoForge's
+     * servers). The default runs it at once.
+     *
+     * @throws RuntimeException whatever {@code modInitialization} throws when run at once
+     */
+    default void atModInitializationPoint(Runnable modInitialization) {
+        modInitialization.run();
+    }
+
+    /**
      * Injection points the host's patch moved (see {@link InjectionPointReplacement}), for the bridge whose Mixin applies
      * other loaders' mixins to the host's patched game. Empty by default.
      */

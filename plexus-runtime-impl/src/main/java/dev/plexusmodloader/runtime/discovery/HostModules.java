@@ -22,7 +22,9 @@ import java.util.Properties;
  * Plexus Mod Loader's own builds of Fabric API modules for a host loader (ADR-0031): a module that cannot run as written
  * on the host's patched game ({@code PLEXUS-COMPAT-224}) is replaced by the build implemented on that host's hooks, when
  * Plexus Mod Loader has one for that exact host release. The builds ship inside Plexus Mod Loader's jars as resources,
- * listed in {@value #INDEX}: a key {@code <host key>.<mod id>} ({@link #hostKey}) names the jar resource. A replacement
+ * listed in {@value #INDEX}: a key {@code <host key>.<mod id>} ({@link #hostKey}) names the jar resource. A key {@code
+ * <host key>.<mod id>.always} set to {@code true} has the build replace that module even when the module fits the
+ * patch: one that loads there but does not do what it does under Fabric Loader (a test mod's lines differ). A replacement
  * is a mod of its own (no container), assessed by its bridge as any mod file is; the host check then runs on it too.
  *
  * <p>Not thread-safe; the runtime calls it once, on the launch thread.
@@ -40,9 +42,9 @@ public final class HostModules {
      * The result of {@link #replaceLeftOut}.
      *
      * @param mods the mods, each replaced one in its original's place
-     * @param replaced for each replacement, the original's jar and the replacement's jar
+     * @param replaced the replacements, in the order of {@code mods}
      */
-    public record Result(List<ForeignMod> mods, List<Path[]> replaced) {
+    public record Result(List<ForeignMod> mods, List<Replacement> replaced) {
         public Result {
             mods = List.copyOf(mods);
             replaced = List.copyOf(replaced);
@@ -50,8 +52,19 @@ public final class HostModules {
     }
 
     /**
-     * {@code mods} with each one left out for not fitting {@code hostName}'s patch replaced by the host module of the
-     * same ID that {@code loader}'s index lists for that host, extracted into {@code directory}.
+     * One original module replaced by a host module.
+     *
+     * @param original the original's jar
+     * @param hostModule the host module's extracted jar
+     * @param leftOut whether the original was left out for not fitting the host's patch ({@code PLEXUS-COMPAT-224});
+     *     otherwise the index marks the host module {@code always}
+     */
+    public record Replacement(Path original, Path hostModule, boolean leftOut) {}
+
+    /**
+     * {@code mods} with each one left out for not fitting {@code hostName}'s patch, and each one whose host module is
+     * marked {@code always}, replaced by the host module of the same ID that {@code loader}'s index lists for that host,
+     * extracted into {@code directory}.
      */
     public static Result replaceLeftOut(
             String hostName,
@@ -66,10 +79,13 @@ public final class HostModules {
         }
         String host = hostKey(hostName);
         List<ForeignMod> result = new ArrayList<>();
-        List<Path[]> replaced = new ArrayList<>();
+        List<Replacement> replaced = new ArrayList<>();
         for (ForeignMod mod : mods) {
-            String resource = index.getProperty(host + "." + mod.assessment().modId());
-            Optional<ForeignMod> replacement = resource == null || !leftOutForTheHost(mod)
+            String key = host + "." + mod.assessment().modId();
+            String resource = index.getProperty(key);
+            boolean leftOut = leftOutForTheHost(mod);
+            boolean always = Boolean.parseBoolean(index.getProperty(key + ".always"));
+            Optional<ForeignMod> replacement = resource == null || !(leftOut || always)
                     ? Optional.empty()
                     : extract(loader, resource, directory)
                             .map(ModFileScanner::classify)
@@ -79,7 +95,7 @@ public final class HostModules {
                                     .equals(mod.assessment().modId()));
             if (replacement.isPresent()) {
                 result.add(replacement.get());
-                replaced.add(new Path[] {mod.jar(), replacement.get().jar()});
+                replaced.add(new Replacement(mod.jar(), replacement.get().jar(), leftOut));
             } else {
                 result.add(mod);
             }

@@ -588,7 +588,32 @@ final class NeoForgeGameHost implements GameHost {
      */
     @Override
     public List<TransformRuleDefinition> transformRules() {
+        if (defersModInitialization()) {
+            return List.of(
+                    NeoForgeTitleBranding.rule(request.gameVersion()),
+                    NeoForgeServerModInitialization.rule(request.gameVersion()));
+        }
         return List.of(NeoForgeTitleBranding.rule(request.gameVersion()));
+    }
+
+    /**
+     * On a server with other loaders' mods, Plexus Mod Loader's mod initialization runs after NeoForge's registration
+     * ({@link NeoForgeServerModInitialization}), as it does on a client.
+     */
+    @Override
+    public void atModInitializationPoint(Runnable modInitialization) {
+        if (!defersModInitialization()) {
+            modInitialization.run();
+            return;
+        }
+        NeoForgeServerModInitialization.defer(modInitialization);
+        request.log()
+                .accept("Other loaders' mods initialise after NeoForge's registration on this server"
+                        + " (ServerModLoader.begin), as on a client (ADR-0026 31)");
+    }
+
+    private boolean defersModInitialization() {
+        return request.sharedMixin() && request.side() == GameSide.DEDICATED_SERVER;
     }
 
     /**

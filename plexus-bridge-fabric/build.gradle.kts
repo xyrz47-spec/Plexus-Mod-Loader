@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("plexus.java-conventions")
 }
@@ -119,10 +121,36 @@ val hostModules = configurations.dependencyScope("hostModules")
 val hostModuleResources = configurations.resolvable("hostModuleResources") { extendsFrom(hostModules.get()) }
 dependencies {
     hostModules(project(path = ":plexus-fabric-api-neoforge-v26_2", configuration = "hostModuleElements"))
+    hostModules(project(path = ":plexus-fabric-api-neoforge-v26_3", configuration = "hostModuleElements"))
+}
+// Each host release's module writes its own index; the jar holds one, with every entry (keys differ by host release).
+val hostModuleIndexPath = "META-INF/plexusmodloader/host-modules.properties"
+val hostModuleIndex = tasks.register("hostModuleIndex") {
+    val inputDirs = hostModuleResources
+    val output = layout.buildDirectory.dir("host-module-index")
+    inputs.files(inputDirs)
+    outputs.dir(output)
+    doLast {
+        val merged = sortedMapOf<String, String>()
+        for (dir in inputDirs.get().files) {
+            val index = dir.resolve(hostModuleIndexPath)
+            if (index.isFile) {
+                val entries = Properties()
+                index.inputStream().use { entries.load(it) }
+                for (key in entries.stringPropertyNames()) {
+                    check(merged.putIfAbsent(key, entries.getProperty(key)) == null) { "Host module index key $key twice" }
+                }
+            }
+        }
+        val file = output.get().asFile.resolve(hostModuleIndexPath)
+        file.parentFile.mkdirs()
+        file.writeText(merged.entries.joinToString("") { "${it.key}=${it.value}\n" })
+    }
 }
 tasks.jar {
     from(quiltLoaderApi)
-    from(hostModuleResources)
+    from(hostModuleResources) { exclude(hostModuleIndexPath) }
+    from(hostModuleIndex)
 }
 dependencies {
     // The bridge compiles against the packed Quilt classes only, not the whole Quilt Loader jar: that jar also carries

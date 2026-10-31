@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric-object-builder-api-v1",
+  "name": "Fabric Object Builder API (v1)",
+  "version": "24.1.12+plexus.neoforge.26.3",
+  "environment": "*",
+  "license": "Apache-2.0",
+  "icon": "assets/fabric-object-builder-api-v1/icon.png",
+  "contact": {
+    "sources": "https://github.com/Sinytra/ForgifiedFabricAPI"
+  },
+  "authors": [
+    "FabricMC",
+    "Sinytra"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api-base": "*",
+    "fabric-registry-sync-v0": "*",
+    "minecraft": "26.3",
+    "fabric-transitive-access-wideners-v1": "*"
+  },
+  "description": "Builders for objects vanilla has locked down.",
+  "mixins": [
+    "fabric-object-builder-v1.mixins.json"
+  ],
+  "accessWidener": "fabric-object-builder-api-v1.classtweaker",
+  "custom": {
+    "fabric-api:module-lifecycle": "stable",
+    "plexusmodloader:host-module": {
+      "host": "neoforge",
+      "minecraft": "26.3",
+      "replaces": "24.1.12"
+    }
+  }
+}

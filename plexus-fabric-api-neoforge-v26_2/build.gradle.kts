@@ -56,13 +56,35 @@ tasks.withType<JavaCompile>().configureEach {
 // index entry <host key>.<mod id> for it. The host key is HostModules.hostKey of the host's name ("NeoForge 26.2.0.93").
 val hostKey = "neoforge-$neoForgeRelease"
 
-/** One host module: its mod ID, the source set (src/<sourceSet>) and the version its jar carries. */
-data class HostModule(val modId: String, val sourceSet: String, val version: String)
+/**
+ * One host module: its mod ID, the source set (src/<sourceSet>), the version its jar carries, whether the Fabric bridge
+ * carries it (a module that is not shipped is only compiled), whether it replaces the original even when the original
+ * fits NeoForge's patch (one that loads there but does not do what it does under Fabric Loader), and the source sets of
+ * the host modules it depends on (listed before it).
+ */
+data class HostModule(
+    val modId: String,
+    val sourceSet: String,
+    val version: String,
+    val shipped: Boolean = true,
+    val always: Boolean = false,
+    val dependsOn: List<String> = emptyList(),
+)
 
 // Fabric API 0.161.0+26.2's module versions these jars stand in for (ADR-0031: same public API as that version).
 val hostModules = listOf(
     HostModule("fabric-block-api-v1", "fabricBlockApiV1", "3.1.0+plexus.neoforge.26.2"),
     HostModule("fabric-item-api-v1", "fabricItemApiV1", "14.5.0+plexus.neoforge.26.2"),
+    HostModule("fabric-registry-sync-v0", "fabricRegistrySyncV0", "7.1.1+plexus.neoforge.26.2"),
+    // The original loads next to NeoForge, but its attribute modifications run before Fabric mods add them, into a map
+    // NeoForge's own attributes hide (fabric-object-builder test mod: zombie max health 20.0, not 42.0).
+    HostModule(
+        "fabric-object-builder-api-v1",
+        "fabricObjectBuilderApiV1",
+        "24.1.1+plexus.neoforge.26.2",
+        always = true,
+        dependsOn = listOf("fabricRegistrySyncV0"),
+    ),
 )
 
 val hostModuleJars = hostModules.map { module ->
@@ -79,6 +101,9 @@ val hostModuleJars = hostModules.map { module ->
         outputJar = layout.buildDirectory.file("compile-game/${module.sourceSet}.jar")
     }
     sourceSet.compileClasspath = files(tweaked.flatMap { it.outputJar }) + sourceSet.compileClasspath
+    for (dependency in module.dependsOn) {
+        sourceSet.compileClasspath += sourceSets.getByName(dependency).output
+    }
     module to tasks.register<Jar>("${module.sourceSet}Jar") {
         description = "Packs Plexus Mod Loader's ${module.modId} for NeoForge $neoForgeRelease."
         archiveBaseName = module.modId
@@ -89,17 +114,24 @@ val hostModuleJars = hostModules.map { module ->
 
 val hostModuleIndex = tasks.register<WriteProperties>("hostModuleIndex") {
     destinationFile = layout.buildDirectory.file("host-module-index/META-INF/plexusmodloader/host-modules.properties")
-    for ((module, jar) in hostModuleJars) {
+    for ((module, jar) in hostModuleJars.filter { it.first.shipped }) {
         property(
             "$hostKey.${module.modId}",
             jar.flatMap { it.archiveFileName.map { name -> "META-INF/plexusmodloader/host-modules/$hostKey/$name" } },
         )
+        if (module.always) {
+            property("$hostKey.${module.modId}.always", "true")
+        }
     }
 }
 val hostModuleResources = tasks.register<Sync>("hostModuleResources") {
     into(layout.buildDirectory.dir("host-module-resources"))
-    for ((_, jar) in hostModuleJars) {
-        from(jar) { into("META-INF/plexusmodloader/host-modules/$hostKey") }
+    for ((module, jar) in hostModuleJars) {
+        if (module.shipped) {
+            from(jar) { into("META-INF/plexusmodloader/host-modules/$hostKey") }
+        } else {
+            dependsOn(jar)
+        }
     }
     from(hostModuleIndex.flatMap { it.destinationFile }) { into("META-INF/plexusmodloader") }
 }

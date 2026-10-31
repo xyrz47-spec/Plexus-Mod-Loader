@@ -55,6 +55,8 @@ neoforgeFml12 = "12.0.12"
 neoforgeMergetool = "2.0.7"
 # The NeoForge release and its event bus the NeoForge test mods compile against (ADR-0026).
 neoforge = "26.2.0.93"
+# The NeoForge release Plexus Mod Loader pins for 26.3; its Fabric API host modules compile against it (ADR-0031).
+neoforge263 = "26.3.0.98"
 neoforgeBus = "8.0.5"
 # The Maven version ranges FML checks mods.toml with (a Forge library; Plexus Mod Loader's tests use the same).
 mavenArtifact = "3.8.8"
@@ -107,6 +109,7 @@ neoforge-fml-loader = { module = "net.neoforged.fancymodloader:loader", version.
 neoforge-fml12-loader = { module = "net.neoforged.fancymodloader:loader", version.ref = "neoforgeFml12" }
 neoforge-mergetool-api = { module = "net.neoforged:mergetool", version.ref = "neoforgeMergetool" }
 neoforge-universal = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
+neoforge263-universal = { module = "net.neoforged:neoforge", version.ref = "neoforge263" }
 neoforge-bus = { module = "net.neoforged:bus", version.ref = "neoforgeBus" }
 jopt-simple = { module = "net.sf.jopt-simple:jopt-simple", version.ref = "joptSimple" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }

@@ -1,0 +1,3 @@
+classTweaker	v1	official
+accessible field net/minecraft/resources/RegistryLoadTask registry Lnet/minecraft/core/WritableRegistry;
+transitive-inject-interface	net/minecraft/core/Registry	net/fabricmc/fabric/api/event/registry/FabricRegistry

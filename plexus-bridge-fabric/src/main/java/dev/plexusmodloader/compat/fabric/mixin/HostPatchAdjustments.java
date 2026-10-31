@@ -855,6 +855,11 @@ final class HostPatchAdjustments {
                                                 && annotation.className().equalsString(MODIFY_ARG))
                                         && !((inPlaceRedirect.isPresent() || hostList.isPresent())
                                                 && annotation.className().equalsString(REDIRECT))
+                                        && !(hostList.isPresent()
+                                                && hostList.get()
+                                                        .replacement()
+                                                        .equals(HostListExtensions.HOST_FILLED_ARGUMENT)
+                                                && annotation.className().equalsString(MODIFY_ARG))
                                         && !(bedWrap.isPresent()
                                                 && (annotation.className().equalsString(WRAP_OPERATION)
                                                         || annotation
@@ -923,17 +928,34 @@ final class HostPatchAdjustments {
                                 handlers,
                                 methodHandlers,
                                 sliceHandlers)));
-                hostList.ifPresent(present -> HostListExtensions.bridgeMethod(
-                        builder,
-                        model,
-                        method,
-                        adjust(
-                                annotation(method.attributes(), REDIRECT).orElseThrow(),
-                                handlers,
-                                methodHandlers,
-                                sliceHandlers),
-                        present.replaced(),
-                        present.replacement()));
+                hostList.ifPresent(present -> {
+                    if (present.replacement().equals(HostListExtensions.HOST_FILLED_ARGUMENT)) {
+                        HostListExtensions.modifyArgBridge(
+                                builder,
+                                model,
+                                method,
+                                adjust(
+                                        annotation(method.attributes(), MODIFY_ARG)
+                                                .orElseThrow(),
+                                        handlers,
+                                        methodHandlers,
+                                        sliceHandlers),
+                                present.replaced());
+                    } else {
+                        HostListExtensions.bridgeMethod(
+                                builder,
+                                model,
+                                method,
+                                adjust(
+                                        annotation(method.attributes(), REDIRECT)
+                                                .orElseThrow(),
+                                        handlers,
+                                        methodHandlers,
+                                        sliceHandlers),
+                                present.replaced(),
+                                present.replacement());
+                    }
+                });
                 replacedCall.ifPresent(present -> {
                     if (present.replaced().equals(HostConditionalSkip.SKIP)) {
                         return;
@@ -3112,8 +3134,8 @@ final class HostPatchAdjustments {
                                 && !capturedArgumentsFit(handler, type, before, movedMethods)) {
                             return Optional.of(new Injection(
                                     where + " at " + point[1] + ": " + host.hostName() + " moved that call to "
-                                            + targetName + "." + movedMethodSpec + ", whose parameters do not start"
-                                            + " with the target method's parameters the handler takes; this injection"
+                                            + targetName + "." + movedMethodSpec + ", whose parameters do not fit"
+                                            + " the target method's parameters the handler takes; this injection"
                                             + " does not run",
                                     null));
                         }
@@ -3180,6 +3202,27 @@ final class HostPatchAdjustments {
                                 + "'s patch removed that " + point[0].toLowerCase(Locale.ROOT)
                                 + " there; this injection does not run",
                         null));
+            }
+        }
+        // A list argument the handler replaces may be the host's own list, which the host fills after the mod took its
+        // copy (MinecraftForge 26.2's RegistryDataLoader.WORLDGEN_REGISTRIES and Fabric API's WorldLoaderMixin).
+        for (String selector : selectors) {
+            String name = selector.replaceFirst("^L[^;]+;", "");
+            String descriptor = name.contains("(") ? name.substring(name.indexOf('(')) : null;
+            name = descriptor == null ? name : name.substring(0, name.indexOf('('));
+            Optional<String> field = HostListExtensions.hostFilledArgument(
+                    handler, type, methods(patched, name, descriptor), hostOwned, patchedClasses);
+            if (field.isPresent()) {
+                return Optional.of(Injection.hostList(
+                        "@" + simple + " " + handler.methodName().stringValue() + " into " + targetName + "." + name
+                                + ": " + host.hostName() + " fills " + field.get()
+                                + " with its own entries after the mod copied it; a bridge adds the host's entries the"
+                                + " handler's list lacks",
+                        new HostList(
+                                handler.methodName().stringValue(),
+                                handler.methodType().stringValue(),
+                                field.get(),
+                                HostListExtensions.HOST_FILLED_ARGUMENT)));
             }
         }
         return Optional.empty();
@@ -3745,7 +3788,10 @@ final class HostPatchAdjustments {
      * between its own and the sugar ones, when they start {@code vanilla}'s parameters (else they are captured locals,
      * which this does not judge); for the others, the longest run before the sugar ones that starts {@code vanilla}'s
      * parameters. NeoForge 26.3.0.98's {@code lambda$startSleepInBed$0} takes {@code (BlockState, BedRule, BlockPos,
-     * boolean)} where vanilla's {@code startSleepInBed} takes {@code (AbstractBedBlock, BlockState, BlockPos)}.
+     * boolean)} where vanilla's {@code startSleepInBed} takes {@code (AbstractBedBlock, BlockState, BlockPos)}. An
+     * {@code @Inject} handler's parameters before its {@code CallbackInfo} must be all of each moved method's
+     * parameters, when it has any: NeoForge 26.2.0.93 moved {@code ServerPlayer.openMenu(MenuProvider)}'s body to
+     * {@code openMenu(MenuProvider, Consumer)}.
      */
     static boolean capturedArgumentsFit(
             MethodModel handler, String type, List<MethodModel> vanilla, List<MethodModel> moved) {
@@ -3772,6 +3818,15 @@ final class HostPatchAdjustments {
         }
         if ((type.equals(INJECT) || type.equals(WRAP_OPERATION)) && start < 0) {
             return true;
+        }
+        // An @Inject handler takes none of the target method's parameters or all of them, before its CallbackInfo;
+        // Mixin refuses one that takes vanilla's on a method with other parameters.
+        if (type.equals(INJECT) && start > 1) {
+            List<ClassDesc> leading = parameters.subList(0, start - 1);
+            if (moved.stream()
+                    .anyMatch(found -> !found.methodTypeSymbol().parameterList().equals(leading))) {
+                return false;
+            }
         }
         for (MethodModel method : vanilla) {
             List<ClassDesc> targetParameters = method.methodTypeSymbol().parameterList();

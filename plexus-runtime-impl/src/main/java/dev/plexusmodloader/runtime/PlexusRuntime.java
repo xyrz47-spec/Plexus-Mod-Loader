@@ -253,8 +253,9 @@ public final class PlexusRuntime {
                     PlexusRuntime.class.getClassLoader(),
                     foreignMods.bridges(),
                     assessedForeignMods);
-            // A left-out Fabric API module runs as Plexus Mod Loader's build on the host's hooks, when there is one for
-            // this host release (ADR-0031); that build must fit the patch too.
+            // A left-out Fabric API module, or one that loads but does not work as written next to the host, runs as
+            // Plexus Mod Loader's build on the host's hooks, when there is one for this host release (ADR-0031); that
+            // build must fit the patch too.
             HostModules.Result hostModules = HostModules.replaceLeftOut(
                     host.get().name(),
                     assessedForeignMods,
@@ -262,12 +263,14 @@ public final class PlexusRuntime {
                     configuration.side(),
                     configuration.reportDirectory().resolve("host-modules"),
                     PlexusRuntime.class.getClassLoader());
-            for (Path[] replaced : hostModules.replaced()) {
+            for (HostModules.Replacement replaced : hostModules.replaced()) {
                 LOGGER.info(
                         "[Plexus Mod Loader] {} {} {}",
-                        replaced[0].getFileName(),
-                        "does not fit the host's patch (PLEXUS-COMPAT-224); Plexus Mod Loader runs its build on the host's hooks instead (ADR-0031):",
-                        replaced[1].getFileName());
+                        replaced.original().getFileName(),
+                        replaced.leftOut()
+                                ? "does not fit the host's patch (PLEXUS-COMPAT-224); Plexus Mod Loader runs its build on the host's hooks instead (ADR-0031):"
+                                : "loads next to the host but does not work there as it does under Fabric Loader; Plexus Mod Loader runs its build on the host's hooks instead (ADR-0031):",
+                        replaced.hostModule().getFileName());
             }
             if (!hostModules.replaced().isEmpty()) {
                 assessedForeignMods = HostPatchCheck.apply(
@@ -767,7 +770,10 @@ public final class PlexusRuntime {
             }
             events.publish(LifecycleEvents.MODS_INITIALIZED, ModsInitializedListener::onModsInitialized);
         };
-        if (adapter.bindModInitialization(configuration.target(), modInitialization)) {
+        // A host whose mods register after Minecraft's mod initialization point on this side may run it later.
+        Runnable atModInitializationPoint = () ->
+                host.ifPresentOrElse(found -> found.atModInitializationPoint(modInitialization), modInitialization);
+        if (adapter.bindModInitialization(configuration.target(), atModInitializationPoint)) {
             if (!foreignInOrder.isEmpty()) {
                 LOGGER.info(
                         "[Plexus Mod Loader] {} foreign mod(s) are initialised when Minecraft reaches its mod initialization"

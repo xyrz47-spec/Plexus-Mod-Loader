@@ -1668,18 +1668,32 @@ val fabricApiEvents = if (minecraft == "26.2") {
         "[fabric_api_events] crafting remainder of a lava bucket: minecraft:bucket",
         "All 1 required tests passed",
     )
+    // fabric-registry-sync-v0's dynamic registry and fabric-object-builder-api-v1's builders, on all three setups.
+    val registrySyncMods = mods + modJars(":test-mods:fabric-dynamic-registry", ":test-mods:fabric-object-builder")
+    val registrySyncLines = listOf(
+        "[fabric_dynamic_registry] DynamicRegistrySetupCallback sees fabric_dynamic_registry:demo: true",
+        "[fabric_dynamic_registry] fabric_dynamic_registry:demo has fabric_dynamic_registry:sample = hello",
+        "[fabric_object_builder] default max health of minecraft:zombie: 42.0",
+        "[fabric_object_builder] minecraft:furnace block entity type accepts minecraft:smoker: true",
+        "[fabric_object_builder] entity data serializer fabric_object_builder:counter registered: true",
+        "[fabric_object_builder] mob attributes built in onInitialize, max health: 20.0",
+    )
     listOf(
-        scenarios.gameTest("fabricApiGameTest", mods) {
+        scenarios.gameTest("fabricApiGameTest", registrySyncMods) {
             dependsOn(modCorpus)
             description = "Real Fabric API's block break events, resource conditions and crafting remainders on the vanilla game."
             expectedOutput.addAll(lines)
+            expectedOutput.addAll(registrySyncLines)
         },
-        scenarios.gameTest("forgeFabricApiGameTest", mods) {
+        scenarios.gameTest("forgeFabricApiGameTest", registrySyncMods) {
             dependsOn(modCorpus)
             classpath(forgeClassPath)
             systemProperty("plexus.forge", "always")
             description = "Real Fabric API with MinecraftForge: every module but fabric-content-registries-v0 loaded."
             expectedOutput.addAll(lines)
+            expectedOutput.addAll(registrySyncLines)
+            // Forge fills RegistryDataLoader.WORLDGEN_REGISTRIES after Fabric API copied it; a bridge keeps Forge's.
+            expectedOutput.add("fills Lnet/minecraft/resources/RegistryDataLoader;WORLDGEN_REGISTRIES")
             expectedOutput.addAll(
                 "Fabric mod fabric_api_events 1.0.0 (fabric-api-events-",
                 "Forge mod loading, version 65.1.5",
@@ -1694,18 +1708,72 @@ val fabricApiEvents = if (minecraft == "26.2") {
         // conditions through NeoForge's conditional codec, block break events through events-interaction. The item
         // module is left out there (224); the remainder line then comes from NeoForge's own stack call.
         // NeoForge starts only with a NeoForge mod file in the game; the harness is one.
-        scenarios.gameTest("neoForgeFabricApiGameTest", mods + modJars(":test-mods:neoforge-gametest-harness")) {
+        scenarios.gameTest(
+            "neoForgeFabricApiGameTest",
+            registrySyncMods + modJars(":test-mods:neoforge-gametest-harness"),
+        ) {
             dependsOn(modCorpus)
             runsNeoForge()
             description = "Real Fabric API's block break events, resource conditions and crafting remainders next to NeoForge."
             expectedOutput.addAll(lines)
+            expectedOutput.addAll(registrySyncLines)
             expectedOutput.addAll(
                 "Fabric mod fabric_api_events 1.0.0 (fabric-api-events-",
                 "[Plexus Mod Loader] Phase GAME_LAUNCH: NeoForge ",
                 "@Inject skipData into net/minecraft/server/packs/resources/SimpleJsonResourceReloadListener",
-                // The block module runs as Plexus Mod Loader's build on NeoForge's hooks (ADR-0031).
+                // These modules run as Plexus Mod Loader's builds on NeoForge's hooks (ADR-0031).
                 "runs its build on the host's hooks instead (ADR-0031): fabric-block-api-v1-3.1.0+plexus.neoforge.26.2.jar",
                 "runs its build on the host's hooks instead (ADR-0031): fabric-item-api-v1-14.5.0+plexus.neoforge.26.2.jar",
+                "runs its build on the host's hooks instead (ADR-0031): fabric-registry-sync-v0-7.1.1+plexus.neoforge.26.2.jar",
+                // The original object builder loads there, but its attribute modifications do not reach the game.
+                "loads next to the host but does not work there as it does under Fabric Loader; Plexus Mod Loader runs"
+                    + " its build on the host's hooks instead (ADR-0031): fabric-object-builder-api-v1-24.1.1+plexus.neoforge.26.2.jar",
+            )
+            unexpectedOutput.addAll("PLEXUS-COMPAT-225", "Critical injection failure")
+        },
+    )
+} else if (minecraft == "26.3") {
+    // On 26.3, Fabric API's block, item, registry sync and object builder modules alone and next to NeoForge, where
+    // Plexus Mod Loader's builds of them run (ADR-0031). fabric-api-events is not used: next to NeoForge 26.3 the
+    // resource conditions and entity events modules it needs are still left out (224).
+    val mods = files(corpusRoot.map { it.dir("fabric").asFileTree.matching { include("fabric-api-*.jar") } }) +
+        modJars(
+            ":test-mods:fabric-block-item",
+            ":test-mods:fabric-dynamic-registry",
+            ":test-mods:fabric-object-builder",
+            gameTestHarness,
+        )
+    val lines = listOf(
+        "[fabric_block_item] FabricBlockState.getAppearance(minecraft:stone) = minecraft:stone",
+        "[fabric_block_item] FabricBlockState.getProvidedEnchantmentPower(minecraft:bookshelf) = 1.0",
+        "[fabric_block_item] enchanting table offers minecraft:sharpness for minecraft:diamond_sword: false",
+        "[fabric_block_item] enchanting table offers minecraft:sharpness for minecraft:iron_sword: true",
+        "[fabric_block_item] default max stack size of minecraft:stick: 16",
+        "[fabric_dynamic_registry] DynamicRegistrySetupCallback sees fabric_dynamic_registry:demo: true",
+        "[fabric_dynamic_registry] fabric_dynamic_registry:demo has fabric_dynamic_registry:sample = hello",
+        "[fabric_object_builder] default max health of minecraft:zombie: 42.0",
+        "[fabric_object_builder] minecraft:furnace block entity type accepts minecraft:smoker: true",
+        "[fabric_object_builder] entity data serializer fabric_object_builder:counter registered: true",
+        "[fabric_object_builder] mob attributes built in onInitialize, max health: 20.0",
+        "All 1 required tests passed",
+    )
+    listOf(
+        scenarios.gameTest("fabricApiGameTest", mods) {
+            dependsOn(modCorpus)
+            description = "Real Fabric API's block, item, registry sync and object builder modules on the vanilla game."
+            expectedOutput.addAll(lines)
+        },
+        scenarios.gameTest("neoForgeFabricApiGameTest", mods + modJars(":test-mods:neoforge-gametest-harness")) {
+            dependsOn(modCorpus)
+            runsNeoForge()
+            description = "Real Fabric API's block, item, registry sync and object builder modules next to NeoForge."
+            expectedOutput.addAll(lines)
+            expectedOutput.addAll(
+                "runs its build on the host's hooks instead (ADR-0031): fabric-block-api-v1-3.1.0+plexus.neoforge.26.3.jar",
+                "runs its build on the host's hooks instead (ADR-0031): fabric-item-api-v1-14.8.0+plexus.neoforge.26.3.jar",
+                "runs its build on the host's hooks instead (ADR-0031): fabric-registry-sync-v0-8.0.4+plexus.neoforge.26.3.jar",
+                "loads next to the host but does not work there as it does under Fabric Loader; Plexus Mod Loader runs"
+                    + " its build on the host's hooks instead (ADR-0031): fabric-object-builder-api-v1-24.1.12+plexus.neoforge.26.3.jar",
             )
             unexpectedOutput.addAll("PLEXUS-COMPAT-225", "Critical injection failure")
         },
@@ -2201,7 +2269,10 @@ clientWorldReload("corpusQuiltClient") {
     dependsOn(modCorpusQuilt)
     devModJars.from(modJars(":test-mods:fabric-client-session", ":test-mods:quilt-hello"))
     devModJars.from(corpusRoot.map {
-        it.dir("quilt").asFileTree.matching { include("*.jar"); exclude(brokenOnQuiltClient) }
+        // The world this opens cannot load the data of quiltDataBrokenOnGame's mods either.
+        it.dir("quilt").asFileTree.matching {
+            include("*.jar"); exclude(brokenOnQuiltClient); exclude(quiltDataBrokenOnGame)
+        }
     })
     worldName.set("plexus_quilt_corpus")
     // One folder per Minecraft version, so each version's client log stays after the next version's run.

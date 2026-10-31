@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric-block-api-v1",
+  "name": "Fabric Block API (v1)",
+  "version": "3.1.0+plexus.neoforge.26.3",
+  "environment": "*",
+  "license": "Apache-2.0",
+  "contact": {
+    "sources": "https://github.com/Sinytra/ForgifiedFabricAPI"
+  },
+  "authors": [
+    "FabricMC",
+    "Sinytra"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api-base": "*",
+    "minecraft": "26.3"
+  },
+  "description": "Hooks for blocks",
+  "mixins": [
+    "fabric-block-api-v1.mixins.json"
+  ],
+  "accessWidener": "fabric-block-api-v1.classtweaker",
+  "custom": {
+    "fabric-api:module-lifecycle": "stable",
+    "plexusmodloader:host-module": {
+      "host": "neoforge",
+      "minecraft": "26.3",
+      "replaces": "3.1.0"
+    }
+  }
+}

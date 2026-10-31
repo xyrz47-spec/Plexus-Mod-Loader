@@ -46,4 +46,26 @@ public final class ExtendedHostList {
         List<Object> result = Collections.unmodifiableList(extended);
         return stream ? result.stream() : result;
     }
+
+    /**
+     * The handler's replacement for a list argument, followed by the argument's elements it lacks, when the argument is
+     * the host's list ({@code field}, as it is now): what the host added after the mod took its copy stays.
+     *
+     * @param handlerList what the mod's handler returns in place of the argument
+     * @param argument the argument the game passes
+     * @param field the host-filled static field, read now
+     * @return {@code handlerList} when {@code argument} is not {@code field}, else an unmodifiable list
+     */
+    public static List<?> withHostEntries(List<?> handlerList, List<?> argument, List<?> field) {
+        if (argument != field) {
+            return handlerList;
+        }
+        List<Object> extended = new ArrayList<>(handlerList);
+        for (Object own : argument) {
+            if (!extended.contains(own)) {
+                extended.add(own);
+            }
+        }
+        return Collections.unmodifiableList(extended);
+    }
 }

@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.6.0 — 2026-10-31
+
+### Highlights
+
+- Minecraft 26.3 is now the default version. 26.2 and the other versions stay supported.
+- More Fabric mods run next to NeoForge: Plexus Mod Loader now carries its own builds of Fabric API's registry sync and object builder modules for NeoForge 26.2, and of the block, item, registry sync and object builder modules for NeoForge 26.3. Fabric mods that add dynamic registries, mob attributes or new block entity blocks get the same results as with Fabric Loader.
+- Fabric mods that add mobs no longer fail to start next to NeoForge on a dedicated server.
+
+### 주요 변경
+
+- 기본 Minecraft 버전이 26.3이 되었습니다. 26.2와 다른 버전도 계속 지원합니다.
+- NeoForge 옆에서 실행되는 Fabric 모드가 늘었습니다. Plexus 모드 로더가 NeoForge 26.2용 Fabric API registry sync·object builder 모듈과, NeoForge 26.3용 block·item·registry sync·object builder 모듈을 직접 구현해 함께 배포합니다. 동적 레지스트리, 몹 속성, 블록 엔티티 블록을 더하는 Fabric 모드가 Fabric Loader에서와 같은 결과를 냅니다.
+- 몹을 더하는 Fabric 모드가 NeoForge 전용 서버에서 시작하지 못하던 문제를 고쳤습니다.
+
+### Changed
+
+- The default Minecraft version is now 26.3 (`gradle/minecraft-versions.properties`): mod projects that do not set `plexusMinecraft`, `runClient`/`runServer` and the verification tasks run on 26.3. 26.2 stays supported; pick it with `plexusMinecraft=26.2` (or `-PplexusMinecraft=26.2`).
+
+### Added
+
+- Next to NeoForge 26.3.0.98, Fabric API 0.165.0+26.3's `fabric-block-api-v1`, `fabric-item-api-v1`, `fabric-registry-sync-v0` and `fabric-object-builder-api-v1` run as Plexus Mod Loader's own builds on NeoForge 26.3's hooks (ADR-0031), including 26.3's reloadable dynamic registries, tooltip order with component getters and block transformers.
+- Next to NeoForge 26.2.0.93, Fabric API's `fabric-registry-sync-v0` and `fabric-object-builder-api-v1` run as Plexus Mod Loader's own builds on NeoForge's hooks (ADR-0031): Fabric mods can register dynamic registries, default entity attributes, block entity valid blocks and entity data serializers there, with the same results as under Fabric Loader.
+
+### Fixed
+
+- Next to NeoForge on a dedicated or game test server, Fabric mods initialise after NeoForge's registration, as on a client: a Fabric mod that builds mob attributes in `onInitialize` (`Mob.createMobAttributes()`) no longer fails on NeoForge's unbound attributes, and a registry created with Fabric's registry builder after NeoForge's registry event is no longer refused.
+- Next to NeoForge, Fabric API's default attribute modifications (`FabricDefaultAttributeRegistry.MODIFY`) were silently lost: the original object builder module loads there but applies them too early, into a map NeoForge's attributes hide. A host module may now replace an original module that loads but behaves differently next to the host (ADR-0031, `always`).
+- Next to MinecraftForge, a Fabric mod that registers a dynamic registry (Fabric API's `DynamicRegistries`) no longer stops the server with `Missing registry: forge:biome_modifier`: Forge's own data pack registries stay in the list Fabric API hands the world loader.
+- Next to NeoForge, a Fabric mixin `@Inject` that takes the target method's parameters is no longer moved to a method with other parameters (Fabric API's `fabric-menu-api-v1` on `ServerPlayer.openMenu`); the mod is left out with `PLEXUS-COMPAT-224` instead of crashing the game.
+
 ## 1.5.0 — 2026-10-31
 
 ### Highlights

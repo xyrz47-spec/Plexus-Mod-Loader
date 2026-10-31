@@ -1,6 +1,7 @@
 package dev.plexusmodloader.runtime.discovery;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,6 +28,8 @@ class HostModulesTest {
 
     private static final String HOST = "NeoForge 26.2.0.93";
     private static final String RESOURCE = "META-INF/plexusmodloader/host-modules/neoforge-26.2.0.93/block-host.jar";
+    private static final String ALWAYS_RESOURCE =
+            "META-INF/plexusmodloader/host-modules/neoforge-26.2.0.93/object-builder-host.jar";
 
     @TempDir
     Path directory;
@@ -43,10 +46,15 @@ class HostModulesTest {
         Files.writeString(services, TestJarInJarBridge.class.getName());
         Path index = classes.resolve(HostModules.INDEX);
         Files.createDirectories(index.getParent());
-        Files.writeString(index, "neoforge-26.2.0.93.fabric-block-api-v1=" + RESOURCE + "\n");
+        Files.writeString(
+                index,
+                "neoforge-26.2.0.93.fabric-block-api-v1=" + RESOURCE + "\n"
+                        + "neoforge-26.2.0.93.fabric-object-builder-api-v1=" + ALWAYS_RESOURCE + "\n"
+                        + "neoforge-26.2.0.93.fabric-object-builder-api-v1.always=true\n");
         Path hostModule = classes.resolve(RESOURCE);
         Files.createDirectories(hostModule.getParent());
         fabricMod(hostModule, "fabric-block-api-v1", "3.1.0+plexus.neoforge.26.2");
+        fabricMod(classes.resolve(ALWAYS_RESOURCE), "fabric-object-builder-api-v1", "24.1.1+plexus.neoforge.26.2");
         loader = new URLClassLoader(
                 new URL[] {classes.toUri().toURL()}, getClass().getClassLoader());
         bridges = new ForeignModResolver(loader);
@@ -84,6 +92,33 @@ class HostModulesTest {
 
         assertEquals(List.of(), result.replaced());
         assertSame(fits, result.mods().getFirst());
+    }
+
+    @Test
+    void aHostModuleMarkedAlwaysReplacesAnOriginalThatFitsTheHost() throws IOException {
+        ForeignMod fits = mod("fabric-object-builder-api-v1", "24.1.1+6fcd5f039e");
+
+        HostModules.Result result = HostModules.replaceLeftOut(
+                HOST, List.of(fits), bridges, GameSide.DEDICATED_SERVER, directory.resolve("out"), loader);
+
+        assertEquals(1, result.replaced().size());
+        assertFalse(result.replaced().getFirst().leftOut());
+        assertEquals(fits.jar(), result.replaced().getFirst().original());
+        assertEquals(
+                "24.1.1+plexus.neoforge.26.2",
+                result.mods().getFirst().assessment().version());
+    }
+
+    @Test
+    void aReplacementOfALeftOutModSaysSo() throws IOException {
+        ForeignMod original = leftOut(mod("fabric-block-api-v1", "3.1.0+53515aab9e"));
+
+        HostModules.Result result = HostModules.replaceLeftOut(
+                HOST, List.of(original), bridges, GameSide.DEDICATED_SERVER, directory.resolve("out"), loader);
+
+        assertTrue(result.replaced().getFirst().leftOut());
+        assertEquals(
+                result.mods().getFirst().jar(), result.replaced().getFirst().hostModule());
     }
 
     @Test

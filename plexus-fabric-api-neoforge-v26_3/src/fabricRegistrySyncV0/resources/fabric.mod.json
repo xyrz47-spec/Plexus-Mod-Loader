@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric-registry-sync-v0",
+  "name": "Fabric Registry Sync (v0)",
+  "version": "8.0.4+plexus.neoforge.26.3",
+  "environment": "*",
+  "license": "Apache-2.0",
+  "icon": "assets/fabric-registry-sync-v0/icon.png",
+  "contact": {
+    "sources": "https://github.com/Sinytra/ForgifiedFabricAPI"
+  },
+  "authors": [
+    "FabricMC",
+    "Sinytra"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api-base": "*",
+    "minecraft": "26.3"
+  },
+  "description": "Syncs registry mappings.",
+  "entrypoints": {
+    "main": [
+      "net.fabricmc.fabric.impl.registry.sync.FabricRegistryInit"
+    ]
+  },
+  "mixins": [
+    "fabric-registry-sync-v0.mixins.json",
+    {
+      "config": "fabric-registry-sync-v0.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "accessWidener": "fabric-registry-sync-v0.classtweaker",
+  "custom": {
+    "fabric-api:module-lifecycle": "stable",
+    "plexusmodloader:host-module": {
+      "host": "neoforge",
+      "minecraft": "26.3",
+      "replaces": "8.0.4"
+    }
+  }
+}

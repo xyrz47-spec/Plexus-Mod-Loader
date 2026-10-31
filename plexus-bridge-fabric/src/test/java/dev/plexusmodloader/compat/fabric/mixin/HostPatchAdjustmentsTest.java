@@ -827,6 +827,46 @@ class HostPatchAdjustmentsTest {
                 method(model, "redirect", redirect), redirectType, List.of(vanilla), List.of(other)));
     }
 
+    /**
+     * An {@code @Inject} handler takes either none of the target method's parameters or all of them, before its {@code
+     * CallbackInfo}: NeoForge 26.2.0.93 moves {@code ServerPlayer.openMenu(MenuProvider)}'s body to {@code
+     * openMenu(MenuProvider, Consumer)}, and Fabric API's menu module injects there with {@code (MenuProvider,
+     * CallbackInfoReturnable)}, which Mixin refuses on the two-parameter method.
+     */
+    @Test
+    void anInjectTakingTheTargetsParametersMovesOnlyToTheSameParameters() {
+        ClassDesc callbackInfo = ClassDesc.of("org.spongepowered.asm.mixin.injection.callback.CallbackInfo");
+        MethodTypeDesc withArguments = MethodTypeDesc.of(CD_void, CD_String, CD_int, callbackInfo);
+        MethodTypeDesc withoutArguments = MethodTypeDesc.of(CD_void, callbackInfo);
+        ClassModel model = ClassFile.of().parse(ClassFile.of().build(TARGET, builder -> {
+            builder.withMethodBody("withArguments", withArguments, ClassFile.ACC_PRIVATE, code -> code.return_());
+            builder.withMethodBody("withoutArguments", withoutArguments, ClassFile.ACC_PRIVATE, code -> code.return_());
+            builder.withMethodBody(
+                    "run", MethodTypeDesc.of(CD_void, CD_String, CD_int), ClassFile.ACC_PUBLIC, code -> code.return_());
+            builder.withMethodBody(
+                    "longer",
+                    MethodTypeDesc.of(CD_void, CD_String, CD_int, CD_boolean),
+                    ClassFile.ACC_PUBLIC,
+                    code -> code.return_());
+            builder.withMethodBody(
+                    "copy",
+                    MethodTypeDesc.of(CD_void, CD_String, CD_int),
+                    ClassFile.ACC_PUBLIC,
+                    code -> code.return_());
+        }));
+        MethodModel vanilla = method(model, "run", MethodTypeDesc.of(CD_void, CD_String, CD_int));
+        MethodModel longer = method(model, "longer", MethodTypeDesc.of(CD_void, CD_String, CD_int, CD_boolean));
+        MethodModel copy = method(model, "copy", MethodTypeDesc.of(CD_void, CD_String, CD_int));
+        String inject = "Lorg/spongepowered/asm/mixin/injection/Inject;";
+
+        assertFalse(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "withArguments", withArguments), inject, List.of(vanilla), List.of(longer)));
+        assertTrue(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "withArguments", withArguments), inject, List.of(vanilla), List.of(copy)));
+        assertTrue(HostPatchAdjustments.capturedArgumentsFit(
+                method(model, "withoutArguments", withoutArguments), inject, List.of(vanilla), List.of(longer)));
+    }
+
     private HostPatchAdjustments implicitLocalPlan(byte[] mixin, byte[] vanilla, byte[] patched) throws IOException {
         Path jar = jar(Map.of(MEMBER_CONFIG, MEMBER_CONFIG_TEXT, "m/MemberAccessor.class", mixin));
         HostedLaunch host = new HostedLaunch(
@@ -1791,6 +1831,169 @@ class HostPatchAdjustmentsTest {
                     code.areturn();
                 });
             });
+        });
+    }
+
+    private static final String OWNED_LOAD_CALL = "Lt/Loader;load(Ljava/util/List;)V";
+    private static final MethodTypeDesc LIST_TO_LIST = MethodTypeDesc.of(CD_List, CD_List);
+    private static final String OWNED_LIST_CONFIG_TEXT = "{\"package\":\"m\",\"mixins\":[\"OwnedListMixin\"]}";
+
+    /**
+     * MinecraftForge 26.2-65.1.5 makes {@code RegistryDataLoader.WORLDGEN_REGISTRIES} a view of its own list
+     * ({@code DataPackRegistriesHooks.grabWorldgenRegistries}) and adds its registries ({@code forge:biome_modifier})
+     * later; Fabric API's {@code WorldLoaderMixin} replaces that argument of {@code RegistryDataLoader.load} with its
+     * own list, copied when a mod first registers a dynamic registry. A bridge adds back the host's entries the
+     * handler's list lacks, when the argument is the host's list.
+     */
+    @Test
+    void aModifyArgReplacingAListTheHostOwnsKeepsTheHostsLaterEntries() throws Exception {
+        byte[] mixin = ownedListMixin();
+        HostPatchAdjustments adjustments = ownedListPlan(mixin, true);
+
+        assertEquals(1, adjustments.findings().size(), adjustments.findings().toString());
+        HostPatchAdjustments.Finding finding = adjustments.findings().getFirst();
+        assertEquals("PLEXUS-COMPAT-226", finding.code(), finding.toString());
+        assertTrue(finding.reason().contains("Lt/Loader;WORLD:Ljava/util/List;"), finding.reason());
+        byte[] applied = adjustments.apply("m.OwnedListMixin", mixin);
+        ClassModel model = ClassFile.of().parse(applied);
+        assertFalse(
+                annotationsOf(method(model, "fabricRegistries", LIST_TO_LIST)).contains("ModifyArg"));
+        String bridgeAnnotations = annotationsOf(method(model, "plexus$hostList$fabricRegistries", LIST_TO_LIST));
+        assertTrue(
+                bridgeAnnotations.contains("ModifyArg") && bridgeAnnotations.contains(OWNED_LOAD_CALL),
+                bridgeAnnotations);
+
+        byte[] loaderBytes = ownedListLoader(true);
+        byte[] hooksBytes = ownedListHooks();
+        ClassLoader loader = new ClassLoader(getClass().getClassLoader()) {
+            @Override
+            protected Class<?> findClass(String name) throws ClassNotFoundException {
+                byte[] bytes = switch (name) {
+                    case "t.Loader" -> loaderBytes;
+                    case "h.Hooks" -> hooksBytes;
+                    case "m.OwnedListMixin" -> applied;
+                    default -> throw new ClassNotFoundException(name);
+                };
+                return defineClass(name, bytes, 0, bytes.length);
+            }
+        };
+        Class<?> loaderClass = loader.loadClass("t.Loader");
+        List<String> hostList = List.of("world", "host");
+        loaderClass.getField("WORLD").set(null, hostList);
+        java.lang.reflect.Method bridge =
+                loader.loadClass("m.OwnedListMixin").getDeclaredMethod("plexus$hostList$fabricRegistries", List.class);
+        bridge.setAccessible(true);
+
+        assertEquals(List.of("world", "fabric", "host"), bridge.invoke(null, hostList));
+        // Another list than the host's is not the host's to complete.
+        assertEquals(List.of("world", "fabric"), bridge.invoke(null, List.of("world", "other")));
+    }
+
+    /** A list field the game fills itself is not the host's: the injection is left as it is. */
+    @Test
+    void aModifyArgReplacingAListTheGameOwnsIsLeftAlone() throws Exception {
+        HostPatchAdjustments adjustments = ownedListPlan(ownedListMixin(), false);
+
+        assertTrue(adjustments.findings().isEmpty(), adjustments.findings().toString());
+    }
+
+    private HostPatchAdjustments ownedListPlan(byte[] mixin, boolean hostOwned) throws IOException {
+        Path jar = jar(Map.of(CONFIG, OWNED_LIST_CONFIG_TEXT, "m/OwnedListMixin.class", mixin));
+        HostedLaunch host = new HostedLaunch("Host 1", List.of(), List.of(), directory);
+        return HostPatchAdjustments.plan(
+                host,
+                GameSide.DEDICATED_SERVER,
+                Map.of(CONFIG, "example"),
+                Map.of("example", jar),
+                vanillaOf("t/Target", ownedListTarget()),
+                classes(Map.of(
+                        "t/Target",
+                        ownedListTarget(),
+                        "t/Loader",
+                        ownedListLoader(hostOwned),
+                        "h/Hooks",
+                        ownedListHooks())));
+    }
+
+    /** {@code static void loadWorld()} calling {@code Loader.load(Loader.WORLD)}, the same in both games. */
+    private static byte[] ownedListTarget() {
+        return ClassFile.of()
+                .build(
+                        TARGET,
+                        builder -> builder.withMethodBody(
+                                "loadWorld",
+                                MethodTypeDesc.of(CD_void),
+                                ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC,
+                                code -> {
+                                    code.getstatic(LIST_LOADER, "WORLD", CD_List);
+                                    code.invokestatic(LIST_LOADER, "load", MethodTypeDesc.of(CD_void, CD_List));
+                                    code.return_();
+                                }));
+    }
+
+    /**
+     * The patched game's {@code t.Loader}: {@code WORLD} comes from the host's {@code h.Hooks.grab()} when {@code
+     * hostOwned}, else from {@code List.of()}; {@code load(List)} does nothing.
+     */
+    private static byte[] ownedListLoader(boolean hostOwned) {
+        return ClassFile.of().build(LIST_LOADER, builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC);
+            builder.withField("WORLD", CD_List, ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC);
+            builder.withMethodBody(
+                    "load",
+                    MethodTypeDesc.of(CD_void, CD_List),
+                    ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC,
+                    code -> code.return_());
+            builder.withMethodBody("<clinit>", MethodTypeDesc.of(CD_void), ClassFile.ACC_STATIC, code -> {
+                if (hostOwned) {
+                    code.invokestatic(ClassDesc.of("h.Hooks"), "grab", LIST_RESULT);
+                } else {
+                    code.invokestatic(CD_List, "of", LIST_RESULT, true);
+                }
+                code.putstatic(LIST_LOADER, "WORLD", CD_List);
+                code.return_();
+            });
+        });
+    }
+
+    /** The host's {@code h.Hooks} with {@code static List grab()} returning an empty list. */
+    private static byte[] ownedListHooks() {
+        return ClassFile.of().build(ClassDesc.of("h.Hooks"), builder -> {
+            builder.withFlags(ClassFile.ACC_PUBLIC);
+            builder.withMethodBody("grab", LIST_RESULT, ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC, code -> {
+                code.invokestatic(CD_List, "of", LIST_RESULT, true);
+                code.areturn();
+            });
+        });
+    }
+
+    /**
+     * A mixin like Fabric API's {@code WorldLoaderMixin}: {@code @ModifyArg} of {@code Loader.load}'s list in {@code
+     * loadWorld} by {@code static List fabricRegistries(List)}, which returns {@code ["world", "fabric"]}.
+     */
+    private static byte[] ownedListMixin() {
+        Annotation modifyArg = Annotation.of(
+                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/ModifyArg;"),
+                AnnotationElement.of("method", AnnotationValue.ofArray(AnnotationValue.ofString("loadWorld"))),
+                AnnotationElement.ofAnnotation(
+                        "at",
+                        Annotation.of(
+                                ClassDesc.ofDescriptor("Lorg/spongepowered/asm/mixin/injection/At;"),
+                                AnnotationElement.ofString("value", "INVOKE"),
+                                AnnotationElement.ofString("target", OWNED_LOAD_CALL))),
+                AnnotationElement.ofInt("index", 0));
+        return ClassFile.of().build(ClassDesc.of("m.OwnedListMixin"), builder -> {
+            builder.with(RuntimeInvisibleAnnotationsAttribute.of(mixinAnnotation()));
+            builder.withMethod(
+                    "fabricRegistries", LIST_TO_LIST, ClassFile.ACC_PRIVATE | ClassFile.ACC_STATIC, method -> {
+                        method.with(RuntimeVisibleAnnotationsAttribute.of(modifyArg));
+                        method.withCode(code -> {
+                            code.ldc("world");
+                            code.ldc("fabric");
+                            code.invokestatic(CD_List, "of", MethodTypeDesc.of(CD_List, CD_Object, CD_Object), true);
+                            code.areturn();
+                        });
+                    });
         });
     }
 

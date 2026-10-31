@@ -71,6 +71,7 @@ includeIfPresent(
     "plexus-bridge-forge",
     // Fabric API modules implemented on NeoForge 26.2 (ADR-0031).
     "plexus-fabric-api-neoforge-v26_2",
+    "plexus-fabric-api-neoforge-v26_3",
     "plexus-bootstrap",
     "plexus-installer",
     "examples:minimal-native-mod",
@@ -141,6 +142,9 @@ includeIfPresent(
     "test-mods:fabric-host-patch-probe",
     // Real Fabric API's events and data under MinecraftForge's patch (forgeFabricApiGameTest, ADR-0021 G8).
     "test-mods:fabric-api-events",
+    "test-mods:fabric-dynamic-registry",
+    "test-mods:fabric-object-builder",
+    "test-mods:fabric-block-item",
     "tools:api-reference",
     "tools:tick-probe",
 )
